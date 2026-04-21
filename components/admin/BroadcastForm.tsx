@@ -4,23 +4,24 @@ import { useState, useEffect } from 'react';
 import {
   Box,
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
   TextField,
   Typography,
-  Alert,
   CircularProgress,
   Chip,
   Stack,
 } from '@mui/material';
 import { Send as SendIcon } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase/client';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
+import { FONTS, COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 interface BroadcastFormProps {
   open: boolean;
@@ -150,17 +151,15 @@ export default function BroadcastForm({ open, onClose, weddingId }: BroadcastFor
   const selectedTemplateData = templates.find(t => t.name === selectedTemplate);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Send WhatsApp Broadcast</DialogTitle>
+    <PheraDialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <PheraDialogTitle onClose={onClose}>Send WhatsApp Broadcast</PheraDialogTitle>
       <DialogContent>
         <Stack spacing={3} sx={{ mt: 2 }}>
-          {error && <Alert severity="error">{error}</Alert>}
+          {error && <ErrorAlert>{error}</ErrorAlert>}
           {success && result && (
-            <Alert severity="success">
-              Broadcast sent successfully!
-              <br />
-              {result.successfulSends} sent, {result.failedSends} failed
-            </Alert>
+            <SuccessAlert>
+              Broadcast sent successfully! {result.successfulSends} sent, {result.failedSends} failed.
+            </SuccessAlert>
           )}
 
           {/* Template Selector */}
@@ -196,7 +195,7 @@ export default function BroadcastForm({ open, onClose, weddingId }: BroadcastFor
               <Typography variant="caption" color="text.secondary">
                 Template Preview:
               </Typography>
-              <Typography variant="body2" sx={{ mt: 1, fontFamily: 'monospace' }}>
+              <Typography variant="body2" sx={{ mt: 1, fontFamily: FONTS.body }}>
                 {selectedTemplateData.content}
               </Typography>
             </Box>
@@ -252,15 +251,15 @@ export default function BroadcastForm({ open, onClose, weddingId }: BroadcastFor
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           onClick={handleSend}
-          disabled={!selectedTemplate || loading}
-          startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
+          loading={loading}
+          disabled={!selectedTemplate}
+          startIcon={<SendIcon />}
         >
-          {loading ? 'Sending...' : 'Send Broadcast'}
-        </Button>
+          Send Broadcast
+        </PrimaryActionButton>
       </DialogActions>
-    </Dialog>
+    </PheraDialog>
   );
 }

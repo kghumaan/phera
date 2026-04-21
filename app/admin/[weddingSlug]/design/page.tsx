@@ -17,7 +17,7 @@ import {
   Tooltip,
   IconButton,
 } from '@mui/material';
-import { useState, useEffect, use, useCallback } from 'react';
+import { useState, useEffect, use, useCallback, useRef } from 'react';
 import { Check, ViewAgenda, UnfoldMore, InfoOutlined, Add, Delete } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import ImageUpload from '@/components/admin/ImageUpload';
@@ -25,6 +25,7 @@ import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
 import { BACKGROUNDS, BACKGROUND_UI_OPTIONS, FRAME_UI_OPTIONS } from '@/lib/constants/images';
+import { COUPLE_NAME_FONTS, DEFAULT_COUPLE_FONT_ID, getCoupleFont } from '@/lib/constants/fonts';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import ProBadge from '@/components/admin/ProBadge';
 import UpgradeModal from '@/components/admin/UpgradeModal';
@@ -37,17 +38,12 @@ import ProSelectionsModal, { ProSelection } from '@/components/admin/ProSelectio
 import ContinueButton from '@/components/admin/ContinueButton';
 import FeatureRequestModal from '@/components/admin/FeatureRequestModal';
 import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraCard } from '@/components/shared/Card';
 
 // Use the enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
-
-// Consistent section Paper styling (matches other onboarding pages)
-const sectionPaperSx = {
-  p: 3,
-  borderRadius: '16px',
-  bgcolor: '#fafafa',
-  boxShadow: 'none',
-};
 
 const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;
 
@@ -57,8 +53,8 @@ const FREE_COLOR_COUNT = 5;
 const FREE_FRAME_COUNT = 4;
 
 const COLOR_OPTIONS = [
-  { name: 'Rose', value: '#DE3F5E' },
-  { name: 'Black', value: '#141414' },
+  { name: 'Rose', value: COLORS.brand.primary },
+  { name: 'Black', value: COLORS.text.strong },
   { name: 'Plum', value: '#59114D' },
   { name: 'Ocean', value: '#004550' },
   { name: 'Maroon', value: '#941C28' },
@@ -89,12 +85,14 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   // Main site customization state
   const [mainBackground, setMainBackground] = useState<string>(BACKGROUNDS.BLUE_CLOUDS);
   const [customMainBackground, setCustomMainBackground] = useState<string | null>(null);
-  const [mainPrimaryColor, setMainPrimaryColor] = useState('#DE3F5E');
+  const [mainPrimaryColor, setMainPrimaryColor] = useState<string>(COLORS.brand.primary);
   const [websiteLayout, setWebsiteLayout] = useState<'multi_page' | 'vertical_scroll'>('vertical_scroll');
   const [frameImageUrl, setFrameImageUrl] = useState<string | null>(null);
+  const [coupleNameFont, setCoupleNameFont] = useState<string>(DEFAULT_COUPLE_FONT_ID);
+  const [coupleNamePreview, setCoupleNamePreview] = useState<string>('Simran & Arjun');
   const [coupleImages, setCoupleImages] = useState<(string | null)[]>(Array(6).fill(null));
 
-  const [initialDesignData, setInitialDesignData] = useState<any>(null);
+  const [initialDesignData, setInitialDesignData] = useState<Record<string, unknown> | null>(null);
   const [isDirty, setIsDirty] = useState(false);
 
   // Auto-save hook
@@ -126,9 +124,12 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
       pin_entry_primary_color: mainPrimaryColor,
       website_layout: websiteLayout,
       frame_image_url: frameImageUrl,
+      // `couple_name_font` / `couple_images` aren't in the generated types yet.
+      couple_name_font: coupleNameFont,
       couple_images: coupleImages.filter(img => img),
       couple_image_url: (coupleImages.filter(img => img)[0] as string) || null,
-    });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- field union not in generated supabase types
+    } as any);
     if (!result) throw new Error('Save failed');
 
     await weddingService.markUnpublishedChanges(weddingId);
@@ -138,11 +139,12 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
       primary_color: mainPrimaryColor,
       website_layout: websiteLayout,
       frame_image_url: frameImageUrl,
+      couple_name_font: coupleNameFont,
       couple_images: coupleImages.filter(img => img),
     });
     setIsDirty(false);
   }, [weddingId, isPro, mainBackground, customMainBackground,
-    mainPrimaryColor, websiteLayout, frameImageUrl, coupleImages]);
+    mainPrimaryColor, websiteLayout, frameImageUrl, coupleNameFont, coupleImages]);
 
   const { saveStatus, debouncedSave } = useAutoSave({ onSave: saveDesign, enabled: !!authUser });
 
@@ -166,12 +168,11 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         primary_color: mainPrimaryColor,
         website_layout: websiteLayout,
         frame_image_url: frameImageUrl,
+        couple_name_font: coupleNameFont,
         couple_images: coupleImages.filter(img => img),
       };
       const dirty = JSON.stringify(currentData) !== JSON.stringify(initialDesignData);
       setIsDirty(dirty);
-      // Don't auto-save when a basic user has pro selections — let them preview
-      // and prompt on navigation instead
       if (dirty && !hasProSelection) {
         debouncedSave();
       }
@@ -181,6 +182,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     mainPrimaryColor,
     websiteLayout,
     frameImageUrl,
+    coupleNameFont,
     coupleImages,
     initialDesignData,
     debouncedSave,
@@ -247,27 +249,28 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [visibleMainBgs, setVisibleMainBgs] = useState(8);
 
 
-  // Real-time Preview Sync Effect (debounced)
+  // Real-time Preview Sync — only broadcast when serialized value actually changes
+  const lastSyncRef = useRef('');
+
   useEffect(() => {
-    // Only sync if we have a weddingId and relevant data
     if (!weddingId) return;
+
+    const updates = {
+      background_image: customMainBackground || mainBackground,
+      primary_color: mainPrimaryColor,
+      website_layout: websiteLayout,
+      frame_image_url: frameImageUrl,
+      couple_name_font: coupleNameFont,
+      couple_images: coupleImages.filter(img => img),
+    };
+
+    const serialized = JSON.stringify(updates);
+    if (serialized === lastSyncRef.current) return;
+    lastSyncRef.current = serialized;
 
     const timer = setTimeout(() => {
       const channel = new BroadcastChannel('phera-design-sync');
-
-      const syncData = {
-        type: 'DESIGN_UPDATE',
-        weddingId,
-        updates: {
-          background_image: customMainBackground || mainBackground,
-          primary_color: mainPrimaryColor,
-          website_layout: websiteLayout,
-          frame_image_url: frameImageUrl,
-          couple_images: coupleImages.filter(img => img),
-        }
-      };
-
-      channel.postMessage(syncData);
+      channel.postMessage({ type: 'DESIGN_UPDATE', weddingId, updates });
       channel.close();
     }, 300);
 
@@ -279,6 +282,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     mainPrimaryColor,
     websiteLayout,
     frameImageUrl,
+    coupleNameFont,
     coupleImages
   ]);
 
@@ -294,13 +298,15 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
 
         // Load main site customizations
         setMainBackground(wedding.background_image || BACKGROUNDS.BLUE_CLOUDS);
-        setMainPrimaryColor(wedding.primary_color || '#DE3F5E');
+        setMainPrimaryColor(wedding.primary_color || COLORS.brand.primary);
         const rawLayout = wedding.website_layout as string;
         // Normalize legacy DB values
         const normalizedLayout: 'multi_page' | 'vertical_scroll' =
           (rawLayout === 'infinite_scroll' || rawLayout === 'vertical_scroll') ? 'vertical_scroll' : 'multi_page';
         setWebsiteLayout(normalizedLayout);
         setFrameImageUrl(wedding.frame_image_url || null);
+        setCoupleNameFont((wedding as { couple_name_font?: string | null }).couple_name_font || DEFAULT_COUPLE_FONT_ID);
+        setCoupleNamePreview(wedding.couple_name || 'Simran & Arjun');
 
         // Load couple images
         let loadedCoupleImages: (string | null)[] = Array(6).fill(null);
@@ -316,9 +322,10 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         // Set initial design data for dirty tracking (enables auto-save)
         setInitialDesignData({
           background_image: wedding.background_image || BACKGROUNDS.BLUE_CLOUDS,
-          primary_color: wedding.primary_color || '#DE3F5E',
+          primary_color: wedding.primary_color || COLORS.brand.primary,
           website_layout: normalizedLayout,
           frame_image_url: wedding.frame_image_url || null,
+          couple_name_font: (wedding as { couple_name_font?: string | null }).couple_name_font || DEFAULT_COUPLE_FONT_ID,
           couple_images: loadedCoupleImages.filter(img => img),
         });
       }
@@ -344,29 +351,27 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-              Look & Feel
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-              Customize the colors, backgrounds, and overall design of your wedding website
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexShrink: 0 }}>
-            <Button variant="outlined" onClick={() => setCustomModalOpen(true)} sx={SECONDARY_BUTTON_SX}>
-              Want something custom?
-            </Button>
-          </Box>
-        </Box>
+        <PageHeading
+          title="Look & Feel"
+          subtitle="Customize the colors, backgrounds, and overall design of your wedding website"
+          actions={
+            // On mobile this duplicate button crowds out the subtitle; the same
+            // CTA is rendered in the bottom action row below, so hide it here.
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              <Button variant="outlined" onClick={() => setCustomModalOpen(true)} sx={SECONDARY_BUTTON_SX}>
+                Want something custom?
+              </Button>
+            </Box>
+          }
+        />
 
         <Stack spacing={3}>
           {/* Desktop Layout Selection */}
-          <Paper sx={sectionPaperSx}>
-            <Typography variant="subtitleCaps" sx={{ mb: 1, color: '#1a1a1a' }}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
+            <Typography variant="subtitleCaps" sx={{ mb: 1, color: COLORS.text.strong }}>
               Desktop Layout
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
               Choose how your wedding details are displayed to guests
             </Typography>
 
@@ -380,32 +385,32 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                   <Paper
                     sx={{
                       p: 1.5,
-                      borderRadius: '10px',
-                      bgcolor: '#ffffff',
+                      borderRadius: RADII.sm,
+                      bgcolor: COLORS.bg.white,
                       border: websiteLayout === 'vertical_scroll' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
                       height: '100%',
                       display: 'flex',
                       alignItems: 'center',
-                      '&:hover': { borderColor: '#DE3F5E' },
+                      '&:hover': { borderColor: COLORS.brand.primary },
                     }}
                     onClick={() => setWebsiteLayout('vertical_scroll')}
                   >
                     <FormControlLabel
                       value="vertical_scroll"
-                      control={<Radio size="small" sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' }, p: 0.5 }} />}
+                      control={<Radio size="small" sx={{ color: COLORS.brand.primary, '&.Mui-checked': { color: COLORS.brand.primary }, p: 0.5 }} />}
                       label={
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                           <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
                               Vertical Scroll
                             </Typography>
-                            <Typography variant="caption" sx={{ color: '#6a6a6a', lineHeight: 1.3, display: { xs: 'none', sm: 'block' } }}>
+                            <Typography variant="caption" sx={{ color: COLORS.text.subtle, lineHeight: 1.3, display: { xs: 'none', sm: 'block' } }}>
                               All details shown as you scroll down
                             </Typography>
                           </Box>
-                          <UnfoldMore sx={{ fontSize: 36, color: '#DE3F5E', flexShrink: 0, ml: 1 }} />
+                          <UnfoldMore sx={{ fontSize: 36, color: COLORS.brand.primary, flexShrink: 0, ml: 1 }} />
                         </Box>
                       }
                       sx={{ alignItems: 'center', m: 0, gap: 0.5, width: '100%', '& .MuiFormControlLabel-label': { flex: 1 } }}
@@ -417,32 +422,32 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                   <Paper
                     sx={{
                       p: 1.5,
-                      borderRadius: '10px',
-                      bgcolor: '#ffffff',
+                      borderRadius: RADII.sm,
+                      bgcolor: COLORS.bg.white,
                       border: websiteLayout === 'multi_page' ? '2px solid #DE3F5E' : '1px solid #e0e0e0',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
                       height: '100%',
                       display: 'flex',
                       alignItems: 'center',
-                      '&:hover': { borderColor: '#DE3F5E' },
+                      '&:hover': { borderColor: COLORS.brand.primary },
                     }}
                     onClick={() => setWebsiteLayout('multi_page')}
                   >
                     <FormControlLabel
                       value="multi_page"
-                      control={<Radio size="small" sx={{ color: '#DE3F5E', '&.Mui-checked': { color: '#DE3F5E' }, p: 0.5 }} />}
+                      control={<Radio size="small" sx={{ color: COLORS.brand.primary, '&.Mui-checked': { color: COLORS.brand.primary }, p: 0.5 }} />}
                       label={
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                           <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
                               Multi-Page
                             </Typography>
-                            <Typography variant="caption" sx={{ color: '#6a6a6a', lineHeight: 1.3, display: { xs: 'none', sm: 'block' } }}>
+                            <Typography variant="caption" sx={{ color: COLORS.text.subtle, lineHeight: 1.3, display: { xs: 'none', sm: 'block' } }}>
                               Guests tap &apos;View Details&apos; to see event info
                             </Typography>
                           </Box>
-                          <ViewAgenda sx={{ fontSize: 36, color: '#DE3F5E', flexShrink: 0, ml: 1 }} />
+                          <ViewAgenda sx={{ fontSize: 36, color: COLORS.brand.primary, flexShrink: 0, ml: 1 }} />
                         </Box>
                       }
                       sx={{ alignItems: 'center', m: 0, gap: 0.5, width: '100%', '& .MuiFormControlLabel-label': { flex: 1 } }}
@@ -451,12 +456,12 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 </Grid>
               </Grid>
             </RadioGroup>
-          </Paper>
+          </PheraCard>
 
 
           {/* Main Background Selection */}
-          <Paper sx={sectionPaperSx}>
-            <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
+            <Typography variant="subtitleCaps" sx={{ mb: 2, color: COLORS.text.strong }}>
               Main Background Image
             </Typography>
 
@@ -480,11 +485,11 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                         borderRadius: 1,
                         cursor: 'pointer',
                         border: 3,
-                        borderColor: mainBackground === bg.url && !customMainBackground ? '#DE3F5E' : 'transparent',
+                        borderColor: mainBackground === bg.url && !customMainBackground ? COLORS.brand.primary : 'transparent',
                         transition: 'all 0.2s',
                         position: 'relative',
                         '&:hover': {
-                          borderColor: '#DE3F5E',
+                          borderColor: COLORS.brand.primary,
                           transform: 'scale(1.05)',
                         },
                       }}
@@ -502,9 +507,9 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
             <Stack direction="row" spacing={2} mb={3} justifyContent="center">
               {visibleMainBgs < BACKGROUND_OPTIONS.length && (
                 <Button
-                  onClick={() => setVisibleMainBgs((prev: number) => Math.min(prev + 8, BACKGROUND_OPTIONS.length))}
+                  onClick={() => setVisibleMainBgs(BACKGROUND_OPTIONS.length)}
                   variant="outlined"
-                  sx={{ color: '#DE3F5E', borderColor: '#DE3F5E', '&:hover': { borderColor: '#DE3F5E', bgcolor: 'rgba(222, 63, 94, 0.04)' } }}
+                  sx={{ color: COLORS.brand.primary, borderColor: COLORS.brand.primary, '&:hover': { borderColor: COLORS.brand.primary, bgcolor: 'rgba(222, 63, 94, 0.04)' } }}
                 >
                   Show More
                 </Button>
@@ -513,7 +518,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 <Button
                   onClick={() => setVisibleMainBgs(8)}
                   variant="text"
-                  sx={{ color: '#666' }}
+                  sx={{ color: COLORS.text.subtle }}
                 >
                   Show Less
                 </Button>
@@ -534,14 +539,14 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 maxWidth={600}
               />
             )}
-          </Paper>
+          </PheraCard>
 
           {/* Main Primary Color Selection */}
-          <Paper sx={sectionPaperSx}>
-            <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
+            <Typography variant="subtitleCaps" sx={{ mb: 2, color: COLORS.text.strong }}>
               Primary Theme Color
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3 }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 3 }}>
               Used for buttons, accents, and highlighting important elements
             </Typography>
 
@@ -560,18 +565,18 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                         borderRadius: 1,
                         cursor: 'pointer',
                         border: 3,
-                        borderColor: mainPrimaryColor === color.value ? '#000' : 'transparent',
+                        borderColor: mainPrimaryColor === color.value ? COLORS.text.strong : 'transparent',
                         transition: 'all 0.2s',
                         position: 'relative',
                         '&:hover': {
-                          borderColor: '#666',
+                          borderColor: COLORS.text.subtle,
                           transform: 'scale(1.05)',
                         },
                       }}
                     >
                       {isProOption && !isPro && <ProBadge position="corner" />}
                     </Box>
-                    <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: '#1a1a1a' }}>
+                    <Typography variant="caption" sx={{ display: 'block', mt: 1, textAlign: 'center', color: COLORS.text.strong }}>
                       {color.name}
                     </Typography>
                   </Grid>
@@ -590,18 +595,75 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
               />
               {!isPro && <ProBadge position="inline" />}
             </Box>
-          </Paper>
+          </PheraCard>
+
+          {/* Primary Font Style */}
+          <PheraCard variant="muted" sx={{ p: 3 }}>
+            <Typography variant="subtitleCaps" sx={{ mb: 1, color: COLORS.text.strong }}>
+              Primary Font Style
+            </Typography>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 3, display: 'block' }}>
+              Choose how the couple names appear on the hero section of your website.
+            </Typography>
+
+            {/* Live preview */}
+            <Box sx={{ textAlign: 'center', py: 3, mb: 3, bgcolor: COLORS.text.inverse, borderRadius: RADII.md, border: '1px solid #e0e0e0' }}>
+              <Typography sx={{
+                fontFamily: getCoupleFont(coupleNameFont).cssVar,
+                fontStyle: getCoupleFont(coupleNameFont).fontStyle || 'normal',
+                fontSize: { xs: 32, sm: 40 },
+                color: COLORS.text.strong,
+                lineHeight: 1.2,
+              }}>
+                {coupleNamePreview}
+              </Typography>
+            </Box>
+
+            {/* Font name chips — horizontal scroll */}
+            <Box sx={{ display: 'flex', gap: 1.5, overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { height: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(0,0,0,0.12)', borderRadius: 2 } }}>
+              {COUPLE_NAME_FONTS.map((font) => (
+                <Box
+                  key={font.id}
+                  onClick={() => { setCoupleNameFont(font.id); debouncedSave(); }}
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    borderRadius: RADII.sm,
+                    border: 2,
+                    borderColor: coupleNameFont === font.id ? COLORS.brand.primary : COLORS.border.default,
+                    bgcolor: coupleNameFont === font.id ? 'rgba(222, 63, 94, 0.04)' : COLORS.bg.white,
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    transition: 'all 0.2s',
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                    '&:hover': { borderColor: COLORS.brand.primary },
+                  }}
+                >
+                  <Typography sx={{
+                    fontFamily: font.cssVar,
+                    fontStyle: font.fontStyle || 'normal',
+                    fontSize: 14,
+                    color: coupleNameFont === font.id ? COLORS.brand.primary : COLORS.text.strong,
+                    fontWeight: coupleNameFont === font.id ? 600 : 400,
+                  }}>
+                    {font.name}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </PheraCard>
 
           {/* Images & Frames */}
-          <Paper sx={sectionPaperSx}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
             <Stack spacing={4}>
               {/* Couple Photos */}
               <Box>
-                <Typography variant="subtitleCaps" sx={{ mb: 2, color: '#1a1a1a' }}>
+                <Typography variant="subtitleCaps" sx={{ mb: 2, color: COLORS.text.strong }}>
                   Couple Photos (up to 6)
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
-                  Add multiple photos of the couple. Drag to re-order — the first photo is used as the main image.
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2, display: 'block' }}>
+                  Upload your favorite photos — or a wedding logo. Drag to reorder; the first is the main image.
                 </Typography>
 
                 {/* Add Photos Button (multiple) */}
@@ -639,13 +701,13 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                         input.click();
                       }}
                       sx={{
-                        borderColor: '#DE3F5E',
-                        color: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
+                        color: COLORS.brand.primary,
                         borderRadius: 1,
                         textTransform: 'none',
                         fontWeight: 600,
                         '&:hover': {
-                          borderColor: '#C8365A',
+                          borderColor: COLORS.brand.primaryHover,
                           bgcolor: 'rgba(222, 63, 94, 0.05)',
                         },
                       }}
@@ -667,11 +729,11 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                         height: 8,
                       },
                       '&::-webkit-scrollbar-track': {
-                        backgroundColor: '#f5f5f5',
+                        backgroundColor: COLORS.bg.subtle,
                         borderRadius: 4,
                       },
                       '&::-webkit-scrollbar-thumb': {
-                        backgroundColor: '#DE3F5E',
+                        backgroundColor: COLORS.brand.primary,
                         borderRadius: 4,
                       },
                     }}
@@ -746,10 +808,10 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                                 position: 'absolute',
                                 top: 6,
                                 left: 6,
-                                bgcolor: '#DE3F5E',
-                                color: 'white',
+                                bgcolor: COLORS.brand.primary,
+                                color: COLORS.text.inverse,
                                 fontWeight: 600,
-                                fontSize: '0.75rem',
+                                fontSize: '0.875rem',
                               }}
                             />
                           )}
@@ -767,7 +829,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                               top: 4,
                               right: 4,
                               bgcolor: 'rgba(0, 0, 0, 0.6)',
-                              color: 'white',
+                              color: COLORS.text.inverse,
                               '&:hover': {
                                 bgcolor: 'rgba(222, 63, 94, 0.9)',
                               },
@@ -786,10 +848,10 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
 
               {/* Frame Selection - Grid layout like backgrounds */}
               <Box>
-                <Typography variant="subtitle1" sx={{mb: 2, color: '#1a1a1a' }}>
+                <Typography variant="subtitle1" sx={{mb: 2, color: COLORS.text.strong }}>
                   Photo Frame
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 2, display: 'block' }}>
+                <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 2, display: 'block' }}>
                   Choose a decorative frame for your couple photos
                 </Typography>
 
@@ -805,14 +867,14 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                           aspectRatio: '1/1',
                           borderRadius: 1,
                           border: 3,
-                          borderColor: frameImageUrl === frame.url ? '#DE3F5E' : 'transparent',
+                          borderColor: frameImageUrl === frame.url ? COLORS.brand.primary : 'transparent',
                           cursor: 'pointer',
                           overflow: 'hidden',
                           position: 'relative',
                           transition: 'all 0.2s',
-                          bgcolor: '#ffffff',
+                          bgcolor: COLORS.bg.white,
                           '&:hover': {
-                            borderColor: '#DE3F5E',
+                            borderColor: COLORS.brand.primary,
                             transform: 'scale(1.05)',
                           },
                         }}
@@ -830,8 +892,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                         />
                         {isProFrame && !isPro && <ProBadge position="corner" />}
                         {frameImageUrl === frame.url && (
-                          <Box sx={{ position: 'absolute', top: 4, right: 4, bgcolor: '#DE3F5E', borderRadius: '50%', p: 0.25, display: 'flex' }}>
-                            <Check sx={{ color: 'white', fontSize: 14 }} />
+                          <Box sx={{ position: 'absolute', top: 4, right: 4, bgcolor: COLORS.brand.primary, borderRadius: '50%', p: 0.25, display: 'flex' }}>
+                            <Check sx={{ color: COLORS.text.inverse, fontSize: 14 }} />
                           </Box>
                         )}
                       </Box>
@@ -844,7 +906,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
                 </Grid>
               </Box>
             </Stack>
-          </Paper>
+          </PheraCard>
         </Stack>
 
         {/* Pro Selections Modal */}
@@ -864,11 +926,25 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
           onClose={() => setUpgradeModalOpen(false)}
         />
       </Stack >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4, mb: 2 }}>
-        <Button variant="outlined" onClick={() => setCustomModalOpen(true)} sx={SECONDARY_BUTTON_SX}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          gap: 2,
+          mt: 4,
+          mb: 2,
+        }}
+      >
+        <Button
+          variant="outlined"
+          onClick={() => setCustomModalOpen(true)}
+          sx={{ ...SECONDARY_BUTTON_SX, width: { xs: '100%', sm: 'auto' } }}
+        >
           Want something custom?
         </Button>
-        <Box sx={{ '& > .MuiBox-root': { mt: 0, mb: 0 } }}>
+        <Box sx={{ '& > .MuiBox-root': { mt: 0, mb: 0 }, width: { xs: '100%', sm: 'auto' } }}>
           <ContinueButton weddingSlug={weddingSlug} currentSection="design" weddingId={weddingId} />
         </Box>
       </Box>

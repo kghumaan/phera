@@ -2,10 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ─── Hoisted mocks ──────────────────────────────────────────────────
 
-const { mockGroqCreate, mockSupabaseFrom } = vi.hoisted(() => ({
-  mockGroqCreate: vi.fn(),
-  mockSupabaseFrom: vi.fn(),
-}));
+const { mockGroqCreate, mockSupabaseFrom, mockSupabaseRpc, mockDispatchTool } = vi.hoisted(() => {
+  // Set env vars so provider clients get initialized during module load
+  process.env.GROQ_API_KEY = 'test-groq-key';
+  // No GEMINI_API_KEY or DEEPSEEK_API_KEY — those providers stay null
+  return {
+    mockGroqCreate: vi.fn(),
+    mockSupabaseFrom: vi.fn(),
+    mockSupabaseRpc: vi.fn(),
+    mockDispatchTool: vi.fn(),
+  };
+});
 
 vi.mock('groq-sdk', () => ({
   default: class MockGroq {
@@ -13,11 +20,27 @@ vi.mock('groq-sdk', () => ({
   },
 }));
 
+// Mock Google GenAI — return null-like so Gemini is skipped (no API key in test env)
+vi.mock('@google/genai', () => ({
+  GoogleGenAI: class MockGoogleGenAI {
+    models = { generateContent: vi.fn() };
+  },
+}));
+
+// Mock OpenAI (used for DeepSeek fallback)
+vi.mock('openai', () => ({
+  default: class MockOpenAI {
+    chat = { completions: { create: vi.fn() } };
+  },
+}));
+
 // Chainable query builder
 function chain(data: any = null, error: any = null) {
   const c: any = {
     select: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
+    not: vi.fn().mockReturnThis(),
     in: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
@@ -28,7 +51,14 @@ function chain(data: any = null, error: any = null) {
 }
 
 vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({ from: mockSupabaseFrom })),
+  createClient: vi.fn(() => ({
+    from: mockSupabaseFrom,
+    rpc: mockSupabaseRpc,
+  })),
+}));
+
+vi.mock('@/lib/whatsapp/concierge-tools', () => ({
+  dispatchTool: mockDispatchTool,
 }));
 
 import { generateAIResponse } from '@/lib/whatsapp/ai-handler';
@@ -43,12 +73,18 @@ const baseParams = {
   userMessage: 'What time is the ceremony?',
 };
 
+/**
+ * Sets up mock data for all parallel queries in generateAIResponse.
+ * The handler now makes ~20 parallel queries + a timestamp update + rpc call.
+ * We use mockSupabaseFrom to return the appropriate chain for each table name.
+ */
 function setupMockData(overrides: {
   wedding?: any;
   events?: any[];
   schedule?: any[];
   scheduleItems?: any[];
   travel?: any[];
+  travelSections?: any[];
   faqs?: any[];
   rsvps?: any[];
   chat?: any[];
@@ -56,6 +92,13 @@ function setupMockData(overrides: {
   shops?: any[];
   settings?: any;
   knowledge?: any[];
+  guestDetail?: any;
+  flights?: any[];
+  hotels?: any[];
+  visas?: any[];
+  issues?: any[];
+  shuttle?: any[];
+  allRsvps?: any[];
 } = {}) {
   const defaults = {
     wedding: {
@@ -73,6 +116,7 @@ function setupMockData(overrides: {
     schedule: [],
     scheduleItems: [],
     travel: [],
+    travelSections: [],
     faqs: [],
     rsvps: [],
     chat: [],
@@ -80,28 +124,74 @@ function setupMockData(overrides: {
     shops: [],
     settings: null,
     knowledge: [],
+    guestDetail: {
+      id: 'g-456',
+      name: 'Priya',
+      phone: '+919876543210',
+      email: 'priya@test.com',
+      wedding_side: 'bride',
+      conversation_state: null,
+      conversation_topic: null,
+      ai_notes: null,
+    },
+    flights: [],
+    hotels: [],
+    visas: [],
+    issues: [],
+    shuttle: [],
+    allRsvps: [],
   };
 
   const d = { ...defaults, ...overrides };
 
-  // Promise.all expects 12 parallel queries in order
-  const mockCalls = [
-    chain(d.wedding),                    // weddings
-    chain(d.events),                     // wedding_events
-    chain(d.schedule),                   // wedding_schedule
-    chain(d.scheduleItems),              // schedule_items
-    chain(d.travel),                     // wedding_travel_cards
-    chain(d.faqs),                       // wedding_faqs
-    chain(d.rsvps),                      // rsvps
-    chain(d.chat),                       // whatsapp_chat_history
-    chain(d.registry),                   // wedding_registry
-    chain(d.shops),                      // wedding_shops
-    chain(d.settings),                   // wedding_settings
-    chain(d.knowledge),                  // concierge_knowledge_base
-  ];
+  // Map table names to their mock data
+  const tableData: Record<string, any> = {
+    weddings: d.wedding,
+    wedding_events: d.events,
+    wedding_schedule: d.schedule,
+    schedule_items: d.scheduleItems,
+    wedding_travel_cards: d.travel,
+    travel_sections: d.travelSections,
+    wedding_faqs: d.faqs,
+    rsvps: d.rsvps, // first call is guest rsvps, second is allRsvps
+    whatsapp_chat_history: d.chat,
+    wedding_registry: d.registry,
+    wedding_shops: d.shops,
+    wedding_settings: d.settings,
+    concierge_knowledge_base: d.knowledge,
+    guests: d.guestDetail,
+    guest_flights: d.flights,
+    guest_hotels: d.hotels,
+    guest_visas: d.visas,
+    coordination_issues: d.issues,
+    travel_bus_signups: d.shuttle,
+  };
 
-  let callIndex = 0;
-  mockSupabaseFrom.mockImplementation(() => mockCalls[callIndex++]);
+  // Track call count per table to handle 'rsvps' being called twice and 'guests' being called for update + select
+  const tableCalls: Record<string, number> = {};
+
+  mockSupabaseFrom.mockImplementation((table: string) => {
+    tableCalls[table] = (tableCalls[table] || 0) + 1;
+
+    // 'guests' first call is the update (timestamp), second is the select (guest detail)
+    if (table === 'guests' && tableCalls[table] === 1) {
+      return chain(null); // timestamp update — returns nothing
+    }
+    // 'guests' third call (after all parallel queries) is the outbound timestamp update
+    if (table === 'guests' && tableCalls[table] >= 3) {
+      return chain(null);
+    }
+
+    // 'rsvps' second call is the allRsvps aggregate count query
+    if (table === 'rsvps' && tableCalls[table] === 2) {
+      return chain(d.allRsvps);
+    }
+
+    const data = tableData[table];
+    return chain(data !== undefined ? data : null);
+  });
+
+  mockSupabaseRpc.mockResolvedValue({ data: null, error: null });
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────
@@ -110,8 +200,12 @@ describe('ai-handler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGroqCreate.mockResolvedValue({
-      choices: [{ message: { content: 'The ceremony starts at 4 PM at The Grand Palace!' } }],
+      choices: [{
+        message: { content: 'The ceremony starts at 4 PM at The Grand Palace!', tool_calls: null },
+        finish_reason: 'stop',
+      }],
     });
+    mockDispatchTool.mockResolvedValue({ success: true });
   });
 
   // ══════════════════════════════════════════════════════════════════
@@ -229,6 +323,32 @@ describe('ai-handler', () => {
       const systemPrompt = mockGroqCreate.mock.calls[0][0].messages[0].content;
       expect(systemPrompt).toContain('https://phera.io/test-wedding');
     });
+
+    it('should include guest flight info when available', async () => {
+      setupMockData({
+        flights: [
+          { airline: 'Air India', flight_number: 'AI-101', arrival_datetime: '2026-03-14T10:00:00', departure_datetime: null, arrival_airport: 'BOM', departure_airport: 'JFK' },
+        ],
+      });
+      await generateAIResponse(baseParams);
+
+      const systemPrompt = mockGroqCreate.mock.calls[0][0].messages[0].content;
+      expect(systemPrompt).toContain('Air India');
+      expect(systemPrompt).toContain('AI-101');
+    });
+
+    it('should include open coordination issues in guest context', async () => {
+      setupMockData({
+        issues: [
+          { category: 'visa', title: 'Visa application pending', priority: 'high' },
+        ],
+      });
+      await generateAIResponse(baseParams);
+
+      const systemPrompt = mockGroqCreate.mock.calls[0][0].messages[0].content;
+      expect(systemPrompt).toContain('Visa application pending');
+      expect(systemPrompt).toContain('HIGH');
+    });
   });
 
   // ══════════════════════════════════════════════════════════════════
@@ -241,7 +361,7 @@ describe('ai-handler', () => {
       await generateAIResponse(baseParams);
 
       const systemPrompt = mockGroqCreate.mock.calls[0][0].messages[0].content;
-      expect(systemPrompt).toContain('first message in the conversation');
+      expect(systemPrompt).toContain('start of the conversation');
       expect(systemPrompt).toContain('Greet them warmly');
     });
 
@@ -336,6 +456,16 @@ describe('ai-handler', () => {
       expect(mockGroqCreate.mock.calls[0][0].max_tokens).toBe(500);
     });
 
+    it('should pass tools to Groq', async () => {
+      setupMockData();
+      await generateAIResponse(baseParams);
+
+      const tools = mockGroqCreate.mock.calls[0][0].tools;
+      expect(tools).toBeDefined();
+      expect(tools.length).toBe(8);
+      expect(tools[0].type).toBe('function');
+    });
+
     it('should return the LLM response content', async () => {
       setupMockData();
       const result = await generateAIResponse(baseParams);
@@ -345,13 +475,136 @@ describe('ai-handler', () => {
   });
 
   // ══════════════════════════════════════════════════════════════════
+  // TOOL USE
+  // ══════════════════════════════════════════════════════════════════
+
+  describe('tool use', () => {
+    it('should dispatch tool calls and make a follow-up LLM call', async () => {
+      setupMockData();
+
+      // First call: model returns a tool call
+      mockGroqCreate
+        .mockResolvedValueOnce({
+          choices: [{
+            message: {
+              content: null,
+              tool_calls: [{
+                id: 'tc-1',
+                type: 'function',
+                function: {
+                  name: 'update_guest_rsvp',
+                  arguments: JSON.stringify({ attending: 'yes', guest_count: 2 }),
+                },
+              }],
+            },
+            finish_reason: 'tool_calls',
+          }],
+        })
+        // Second call: model returns final text
+        .mockResolvedValueOnce({
+          choices: [{
+            message: { content: 'Got it! I\'ve noted your RSVP as yes for 2 guests. See you there! 🎉', tool_calls: null },
+            finish_reason: 'stop',
+          }],
+        });
+
+      const result = await generateAIResponse(baseParams);
+
+      // Should have dispatched the tool
+      expect(mockDispatchTool).toHaveBeenCalledWith(
+        'update_guest_rsvp',
+        { attending: 'yes', guest_count: 2 },
+        'g-456',
+        'w-123',
+      );
+
+      // Should have made 2 Groq calls
+      expect(mockGroqCreate).toHaveBeenCalledTimes(2);
+
+      // Final response should be the text from the second call
+      expect(result).toContain('noted your RSVP');
+    });
+
+    it('should handle multiple tool calls in one response', async () => {
+      setupMockData();
+
+      mockGroqCreate
+        .mockResolvedValueOnce({
+          choices: [{
+            message: {
+              content: null,
+              tool_calls: [
+                {
+                  id: 'tc-1',
+                  type: 'function',
+                  function: { name: 'update_guest_rsvp', arguments: JSON.stringify({ attending: 'yes' }) },
+                },
+                {
+                  id: 'tc-2',
+                  type: 'function',
+                  function: { name: 'update_guest_notes', arguments: JSON.stringify({ note: 'Very excited about the sangeet' }) },
+                },
+              ],
+            },
+            finish_reason: 'tool_calls',
+          }],
+        })
+        .mockResolvedValueOnce({
+          choices: [{
+            message: { content: 'All set!', tool_calls: null },
+            finish_reason: 'stop',
+          }],
+        });
+
+      await generateAIResponse(baseParams);
+
+      expect(mockDispatchTool).toHaveBeenCalledTimes(2);
+      expect(mockDispatchTool).toHaveBeenCalledWith('update_guest_rsvp', { attending: 'yes' }, 'g-456', 'w-123');
+      expect(mockDispatchTool).toHaveBeenCalledWith('update_guest_notes', { note: 'Very excited about the sangeet' }, 'g-456', 'w-123');
+    });
+
+    it('should still return text response even if tool dispatch fails', async () => {
+      setupMockData();
+      mockDispatchTool.mockResolvedValue({ success: false, error: 'DB connection failed' });
+
+      mockGroqCreate
+        .mockResolvedValueOnce({
+          choices: [{
+            message: {
+              content: null,
+              tool_calls: [{
+                id: 'tc-1',
+                type: 'function',
+                function: { name: 'update_guest_rsvp', arguments: JSON.stringify({ attending: 'yes' }) },
+              }],
+            },
+            finish_reason: 'tool_calls',
+          }],
+        })
+        .mockResolvedValueOnce({
+          choices: [{
+            message: { content: 'I\'ve noted that. See you at the wedding!', tool_calls: null },
+            finish_reason: 'stop',
+          }],
+        });
+
+      const result = await generateAIResponse(baseParams);
+
+      // Should still get a response despite tool failure
+      expect(result).toContain('noted that');
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════
   // FALLBACK RESPONSE
   // ══════════════════════════════════════════════════════════════════
 
   describe('fallback response', () => {
-    it('should return fallback when Groq returns empty choices', async () => {
+    it('should return fallback when Groq returns empty content with no tool calls', async () => {
       setupMockData();
-      mockGroqCreate.mockResolvedValue({ choices: [{ message: { content: null } }] });
+      mockGroqCreate.mockResolvedValue({
+        choices: [{ message: { content: null, tool_calls: null }, finish_reason: 'stop' }],
+      });
 
       const result = await generateAIResponse(baseParams);
 
@@ -369,6 +622,26 @@ describe('ai-handler', () => {
 
       expect(result).toContain('Priya');
       expect(result).toContain('phera.io/test-wedding');
+    });
+
+    it('should attempt escalation when LLM call fails', async () => {
+      setupMockData();
+      mockGroqCreate.mockRejectedValue(new Error('API down'));
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      await generateAIResponse(baseParams);
+      consoleSpy.mockRestore();
+      warnSpy.mockRestore();
+      logSpy.mockRestore();
+
+      expect(mockDispatchTool).toHaveBeenCalledWith(
+        'escalate_to_human',
+        expect.objectContaining({ reason: expect.stringContaining('LLM call failed') }),
+        'g-456',
+        'w-123',
+      );
     });
   });
 
@@ -444,7 +717,6 @@ describe('ai-handler', () => {
       const systemPrompt = mockGroqCreate.mock.calls[0][0].messages[0].content;
       expect(systemPrompt).toContain('WhatsApp');
       expect(systemPrompt).toContain('*bold*');
-      expect(systemPrompt).toContain('concise');
     });
 
     it('should instruct not to make up information', async () => {
@@ -452,7 +724,7 @@ describe('ai-handler', () => {
       await generateAIResponse(baseParams);
 
       const systemPrompt = mockGroqCreate.mock.calls[0][0].messages[0].content;
-      expect(systemPrompt).toContain('Never make up information');
+      expect(systemPrompt).toContain('NEVER make up information');
     });
   });
 });

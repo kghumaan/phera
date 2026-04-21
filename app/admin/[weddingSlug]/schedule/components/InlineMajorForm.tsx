@@ -5,9 +5,11 @@ import { Box, TextField, Stack, Button, InputAdornment, CircularProgress } from 
 import { Add } from '@mui/icons-material';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import TimePicker from './TimePicker';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const COLOR_PALETTE = [
-  '#DE3F5E',
+  COLORS.brand.primary,
   '#FA9A00',
   '#941C28',
   '#59114D',
@@ -18,14 +20,14 @@ const COLOR_PALETTE = [
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    bgcolor: 'white',
-    '& fieldset': { borderColor: '#BCBCBC' },
-    '&:hover fieldset': { borderColor: '#999' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+    borderRadius: RADII.sm,
+    bgcolor: COLORS.bg.white,
+    '& fieldset': { borderColor: COLORS.text.faint },
+    '&:hover fieldset': { borderColor: COLORS.text.faint },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
   },
   '& .MuiInputLabel-root': {
-    color: '#524344',
+    color: COLORS.text.muted,
     fontSize: '0.875rem',
     transform: 'translate(14px, 12.5px) scale(1)',
     '&.MuiInputLabel-shrink': {
@@ -33,7 +35,7 @@ const fieldSx = {
     },
   },
   '& .MuiInputBase-input': {
-    color: '#1a1a1a',
+    color: COLORS.text.strong,
     fontSize: '1rem',
     padding: '12.5px 14px',
   },
@@ -93,9 +95,9 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
 
   return (
     <Box sx={{
-      bgcolor: 'white',
+      bgcolor: COLORS.bg.white,
       border: '1px solid #EEE',
-      borderRadius: '12px',
+      borderRadius: RADII.md,
       px: 1.5, py: 2,
       display: 'flex',
       alignItems: 'stretch',
@@ -107,7 +109,7 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
     }}>
       {isSaving && (
         <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
-          <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+          <CircularProgress size={24} sx={{ color: COLORS.brand.primary }} />
         </Box>
       )}
       {/* Color bar on the left */}
@@ -116,7 +118,7 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
       {/* Form content */}
       <Stack spacing={2} sx={{ flex: 1 }}>
         {/* Row 1: Event Name + Time */}
-        <Stack direction="row" spacing={1.5}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
           <TextField
             label="Event Name *"
             size="small"
@@ -143,7 +145,7 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
         />
 
         {/* Row 3: Location + Dress Code */}
-        <Stack direction="row" spacing={1.5}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
           <TextField
             label="Location *"
             size="small"
@@ -167,7 +169,12 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
         </Stack>
 
         {/* Row 4: Color picker + Buttons */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={{ xs: 2, sm: 0 }}
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          justifyContent="space-between"
+        >
           {/* Color swatches */}
           <Stack direction="row" spacing={1} alignItems="center">
             {COLOR_PALETTE.map((c) => (
@@ -200,10 +207,10 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                '&:hover': { borderColor: !COLOR_PALETTE.includes(color) ? '#DE3F5E' : '#999' },
+                '&:hover': { borderColor: !COLOR_PALETTE.includes(color) ? COLORS.brand.primary : COLORS.text.faint },
               }}
             >
-              {COLOR_PALETTE.includes(color) && <Add sx={{ fontSize: 16, color: '#999' }} />}
+              {COLOR_PALETTE.includes(color) && <Add sx={{ fontSize: 16, color: COLORS.text.faint }} />}
               <input
                 ref={colorInputRef}
                 type="color"
@@ -221,21 +228,20 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
               disabled={!canSubmit}
               onClick={handleSubmit}
               sx={{
-                borderColor: '#DE3F5E',
-                color: '#DE3F5E',
-                borderRadius: '8px',
+                borderColor: COLORS.brand.primary,
+                color: COLORS.brand.primary,
+                borderRadius: RADII.sm,
                 textTransform: 'none',
                 fontWeight: 600,
                 fontSize: '1rem',
                 px: 2, py: 0.75,
-                '&:hover': { borderColor: '#C8365A', bgcolor: 'rgba(222,63,94,0.04)' },
-                '&:disabled': { borderColor: '#ddd', color: '#ccc' },
+                '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: 'rgba(222,63,94,0.04)' },
+                '&:disabled': { borderColor: COLORS.border.default, color: COLORS.border.default },
               }}
             >
               Done
             </Button>
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               disabled={!canSubmit}
               onClick={() => {
                 if (!canSubmit) return;
@@ -253,19 +259,14 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
                 }
               }}
               sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                borderRadius: '8px',
-                textTransform: 'none',
-                fontWeight: 600,
+                borderRadius: RADII.sm,
                 fontSize: '1rem',
                 px: 2, py: 0.75,
-                '&:hover': { bgcolor: '#C8365A' },
-                '&:disabled': { bgcolor: '#f0c0ca', color: 'white' },
+                '&:disabled': { bgcolor: '#f0c0ca', color: COLORS.text.inverse },
               }}
             >
               Add More Details
-            </Button>
+            </PrimaryActionButton>
           </Stack>
         </Stack>
       </Stack>

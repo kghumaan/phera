@@ -58,6 +58,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import WhatsAppConcierge, { Message } from '@/components/ui/WhatsAppConcierge';
 import FinalCTA from '@/components/shared/FinalCTA';
 import AppFooter from '@/components/shared/AppFooter';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 // --- Data & Content ---
 
@@ -126,87 +127,94 @@ const features = [
 
 const pricingTiers = [
   {
-    name: 'FREE FOREVER',
+    name: 'PHERA FREE',
     price: '$0',
-    description: 'Everything you need to plan your wedding',
+    priceSuffix: '',
+    description: '',
     features: [
       'Custom wedding website',
-      'Unlimited RSVP collection',
-      'Guest list management',
-      'Multi-event pages',
-      'PIN-based guest access',
-      'Event schedule & details',
-      'FAQ management',
-      'Shopping guide',
+      'Guest list & RSVP collection',
+      'PIN-gated event access',
+      'Design it yourself or with AI',
     ],
-    buttonText: 'Start Free',
+    buttonText: 'Get Started',
     highlight: false,
+    buttonHref: '/auth/signup',
   },
   {
-    name: 'PRO',
-    price: '$99',
-    description: 'Advanced features for destination weddings',
+    name: 'PHERA BASE',
+    price: '$349',
+    priceSuffix: '',
+    description: '',
     features: [
-      'Everything in Basic, plus:',
-      'Voice-to-task manager',
-      'WhatsApp Concierge Agent',
-      'Vendor Coordinator',
-      'Travel & shuttle coordination',
-      'Registry integration',
-      'Premium themes & backgrounds',
-      'Priority support',
+      'Everything in Free',
+      'Proactive WhatsApp outreach',
+      'Travel, rooms & shuttle coordination',
+      '24/7 WhatsApp Concierge for guests',
+      'Vendor Coordinator Agent',
+      'Broadcasts & structured data collection',
     ],
-    buttonText: 'Upgrade to Pro',
+    buttonText: 'Get Started',
     highlight: true,
   },
   {
-    name: 'PLANNER',
-    price: '$249',
-    priceSuffix: '/year',
-    description: 'For professionals managing multiple weddings',
+    name: 'PHERA PREMIUM',
+    price: '$599',
+    priceSuffix: '',
+    description: '200+ guests',
     features: [
-      'Everything in Pro, plus:',
-      'Unlimited client weddings',
-      'Multi-wedding dashboard',
-      'Pro features on every wedding',
-      'Client handoff & collaboration',
-      'Planner branding (coming soon)',
-      'Dedicated support',
+      'Everything in Base',
+      'Priority escalation support',
+      'On-call standby for urgent matters',
+      'Dedicated human coordinator hours',
+      'White-glove onboarding',
+      'Custom outreach sequences',
     ],
-    buttonText: 'Start as a Planner',
-    buttonHref: '/auth/login?role=planner',
+    buttonText: 'Get Started',
     highlight: false,
   },
 ];
 
 const faqs = [
   {
-    q: 'Is this only for destination weddings?',
-    a: 'Not at all! It works perfectly for any Indian wedding—local, destination, intimate, or grand.',
+    q: 'Is there a free tier?',
+    a: 'Yes. Phera Free gives you a custom wedding website, guest list + RSVP collection, PIN-gated event access, and AI-assisted design — all at no cost. Base ($349) adds proactive WhatsApp outreach, travel/rooms/shuttle coordination, the 24/7 Concierge, and the Vendor Coordinator Agent.',
   },
   {
-    q: 'Can I customize the look and feel?',
-    a: 'Absolutely! Choose designs, colors, photos, and cultural elements to match your vision.',
+    q: 'How does the guest coordination work?',
+    a: 'Once you upgrade to Base, Phera proactively reaches out to every guest via WhatsApp on your behalf. We send save-the-dates, collect RSVPs, gather travel details, assign rooms and shuttles, and send reminders — all automatically on a timeline matched to your wedding date.',
   },
   {
-    q: 'What if I only need RSVP collection?',
-    a: "That's completely free! Create invites and collect RSVPs without paying a dime.",
+    q: 'What information does Phera collect from my guests?',
+    a: 'RSVP confirmations, event attendance, dietary needs, travel plans, flight details, party size, and any special requirements — all collected conversationally through WhatsApp and structured into your admin dashboard.',
   },
   {
-    q: 'Can guests access this without an app?',
-    a: 'Yes! It works in any browser on mobile or desktop. No downloads needed.',
+    q: 'Do my guests need to download an app?',
+    a: "No. Everything happens through WhatsApp and your wedding website. Guests reply to a message — no app downloads, no account creation, no passwords.",
   },
   {
-    q: 'Is my guest data secure?',
-    a: 'Yes, we use bank-level encryption to keep your guest information private and secure.',
+    q: "What if a guest doesn't respond on WhatsApp?",
+    a: 'Phera sends automatic follow-up nudges on a research-backed schedule. After a few attempts with no response, the guest is escalated to you with their contact info so you or a family member can reach out personally.',
   },
   {
-    q: 'What is the WhatsApp Concierge?',
-    a: 'It is an intelligent automated assistant that guests can text to get answers about your wedding schedule, events, and travel details. It saves you from answering the same questions repeatedly.',
+    q: 'Can I customize my wedding website myself?',
+    a: 'Yes. Three options: design it yourself with full customization, let AI build it from a short conversation about your wedding, or work 1-on-1 with our team to nail your vision.',
   },
   {
-    q: 'Can I upgrade to Pro later?',
-    a: 'Yes, you can start with the Free plan and upgrade to Pro whenever you need the advanced features like travel coordination or the WhatsApp agent.',
+    q: 'How does the Concierge know about my wedding?',
+    a: "It's trained on your wedding data — venue, dates, events, dress codes — plus a Knowledge Bank we auto-generate for your location: local weather, nearby restaurants and activities, cultural context. You can edit it anytime.",
+  },
+  {
+    q: 'What does the Vendor Coordinator Agent do?',
+    a: "Add our agent to your vendor WhatsApp groups (caterer, florist, DJ, etc.). It summarizes threads, extracts action items, flags risks, and keeps every commitment on record — so decisions don't get buried in 500-message chats.",
+  },
+  {
+    q: 'Do I still need a day-of coordinator?',
+    a: 'Phera handles pre-wedding coordination — the weeks and months of guest logistics leading up to your big day. Premium includes dedicated human coordinator hours and on-call standby for urgent matters. For most couples, pairing Premium with a local day-of coordinator is the sweet spot.',
+  },
+  {
+    q: "Is my guests' data safe?",
+    a: 'Yes. Phera is DPDPA 2023 compliant. Every guest gives explicit consent. Data is retained only until 90 days after your wedding, then deleted. You and your guests can withdraw consent at any time.',
   },
 ];
 
@@ -314,7 +322,8 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
           sx={{
             position: 'sticky',
             top: 0,
-            height: '100vh',
+            // Small-viewport unit on mobile tracks Chrome's visible area; desktop keeps 100vh
+            height: { xs: '100svh', md: '100vh' },
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -337,16 +346,16 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
               {/* Section Header - Big */}
               <Typography
                 sx={{
-                  fontFamily: 'var(--font-instrument-serif)',
+                  fontFamily: FONTS.display,
                   fontStyle: 'italic',
                   fontSize: { md: '3rem', lg: '3.5rem' },
                   lineHeight: 1.1,
-                  color: '#1a1a1a',
+                  color: COLORS.text.strong,
                   mb: { sm: 2, md: 3, lg: 3 },
                 }}
               >
                 Everything you need,{' '}
-                <Box component="span" sx={{ color: '#DE3F5E' }}>
+                <Box component="span" sx={{ color: COLORS.brand.primary }}>
                   simplified
                 </Box>
               </Typography>
@@ -375,7 +384,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Typography
                           sx={{
-                            color: '#1a1a1a',
+                            color: COLORS.text.strong,
                             fontSize: isActive ? { md: '1.5rem', lg: '2rem' } : { md: '1rem', lg: '1.25rem' },
                             transition: 'all 0.3s ease',
                             fontWeight: 500,
@@ -391,10 +400,10 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                               alignItems: 'center',
                               gap: 0.4,
                               bgcolor: alpha('#DE3F5E', 0.08),
-                              color: '#DE3F5E',
+                              color: COLORS.brand.primary,
                               px: isActive ? 1.2 : 0.8,
                               py: isActive ? 0.4 : 0.2,
-                              borderRadius: '20px',
+                              borderRadius: RADII.xl,
                               transition: 'all 0.3s ease',
                             }}
                           >
@@ -432,7 +441,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                               mb: 1.5,
                             }}
                           >
-                            <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                            <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
                               The problem:
                             </Box>{' '}
                             {item.problem}
@@ -444,7 +453,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                               lineHeight: 1.6,
                             }}
                           >
-                            <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                            <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
                               Our solution:
                             </Box>{' '}
                             {item.solution}
@@ -508,7 +517,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                       <Box
                         sx={{
                           height: { md: 36, lg: 42 },
-                          bgcolor: '#f1f1f1',
+                          bgcolor: COLORS.border.faint,
                           borderBottom: '1px solid',
                           borderColor: alpha('#000', 0.08),
                           display: 'flex',
@@ -517,9 +526,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           gap: 1,
                         }}
                       >
-                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#28c840' }} />
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                       </Box>
                       {/* Screenshot */}
                       <Box sx={{ width: '100%', lineHeight: 0, position: 'relative' }}>
@@ -550,7 +559,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         borderRadius: '40px',
                         overflow: 'hidden',
                         boxShadow: '0 20px 60px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.1)',
-                        bgcolor: '#1a1a1a',
+                        bgcolor: COLORS.text.strong,
                         border: '12px solid #1a1a1a',
                         position: 'relative',
                       }}
@@ -564,7 +573,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           transform: 'translateX(-50%)',
                           width: '100px',
                           height: '24px',
-                          bgcolor: '#1a1a1a',
+                          bgcolor: COLORS.text.strong,
                           borderBottomLeftRadius: '18px',
                           borderBottomRightRadius: '18px',
                           zIndex: 20,
@@ -611,15 +620,15 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
         <Box sx={{ py: 6, px: 3, textAlign: 'center' }}>
           <Typography
             sx={{
-              fontFamily: 'var(--font-instrument-serif)',
+              fontFamily: FONTS.display,
               fontStyle: 'italic',
               fontSize: '2rem',
               lineHeight: 1.15,
-              color: '#1a1a1a',
+              color: COLORS.text.strong,
             }}
           >
             Everything you need,{' '}
-            <Box component="span" sx={{ color: '#DE3F5E' }}>
+            <Box component="span" sx={{ color: COLORS.brand.primary }}>
               simplified
             </Box>
           </Typography>
@@ -642,7 +651,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                   <Box
                     onClick={() => setExpandedImage({ src: item.featureImage!, alt: item.title })}
                     sx={{
-                      borderRadius: '10px',
+                      borderRadius: RADII.sm,
                       overflow: 'hidden',
                       boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
                       bgcolor: 'white',
@@ -655,7 +664,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     <Box
                       sx={{
                         height: 24,
-                        bgcolor: '#f1f1f1',
+                        bgcolor: COLORS.border.faint,
                         borderBottom: '1px solid',
                         borderColor: alpha('#000', 0.08),
                         display: 'flex',
@@ -664,9 +673,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         gap: 0.5,
                       }}
                     >
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#28c840' }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                     </Box>
                     <Image src={item.featureImage!} alt={item.title} width={2694} height={1302} quality={85} sizes="100vw" style={{ width: '100%', height: 'auto', display: 'block' }} />
                   </Box>
@@ -680,7 +689,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         borderRadius: '28px',
                         overflow: 'hidden',
                         boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
-                        bgcolor: '#1a1a1a',
+                        bgcolor: COLORS.text.strong,
                         border: '8px solid #1a1a1a',
                         position: 'relative',
                       }}
@@ -693,13 +702,13 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                           transform: 'translateX(-50%)',
                           width: '70px',
                           height: '18px',
-                          bgcolor: '#1a1a1a',
+                          bgcolor: COLORS.text.strong,
                           borderBottomLeftRadius: '10px',
                           borderBottomRightRadius: '10px',
                           zIndex: 20,
                         }}
                       />
-                      <Box sx={{ borderRadius: '20px', overflow: 'hidden', lineHeight: 0, height: '100%' }}>
+                      <Box sx={{ borderRadius: RADII.xl, overflow: 'hidden', lineHeight: 0, height: '100%' }}>
                         {item.customComponent ? (
                           item.customComponent
                         ) : (
@@ -721,7 +730,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                   <Typography
                     sx={{
-                      color: '#1a1a1a',
+                      color: COLORS.text.strong,
                       fontSize: '1.35rem',
                       fontWeight: 400,
                       lineHeight: 1.3,
@@ -736,10 +745,10 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                         alignItems: 'center',
                         gap: 0.3,
                         bgcolor: alpha('#DE3F5E', 0.08),
-                        color: '#DE3F5E',
+                        color: COLORS.brand.primary,
                         px: 0.8,
                         py: 0.25,
-                        borderRadius: '12px',
+                        borderRadius: RADII.md,
                       }}
                     >
                       <AutoAwesome sx={{ fontSize: '0.65rem' }} />
@@ -764,7 +773,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     mb: 1.5,
                   }}
                 >
-                  <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                  <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
                     The problem:
                   </Box>{' '}
                   {item.problem}
@@ -776,7 +785,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                     lineHeight: 1.6,
                   }}
                 >
-                  <Box component="span" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+                  <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
                     Our solution:
                   </Box>{' '}
                   {item.solution}
@@ -819,11 +828,11 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
           <Close />
         </IconButton>
         {expandedImage && (
-          <Box sx={{ borderRadius: '8px', overflow: 'hidden', bgcolor: 'white' }}>
+          <Box sx={{ borderRadius: RADII.sm, overflow: 'hidden', bgcolor: 'white' }}>
             <Box
               sx={{
                 height: 24,
-                bgcolor: '#f1f1f1',
+                bgcolor: COLORS.border.faint,
                 borderBottom: '1px solid',
                 borderColor: alpha('#000', 0.08),
                 display: 'flex',
@@ -832,9 +841,9 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 gap: 0.5,
               }}
             >
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#febc2e' }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#28c840' }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
             </Box>
             <Image
               src={expandedImage.src}
@@ -901,8 +910,8 @@ function PricingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [upgradeTier, setUpgradeTier] = useState<'pro' | 'planner'>('pro');
-  const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
+  const [upgradeTier, setUpgradeTier] = useState<'base' | 'premium' | 'planner_perwedding' | 'planner_studio'>('base');
+  const [selectedPricingTier, setSelectedPricingTier] = useState(1);
   const [roadmapIndex, setRoadmapIndex] = useState(0);
   const [expanded, setExpanded] = useState<string | false>(false);
 
@@ -915,14 +924,15 @@ function PricingPageContent() {
   // Auto-open UpgradeModal when redirected back with tier param
   useEffect(() => {
     const tier = searchParams.get('tier');
-    if (tier && (tier === 'pro' || tier === 'planner') && user) {
-      setUpgradeTier(tier);
+    const valid = ['base', 'premium', 'planner_perwedding', 'planner_studio'];
+    if (tier && valid.includes(tier) && user) {
+      setUpgradeTier(tier as typeof upgradeTier);
       setUpgradeModalOpen(true);
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, [searchParams, user]);
 
-  const handleTierAction = (targetTier: 'pro' | 'planner', e?: React.MouseEvent) => {
+  const handleTierAction = (targetTier: typeof upgradeTier, e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -935,8 +945,8 @@ function PricingPageContent() {
     }
   };
 
-  const handleProAction = (e?: React.MouseEvent) => handleTierAction('pro', e);
-  const handlePlannerAction = (e?: React.MouseEvent) => handleTierAction('planner', e);
+  const handleBaseAction = (e?: React.MouseEvent) => handleTierAction('base', e);
+  const handlePremiumAction = (e?: React.MouseEvent) => handleTierAction('premium', e);
 
   useEffect(() => {
     const handleScroll = (ref: React.RefObject<HTMLDivElement | null>, setIndex: (i: number) => void, itemCount: number) => {
@@ -974,15 +984,15 @@ function PricingPageContent() {
               <Typography
                 variant="h2"
                 sx={{
-                  fontFamily: 'var(--font-instrument-serif)',
+                  fontFamily: FONTS.display,
                   fontStyle: 'italic',
                   fontSize: { xs: '1.5rem', md: '3rem' },
-                  color: '#1a1a1a',
+                  color: COLORS.text.strong,
                 }}
               >
                 Simple, Transparent Pricing
               </Typography>
-              <Typography variant="h6" sx={{ color: '#4a4a4a', fontSize: { xs: '0.75rem', md: '1.25rem' } }}>
+              <Typography variant="h6" sx={{ color: COLORS.text.muted, fontSize: { xs: '0.75rem', md: '1.25rem' } }}>
                 Start free, upgrade for power features.
               </Typography>
             </Stack>
@@ -996,16 +1006,16 @@ function PricingPageContent() {
                   onClick={() => setSelectedPricingTier(idx)}
                   sx={{
                     flex: 1,
-                    borderRadius: '20px',
+                    borderRadius: RADII.xl,
                     py: 1,
                     fontSize: '0.8rem',
                     fontWeight: 'bold',
                     bgcolor: selectedPricingTier === idx ? '#DE3F5E' : 'transparent',
-                    borderColor: '#DE3F5E',
+                    borderColor: COLORS.brand.primary,
                     color: selectedPricingTier === idx ? 'white' : '#DE3F5E',
                     '&:hover': {
-                      bgcolor: selectedPricingTier === idx ? '#C8365A' : alpha('#DE3F5E', 0.05),
-                      borderColor: '#DE3F5E',
+                      bgcolor: selectedPricingTier === idx ? COLORS.brand.primaryHover : alpha('#DE3F5E', 0.05),
+                      borderColor: COLORS.brand.primary,
                     },
                   }}
                 >
@@ -1033,7 +1043,7 @@ function PricingPageContent() {
                       height: '100%',
                       borderRadius: { xs: '12px', md: '24px' },
                       bgcolor: 'white',
-                      color: '#1a1a1a',
+                      color: COLORS.text.strong,
                       border: tier.highlight
                         ? '2px solid #DE3F5E'
                         : '1px solid #E0E0E0',
@@ -1054,7 +1064,7 @@ function PricingPageContent() {
                           position: 'absolute',
                           top: { xs: -8, md: -12 },
                           right: { xs: 8, md: 24 },
-                          bgcolor: '#DE3F5E',
+                          bgcolor: COLORS.brand.primary,
                           color: 'white',
                           fontWeight: 'bold',
                           fontSize: { xs: '0.6rem', md: '0.8rem' },
@@ -1064,7 +1074,7 @@ function PricingPageContent() {
                     )}
                     <Typography
                       variant="overline"
-                      sx={{ fontWeight: 'bold', opacity: 0.7, color: '#DE3F5E', fontSize: { xs: '0.6rem', md: '0.75rem' } }}
+                      sx={{ fontWeight: 'bold', opacity: 0.7, color: COLORS.brand.primary, fontSize: { xs: '0.6rem', md: '0.75rem' } }}
                     >
                       {tier.name}
                     </Typography>
@@ -1073,14 +1083,16 @@ function PricingPageContent() {
                         {tier.price}
                       </Typography>
                       {'priceSuffix' in tier && tier.priceSuffix && (
-                        <Typography component="span" sx={{ fontSize: { xs: '0.85rem', md: '1.25rem' }, color: '#6a6a6a', fontWeight: 400 }}>
+                        <Typography component="span" sx={{ fontSize: { xs: '0.85rem', md: '1.25rem' }, color: COLORS.text.subtle, fontWeight: 400 }}>
                           {tier.priceSuffix}
                         </Typography>
                       )}
                     </Box>
-                    <Typography variant="body2" sx={{ mb: { xs: 1.5, md: 2 }, color: '#4a4a4a', fontSize: { xs: '0.7rem', md: '0.875rem' }, display: { xs: 'none', md: 'block' } }}>
-                      {tier.description}
-                    </Typography>
+                    {tier.description && (
+                      <Typography variant="body2" sx={{ mb: { xs: 1.5, md: 2 }, color: COLORS.text.muted, fontSize: { xs: '0.9rem', md: '0.95rem' } }}>
+                        {tier.description}
+                      </Typography>
+                    )}
 
                     <List dense sx={{ mb: { xs: 1, md: 2 }, flexGrow: 1 }}>
                       {tier.features.map((feature, fIdx) => (
@@ -1089,7 +1101,7 @@ function PricingPageContent() {
                             <StreamlineIcon
                               name="check-circle"
                               sx={{
-                                color: '#DE3F5E',
+                                color: COLORS.brand.primary,
                                 width: { xs: 22, md: 28 },
                                 height: { xs: 22, md: 28 },
                               }}
@@ -1099,7 +1111,7 @@ function PricingPageContent() {
                             primary={feature.replace('WhatsApp Concierge Agent', 'WhatsApp Agent')}
                             primaryTypographyProps={{
                               sx: {
-                                color: '#1a1a1a',
+                                color: COLORS.text.strong,
                                 fontWeight: 400,
                                 fontSize: { xs: '0.8rem', md: '.9rem' },
                                 lineHeight: 1.4
@@ -1110,40 +1122,143 @@ function PricingPageContent() {
                       ))}
                     </List>
 
-                    <Button
-                      fullWidth
-                      onClick={(e: React.MouseEvent) => {
-                        if (tier.name === 'PRO') {
-                          handleProAction(e);
-                        } else if (tier.name === 'PLANNER') {
-                          handlePlannerAction(e);
-                        }
-                      }}
-                      component={tier.name === 'PRO' || tier.name === 'PLANNER' ? 'button' : Link}
-                      href={tier.name === 'PRO' || tier.name === 'PLANNER' ? undefined : ('buttonHref' in tier && tier.buttonHref ? tier.buttonHref : "/auth/login")}
-                      variant={tier.highlight ? 'contained' : 'outlined'}
-                      size="small"
-                      sx={{
+                    {(() => {
+                      const ctaSx = {
                         borderRadius: { xs: '16px', md: '32px' },
                         py: { xs: 0.75, md: 1.5 },
                         fontSize: { xs: '0.7rem', md: '1rem' },
                         bgcolor: tier.highlight ? '#DE3F5E' : 'transparent',
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                         color: tier.highlight ? 'white' : '#DE3F5E',
                         '&:hover': {
                           bgcolor: tier.highlight
-                            ? '#C8365A'
+                            ? COLORS.brand.primaryHover
                             : alpha('#DE3F5E', 0.05),
-                          borderColor: '#DE3F5E',
+                          borderColor: COLORS.brand.primary,
                         },
-                      }}
-                    >
-                      {tier.buttonText.replace('Upgrade to Pro', 'Go Pro')}
-                    </Button>
+                      };
+                      const label = tier.buttonText;
+                      if (tier.name === 'PHERA BASE' || tier.name === 'PHERA PREMIUM') {
+                        return (
+                          <Button
+                            fullWidth
+                            onClick={tier.name === 'PHERA BASE' ? handleBaseAction : handlePremiumAction}
+                            variant={tier.highlight ? 'contained' : 'outlined'}
+                            size="small"
+                            sx={ctaSx}
+                          >
+                            {label}
+                          </Button>
+                        );
+                      }
+                      const href = ('buttonHref' in tier && typeof tier.buttonHref === 'string')
+                        ? tier.buttonHref
+                        : '/auth/signup';
+                      return (
+                        <Button
+                          fullWidth
+                          component={Link}
+                          href={href}
+                          variant={tier.highlight ? 'contained' : 'outlined'}
+                          size="small"
+                          sx={ctaSx}
+                        >
+                          {label}
+                        </Button>
+                      );
+                    })()}
                   </Paper>
                 </Grid>
               ))}
             </Grid>
+
+            {/* For Planners strip */}
+            <Container maxWidth="lg" sx={{ mt: { xs: 3, md: 6 }, px: 0 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: { xs: 2.5, md: 4 },
+                  borderRadius: { xs: '12px', md: '24px' },
+                  bgcolor: 'white',
+                  border: '1px solid',
+                  borderColor: alpha('#000', 0.08),
+                }}
+              >
+                <Grid container spacing={{ xs: 2, md: 4 }} alignItems="center">
+                  <Grid size={{ xs: 12, md: 5 }}>
+                    <Typography
+                      variant="overline"
+                      sx={{ color: COLORS.brand.primary, fontWeight: 800, letterSpacing: '2px', fontSize: { xs: '0.6rem', md: '0.75rem' } }}
+                    >
+                      FOR WEDDING PLANNERS
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: FONTS.display,
+                        fontStyle: 'italic',
+                        fontSize: { xs: '1.5rem', md: '2rem' },
+                        color: COLORS.text.strong,
+                        lineHeight: 1.2,
+                        mt: 0.5,
+                      }}
+                    >
+                      Wholesale pricing for planners.
+                    </Typography>
+                    <Button
+                      component={Link}
+                      href="/auth/login?role=planner"
+                      variant="outlined"
+                      sx={{
+                        mt: { xs: 2, md: 3 },
+                        borderColor: COLORS.brand.primary,
+                        color: COLORS.brand.primary,
+                        borderRadius: '32px',
+                        px: 3,
+                        py: 1,
+                        fontSize: { xs: '0.85rem', md: '0.95rem' },
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: alpha('#DE3F5E', 0.05) },
+                      }}
+                    >
+                      Start as a Planner
+                    </Button>
+                  </Grid>
+                  <Grid size={{ xs: 12, md: 7 }}>
+                    <Grid container spacing={{ xs: 2, md: 3 }}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Typography sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, color: COLORS.text.subtle, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', mb: 0.5 }}>
+                          Per-Wedding
+                        </Typography>
+                        <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, color: COLORS.text.strong, fontWeight: 700, lineHeight: 1 }}>
+                          $199
+                          <Box component="span" sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: COLORS.text.subtle, fontWeight: 400, ml: 0.5 }}>
+                            /wedding
+                          </Box>
+                        </Typography>
+                        <Typography sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: COLORS.text.muted, mt: 1, lineHeight: 1.5 }}>
+                          Resell to couples at your own rate. No commitment.
+                        </Typography>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Typography sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, color: COLORS.text.subtle, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', mb: 0.5 }}>
+                          Studio Plan
+                        </Typography>
+                        <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, color: COLORS.text.strong, fontWeight: 700, lineHeight: 1 }}>
+                          $299
+                          <Box component="span" sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: COLORS.text.subtle, fontWeight: 400, ml: 0.5 }}>
+                            /month
+                          </Box>
+                        </Typography>
+                        <Typography sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: COLORS.text.muted, mt: 1, lineHeight: 1.5 }}>
+                          Up to 20 active weddings. White-label, team seats.
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </Paper>
+            </Container>
           </Container>
         </Box>
 

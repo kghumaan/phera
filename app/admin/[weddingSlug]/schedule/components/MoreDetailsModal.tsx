@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Dialog,
   Box,
   Typography,
   Stack,
@@ -13,6 +12,7 @@ import {
   CardContent,
   CircularProgress,
 } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import {
   Close,
@@ -28,6 +28,8 @@ import { ScheduleItem, CarouselSlide, weddingService } from '@/lib/supabase/wedd
 import { SlideContent, DiamondIndicators } from '@/components/guest/EventDetailCarousel';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Curated background options — 3 rows of 5
 const BACKGROUNDS = [
@@ -271,14 +273,14 @@ function makeEmptySlide(type: SlideType): CarouselSlide {
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    bgcolor: 'white',
-    '& fieldset': { borderColor: '#BCBCBC' },
-    '&:hover fieldset': { borderColor: '#999' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+    borderRadius: RADII.sm,
+    bgcolor: COLORS.bg.white,
+    '& fieldset': { borderColor: COLORS.text.faint },
+    '&:hover fieldset': { borderColor: COLORS.text.faint },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
   },
-  '& .MuiInputLabel-root': { color: '#524344', fontSize: '0.875rem', '&.Mui-focused': { color: '#DE3F5E' } },
-  '& .MuiInputBase-input': { color: '#1a1a1a', fontSize: '0.9rem' },
+  '& .MuiInputLabel-root': { color: COLORS.text.muted, fontSize: '0.875rem', '&.Mui-focused': { color: COLORS.brand.primary } },
+  '& .MuiInputBase-input': { color: COLORS.text.strong, fontSize: '0.9rem' },
 };
 
 const subtitleCapsSx = {
@@ -286,7 +288,7 @@ const subtitleCapsSx = {
   fontWeight: 600,
   letterSpacing: '0.32px',
   textTransform: 'uppercase' as const,
-  color: '#141414',
+  color: COLORS.text.strong,
 };
 
 function getSlideTypeLabel(slide: CarouselSlide): string {
@@ -323,7 +325,7 @@ export default function MoreDetailsModal({
   // activeTab: 'look-feel' or slide index (0, 1, 2, ...)
   const [activeTab, setActiveTab] = useState<'look-feel' | number>('look-feel');
   const [gradientBackground, setGradientBackground] = useState<string>('pro-bg-mesh-2.webp');
-  const [fontColor, setFontColor] = useState<string>('#FFFFFF');
+  const [fontColor, setFontColor] = useState<string>(COLORS.bg.white);
   const [slides, setSlides] = useState<CarouselSlide[]>([]);
   const [previewSlideIndex, setPreviewSlideIndex] = useState(0);
   const [linkedEventId, setLinkedEventId] = useState<string | null>(null);
@@ -338,7 +340,7 @@ export default function MoreDetailsModal({
     const loadEventData = async () => {
       setLoading(true);
       try {
-        let eventId = scheduleItem.linked_event_id;
+        const eventId = scheduleItem.linked_event_id;
 
         const defaultSlides = buildDefaultSlides(scheduleItem.name);
 
@@ -351,7 +353,7 @@ export default function MoreDetailsModal({
             const bg = event.gradient_background;
             const isValidBg = bg && !bg.startsWith('#') && bg.endsWith('.webp');
             setGradientBackground(isValidBg ? bg : 'pro-bg-mesh-2.webp');
-            setFontColor(event.text_color || '#FFFFFF');
+            setFontColor(event.text_color || COLORS.bg.white);
             const existingSlides = event.carousel_slides || [];
             setSlides(existingSlides.length > 0 ? existingSlides : defaultSlides);
             setLinkedEventId(event.id);
@@ -406,6 +408,7 @@ export default function MoreDetailsModal({
     setGlobalSaveStatus('saving');
     try {
       await weddingService.updateEvent(linkedEventId, {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- carousel_slides JSON shape not in generated types
         carousel_slides: slides as any,
         gradient_background: gradientBackground,
         text_color: fontColor,
@@ -462,14 +465,13 @@ export default function MoreDetailsModal({
   const previewBgUrl = weddingBackground || '/images/backgrounds/blue-clouds.webp';
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={onClose}
       maxWidth="lg"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '24px',
           height: '90vh',
           maxHeight: 800,
           maxWidth: 1100,
@@ -478,39 +480,56 @@ export default function MoreDetailsModal({
       }}
     >
       {/* Header — event name left, Save and Close + X right */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', overflow: 'hidden', p: '20px' }}>
-        <Typography sx={{ fontWeight: 600, fontSize: '24px', color: '#1a1a1a' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: { xs: 1.5, sm: 4 },
+          p: { xs: '12px 16px', md: '20px' },
+        }}
+      >
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: { xs: '18px', md: '24px' },
+            color: COLORS.text.strong,
+            minWidth: 0,
+            flex: { xs: '1 1 100%', sm: '0 1 auto' },
+          }}
+        >
           {scheduleItem.name}
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 4 } }}>
           <Button
             variant="outlined"
             onClick={handleSave}
             disabled={saving}
             sx={{
-              borderColor: '#DE3F5E',
-              color: '#DE3F5E',
-              borderRadius: '8px',
+              borderColor: COLORS.brand.primary,
+              color: COLORS.brand.primary,
+              borderRadius: RADII.sm,
               textTransform: 'none',
               fontWeight: 600,
-              fontSize: '16px',
+              fontSize: { xs: '14px', md: '16px' },
               px: 2,
               py: 1,
-              '&:hover': { borderColor: '#C8365A', bgcolor: 'rgba(222,63,94,0.04)' },
+              '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: 'rgba(222,63,94,0.04)' },
             }}
           >
             {saving ? 'Saving...' : 'Save and Close'}
           </Button>
-          <IconButton onClick={onClose} sx={{ p: 0, color: '#1a1a1a' }}>
+          <IconButton onClick={onClose} sx={{ p: 0, color: COLORS.text.strong }}>
             <Close sx={{ fontSize: 24 }} />
           </IconButton>
         </Box>
       </Box>
-      <Box sx={{ height: '1px', bgcolor: '#eee', width: '100%' }} />
+      <Box sx={{ height: '1px', bgcolor: COLORS.border.faint, width: '100%' }} />
 
       {loading ? (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-          <CircularProgress sx={{ color: '#DE3F5E' }} />
+          <CircularProgress sx={{ color: COLORS.brand.primary }} />
         </Box>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
@@ -551,21 +570,21 @@ export default function MoreDetailsModal({
                 '&:hover': { opacity: 0.7 },
               }}
             >
-              <Typography sx={{ fontSize: '14px', fontWeight: 400, color: '#6a6a6a' }}>
+              <Typography sx={{ fontSize: '14px', fontWeight: 400, color: COLORS.text.subtle }}>
                 {'+ '}
                 <Box component="span" sx={{ textDecoration: 'underline' }}>Add Slide</Box>
               </Typography>
-              <Box sx={{ height: '2px', width: '100%', bgcolor: 'white' }} />
+              <Box sx={{ height: '2px', width: '100%', bgcolor: COLORS.bg.white }} />
             </Box>
           </Box>
 
           {/* Content area — left editor + right preview */}
           <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
             {/* Vertical divider */}
-            <Box sx={{ width: '1px', bgcolor: '#eee', flexShrink: 0 }} />
+            <Box sx={{ width: '1px', bgcolor: COLORS.border.faint, flexShrink: 0 }} />
 
             {/* Left panel — editor */}
-            <Box sx={{ flex: 1, overflow: 'auto', p: '20px', bgcolor: 'white' }}>
+            <Box sx={{ flex: 1, overflow: 'auto', p: '20px', bgcolor: COLORS.bg.white }}>
               {activeTab === 'look-feel' ? (
                 <BackgroundPicker
                   selected={gradientBackground}
@@ -620,7 +639,7 @@ export default function MoreDetailsModal({
                 sx={{
                   width: 333,
                   height: 600,
-                  borderRadius: '16px',
+                  borderRadius: RADII.lg,
                   boxShadow: 'none',
                   border: '3px solid white',
                   overflow: 'hidden',
@@ -663,7 +682,7 @@ export default function MoreDetailsModal({
                       />
                     </Box>
                   ) : (
-                    <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>
+                    <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem' }}>
                       Add slides to see preview
                     </Typography>
                   )}
@@ -708,10 +727,10 @@ export default function MoreDetailsModal({
               {/* CTA preview — matches what guests see on the schedule card */}
               {slides.length > 0 && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.85rem', fontWeight: 700, textDecoration: 'underline' }}>
+                  <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem', fontWeight: 700, textDecoration: 'underline' }}>
                     More Details
                   </Typography>
-                  <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.85rem' }}>
+                  <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>
                     {'>'}
                   </Typography>
                 </Box>
@@ -720,7 +739,7 @@ export default function MoreDetailsModal({
           </Box>
         </Box>
       )}
-    </Dialog>
+    </PheraDialog>
   );
 }
 
@@ -753,14 +772,14 @@ function TabItem({
       <Typography sx={{
         fontSize: '14px',
         fontWeight: active ? 600 : 400,
-        color: active ? '#DE3F5E' : '#6a6a6a',
+        color: active ? COLORS.brand.primary : COLORS.text.subtle,
       }}>
         {label}
       </Typography>
       <Box sx={{
         height: '2px',
         width: '100%',
-        bgcolor: active ? '#DE3F5E' : 'white',
+        bgcolor: active ? COLORS.brand.primary : COLORS.bg.white,
       }} />
     </Box>
   );
@@ -790,7 +809,7 @@ function BackgroundPicker({
 
         <Box sx={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(5, 1fr)',
+          gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(5, 1fr)' },
           gap: '12px',
         }}>
           {BACKGROUNDS.map((bg) => {
@@ -802,12 +821,12 @@ function BackgroundPicker({
                 onClick={() => onSelect(bg)}
                 sx={{
                   aspectRatio: '1',
-                  borderRadius: '16px',
+                  borderRadius: RADII.lg,
                   overflow: 'hidden',
                   cursor: 'pointer',
                   border: isSelected ? '4px solid #DE3F5E' : '2px solid transparent',
                   transition: 'border-color 0.15s',
-                  '&:hover': { borderColor: isSelected ? '#DE3F5E' : '#ccc' },
+                  '&:hover': { borderColor: isSelected ? COLORS.brand.primary : COLORS.border.default },
                   backgroundImage: `url(/images/backgrounds/thumbs/${thumbName})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
@@ -824,7 +843,7 @@ function BackgroundPicker({
           Font Color
         </Typography>
         <Stack direction="row" spacing={1} alignItems="center">
-          {['#FFFFFF', '#F5F5F5', '#E8D5B7', '#D4AF37', '#1a1a1a', '#4a4a4a', '#6a6a6a'].map((c) => (
+          {[COLORS.bg.white, COLORS.bg.subtle, '#E8D5B7', '#D4AF37', COLORS.text.strong, COLORS.text.muted, COLORS.text.subtle].map((c) => (
             <Box
               key={c}
               onClick={() => onFontColorChange(c)}
@@ -836,7 +855,7 @@ function BackgroundPicker({
                 cursor: 'pointer',
                 border: fontColor === c
                   ? '2px solid #DE3F5E'
-                  : c === '#FFFFFF' || c === '#F5F5F5'
+                  : c === COLORS.bg.white || c === COLORS.bg.subtle
                     ? '2px solid #ddd'
                     : '2px solid transparent',
                 transition: 'border-color 0.15s',
@@ -848,26 +867,22 @@ function BackgroundPicker({
       </Stack>
 
       {hasSlides && (
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           onClick={onStartEditing}
           endIcon={<ArrowForward sx={{ fontSize: 20 }} />}
           sx={{
-            bgcolor: '#DE3F5E',
-            borderRadius: '8px',
-            textTransform: 'none',
-            fontWeight: 600,
+            borderRadius: RADII.sm,
             fontSize: '16px',
             pl: 2,
             pr: 1.5,
             py: 1,
             alignSelf: 'flex-start',
             boxShadow: 'none',
-            '&:hover': { bgcolor: '#C8365A', boxShadow: 'none' },
+            '&:hover': { boxShadow: 'none' },
           }}
         >
           Start Editing
-        </Button>
+        </PrimaryActionButton>
       )}
     </Stack>
   );
@@ -933,12 +948,12 @@ function SlideEditor({
                 fontWeight: slide.type === opt.type ? 600 : 400,
                 lineHeight: 1.5,
                 cursor: 'pointer',
-                bgcolor: slide.type === opt.type ? '#ebebeb' : 'transparent',
-                color: '#141414',
+                bgcolor: slide.type === opt.type ? COLORS.bg.muted : 'transparent',
+                color: COLORS.text.strong,
                 border: slide.type === opt.type ? '1px solid #141414' : '1px solid #d6d6d6',
                 transition: 'all 0.15s',
                 '&:hover': {
-                  bgcolor: slide.type === opt.type ? '#ebebeb' : '#F5F5F5',
+                  bgcolor: slide.type === opt.type ? COLORS.bg.muted : COLORS.bg.subtle,
                 },
               }}
             >
@@ -979,44 +994,40 @@ function SlideEditor({
             onClick={onSave}
             disabled={saving}
             sx={{
-              borderColor: '#DE3F5E',
-              color: '#DE3F5E',
-              borderRadius: '8px',
+              borderColor: COLORS.brand.primary,
+              color: COLORS.brand.primary,
+              borderRadius: RADII.sm,
               textTransform: 'none',
               fontWeight: 600,
               fontSize: '16px',
               px: 2,
               py: 1,
-              '&:hover': { borderColor: '#C8365A', bgcolor: 'rgba(222,63,94,0.04)' },
+              '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: 'rgba(222,63,94,0.04)' },
             }}
           >
             {saving ? 'Saving...' : 'Save'}
           </Button>
           {slideIndex < totalSlides - 1 && (
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               onClick={onNextSlide}
               endIcon={<ArrowForward sx={{ fontSize: 20 }} />}
               sx={{
-                bgcolor: '#DE3F5E',
-                borderRadius: '8px',
-                textTransform: 'none',
-                fontWeight: 600,
+                borderRadius: RADII.sm,
                 fontSize: '16px',
                 pl: 2,
                 pr: 1.5,
                 py: 1,
                 boxShadow: 'none',
-                '&:hover': { bgcolor: '#C8365A', boxShadow: 'none' },
+                '&:hover': { boxShadow: 'none' },
               }}
             >
               Next Slide
-            </Button>
+            </PrimaryActionButton>
           )}
         </Box>
         <IconButton
           onClick={() => onDeleteSlide(slideIndex)}
-          sx={{ color: '#1a1a1a', '&:hover': { color: '#d32f2f' } }}
+          sx={{ color: COLORS.text.strong, '&:hover': { color: COLORS.accent.danger } }}
         >
           <Delete sx={{ fontSize: 24 }} />
         </IconButton>
@@ -1077,8 +1088,8 @@ function TextSlideFields({
           position: 'absolute',
           bottom: 8,
           right: 12,
-          fontSize: '0.75rem',
-          color: '#999',
+          fontSize: '0.875rem',
+          color: COLORS.text.faint,
         }}>
           {bodyText.length}
         </Typography>
@@ -1110,7 +1121,7 @@ function ImageSlideFields({
         overflowX: 'auto',
         pb: 1,
         '&::-webkit-scrollbar': { height: 4 },
-        '&::-webkit-scrollbar-thumb': { bgcolor: '#ccc', borderRadius: 2 },
+        '&::-webkit-scrollbar-thumb': { bgcolor: COLORS.border.default, borderRadius: 2 },
       }}>
         {/* Upload box — first item */}
         <Box
@@ -1118,29 +1129,29 @@ function ImageSlideFields({
           sx={{
             flex: '0 0 169px',
             height: 300,
-            borderRadius: '12px',
+            borderRadius: RADII.md,
             border: '2px dashed #ccc',
-            bgcolor: '#fafafa',
+            bgcolor: COLORS.bg.muted,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            '&:hover': { borderColor: '#DE3F5E' },
+            '&:hover': { borderColor: COLORS.brand.primary },
           }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, width: 130 }}>
             <Box sx={{
               width: 48,
               height: 48,
-              borderRadius: '24px',
-              bgcolor: '#ebebeb',
+              borderRadius: RADII.dialog,
+              bgcolor: COLORS.bg.muted,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              <CloudUpload sx={{ color: '#6a6a6a', fontSize: 24 }} />
+              <CloudUpload sx={{ color: COLORS.text.subtle, fontSize: 24 }} />
             </Box>
-            <Typography sx={{ fontSize: '16px', color: '#6a6a6a', textAlign: 'center', lineHeight: 1.5 }}>
+            <Typography sx={{ fontSize: '16px', color: COLORS.text.subtle, textAlign: 'center', lineHeight: 1.5 }}>
               Recommend aspect ratio is 600 x 1080 pixels
             </Typography>
           </Box>
@@ -1158,15 +1169,15 @@ function ImageSlideFields({
               sx={{
                 flex: '0 0 167px',
                 height: 300,
-                borderRadius: '12px',
+                borderRadius: RADII.md,
                 overflow: 'hidden',
                 cursor: 'pointer',
                 border: isSelected ? '4px solid #DE3F5E' : '2px solid transparent',
-                '&:hover': { borderColor: isSelected ? '#DE3F5E' : '#ccc' },
+                '&:hover': { borderColor: isSelected ? COLORS.brand.primary : COLORS.border.default },
                 backgroundImage: `url(${encodedSrc})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                bgcolor: 'white',
+                bgcolor: COLORS.bg.white,
               }}
             />
           );
@@ -1230,7 +1241,7 @@ function OutfitSlideFields({
         <Typography sx={{ ...subtitleCapsSx, mb: 1.5 }}>
           {slide.section1_header || 'Women'}
         </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
           {s1.map((item, i) => (
             <TextField
               key={`s1-${i}`}
@@ -1251,7 +1262,7 @@ function OutfitSlideFields({
         <Typography sx={{ ...subtitleCapsSx, mb: 1.5 }}>
           {slide.section2_header || 'Men'}
         </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
           {s2.map((item, i) => (
             <TextField
               key={`s2-${i}`}

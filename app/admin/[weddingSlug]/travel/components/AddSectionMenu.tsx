@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Typography, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Box, Typography, ListItemIcon, ListItemText } from '@mui/material';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { TRAVEL_ICON_MAP, TRAVEL_TYPE_LABELS } from './travel-utils';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface AddSectionMenuProps {
   onAdd: (type: string) => void;
@@ -19,9 +21,9 @@ export default function AddSectionMenu({ onAdd }: AddSectionMenuProps) {
         onClick={(e) => setAnchorEl(e.currentTarget)}
         sx={{
           width: '100%',
-          bgcolor: '#EBEBEB',
+          bgcolor: COLORS.border.light,
           border: '1px dashed #BCBCBC',
-          borderRadius: '8px',
+          borderRadius: RADII.sm,
           py: 2,
           display: 'flex',
           flexDirection: 'column',
@@ -29,28 +31,28 @@ export default function AddSectionMenu({ onAdd }: AddSectionMenuProps) {
           justifyContent: 'center',
           cursor: 'pointer',
           transition: 'background-color 0.15s',
-          '&:hover': { bgcolor: '#E0E0E0' },
+          '&:hover': { bgcolor: COLORS.border.default },
         }}
       >
-        <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '0.95rem' }}>
+        <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.95rem' }}>
           + Add Section
         </Typography>
-        <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+        <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
           Travel, flight, hotel, and more
         </Typography>
       </Box>
-      <Menu
+      <PheraMenu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={() => setAnchorEl(null)}
         PaperProps={{
-          sx: { borderRadius: '12px', minWidth: 200 },
+          sx: { borderRadius: RADII.md, minWidth: 200 },
         }}
       >
         {SECTION_TYPES.map((type) => {
           const Icon = TRAVEL_ICON_MAP[type];
           return (
-            <MenuItem
+            <PheraMenuItem
               key={type}
               onClick={() => {
                 onAdd(type);
@@ -59,10 +61,10 @@ export default function AddSectionMenu({ onAdd }: AddSectionMenuProps) {
             >
               <ListItemIcon>{Icon && <Icon fontSize="small" />}</ListItemIcon>
               <ListItemText>{TRAVEL_TYPE_LABELS[type]}</ListItemText>
-            </MenuItem>
+            </PheraMenuItem>
           );
         })}
-      </Menu>
+      </PheraMenu>
     </>
   );
 }

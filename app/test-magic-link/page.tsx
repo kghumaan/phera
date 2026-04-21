@@ -1,8 +1,9 @@
 'use client';
 
-import { Button, Container, Typography, Box, TextField, Alert, CircularProgress } from '@mui/material';
+import { Button, Container, Typography, Box, TextField, CircularProgress } from '@mui/material';
 import { useState } from 'react';
 import { sendMagicLink } from '@/lib/supabase/auth-service';
+import { SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 
 export default function TestMagicLinkPage() {
   const [email, setEmail] = useState('kv.s.ghumaan@gmail.com');
@@ -72,15 +73,15 @@ export default function TestMagicLinkPage() {
       </Box>
 
       {message && (
-        <Alert severity="success" sx={{ mb: 2 }}>
+        <SuccessAlert sx={{ mb: 2 }}>
           {message}
-        </Alert>
+        </SuccessAlert>
       )}
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <ErrorAlert sx={{ mb: 2 }}>
           {error}
-        </Alert>
+        </ErrorAlert>
       )}
 
       <Box sx={{ mt: 4, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>

@@ -50,13 +50,16 @@ import UpgradeModal from '@/components/admin/UpgradeModal';
 import VoiceRecorder from '@/components/admin/VoiceRecorder';
 import { weddingService, type Task, type Column } from '@/lib/supabase/wedding-service';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
+import { PrimaryActionButton, ActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const COLUMNS: { id: Column; label: string; color: string; bg: string }[] = [
   { id: 'todo', label: 'To Do', color: '#5C6BC0', bg: '#EEF0FC' },
   { id: 'doing', label: 'Doing', color: '#E6890A', bg: '#FFF4E0' },
-  { id: 'done', label: 'Done', color: '#2E7D32', bg: '#E8F5E9' },
+  { id: 'done', label: 'Done', color: COLORS.accent.successText, bg: COLORS.accent.successBg },
 ];
 
 // ─── Tag Input ────────────────────────────────────────────────────────────────
@@ -83,8 +86,8 @@ function TagSelector({
 
   return (
     <Box>
-      <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: '#999', textTransform: 'uppercase', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-        <LocalOfferOutlined sx={{ fontSize: 10 }} /> Tags
+      <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: COLORS.text.faint, textTransform: 'uppercase', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <LocalOfferOutlined sx={{ fontSize: 14 }} /> Tags
       </Typography>
       <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ gap: 0.5, mb: 1 }}>
         {availableTags.map(tag => {
@@ -97,12 +100,12 @@ function TagSelector({
               onClick={() => onToggle(tag)}
               sx={{
                 height: 28,
-                fontSize: '0.8rem',
+                fontSize: '0.875rem',
                 cursor: 'pointer',
-                bgcolor: isSelected ? alpha('#DE3F5E', 0.1) : 'rgba(0,0,0,0.03)',
-                color: isSelected ? '#DE3F5E' : '#666',
-                border: `1px solid ${isSelected ? alpha('#DE3F5E', 0.2) : 'transparent'}`,
-                '&:hover': { bgcolor: isSelected ? alpha('#DE3F5E', 0.15) : 'rgba(0,0,0,0.06)' },
+                bgcolor: isSelected ? alpha(COLORS.brand.primary, 0.1) : 'rgba(0,0,0,0.03)',
+                color: isSelected ? COLORS.brand.primary : COLORS.text.subtle,
+                border: `1px solid ${isSelected ? alpha(COLORS.brand.primary, 0.2) : 'transparent'}`,
+                '&:hover': { bgcolor: isSelected ? alpha(COLORS.brand.primary, 0.15) : 'rgba(0,0,0,0.06)' },
               }}
             />
           );
@@ -118,15 +121,15 @@ function TagSelector({
           sx={{
             flex: 1,
             '& .MuiOutlinedInput-root': {
-              borderRadius: '6px', bgcolor: 'white', height: 30,
-              '& fieldset': { borderColor: '#ddd' },
+              borderRadius: '6px', bgcolor: COLORS.bg.white, height: 30,
+              '& fieldset': { borderColor: COLORS.border.default },
               '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
-              '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+              '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
             },
-            '& .MuiInputBase-input': { fontSize: '0.75rem', py: 0.5, px: 1 },
+            '& .MuiInputBase-input': { fontSize: '0.875rem', py: 0.5, px: 1 },
           }}
         />
-        <IconButton size="small" onClick={handleAddCustom} disabled={!customTag.trim()} sx={{ color: '#DE3F5E', p: 0.25 }}>
+        <IconButton size="small" onClick={handleAddCustom} disabled={!customTag.trim()} sx={{ color: COLORS.brand.primary, p: 0.25 }}>
           <Add sx={{ fontSize: 16 }} />
         </IconButton>
       </Stack>
@@ -153,7 +156,7 @@ function TaskCard({
   onEdit: (id: string) => void;
   isEditing: boolean;
   editDraft: { title: string; description: string; tags: string[] } | null;
-  onEditChange: (field: string, value: any) => void;
+  onEditChange: (field: string, value: string | string[]) => void;
   onEditSave: () => void;
   onEditCancel: () => void;
   availableTags: string[];
@@ -175,8 +178,8 @@ function TaskCard({
           ref={setNodeRef}
           elevation={0}
           sx={{
-            p: 1.5, mb: 1, borderRadius: '8px',
-            border: '1px solid rgba(0,0,0,0.1)', bgcolor: 'white',
+            p: 1.5, mb: 1, borderRadius: RADII.sm,
+            border: '1px solid rgba(0,0,0,0.1)', bgcolor: COLORS.bg.white,
           }}
         >
           <Stack spacing={1}>
@@ -214,22 +217,19 @@ function TaskCard({
               }}
             />
             <Stack direction="row" justifyContent="flex-end" spacing={1}>
-              <IconButton size="small" onClick={() => onDelete(task.id)} sx={{ color: '#6a6a6a' }}>
+              <IconButton size="small" onClick={() => onDelete(task.id)} sx={{ color: COLORS.text.subtle }}>
                 <Close sx={{ fontSize: 16 }} />
               </IconButton>
-              <Button
+              <PrimaryActionButton
                 size="small"
-                variant="contained"
                 onClick={onEditSave}
                 disabled={!editDraft.title.trim()}
                 sx={{
-                  bgcolor: '#DE3F5E', color: 'white', textTransform: 'none',
-                  fontSize: '0.8rem', py: 0.5, px: 2, borderRadius: '8px',
-                  '&:hover': { bgcolor: '#C8365A' },
+                  fontSize: '0.875rem', py: 0.5, px: 2, borderRadius: RADII.sm,
                 }}
               >
                 Save
-              </Button>
+              </PrimaryActionButton>
             </Stack>
           </Stack>
         </Paper>
@@ -243,14 +243,14 @@ function TaskCard({
       elevation={0}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       sx={{
-        p: 1.5, mb: 1, borderRadius: '8px',
+        p: 1.5, mb: 1, borderRadius: RADII.sm,
         border: '1px solid rgba(0,0,0,0.07)',
-        bgcolor: isDragging ? 'rgba(0,0,0,0.03)' : 'white',
+        bgcolor: isDragging ? 'rgba(0,0,0,0.03)' : COLORS.bg.white,
         opacity: isDragging ? 0.4 : 1,
         display: 'flex', flexDirection: 'column', gap: 0.5,
         cursor: 'pointer',
         '&:hover .task-actions': { opacity: 1 },
-        '&:hover': { borderColor: '#ddd' },
+        '&:hover': { borderColor: COLORS.border.default },
       }}
       onClick={() => onEdit(task.id)}
     >
@@ -259,16 +259,16 @@ function TaskCard({
           {...attributes}
           {...listeners}
           onClick={e => e.stopPropagation()}
-          sx={{ pt: 0.25, color: '#ccc', flexShrink: 0, cursor: 'grab', '&:hover': { color: '#999' } }}
+          sx={{ pt: 0.25, color: COLORS.border.default, flexShrink: 0, cursor: 'grab', '&:hover': { color: COLORS.text.faint } }}
         >
           <DragIndicator sx={{ fontSize: 16 }} />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>
+          <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: COLORS.text.strong, lineHeight: 1.4 }}>
             {task.title}
           </Typography>
           {task.description && (
-            <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>
+            <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, mt: 0.5, lineHeight: 1.5 }}>
               {task.description}
             </Typography>
           )}
@@ -277,7 +277,7 @@ function TaskCard({
           className="task-actions"
           size="small"
           onClick={e => { e.stopPropagation(); onDelete(task.id); }}
-          sx={{ opacity: 0, transition: 'opacity 0.15s', p: 0.25, flexShrink: 0, color: '#bbb', '&:hover': { color: '#DE3F5E' } }}
+          sx={{ opacity: 0, transition: 'opacity 0.15s', p: 0.25, flexShrink: 0, color: COLORS.text.faint, '&:hover': { color: COLORS.brand.primary } }}
         >
           <Close sx={{ fontSize: 14 }} />
         </IconButton>
@@ -290,9 +290,9 @@ function TaskCard({
               label={tag}
               size="small"
               sx={{
-                height: 24, fontSize: '0.75rem', fontWeight: 600,
-                bgcolor: alpha('#DE3F5E', 0.08), color: '#DE3F5E',
-                border: `1px solid ${alpha('#DE3F5E', 0.1)}`,
+                height: 24, fontSize: '0.875rem', fontWeight: 600,
+                bgcolor: alpha(COLORS.brand.primary, 0.08), color: COLORS.brand.primary,
+                border: `1px solid ${alpha(COLORS.brand.primary, 0.1)}`,
                 '& .MuiChip-label': { px: 1.2 },
               }}
             />
@@ -309,22 +309,22 @@ function TaskCardStatic({ task }: { task: Task }) {
     <Paper
       elevation={3}
       sx={{
-        p: 1.5, borderRadius: '8px', border: '1px solid rgba(0,0,0,0.07)',
-        bgcolor: 'white', display: 'flex', flexDirection: 'column', gap: 0.5,
+        p: 1.5, borderRadius: RADII.sm, border: '1px solid rgba(0,0,0,0.07)',
+        bgcolor: COLORS.bg.white, display: 'flex', flexDirection: 'column', gap: 0.5,
         cursor: 'grabbing', boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
       }}
     >
       <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', width: '100%' }}>
-        <Box sx={{ pt: 0.25, color: '#ccc', flexShrink: 0 }}><DragIndicator sx={{ fontSize: 16 }} /></Box>
+        <Box sx={{ pt: 0.25, color: COLORS.border.default, flexShrink: 0 }}><DragIndicator sx={{ fontSize: 16 }} /></Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>{task.title}</Typography>
-          {task.description && <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
+          <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: COLORS.text.strong, lineHeight: 1.4 }}>{task.title}</Typography>
+          {task.description && <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
         </Box>
       </Box>
       {task.tags && task.tags.length > 0 && (
         <Stack direction="row" spacing={0.5} flexWrap="wrap" sx={{ ml: 3.2, mt: 0.5 }}>
           {task.tags.map(tag => (
-            <Chip key={tag} label={tag} size="small" sx={{ height: 24, fontSize: '0.75rem', fontWeight: 600, bgcolor: alpha('#DE3F5E', 0.08), color: '#DE3F5E', border: `1px solid ${alpha('#DE3F5E', 0.1)}`, '& .MuiChip-label': { px: 1.2 } }} />
+            <Chip key={tag} label={tag} size="small" sx={{ height: 24, fontSize: '0.875rem', fontWeight: 600, bgcolor: alpha(COLORS.brand.primary, 0.08), color: COLORS.brand.primary, border: `1px solid ${alpha(COLORS.brand.primary, 0.1)}`, '& .MuiChip-label': { px: 1.2 } }} />
           ))}
         </Stack>
       )}
@@ -344,7 +344,7 @@ function KanbanColumn({
   onEdit: (id: string) => void;
   editingId: string | null;
   editDraft: { title: string; description: string; tags: string[] } | null;
-  onEditChange: (field: string, value: any) => void;
+  onEditChange: (field: string, value: string | string[]) => void;
   onEditSave: () => void;
   onEditCancel: () => void;
   availableTags: string[];
@@ -366,12 +366,12 @@ function KanbanColumn({
   };
 
   return (
-    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', bgcolor: '#F8F8F8', border: '1px solid rgba(0,0,0,0.07)', borderRadius: '12px', p: 2 }}>
+    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', bgcolor: COLORS.bg.subtle, border: '1px solid rgba(0,0,0,0.07)', borderRadius: RADII.md, p: 2 }}>
       {/* Column header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
         <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: col.color, flexShrink: 0 }} />
-        <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#1a1a1a', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{col.label}</Typography>
-        <Box sx={{ ml: 0.5, px: 1, borderRadius: '20px', bgcolor: col.bg, fontSize: '0.72rem', fontWeight: 700, color: col.color, lineHeight: 1.6 }}>{tasks.length}</Box>
+        <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: COLORS.text.strong, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{col.label}</Typography>
+        <Box sx={{ ml: 0.5, px: 1, borderRadius: RADII.xl, bgcolor: col.bg, fontSize: '0.875rem', fontWeight: 700, color: col.color, lineHeight: 1.6 }}>{tasks.length}</Box>
       </Box>
 
       {/* Tasks drop zone */}
@@ -396,7 +396,7 @@ function KanbanColumn({
 
         {/* Add task UI */}
         {adding ? (
-          <Paper elevation={0} sx={{ p: 1.5, borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', bgcolor: 'white', mb: 1 }}>
+          <Paper elevation={0} sx={{ p: 1.5, borderRadius: RADII.sm, border: '1px solid rgba(0,0,0,0.1)', bgcolor: COLORS.bg.white, mb: 1 }}>
             <TextField autoFocus fullWidth label="Task title" value={newTitle} onChange={e => setNewTitle(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setAdding(false); }} sx={{ ...ENHANCED_TEXT_FIELD_SX, mb: 1 }} />
             <TextField fullWidth label="Description (optional)" value={newDesc} onChange={e => setNewDesc(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setAdding(false); }} sx={{ ...ENHANCED_TEXT_FIELD_SX, mb: 1.5 }} />
             <Box sx={{ mb: 2 }}>
@@ -411,14 +411,14 @@ function KanbanColumn({
               />
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button size="small" variant="contained" onClick={handleAdd} disabled={!newTitle.trim()} sx={{ bgcolor: col.color, color: 'white', textTransform: 'none', fontSize: '0.8rem', py: 0.5, px: 1.5, borderRadius: '8px', '&:hover': { bgcolor: col.color, filter: 'brightness(0.9)' } }}>Add</Button>
-              <IconButton size="small" onClick={() => setAdding(false)} sx={{ color: '#aaa' }}><Close sx={{ fontSize: 16 }} /></IconButton>
+              <ActionButton size="small" variant="contained" onClick={handleAdd} disabled={!newTitle.trim()} sx={{ bgcolor: col.color, color: COLORS.text.inverse, fontSize: '0.875rem', py: 0.5, px: 1.5, borderRadius: RADII.sm, '&:hover': { bgcolor: col.color, filter: 'brightness(0.9)' } }}>Add</ActionButton>
+              <IconButton size="small" onClick={() => setAdding(false)} sx={{ color: COLORS.text.faint }}><Close sx={{ fontSize: 16 }} /></IconButton>
             </Box>
           </Paper>
         ) : (
-          <Box onClick={() => setAdding(true)} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.75, borderRadius: '8px', cursor: 'pointer', color: '#9a9a9a', '&:hover': { bgcolor: 'rgba(0,0,0,0.04)', color: '#444' } }}>
+          <Box onClick={() => setAdding(true)} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.75, borderRadius: RADII.sm, cursor: 'pointer', color: COLORS.text.faint, '&:hover': { bgcolor: 'rgba(0,0,0,0.04)', color: COLORS.text.muted } }}>
             <Add sx={{ fontSize: 16 }} />
-            <Typography sx={{ fontSize: '0.8rem' }}>Add a task</Typography>
+            <Typography sx={{ fontSize: '0.875rem' }}>Add a task</Typography>
           </Box>
         )}
       </Box>
@@ -440,20 +440,30 @@ const mockTasks: Task[] = [
 
 function MockBoard() {
   return (
-    <Box sx={{ display: 'flex', gap: 2.5 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 2.5,
+        overflowX: { xs: 'auto', md: 'visible' },
+        pb: { xs: 1, md: 0 },
+        mx: { xs: -2, md: 0 },
+        px: { xs: 2, md: 0 },
+        '& > *': { minWidth: { xs: 280, md: 0 }, flex: { xs: '0 0 auto', md: 1 } },
+      }}
+    >
       {COLUMNS.map(col => {
         const tasks = mockTasks.filter(t => t.column === col.id);
         return (
           <Box key={col.id} sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
               <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: col.color }} />
-              <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#1a1a1a', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{col.label}</Typography>
-              <Box sx={{ px: 1, borderRadius: '20px', bgcolor: col.bg, fontSize: '0.72rem', fontWeight: 700, color: col.color, lineHeight: 1.6 }}>{tasks.length}</Box>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: COLORS.text.strong, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{col.label}</Typography>
+              <Box sx={{ px: 1, borderRadius: RADII.xl, bgcolor: col.bg, fontSize: '0.875rem', fontWeight: 700, color: col.color, lineHeight: 1.6 }}>{tasks.length}</Box>
             </Box>
             {tasks.map(task => (
-              <Paper key={task.id} elevation={0} sx={{ p: 1.5, mb: 1, borderRadius: '8px', border: '1px solid rgba(0,0,0,0.07)', bgcolor: 'white' }}>
-                <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#1a1a1a', lineHeight: 1.4 }}>{task.title}</Typography>
-                {task.description && <Typography sx={{ fontSize: '0.775rem', color: '#7a7a7a', mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
+              <Paper key={task.id} elevation={0} sx={{ p: 1.5, mb: 1, borderRadius: RADII.sm, border: '1px solid rgba(0,0,0,0.07)', bgcolor: COLORS.bg.white }}>
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: COLORS.text.strong, lineHeight: 1.4 }}>{task.title}</Typography>
+                {task.description && <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, mt: 0.5, lineHeight: 1.5 }}>{task.description}</Typography>}
               </Paper>
             ))}
           </Box>
@@ -604,7 +614,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
     setEditDraft({ title: task.title, description: task.description || '', tags: task.tags || [] });
   }, [tasks, isViewOnly]);
 
-  const handleEditChange = useCallback((field: string, value: any) => {
+  const handleEditChange = useCallback((field: string, value: string | string[]) => {
     setEditDraft(prev => prev ? { ...prev, [field]: value } : null);
   }, []);
 
@@ -631,15 +641,17 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
     return (
       <Box>
         <Stack spacing={3}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>Task Manager</Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Voice-to-tasks — speak your to-do list, we turn it into an organised board</Typography>
-            </Box>
-            <Button variant="contained" startIcon={<Mic />} onClick={() => setUpgradeModalOpen(true)} sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3, py: 1.25, borderRadius: '12px', fontWeight: 600, textTransform: 'none', fontSize: '0.9rem', flexShrink: 0, '&:hover': { bgcolor: '#c73552' } }}>Upgrade to Pro</Button>
-          </Box>
+          <PageHeading
+            title="Task Manager"
+            subtitle="Voice-to-tasks — speak your to-do list, we turn it into an organised board"
+            actions={
+              <PrimaryActionButton startIcon={<Mic />} onClick={() => setUpgradeModalOpen(true)} sx={{ flexShrink: 0 }}>
+                Upgrade to Pro
+              </PrimaryActionButton>
+            }
+          />
           <Box sx={{ maxWidth: 640 }}>
-            <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.75, mb: 1.25 }}>
               Planning a wedding means a thousand things to track — and you shouldn&apos;t have to type them all out. <strong>Just speak.</strong> Ramble through everything that&apos;s on your mind, and Phera will transcribe it, extract every action item, and drop them into your board automatically.
             </Typography>
             <Stack spacing={0.6}>
@@ -650,19 +662,19 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
                 <><strong>Follow-up reminders</strong> so nothing slips through the cracks before the big day</>,
               ] as React.ReactNode[]).map((content, i) => (
                 <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                  <Typography variant="body2" sx={{ color: '#DE3F5E', lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
-                  <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.65 }}>{content}</Typography>
+                  <Typography variant="body2" sx={{ color: COLORS.brand.primary, lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
+                  <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.65 }}>{content}</Typography>
                 </Box>
               ))}
             </Stack>
           </Box>
-          <Box sx={{ position: 'relative', borderRadius: '12px', overflow: 'hidden' }}>
+          <Box sx={{ position: 'relative', borderRadius: RADII.md, overflow: 'hidden' }}>
             <Box sx={{ filter: 'blur(3px)', pointerEvents: 'none', userSelect: 'none' }}><MockBoard /></Box>
             <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, bgcolor: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(2px)' }}>
-              <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: 'white', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
+              <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: COLORS.bg.white, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <LockOutlined sx={{ fontSize: 26, color: COLORS.brand.primary }} />
               </Box>
-              <Button variant="contained" startIcon={<ViewKanban />} onClick={() => setUpgradeModalOpen(true)} sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3.5, py: 1.5, borderRadius: '12px', fontWeight: 600, textTransform: 'none', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)', '&:hover': { bgcolor: '#c73552' } }}>Unlock Task Manager</Button>
+              <PrimaryActionButton startIcon={<ViewKanban />} onClick={() => setUpgradeModalOpen(true)} sx={{ px: 3.5, py: 1.5, fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)' }}>Unlock Task Manager</PrimaryActionButton>
             </Box>
           </Box>
         </Stack>
@@ -675,16 +687,31 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
   return (
     <Box>
       <Stack spacing={3}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>Task Manager</Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Voice-to-tasks — speak your to-do list, we handle the rest</Typography>
-          </Box>
-          <VoiceRecorder onTasksExtracted={handleVoiceTasks} />
-        </Box>
+        <PageHeading
+          title="Task Manager"
+          subtitle="Voice-to-tasks — speak your to-do list, we handle the rest"
+          actions={<VoiceRecorder onTasksExtracted={handleVoiceTasks} />}
+        />
 
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
-          <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'flex-start' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2.5,
+              alignItems: 'flex-start',
+              // On mobile, make the board horizontally scrollable with a
+              // readable per-column minimum width rather than squishing 4
+              // columns into a phone-wide viewport.
+              overflowX: { xs: 'auto', md: 'visible' },
+              pb: { xs: 1, md: 0 },
+              mx: { xs: -2, md: 0 },
+              px: { xs: 2, md: 0 },
+              '& > *': {
+                minWidth: { xs: 280, md: 0 },
+                flex: { xs: '0 0 auto', md: 1 },
+              },
+            }}
+          >
             {COLUMNS.map(col => (
               <KanbanColumn
                 key={col.id}

@@ -4,6 +4,7 @@ import { Box, Typography } from '@mui/material';
 import { Check, ErrorOutline } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SaveStatus } from '@/lib/hooks/useAutoSave';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface AutoSaveIndicatorProps {
   status: SaveStatus;
@@ -35,28 +36,28 @@ export default function AutoSaveIndicator({ status, message }: AutoSaveIndicator
                     width: 14,
                     height: 14,
                     border: '2px solid #ccc',
-                    borderTopColor: '#DE3F5E',
+                    borderTopColor: COLORS.brand.primary,
                     borderRadius: '50%',
                   }}
                 />
               </motion.div>
-              <Typography variant="caption" sx={{ color: '#999', fontSize: '0.8rem' }}>
+              <Typography variant="caption" sx={{ color: COLORS.text.faint, fontSize: '0.875rem' }}>
                 {message || 'Saving...'}
               </Typography>
             </>
           )}
           {status === 'saved' && (
             <>
-              <Check sx={{ fontSize: 16, color: '#10B981' }} />
-              <Typography variant="caption" sx={{ color: '#10B981', fontSize: '0.8rem', fontWeight: 500 }}>
+              <Check sx={{ fontSize: 16, color: COLORS.accent.success }} />
+              <Typography variant="caption" sx={{ color: COLORS.accent.success, fontSize: '0.875rem', fontWeight: 500 }}>
                 {message || 'Saved'}
               </Typography>
             </>
           )}
           {status === 'error' && (
             <>
-              <ErrorOutline sx={{ fontSize: 16, color: '#EF4444' }} />
-              <Typography variant="caption" sx={{ color: '#EF4444', fontSize: '0.8rem' }}>
+              <ErrorOutline sx={{ fontSize: 16, color: COLORS.accent.danger }} />
+              <Typography variant="caption" sx={{ color: COLORS.accent.danger, fontSize: '0.875rem' }}>
                 {message || 'Error saving'}
               </Typography>
             </>

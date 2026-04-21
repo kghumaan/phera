@@ -5,7 +5,6 @@ import {
   Modal,
   Box,
   Typography,
-  Button,
   IconButton,
   useMediaQuery,
   useTheme,
@@ -13,6 +12,8 @@ import {
 import { Close } from '@mui/icons-material';
 import { useMemo } from 'react';
 import type { TravelSectionData } from './TravelSectionsDisplay';
+import { ActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface TravelDetailPanelProps {
   section: TravelSectionData | null;
@@ -25,7 +26,7 @@ export default function TravelDetailPanel({
   section,
   open,
   onClose,
-  primaryColor = '#DE3F5E',
+  primaryColor = COLORS.brand.primary,
 }: TravelDetailPanelProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -53,7 +54,7 @@ export default function TravelDetailPanel({
         width: isMobile ? '100%' : 400,
         maxWidth: '100vw',
         height: '100%',
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
         display: 'flex',
         flexDirection: 'column',
       }}
@@ -68,10 +69,10 @@ export default function TravelDetailPanel({
           justifyContent: 'space-between',
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
           {section.title}
         </Typography>
-        <IconButton onClick={onClose} size="small" sx={{ color: '#6a6a6a' }}>
+        <IconButton onClick={onClose} size="small" sx={{ color: COLORS.text.subtle }}>
           <Close />
         </IconButton>
       </Box>
@@ -87,12 +88,12 @@ export default function TravelDetailPanel({
         {section.type === 'hotel' && (section.address || section.phone) && (
           <Box sx={{ mb: 2, pb: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
             {section.address && (
-              <Typography variant="body2" sx={{ color: '#4a4a4a', mb: 0.5 }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 0.5 }}>
                 {section.address}
               </Typography>
             )}
             {section.phone && (
-              <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
                 {section.phone}
               </Typography>
             )}
@@ -107,9 +108,9 @@ export default function TravelDetailPanel({
         {bodyHtml && (
           <Box
             sx={{
-              '& p': { margin: '0 0 12px 0', color: '#333', lineHeight: 1.7, fontSize: '0.925rem' },
+              '& p': { margin: '0 0 12px 0', color: COLORS.text.strong, lineHeight: 1.7, fontSize: '0.925rem' },
               '& ul': { paddingLeft: '20px', margin: '0 0 12px 0', listStyleType: 'disc' },
-              '& li': { color: '#333', lineHeight: 1.7, fontSize: '0.925rem', mb: 0.5, display: 'list-item' },
+              '& li': { color: COLORS.text.strong, lineHeight: 1.7, fontSize: '0.925rem', mb: 0.5, display: 'list-item' },
               '& li p': { margin: 0 },
               '& a': { color: primaryColor, textDecoration: 'underline' },
               '& strong': { fontWeight: 600 },
@@ -120,15 +121,15 @@ export default function TravelDetailPanel({
 
         {ctaText && ctaUrl && (
           <Box sx={{ textAlign: 'center', mt: 2 }}>
-            <Button
-              component="a"
-              href={ctaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <ActionButton
+              onClick={() => {
+                window.open(ctaUrl, '_blank', 'noopener,noreferrer');
+              }}
               variant="contained"
+              spinnerColor={primaryColor}
               sx={{
                 bgcolor: primaryColor,
-                color: 'white',
+                color: COLORS.text.inverse,
                 borderRadius: '32px',
                 textTransform: 'none',
                 fontWeight: 600,
@@ -139,7 +140,7 @@ export default function TravelDetailPanel({
               }}
             >
               {ctaText}
-            </Button>
+            </ActionButton>
           </Box>
         )}
       </Box>
@@ -160,8 +161,8 @@ export default function TravelDetailPanel({
       >
         <Box
           sx={{
-            bgcolor: 'white',
-            borderRadius: '16px',
+            bgcolor: COLORS.bg.white,
+            borderRadius: RADII.lg,
             maxHeight: '80vh',
             width: '100%',
             maxWidth: 500,

@@ -1,18 +1,19 @@
 'use client';
 
-import { 
-  Box, 
-  Typography, 
-  Button, 
+import {
+  Box,
+  Typography,
+  Button,
   TextField,
   Stack,
-  Dialog,
   DialogContent,
 } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { sendEmailOTP, verifyEmailOTP, signInWithGoogle, signInWithPhone, verifyOTP } from '@/lib/supabase/auth-service';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { FONTS, COLORS } from '@/lib/theme/tokens';
 
 interface LoginModalProps {
   open: boolean;
@@ -177,15 +178,13 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
   };
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={handleCloseDialog}
       maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px',
-          backgroundColor: '#FFFFFF',
           margin: { xs: 2, sm: 3 },
           maxWidth: { xs: '321px', sm: '400px' },
         }
@@ -198,7 +197,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
             <Typography 
               variant="h5"
               sx={{ 
-                color: '#141414',
+                color: COLORS.text.strong,
                 fontWeight: 600,
                 fontSize: '26px',
                 lineHeight: '1.26em',
@@ -214,7 +213,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
               <Typography 
                 variant="body2" 
                 sx={{ 
-                  color: '#858585',
+                  color: COLORS.text.faint,
                   fontSize: '16px',
                   lineHeight: '1.5em',
                   textAlign: 'center',
@@ -229,7 +228,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
               <Typography 
                 variant="body2" 
                 sx={{ 
-                  color: '#858585',
+                  color: COLORS.text.faint,
                   fontSize: '16px',
                   lineHeight: '1.5em',
                   textAlign: 'center',
@@ -244,7 +243,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
               <Typography 
                 variant="body2" 
                 sx={{ 
-                  color: '#858585',
+                  color: COLORS.text.faint,
                   fontSize: '16px',
                   lineHeight: '1.5em',
                   textAlign: 'center',
@@ -272,22 +271,22 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '8px',
-                      backgroundColor: '#F5F5F5',
+                      backgroundColor: COLORS.bg.muted,
                       fontSize: '16px',
-                      color: '#141414',
+                      color: COLORS.text.strong,
                       '& fieldset': {
                         borderColor: 'transparent',
                       },
                       '&:hover fieldset': {
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                         borderWidth: '2px',
                       },
                     },
                     '& .MuiOutlinedInput-input::placeholder': {
-                      color: '#858585',
+                      color: COLORS.text.faint,
                       opacity: 1,
                     }
                   }}
@@ -297,7 +296,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   <Typography 
                     variant="body2" 
                     sx={{ 
-                      color: '#DE3F5E',
+                      color: COLORS.brand.primary,
                       fontSize: '14px',
                       textAlign: 'center',
                     }}
@@ -312,26 +311,26 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   disabled={isLoading}
                   fullWidth
                   sx={{
-                    backgroundColor: '#DE3F5E',
+                    backgroundColor: COLORS.brand.primary,
                     py: 1.5,
                     borderRadius: '16px',
                     textTransform: 'uppercase',
                     fontSize: '14px',
                     fontWeight: 700,
                     '&:hover': {
-                      backgroundColor: '#C73652',
+                      backgroundColor: COLORS.brand.primaryHover,
                     },
-                    color: '#FFFFFF',
+                    color: COLORS.bg.white,
                   }}
                 >
                   {isLoading ? 'Sending...' : 'Send Verification Code'}
                 </Button>
 
                 <Box sx={{ position: 'relative', py: 1, textAlign: 'center' }}>
-                  <Typography variant="body2" sx={{ textAlign: 'center', color: '#858585', backgroundColor: '#fff', position: 'relative', zIndex: 1, display: 'inline-block', px: 2 }}>
+                  <Typography variant="body2" sx={{ textAlign: 'center', color: COLORS.text.faint, backgroundColor: COLORS.bg.white, position: 'relative', zIndex: 1, display: 'inline-block', px: 2 }}>
                     OR
                   </Typography>
-                  <Box sx={{ position: 'absolute', left: 0, right: 0, top: '50%', height: '1px', backgroundColor: '#E0E0E0', zIndex: 0 }} />
+                  <Box sx={{ position: 'absolute', left: 0, right: 0, top: '50%', height: '1px', backgroundColor: COLORS.border.default, zIndex: 0 }} />
                 </Box>
 
                 <Stack spacing={2}>
@@ -349,16 +348,16 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                             />
                         }
                         sx={{
-                            borderColor: '#E0E0E0',
-                            color: '#141414',
+                            borderColor: COLORS.border.default,
+                            color: COLORS.text.strong,
                             py: 1.5,
                             borderRadius: '16px',
                             textTransform: 'none',
                             fontSize: '16px',
                             fontWeight: 500,
                             '&:hover': {
-                                borderColor: '#B0B0B0',
-                                backgroundColor: '#F5F5F5',
+                                borderColor: COLORS.text.faint,
+                                backgroundColor: COLORS.bg.muted,
                             },
                         }}
                     >
@@ -369,11 +368,11 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                         onClick={() => setStep('phone')}
                         disabled={isLoading}
                         sx={{
-                            color: '#666',
+                            color: COLORS.text.subtle,
                             textTransform: 'none',
                             fontSize: '14px',
                             '&:hover': {
-                                color: '#141414',
+                                color: COLORS.text.strong,
                                 backgroundColor: 'transparent',
                                 textDecoration: 'underline',
                             },
@@ -397,17 +396,17 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '8px',
-                      backgroundColor: '#F5F5F5',
+                      backgroundColor: COLORS.bg.muted,
                       fontSize: '16px',
-                      color: '#141414',
+                      color: COLORS.text.strong,
                       '& fieldset': {
                         borderColor: 'transparent',
                       },
                       '&:hover fieldset': {
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                         borderWidth: '2px',
                       },
                     },
@@ -418,7 +417,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   <Typography 
                     variant="body2" 
                     sx={{ 
-                      color: '#DE3F5E',
+                      color: COLORS.brand.primary,
                       fontSize: '14px',
                       textAlign: 'center',
                     }}
@@ -433,16 +432,16 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   disabled={isLoading}
                   fullWidth
                   sx={{
-                    backgroundColor: '#DE3F5E',
+                    backgroundColor: COLORS.brand.primary,
                     py: 1.5,
                     borderRadius: '16px',
                     textTransform: 'uppercase',
                     fontSize: '14px',
                     fontWeight: 700,
                     '&:hover': {
-                      backgroundColor: '#C73652',
+                      backgroundColor: COLORS.brand.primaryHover,
                     },
-                    color: '#FFFFFF',
+                    color: COLORS.bg.white,
                   }}
                 >
                   {isLoading ? 'Sending...' : 'Send Verification Code'}
@@ -453,12 +452,12 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                     onClick={() => setStep('email')}
                     disabled={isLoading}
                     sx={{
-                        color: '#666',
+                        color: COLORS.text.subtle,
                         textTransform: 'none',
                         fontSize: '14px',
                         mt: 2,
                         '&:hover': {
-                            color: '#141414',
+                            color: COLORS.text.strong,
                             backgroundColor: 'transparent',
                             textDecoration: 'underline',
                         },
@@ -489,29 +488,29 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                       fontSize: '24px',
                       letterSpacing: '8px',
                       fontWeight: 'bold',
-                      fontFamily: 'monospace'
+                      fontFamily: FONTS.body
                     }
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '8px',
-                      backgroundColor: '#F5F5F5',
+                      backgroundColor: COLORS.bg.muted,
                       fontSize: '24px',
-                      fontFamily: 'monospace',
-                      color: '#141414',
+                      fontFamily: FONTS.body,
+                      color: COLORS.text.strong,
                       '& fieldset': {
                         borderColor: 'transparent',
                       },
                       '&:hover fieldset': {
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#DE3F5E',
+                        borderColor: COLORS.brand.primary,
                         borderWidth: '2px',
                       },
                     },
                     '& .MuiOutlinedInput-input::placeholder': {
-                      color: '#858585',
+                      color: COLORS.text.faint,
                       opacity: 1,
                       letterSpacing: 'normal',
                       fontSize: '16px',
@@ -523,7 +522,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   <Typography 
                     variant="body2" 
                     sx={{ 
-                      color: '#DE3F5E',
+                      color: COLORS.brand.primary,
                       fontSize: '14px',
                       textAlign: 'center',
                     }}
@@ -538,19 +537,19 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                   disabled={isLoading || (step === 'email-otp' ? otpCode.length : phoneOtp.length) !== 6}
                   fullWidth
                   sx={{
-                    backgroundColor: '#DE3F5E',
+                    backgroundColor: COLORS.brand.primary,
                     py: 1.5,
                     borderRadius: '16px',
                     textTransform: 'uppercase',
                     fontSize: '14px',
                     fontWeight: 700,
-                    color: '#FFFFFF',
+                    color: COLORS.bg.white,
                     '&:hover': {
-                      backgroundColor: '#C73652',
+                      backgroundColor: COLORS.brand.primaryHover,
                     },
                     '&:disabled': {
-                      backgroundColor: '#E0E0E0',
-                      color: '#A0A0A0',
+                      backgroundColor: COLORS.border.default,
+                      color: COLORS.text.faint,
                     },
                   }}
                 >
@@ -563,15 +562,15 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                     variant="outlined"
                     fullWidth
                     sx={{
-                      borderColor: '#DE3F5E',
-                      color: '#DE3F5E',
+                      borderColor: COLORS.brand.primary,
+                      color: COLORS.brand.primary,
                       py: 1,
                       borderRadius: '16px',
                       textTransform: 'uppercase',
-                      fontSize: '12px',
+                      fontSize: '14px',
                       fontWeight: 700,
                       '&:hover': {
-                        borderColor: '#C73652',
+                        borderColor: COLORS.brand.primaryHover,
                         backgroundColor: 'rgba(222, 63, 94, 0.04)',
                       },
                     }}
@@ -585,15 +584,15 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
                     disabled={isLoading}
                     fullWidth
                     sx={{
-                      borderColor: '#858585',
-                      color: '#858585',
+                      borderColor: COLORS.text.faint,
+                      color: COLORS.text.faint,
                       py: 1,
                       borderRadius: '16px',
                       textTransform: 'uppercase',
-                      fontSize: '12px',
+                      fontSize: '14px',
                       fontWeight: 700,
                       '&:hover': {
-                        borderColor: '#666666',
+                        borderColor: COLORS.text.subtle,
                         backgroundColor: 'rgba(133, 133, 133, 0.04)',
                       },
                     }}
@@ -608,7 +607,7 @@ const LoginModal = ({ open, onClose, onSuccess, redirectTo }: LoginModalProps) =
           </Stack>
         </Stack>
       </DialogContent>
-    </Dialog>
+    </PheraDialog>
   );
 };
 

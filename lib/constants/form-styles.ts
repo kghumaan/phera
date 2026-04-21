@@ -1,13 +1,21 @@
 /**
- * Enhanced TextField styling for admin onboarding forms
- * Provides consistent, larger, more readable form inputs across the platform
+ * Legacy SX-prop constants.
+ *
+ * New code should prefer `components/shared/*` primitives (Alert, TextField,
+ * Button, etc.) over these raw SX objects. Values here now resolve through
+ * `@/lib/theme/tokens` so the source of truth is unified.
  */
 
+import { COLORS, RADII } from '@/lib/theme/tokens';
+
+/**
+ * Enhanced TextField styling for admin onboarding forms.
+ */
 export const ENHANCED_TEXT_FIELD_SX = {
   mt: 1,
   '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
-    bgcolor: 'white',
+    borderRadius: RADII.md,
+    bgcolor: COLORS.bg.white,
     fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
     '& input': {
       py: { xs: 1.5, md: 1.75, lg: 2 },
@@ -21,137 +29,127 @@ export const ENHANCED_TEXT_FIELD_SX = {
       fontSize: { xs: '0.875rem', md: '0.925rem', lg: '0.975rem' },
     },
     '& .MuiInputAdornment-root .MuiSvgIcon-root': {
-      color: '#666',
+      color: COLORS.text.subtle,
     },
     '& fieldset': {
-      borderColor: 'rgba(0, 0, 0, 0.23)',
+      borderColor: COLORS.border.strong,
     },
     '&:hover fieldset': {
-      borderColor: '#DE3F5E',
+      borderColor: COLORS.brand.primary,
     },
     '&.Mui-focused fieldset': {
-      borderColor: '#DE3F5E',
+      borderColor: COLORS.brand.primary,
       borderWidth: '2px',
     },
     '&.Mui-disabled': {
       bgcolor: 'rgba(255, 255, 255, 0.8)',
       '& fieldset': {
-        borderColor: 'rgba(0, 0, 0, 0.15)',
+        borderColor: COLORS.border.default,
       },
     },
   },
   '& .MuiInputLabel-root': {
-    color: '#4a4a4a',
+    color: COLORS.text.muted,
     fontSize: { xs: '0.95rem', md: '1rem', lg: '1.05rem' },
     fontWeight: 500,
     lineHeight: 1.5,
-    // Center label vertically within the custom input padding
     transform: 'translate(14px, 14px) scale(1)',
     '&.MuiInputLabel-shrink': {
       transform: 'translate(14px, -9px) scale(0.75)',
     },
     '&.Mui-disabled': {
-      color: '#6a6a6a',
+      color: COLORS.text.subtle,
     },
   },
   '& .MuiInputLabel-root.Mui-focused': {
-    color: '#DE3F5E',
+    color: COLORS.brand.primary,
     fontWeight: 600,
   },
   '& .MuiInputBase-input': {
-    color: '#1a1a1a',
+    color: COLORS.text.strong,
     '&.Mui-disabled': {
-      WebkitTextFillColor: '#4a4a4a',
-      color: '#4a4a4a',
+      WebkitTextFillColor: COLORS.text.muted,
+      color: COLORS.text.muted,
     },
     '&:-webkit-autofill': {
       WebkitBoxShadow: '0 0 0 100px white inset',
-      WebkitTextFillColor: '#1a1a1a',
-      caretColor: '#1a1a1a',
+      WebkitTextFillColor: COLORS.text.strong,
+      caretColor: COLORS.text.strong,
       borderRadius: 'inherit',
     },
   },
   '& .MuiFormHelperText-root': {
-    color: '#6a6a6a',
-    fontSize: { xs: '0.75rem', md: '0.8rem', lg: '0.85rem' },
+    color: COLORS.text.subtle,
+    fontSize: { xs: '0.875rem', md: '0.9rem', lg: '0.95rem' },
   },
 };
 
 /**
  * Enhanced Paper styling for form containers
- * Use for main content sections in onboarding pages
  */
 export const ENHANCED_PAPER_SX = {
   p: { xs: 4, md: 6 },
-  borderRadius: '24px',
+  borderRadius: RADII.dialog,
   bgcolor: 'rgba(255, 255, 255, 0.95)',
   backdropFilter: 'blur(10px)',
   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
 };
 
-/**
- * Enhanced section spacing
- * Use for Stack components containing form sections
- */
 export const ENHANCED_SECTION_SPACING = 3;
-
-/**
- * Standard max width for admin form pages
- */
 export const ADMIN_PAGE_MAX_WIDTH = 1000;
-
-/**
- * Spacing between form inputs within a section
- */
 export const ADMIN_INNER_SPACING = 2.5;
 
-/**
- * SX props for section sub-headings within admin pages
- */
 export const ADMIN_SECTION_HEADING_SX = {
   fontWeight: 600,
-  color: '#1a1a1a',
+  color: COLORS.text.strong,
   fontSize: '1rem',
 };
 
-/**
- * SX props for the main page heading (use with variant="h6")
- */
 export const ADMIN_PAGE_HEADING_SX = {
   fontWeight: 600,
-  color: '#1a1a1a',
+  color: COLORS.text.strong,
   mb: 0.5,
 };
 
-/**
- * Enhanced container max width for desktop
- */
 export const ENHANCED_CONTAINER_MAX_WIDTH = 'xl' as const;
 
 /**
- * Primary button styling (used throughout the platform)
- * Pink/red color scheme
+ * Primary button styling.
  */
 export const PRIMARY_BUTTON_SX = {
-  bgcolor: '#DE3F5E',
-  color: 'white',
-  borderRadius: '12px',
+  bgcolor: COLORS.brand.primary,
+  color: COLORS.text.inverse,
+  borderRadius: RADII.md,
   textTransform: 'none' as const,
   fontWeight: 600,
   '&:hover': {
-    bgcolor: '#C8365A',
+    bgcolor: COLORS.brand.primaryHover,
+  },
+};
+
+/**
+ * Secondary button styling.
+ */
+export const SECONDARY_BUTTON_SX = {
+  bgcolor: COLORS.bg.white,
+  color: COLORS.text.strong,
+  borderColor: COLORS.text.strong,
+  borderRadius: RADII.md,
+  textTransform: 'none' as const,
+  fontWeight: 600,
+  '&:hover': {
+    bgcolor: 'rgba(0, 0, 0, 0.04)',
+    borderColor: COLORS.text.strong,
   },
 };
 
 /**
  * Guest-facing TextField styling for RSVP and other guest forms.
- * Uses floating labels (placeholder becomes label on focus/fill).
- * Accepts an optional themeColor for the focus color.
  */
-export const guestTextFieldSx = (themeColor = '#DE3F5E') => ({
+export const guestTextFieldSx = (themeColor: string = COLORS.brand.primary) => ({
   '& .MuiOutlinedInput-root': {
     borderRadius: { xs: '8px', md: '10px' },
-    backgroundColor: 'white',
+    backgroundColor: COLORS.bg.white,
     fontSize: { xs: '1rem', md: '1.125rem' },
     '& fieldset': {
       borderColor: 'rgba(0, 0, 0, 0.4)',
@@ -174,7 +172,6 @@ export const guestTextFieldSx = (themeColor = '#DE3F5E') => ({
   '& .MuiInputLabel-root': {
     color: '#888888',
     fontSize: { xs: '1rem', md: '1.125rem' },
-    // Center the label vertically when not shrunk (no value, not focused)
     transform: 'translate(14px, 12px) scale(1)',
     '&.MuiInputLabel-shrink': {
       transform: 'translate(14px, -9px) scale(0.75)',
@@ -185,23 +182,6 @@ export const guestTextFieldSx = (themeColor = '#DE3F5E') => ({
     },
   },
   '& .MuiFormHelperText-root': {
-    fontSize: '0.75rem',
+    fontSize: '0.875rem',
   },
 });
-
-/**
- * Secondary button styling
- * White background with black text and border
- */
-export const SECONDARY_BUTTON_SX = {
-  bgcolor: 'white',
-  color: 'black',
-  borderColor: 'black',
-  borderRadius: '12px',
-  textTransform: 'none' as const,
-  fontWeight: 600,
-  '&:hover': {
-    bgcolor: 'rgba(0, 0, 0, 0.04)',
-    borderColor: 'black',
-  },
-};

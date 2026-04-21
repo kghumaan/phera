@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Box, Typography, Button, alpha } from '@mui/material';
+import { Box, Typography, alpha } from '@mui/material';
 import { Check } from '@mui/icons-material';
 import { FRAME_UI_OPTIONS } from '@/lib/constants/images';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ChatFrameSelectionFormProps {
   onSave: (frameUrl: string | null) => void;
@@ -16,20 +18,20 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
 
   return (
     <Box sx={{
-      bgcolor: 'white',
+      bgcolor: COLORS.bg.white,
       p: 3,
-      borderRadius: '16px',
+      borderRadius: RADII.lg,
       border: '2px solid',
-      borderColor: alpha('#000', 0.12),
+      borderColor: alpha(COLORS.text.strong, 0.12),
       width: '100%',
       maxWidth: 640,
       mt: 1,
       boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
     }}>
-      <Typography variant="h6" sx={{ mb: 1, fontWeight: 700, color: '#000', fontSize: '1rem' }}>
+      <Typography variant="h6" sx={{ mb: 1, fontWeight: 700, color: COLORS.text.strong, fontSize: '1rem' }}>
         Photo Frame
       </Typography>
-      <Typography variant="caption" sx={{ color: '#666', mb: 2, display: 'block' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 2, display: 'block' }}>
         Choose a decorative frame for your couple photos
       </Typography>
 
@@ -45,18 +47,18 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
           sx={{
             width: 72,
             height: 72,
-            borderRadius: '10px',
+            borderRadius: RADII.sm,
             border: selected === null ? '3px solid #DE3F5E' : '2px solid #e0e0e0',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            bgcolor: '#f9f9f9',
+            bgcolor: COLORS.bg.muted,
             transition: 'all 0.15s',
-            '&:hover': { transform: 'scale(1.05)', borderColor: '#DE3F5E' },
+            '&:hover': { transform: 'scale(1.05)', borderColor: COLORS.brand.primary },
           }}
         >
-          <Typography sx={{ fontSize: '0.65rem', color: '#999', fontWeight: 600, textAlign: 'center' }}>
+          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint, fontWeight: 600, textAlign: 'center' }}>
             No Frame
           </Typography>
         </Box>
@@ -68,13 +70,13 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
             sx={{
               width: 72,
               height: 72,
-              borderRadius: '10px',
+              borderRadius: RADII.sm,
               border: selected === frame.url ? '3px solid #DE3F5E' : '2px solid #e0e0e0',
               cursor: 'pointer',
               overflow: 'hidden',
               position: 'relative',
               transition: 'all 0.15s',
-              '&:hover': { transform: 'scale(1.05)', borderColor: '#DE3F5E' },
+              '&:hover': { transform: 'scale(1.05)', borderColor: COLORS.brand.primary },
             }}
           >
             <Box
@@ -88,12 +90,12 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
                 position: 'absolute',
                 top: 3,
                 right: 3,
-                bgcolor: '#DE3F5E',
+                bgcolor: COLORS.brand.primary,
                 borderRadius: '50%',
                 p: 0.2,
                 display: 'flex',
               }}>
-                <Check sx={{ color: 'white', fontSize: 12 }} />
+                <Check sx={{ color: COLORS.text.inverse, fontSize: 14 }} />
               </Box>
             )}
           </Box>
@@ -102,18 +104,15 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
 
       {/* Action buttons */}
       <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%' }}>
-        <Button
+        <SecondaryActionButton
           onClick={onCancel}
           size="small"
-          variant="outlined"
           fullWidth
           sx={{
-            color: '#666',
-            fontSize: '0.85rem',
-            fontWeight: 700,
+            color: COLORS.text.subtle,
+            fontSize: '0.875rem',
             py: 1,
-            textTransform: 'none',
-            borderRadius: '16px',
+            borderRadius: RADII.lg,
             flex: 1,
             border: '2px solid',
             borderColor: 'rgba(0,0,0,0.1)',
@@ -121,25 +120,20 @@ export default function ChatFrameSelectionForm({ onSave, onCancel, currentFrame 
           }}
         >
           Skip
-        </Button>
-        <Button
-          variant="contained"
+        </SecondaryActionButton>
+        <PrimaryActionButton
           onClick={() => onSave(selected)}
           size="small"
           fullWidth
           sx={{
-            bgcolor: '#DE3F5E',
-            borderRadius: '16px',
-            fontSize: '0.85rem',
-            fontWeight: 700,
+            borderRadius: RADII.lg,
+            fontSize: '0.875rem',
             py: 1,
-            textTransform: 'none',
             flex: 1,
-            '&:hover': { bgcolor: '#c73552' },
           }}
         >
           Save Frame
-        </Button>
+        </PrimaryActionButton>
       </Box>
     </Box>
   );

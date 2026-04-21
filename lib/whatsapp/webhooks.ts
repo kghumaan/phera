@@ -201,6 +201,16 @@ export async function updateMessageStatus(
       return false;
     }
 
+    // Mirror status to broadcast recipient row if this message was a broadcast.
+    const broadcastUpdate: any = { delivery_status: status };
+    if (status === 'delivered') broadcastUpdate.delivered_at = timestamp;
+    if (status === 'read') broadcastUpdate.read_at = timestamp;
+    if (status === 'failed' && error) broadcastUpdate.error_message = `${error.title}: ${error.message}`;
+    await supabase
+      .from('concierge_broadcast_recipients')
+      .update(broadcastUpdate)
+      .eq('whatsapp_message_id', waMessageId);
+
     console.log(`✅ Updated message ${waMessageId} to status: ${status}`);
     return true;
   } catch (error) {
@@ -218,7 +228,6 @@ export async function logChatMessage({
   role,
   content,
   waMessageId,
-  metadata = {}
 }: {
   weddingId: string;
   guestId: string;
@@ -228,16 +237,43 @@ export async function logChatMessage({
   metadata?: any;
 }): Promise<void> {
   try {
+    // Idempotent guard: if a row with this wa_message_id already exists,
+    // skip. Prevents duplicates when multiple callers (webhook + ai-handler)
+    // both try to log the same message.
+    if (waMessageId) {
+      const { data: existing } = await (supabase as any)
+        .from('whatsapp_chat_history')
+        .select('id')
+        .eq('wa_message_id', waMessageId)
+        .limit(1);
+      if (existing && existing.length > 0) return;
+    } else {
+      // Fallback dedup for callers that can't supply wa_message_id
+      // (ai-handler's internal logging). Within a 10-second window, skip if
+      // an identical (guest, role, content) row already exists.
+      const tenSecondsAgo = new Date(Date.now() - 10_000).toISOString();
+      const { data: recent } = await (supabase as any)
+        .from('whatsapp_chat_history')
+        .select('id')
+        .eq('guest_id', guestId)
+        .eq('role', role)
+        .eq('content', content)
+        .gte('created_at', tenSecondsAgo)
+        .limit(1);
+      if (recent && recent.length > 0) return;
+    }
+
+    const record: any = {
+      wedding_id: weddingId,
+      guest_id: guestId,
+      role,
+      content,
+    };
+    if (waMessageId) record.wa_message_id = waMessageId;
+
     const { error } = await (supabase as any)
       .from('whatsapp_chat_history')
-      .insert({
-        wedding_id: weddingId,
-        guest_id: guestId,
-        role,
-        content,
-        wa_message_id: waMessageId,
-        metadata,
-      });
+      .insert(record);
 
     if (error) {
       console.error('Error logging chat message:', error);

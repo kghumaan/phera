@@ -8,6 +8,7 @@ import {
     alpha,
     FormControl
 } from '@mui/material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ChatCountPickerProps {
     value: number;
@@ -28,9 +29,9 @@ export default function ChatCountPicker({
 
     const commonFieldSx = {
         '& .MuiOutlinedInput-root': {
-            borderRadius: '12px',
+            borderRadius: RADII.md,
             fontSize: '1.1rem',
-            bgcolor: '#f5f5f5',
+            bgcolor: COLORS.bg.subtle,
             fontWeight: 700,
             transition: 'all 0.2s',
             '& .MuiSelect-select': {
@@ -40,28 +41,28 @@ export default function ChatCountPicker({
                 color: '#1a1a1a !important',
                 WebkitTextFillColor: '#1a1a1a !important',
             },
-            '& fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
-            '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
-            '&:hover fieldset': { borderColor: '#c73552', borderWidth: '2px' },
+            '& fieldset': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
+            '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
+            '&:hover fieldset': { borderColor: COLORS.brand.primaryHover, borderWidth: '2px' },
             '&:hover': {
-                bgcolor: '#eeeeee',
+                bgcolor: COLORS.bg.muted,
             }
         },
     };
 
     return (
         <Box sx={{
-            bgcolor: 'white',
+            bgcolor: COLORS.bg.white,
             p: 3,
-            borderRadius: '16px',
+            borderRadius: RADII.lg,
             border: '2px solid',
-            borderColor: alpha('#000', 0.12),
+            borderColor: alpha(COLORS.text.strong, 0.12),
             width: '100%',
             maxWidth: 360,
             mt: 1,
             boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
         }}>
-            <Typography variant="caption" sx={{ color: '#666', mb: 1, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
+            <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 1, display: 'block', fontWeight: 500, fontSize: '0.875rem' }}>
                 {label}
             </Typography>
             <FormControl fullWidth size="small">
@@ -72,19 +73,19 @@ export default function ChatCountPicker({
                     MenuProps={{
                         PaperProps: {
                             sx: {
-                                borderRadius: '12px',
+                                borderRadius: RADII.md,
                                 mt: 1,
                                 border: '2px solid',
-                                borderColor: alpha('#000', 0.12),
+                                borderColor: alpha(COLORS.text.strong, 0.12),
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                                 '& .MuiMenuItem-root': {
                                     fontWeight: 600,
                                     py: 1,
                                     justifyContent: 'center',
                                     '&.Mui-selected': {
-                                        bgcolor: alpha('#DE3F5E', 0.1),
-                                        color: '#DE3F5E',
-                                        '&:hover': { bgcolor: alpha('#DE3F5E', 0.15) }
+                                        bgcolor: alpha(COLORS.brand.primary, 0.1),
+                                        color: COLORS.brand.primary,
+                                        '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.15) }
                                     }
                                 }
                             }

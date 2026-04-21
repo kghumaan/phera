@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Fab } from '@mui/material';
+import { Fab, Grow } from '@mui/material';
 import { AutoAwesome } from '@mui/icons-material';
+import { COLORS } from '@/lib/theme/tokens';
 
 interface AskPheraFabProps {
   onClick: () => void;
@@ -10,25 +11,31 @@ interface AskPheraFabProps {
 }
 
 export default function AskPheraFab({ onClick, visible }: AskPheraFabProps) {
-  if (!visible) return null;
-
   return (
-    <Fab
-      onClick={onClick}
-      sx={{
-        position: 'fixed',
-        bottom: 24,
-        right: 24,
-        width: 56,
-        height: 56,
-        bgcolor: '#DE3F5E',
-        color: 'white',
-        boxShadow: '0 4px 20px rgba(222,63,94,0.35)',
-        '&:hover': { bgcolor: '#c73552' },
-        zIndex: 1200,
-      }}
+    <Grow
+      in={visible}
+      mountOnEnter
+      unmountOnExit
+      timeout={{ enter: 260, exit: 200 }}
+      style={{ transformOrigin: 'bottom right' }}
     >
-      <AutoAwesome />
-    </Fab>
+      <Fab
+        onClick={onClick}
+        sx={{
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          width: 56,
+          height: 56,
+          bgcolor: COLORS.brand.primary,
+          color: COLORS.text.inverse,
+          boxShadow: '0 4px 20px rgba(222,63,94,0.35)',
+          '&:hover': { bgcolor: COLORS.brand.primaryHover },
+          zIndex: 1200,
+        }}
+      >
+        <AutoAwesome />
+      </Fab>
+    </Grow>
   );
 }

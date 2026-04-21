@@ -13,8 +13,6 @@ import {
   IconButton,
   Chip,
   Divider,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Card,
@@ -23,15 +21,23 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
-import { Check, ContentCopy, Launch, CheckCircle, Edit, People, Event, LocationOn, CalendarMonth, HowToReg, PersonOff, HelpOutline } from '@mui/icons-material';
+import { Check, ContentCopy, Launch, CheckCircle, Edit, People, Event, LocationOn, CalendarMonth, HowToReg, PersonOff, HelpOutline, UploadFile, Web, Hotel, DirectionsBus, WhatsApp, SupportAgent, ArrowForward } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
+import { usePlan } from '@/lib/contexts/PlanContext';
 import { getAllRSVPs } from '@/lib/supabase/rsvp-service';
+import { supabase } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import UpgradeModal from '@/components/admin/UpgradeModal';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII, FONTS } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
+import { PheraCard } from '@/components/shared/Card';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
@@ -51,10 +57,246 @@ interface RSVPData {
   guest_count: number;
 }
 
+const QUICK_LINKS = [
+  { label: 'Customize Design', path: 'design', icon: Edit },
+  { label: 'RSVPs', path: 'guests', icon: People },
+  { label: 'Schedule & Events', path: 'schedule', icon: Event },
+];
+
+function QuickLinks({
+  weddingSlug,
+  weddingId,
+  weddingData,
+}: {
+  weddingSlug: string;
+  weddingId: string | null;
+  weddingData: WeddingData | null;
+}) {
+  const router = useRouter();
+  const [loadingLink, setLoadingLink] = useState<string | null>(null);
+  const [completion, setCompletion] = useState<Record<string, boolean>>({});
+
+  const go = (path: string) => {
+    setLoadingLink(path);
+    router.push(`/admin/${weddingSlug}/${path}`);
+  };
+
+  // Load completion state for each roadmap step in parallel.
+  useEffect(() => {
+    if (!weddingId) return;
+
+    let cancelled = false;
+    (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- tables not all in generated supabase types
+      const sb = supabase as any;
+      const [guestsRes, roomsRes, vehiclesRes, vendorsRes, settingsRes] = await Promise.all([
+        sb.from('guests').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingSlug),
+        sb.from('wedding_rooms').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingId),
+        sb.from('transportation_vehicles').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingId),
+        sb.from('vendors').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingId),
+        sb.from('wedding_settings').select('concierge_enabled').eq('wedding_id', weddingId).maybeSingle(),
+      ]);
+
+      if (cancelled) return;
+
+      const websiteDone = !!(
+        weddingData?.couple_name &&
+        weddingData?.venue_name &&
+        weddingData?.wedding_date_display
+      );
+
+      setCompletion({
+        'guest-list': (guestsRes.count ?? 0) > 0,
+        'details': websiteDone,
+        'concierge': !!settingsRes?.data?.concierge_enabled,
+        'rooms': (roomsRes.count ?? 0) > 0,
+        'transportation': (vehiclesRes.count ?? 0) > 0,
+        'coordinator': (vendorsRes.count ?? 0) > 0,
+      });
+    })();
+
+    return () => { cancelled = true; };
+  }, [weddingId, weddingSlug, weddingData?.couple_name, weddingData?.venue_name, weddingData?.wedding_date_display]);
+
+  const roadmap = [
+    {
+      label: 'Import Guest List',
+      subtext: "Pull in every guest so we can nudge anyone who hasn't responded, track who's coming, and group people for outreach.",
+      icon: UploadFile,
+      path: 'guest-list',
+    },
+    {
+      label: 'Create Wedding Website',
+      subtext: "Fill in your wedding details so your site is ready for guests — and so our Concierge knows how to answer their questions.",
+      icon: Web,
+      path: 'details',
+    },
+    {
+      label: 'Enable Guest Concierge',
+      subtext: 'Turn on the 24/7 WhatsApp assistant for your guests — answers logistics, RSVP nudges, and last-minute questions.',
+      icon: WhatsApp,
+      path: 'concierge',
+      isPro: true,
+    },
+    {
+      label: 'Set Up Room Assignments',
+      subtext: 'Upload a floorplan and place guests into hotel rooms.',
+      icon: Hotel,
+      path: 'rooms',
+      isPro: true,
+    },
+    {
+      label: 'Coordinate Guest Transportation',
+      subtext: 'Shuttles, airport pickups, and venue transfers — optimized so no one gets stranded.',
+      icon: DirectionsBus,
+      path: 'transportation',
+      isPro: true,
+    },
+    {
+      label: 'Track Vendor Conversations',
+      subtext: 'Add our Agent to your vendor WhatsApp groups for summaries, action items, and flagged risks.',
+      icon: SupportAgent,
+      path: 'coordinator',
+      isPro: true,
+    },
+  ];
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: { xs: 3, md: 4 },
+        borderRadius: RADII.xl,
+        background: `linear-gradient(135deg, ${alpha(COLORS.brand.primary, 0.08)} 0%, ${alpha(COLORS.brand.primary, 0.02)} 60%, ${COLORS.bg.white} 100%)`,
+        border: `1px solid ${alpha(COLORS.brand.primary, 0.15)}`,
+      }}
+    >
+      <Stack spacing={0.5} sx={{ mb: 3 }}>
+        <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong }}>
+          What would you like to do?
+        </Typography>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
+          A simple roadmap for setting up your wedding in Phera.
+        </Typography>
+      </Stack>
+
+      <Stack spacing={1.25}>
+        {roadmap.map(({ label, subtext, icon: Icon, path, isPro }) => {
+          const isLoading = loadingLink === path;
+          const isDone = !!completion[path];
+          return (
+            <Paper
+              key={path}
+              elevation={0}
+              onClick={() => !isLoading && go(path)}
+              sx={{
+                px: { xs: 2, md: 2.5 },
+                py: { xs: 1.75, md: 2 },
+                borderRadius: RADII.md,
+                bgcolor: isDone ? alpha(COLORS.brand.primary, 0.03) : COLORS.bg.white,
+                border: '1px solid',
+                borderColor: isDone ? alpha(COLORS.brand.primary, 0.15) : COLORS.border.light,
+                cursor: isLoading ? 'wait' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                transition: 'all 0.18s ease',
+                '&:hover': {
+                  borderColor: alpha(COLORS.brand.primary, 0.4),
+                  bgcolor: alpha(COLORS.brand.primary, isDone ? 0.05 : 0.02),
+                  transform: isLoading ? 'none' : 'translateX(2px)',
+                  '& .roadmap-circle': isDone ? {} : {
+                    borderColor: COLORS.brand.primary,
+                    bgcolor: COLORS.brand.primarySubtle,
+                  },
+                  '& .roadmap-chevron': { color: COLORS.brand.primary },
+                },
+              }}
+            >
+              {/* Circle — check when done, icon when not */}
+              <Box
+                className="roadmap-circle"
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  border: isDone ? 'none' : `1.5px solid ${alpha(COLORS.brand.primary, 0.3)}`,
+                  bgcolor: isDone ? COLORS.brand.primary : COLORS.brand.primaryWash,
+                  color: isDone ? COLORS.text.inverse : COLORS.brand.primary,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  transition: 'all 0.18s ease',
+                }}
+              >
+                {isDone ? <Check sx={{ fontSize: 20 }} /> : <Icon sx={{ fontSize: 18 }} />}
+              </Box>
+
+              <Box sx={{ flex: 1, minWidth: 0, opacity: isDone ? 0.55 : 1, transition: 'opacity 0.18s ease' }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.25 }}>
+                  <Typography
+                    sx={{
+                      fontSize: { xs: 14, md: 15 },
+                      fontWeight: 700,
+                      color: COLORS.text.strong,
+                      textDecoration: isDone ? 'line-through' : 'none',
+                      textDecorationColor: alpha(COLORS.text.strong, 0.3),
+                    }}
+                  >
+                    {label}
+                  </Typography>
+                  {isPro && (
+                    <Box
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        px: 0.75,
+                        py: 0.15,
+                        borderRadius: '6px',
+                        border: `1px solid ${COLORS.brand.primary}`,
+                        color: COLORS.brand.primary,
+                        fontSize: 9.5,
+                        fontWeight: 700,
+                        letterSpacing: '0.05em',
+                      }}
+                    >
+                      PRO
+                    </Box>
+                  )}
+                </Stack>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle, lineHeight: 1.5 }}>
+                  {subtext}
+                </Typography>
+              </Box>
+
+              <Box
+                className="roadmap-chevron"
+                sx={{
+                  flexShrink: 0,
+                  color: alpha(COLORS.text.strong, 0.3),
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'color 0.18s ease',
+                }}
+              >
+                {isLoading
+                  ? <CircularProgress size={18} sx={{ color: COLORS.brand.primary }} />
+                  : <ArrowForward sx={{ fontSize: 18 }} />}
+              </Box>
+            </Paper>
+          );
+        })}
+      </Stack>
+    </Paper>
+  );
+}
+
 export default function OverviewPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const router = useRouter();
   const { isViewOnly } = useAdminRole();
+  const { isPro } = usePlan();
   const { showStatus } = useAutoSaveStatus();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,10 +308,23 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
   const [savingSlug, setSavingSlug] = useState(false);
   const [weddingData, setWeddingData] = useState<WeddingData | null>(null);
   const [rsvpStats, setRsvpStats] = useState({ attending: 0, notAttending: 0, pending: 0, total: 0, totalGuestsComing: 0 });
+  const [conciergePhone, setConciergePhone] = useState('');
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
   useEffect(() => {
     loadWeddingData();
   }, [weddingSlug]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/vendors/coordinator-info');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.phoneNumber) setConciergePhone(data.phoneNumber);
+      } catch {}
+    })();
+  }, []);
 
   const loadWeddingData = async () => {
     console.log('🔍 Loading wedding data for slug:', weddingSlug);
@@ -228,68 +483,103 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
 
   return (
     <Box sx={{ maxWidth: 1000 }}>
-      <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
-        {/* Header */}
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-            Wedding Overview
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-            Your wedding website status and quick info
-          </Typography>
-        </Box>
+      <Stack spacing={4}>
+        <PageHeading
+          title="Wedding Overview"
+          subtitle="Your wedding website status and quick info"
+        />
 
         {/* Wedding Details & RSVP Summary */}
         {weddingData && (
-          <Paper sx={{
-            p: 4,
-            borderRadius: '16px',
-            bgcolor: '#fafafa',
-            boxShadow: 'none',
-          }}>
-            <Typography variant="subtitleCaps" sx={{ mb: 3, color: '#1a1a1a' }}>
+          <PheraCard variant="muted" sx={{ p: { xs: 2.5, md: 4 } }}>
+            <Typography variant="subtitleCaps" sx={{ mb: { xs: 2, md: 3 }, color: COLORS.text.strong, display: 'block' }}>
               Wedding Summary
             </Typography>
-
             <Grid container spacing={3}>
               {/* Wedding Details */}
               <Grid size={{ xs: 12, md: 6 }}>
                 <Stack spacing={2.5}>
                   {/* Couple */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: '#1a1a1a', width: 40, height: 40 }}>
+                    <Avatar sx={{ bgcolor: alpha(COLORS.text.strong, 0.05), color: COLORS.text.strong, width: 40, height: 40 }}>
                       <People fontSize="small" />
                     </Avatar>
-                    <Typography variant="body2" sx={{color: '#1a1a1a' }}>
+                    <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
                       {weddingData.couple_name || 'Not set'}
                     </Typography>
                   </Box>
 
                   {/* Date */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: '#1a1a1a', width: 40, height: 40 }}>
+                    <Avatar sx={{ bgcolor: alpha(COLORS.text.strong, 0.05), color: COLORS.text.strong, width: 40, height: 40 }}>
                       <CalendarMonth fontSize="small" />
                     </Avatar>
-                    <Typography variant="body2" sx={{color: '#1a1a1a' }}>
+                    <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
                       {weddingData.wedding_date_display || 'Not set'}
                     </Typography>
                   </Box>
 
                   {/* Venue */}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar sx={{ bgcolor: alpha('#000', 0.05), color: '#1a1a1a', width: 40, height: 40 }}>
+                    <Avatar sx={{ bgcolor: alpha(COLORS.text.strong, 0.05), color: COLORS.text.strong, width: 40, height: 40 }}>
                       <LocationOn fontSize="small" />
                     </Avatar>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="body2" sx={{color: '#1a1a1a' }}>
+                      <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
                         {weddingData.venue_name || 'Not set'}
                       </Typography>
                       {weddingData.venue_location && (
-                        <Typography variant="body2" sx={{ color: '#6a6a6a', mt: 0.5 }}>
+                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.5 }}>
                           {weddingData.venue_location}
                         </Typography>
                       )}
                     </Box>
+                  </Box>
+
+                  {/* Concierge */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Avatar sx={{ bgcolor: alpha(COLORS.text.strong, 0.05), color: COLORS.text.strong, width: 40, height: 40 }}>
+                      <WhatsApp fontSize="small" />
+                    </Avatar>
+                    {isPro ? (
+                      <Box>
+                        <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
+                          {conciergePhone || 'Not configured'}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.5 }}>
+                          Guest Concierge
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box
+                        onClick={() => setUpgradeModalOpen(true)}
+                        sx={{ position: 'relative', cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
+                      >
+                        <Box sx={{ filter: 'blur(4px)', userSelect: 'none' }}>
+                          <Typography variant="body2" sx={{ color: COLORS.text.faint }}>
+                            +XX XXX XXX XXXX
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.5 }}>
+                            Guest Concierge
+                          </Typography>
+                        </Box>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            color: COLORS.brand.primary,
+                            fontWeight: 600,
+                            fontSize: '0.875rem',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Upgrade to unlock
+                        </Typography>
+                      </Box>
+                    )}
                   </Box>
                 </Stack>
               </Grid>
@@ -297,14 +587,13 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
               {/* RSVP Stats */}
               <Grid size={{ xs: 12, md: 6 }}>
                 <Box sx={{
-                  bgcolor: 'white',
-                  borderRadius: '12px',
+                  bgcolor: COLORS.bg.white,
+                  borderRadius: RADII.md,
                   p: 3,
-                  border: '1px solid rgba(0, 0, 0, 0.06)',
-                  height: '100%'
+                  border: `1px solid ${COLORS.border.faint}`,
                 }}>
-                  <Typography variant="subtitleCaps" sx={{ mb: 1.5, color: '#1a1a1a' }}>
-                    Guest Responses
+                  <Typography variant="subtitleCaps" sx={{ mb: 1.5, color: COLORS.text.strong }}>
+                    RSVPs
                   </Typography>
 
                   <Stack spacing={1.5}>
@@ -315,13 +604,13 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                           width: 8,
                           height: 8,
                           borderRadius: '50%',
-                          bgcolor: '#10B981'
+                          bgcolor: COLORS.accent.success,
                         }} />
-                        <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
+                        <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
                           Attending
                         </Typography>
                       </Box>
-                      <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: COLORS.text.strong }}>
                         {rsvpStats.totalGuestsComing}
                       </Typography>
                     </Box>
@@ -333,13 +622,13 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                           width: 8,
                           height: 8,
                           borderRadius: '50%',
-                          bgcolor: '#EF4444'
+                          bgcolor: COLORS.accent.danger,
                         }} />
-                        <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
+                        <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
                           Not Attending
                         </Typography>
                       </Box>
-                      <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: COLORS.text.strong }}>
                         {rsvpStats.notAttending}
                       </Typography>
                     </Box>
@@ -351,125 +640,38 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                           width: 8,
                           height: 8,
                           borderRadius: '50%',
-                          bgcolor: '#F59E0B'
+                          bgcolor: COLORS.accent.warning,
                         }} />
-                        <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
+                        <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
                           Pending
                         </Typography>
                       </Box>
-                      <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: COLORS.text.strong }}>
                         {rsvpStats.pending}
                       </Typography>
                     </Box>
 
                     {/* View Details Button */}
-                    <Button
+                    <PrimaryActionButton
                       fullWidth
-                      variant="contained"
                       size="large"
-                      onClick={() => router.push(`/admin/${weddingSlug}/guests`)}
-                      sx={{
-                        mt: 2,
-                        bgcolor: '#DE3F5E',
-                        color: 'white',
-                        borderRadius: '12px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        py: 1.5,
-                        '&:hover': {
-                          bgcolor: '#C8365A',
-                        },
-                      }}
+                      href={`/admin/${weddingSlug}/guests`}
+                      sx={{ mt: 2, py: 1.5 }}
                     >
                       View All Responses
-                    </Button>
+                    </PrimaryActionButton>
                   </Stack>
                 </Box>
               </Grid>
             </Grid>
-          </Paper>
+          </PheraCard>
         )}
 
         {/* Quick Links */}
-        <Paper sx={{ p: 4, borderRadius: '24px', bgcolor: alpha('#fff', 0.95) }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#1a1a1a' }}>
-            Quick Links
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => router.push(`/admin/${weddingSlug}/details`)}
-                sx={{
-                  py: 2,
-                  borderRadius: '12px',
-                  borderColor: '#e0e0e0',
-                  color: '#1a1a1a',
-                  textTransform: 'none',
-                  justifyContent: 'flex-start',
-                  gap: 2,
-                  '&:hover': {
-                    borderColor: '#DE3F5E',
-                    bgcolor: alpha('#DE3F5E', 0.02),
-                  },
-                }}
-              >
-                <Edit sx={{ color: '#DE3F5E' }} />
-                Edit Wedding Details
-              </Button>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => router.push(`/admin/${weddingSlug}/guests`)}
-                sx={{
-                  py: 2,
-                  borderRadius: '12px',
-                  borderColor: '#e0e0e0',
-                  color: '#1a1a1a',
-                  textTransform: 'none',
-                  justifyContent: 'flex-start',
-                  gap: 2,
-                  '&:hover': {
-                    borderColor: '#DE3F5E',
-                    bgcolor: alpha('#DE3F5E', 0.02),
-                  },
-                }}
-              >
-                <People sx={{ color: '#DE3F5E' }} />
-                View Guest Responses
-              </Button>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => router.push(`/admin/${weddingSlug}/events`)}
-                sx={{
-                  py: 2,
-                  borderRadius: '12px',
-                  borderColor: '#e0e0e0',
-                  color: '#1a1a1a',
-                  textTransform: 'none',
-                  justifyContent: 'flex-start',
-                  gap: 2,
-                  '&:hover': {
-                    borderColor: '#DE3F5E',
-                    bgcolor: alpha('#DE3F5E', 0.02),
-                  },
-                }}
-              >
-                <Event sx={{ color: '#DE3F5E' }} />
-                Manage Events
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
+        <QuickLinks weddingSlug={weddingSlug} weddingId={weddingId} weddingData={weddingData} />
 
         {/* Edit Wedding ID Modal */}
-        <Dialog
+        <PheraDialog
           open={editSlugModalOpen}
           onClose={() => {
             setEditSlugModalOpen(false);
@@ -477,26 +679,17 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
           }}
           maxWidth="sm"
           fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: '24px',
-              bgcolor: 'white',
-              p: { xs: 3, sm: 5 },
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-            },
-          }}
+          PaperProps={{ sx: { p: { xs: 3, sm: 5 } } }}
         >
-          <DialogTitle
-            sx={{
-              fontFamily: 'var(--font-instrument-serif)',
-              fontWeight: 700,
-              color: '#1a1a1a',
-              pb: 2,
-              px: 0,
+          <PheraDialogTitle
+            onClose={() => {
+              setEditSlugModalOpen(false);
+              setCustomSlug('');
             }}
+            sx={{ pb: 2, px: 0 }}
           >
             Customize Wedding ID
-          </DialogTitle>
+          </PheraDialogTitle>
           <DialogContent sx={{ px: 0, pt: 4, overflow: 'visible' }}>
             <Stack spacing={3} sx={{ mt: 0.5 }}>
               <TextField
@@ -509,8 +702,8 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                 fullWidth
                 sx={textFieldSx}
               />
-              <Typography variant="body2" sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
-                Your wedding URL will be: <strong style={{ color: '#DE3F5E' }}>phera.io/{customSlug || weddingSlug}</strong>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontSize: '0.875rem' }}>
+                Your wedding URL will be: <strong style={{ color: COLORS.brand.primary }}>phera.io/{customSlug || weddingSlug}</strong>
               </Typography>
             </Stack>
           </DialogContent>
@@ -521,55 +714,48 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                 setCustomSlug('');
               }}
               sx={{
-                color: '#6a6a6a',
+                color: COLORS.text.subtle,
                 textTransform: 'none',
                 fontWeight: 600,
                 px: 3,
-                borderRadius: '12px',
+                borderRadius: RADII.md,
                 '&:hover': {
-                  bgcolor: alpha('#6a6a6a', 0.08),
+                  bgcolor: alpha(COLORS.text.strong, 0.04),
                 },
               }}
             >
               Cancel
             </Button>
-            <Button
+            <PrimaryActionButton
               onClick={async () => {
                 await handleUpdateSlug();
                 setEditSlugModalOpen(false);
               }}
-              disabled={!customSlug || customSlug === weddingSlug || savingSlug}
-              variant="contained"
+              disabled={!customSlug || customSlug === weddingSlug}
+              loading={savingSlug}
               sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                borderRadius: '12px',
                 px: 3,
-                textTransform: 'none',
-                fontWeight: 600,
-                '&:hover': {
-                  bgcolor: '#C8365A'
-                },
                 '&.Mui-disabled': {
-                  bgcolor: alpha('#DE3F5E', 0.5),
+                  bgcolor: alpha(COLORS.brand.primary, 0.5),
                   color: 'rgba(255, 255, 255, 0.7)',
                 },
               }}
             >
-              {savingSlug ? <CircularProgress size={20} color="inherit" /> : 'Update'}
-            </Button>
+              Update
+            </PrimaryActionButton>
           </DialogActions>
-        </Dialog>
+        </PheraDialog>
       </Stack>
 
       <ConfirmDialog
         open={confirmDialog.open}
         message={confirmDialog.message}
         confirmLabel={confirmDialog.confirmLabel}
-        confirmColor="#DE3F5E"
+        confirmColor={COLORS.brand.primary}
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
       />
+      <UpgradeModal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} />
     </Box>
   );
 }

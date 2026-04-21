@@ -4,6 +4,7 @@ import { Box, Typography, Stack, IconButton } from '@mui/material';
 import { Delete, DragIndicator } from '@mui/icons-material';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import { ScheduleItem } from '@/lib/supabase/wedding-service';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface MajorEventCardProps {
   item: ScheduleItem;
@@ -16,7 +17,7 @@ interface MajorEventCardProps {
 
 function getBarColor(gradientBackground: string | null): string {
   if (gradientBackground && gradientBackground.startsWith('#')) return gradientBackground;
-  return '#DE3F5E';
+  return COLORS.brand.primary;
 }
 
 export default function MajorEventCard({ item, onEdit, onDelete, onMoreDetails, dragHandleProps, isViewOnly }: MajorEventCardProps) {
@@ -25,16 +26,16 @@ export default function MajorEventCard({ item, onEdit, onDelete, onMoreDetails, 
   return (
     <Box
       sx={{
-        bgcolor: 'white',
+        bgcolor: COLORS.bg.white,
         border: '1px solid #EEE',
-        borderRadius: '16px',
+        borderRadius: RADII.lg,
         display: 'flex',
         gap: 3,
         alignItems: 'center',
         px: 2, py: 2.5,
         overflow: 'hidden',
         cursor: 'pointer',
-        '&:hover': { borderColor: '#ddd' },
+        '&:hover': { borderColor: COLORS.border.default },
       }}
       onClick={onEdit}
     >
@@ -45,11 +46,11 @@ export default function MajorEventCard({ item, onEdit, onDelete, onMoreDetails, 
 
         {/* Text content */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1.1rem', mb: 0.5 }}>
+          <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1.1rem', mb: 0.5 }}>
             {item.name}
           </Typography>
           {item.description && (
-            <Typography sx={{ color: '#858585', fontSize: '1rem', lineHeight: 1.5, mb: 2 }}>
+            <Typography sx={{ color: COLORS.text.subtle, fontSize: '1rem', lineHeight: 1.5, mb: 2 }}>
               {item.description}
             </Typography>
           )}
@@ -57,7 +58,7 @@ export default function MajorEventCard({ item, onEdit, onDelete, onMoreDetails, 
             {item.time && (
               <Stack direction="row" spacing={0.5} alignItems="center">
                 <StreamlineIcon name="clock" size={14} color="#6a6a6a" />
-                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
                   {item.time}
                 </Typography>
               </Stack>
@@ -65,7 +66,7 @@ export default function MajorEventCard({ item, onEdit, onDelete, onMoreDetails, 
             {item.location && (
               <Stack direction="row" spacing={0.5} alignItems="center">
                 <StreamlineIcon name="map-pin" size={14} color="#6a6a6a" />
-                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
                   {item.location}
                 </Typography>
               </Stack>
@@ -73,7 +74,7 @@ export default function MajorEventCard({ item, onEdit, onDelete, onMoreDetails, 
             {item.dress_code && (
               <Stack direction="row" spacing={0.5} alignItems="center">
                 <StreamlineIcon name="hanger" size={14} color="#6a6a6a" />
-                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
                   {item.dress_code}
                 </Typography>
               </Stack>
@@ -88,14 +89,14 @@ export default function MajorEventCard({ item, onEdit, onDelete, onMoreDetails, 
           <IconButton
             size="small"
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            sx={{ color: '#1a1a1a' }}
+            sx={{ color: COLORS.text.strong }}
           >
             <Delete fontSize="small" />
           </IconButton>
           <Box
             {...dragHandleProps}
             onClick={(e) => e.stopPropagation()}
-            sx={{ cursor: 'grab', color: '#999', display: 'flex', alignItems: 'center' }}
+            sx={{ cursor: 'grab', color: COLORS.text.faint, display: 'flex', alignItems: 'center' }}
           >
             <DragIndicator fontSize="small" />
           </Box>

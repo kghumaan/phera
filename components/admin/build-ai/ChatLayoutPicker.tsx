@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Box, Typography, alpha } from '@mui/material';
 import { ViewModule, ViewStream } from '@mui/icons-material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ChatLayoutPickerProps {
   onSave: (layout: 'multi_page' | 'vertical_scroll') => void;
@@ -31,17 +32,17 @@ export default function ChatLayoutPicker({ onSave, currentValue }: ChatLayoutPic
 
   return (
     <Box sx={{
-      bgcolor: 'white',
+      bgcolor: COLORS.bg.white,
       p: 3,
-      borderRadius: '16px',
+      borderRadius: RADII.lg,
       border: '2px solid',
-      borderColor: alpha('#000', 0.12),
+      borderColor: alpha(COLORS.text.strong, 0.12),
       width: '100%',
       maxWidth: 480,
       mt: 1,
       boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
     }}>
-      <Typography variant="caption" sx={{ color: '#666', mb: 2, display: 'block', fontWeight: 500, fontSize: '0.75rem' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 2, display: 'block', fontWeight: 500, fontSize: '0.875rem' }}>
         Website Navigation Style
       </Typography>
 
@@ -60,35 +61,35 @@ export default function ChatLayoutPicker({ onSave, currentValue }: ChatLayoutPic
               sx={{
                 flex: 1,
                 p: 2.5,
-                borderRadius: '14px',
+                borderRadius: RADII.md,
                 border: '2px solid',
-                borderColor: isSelected ? '#DE3F5E' : alpha('#000', 0.12),
-                bgcolor: isSelected ? alpha('#DE3F5E', 0.04) : 'white',
+                borderColor: isSelected ? COLORS.brand.primary : alpha(COLORS.text.strong, 0.12),
+                bgcolor: isSelected ? alpha(COLORS.brand.primary, 0.04) : COLORS.bg.white,
                 cursor: 'pointer',
                 textAlign: 'center',
                 transition: 'all 0.15s',
                 '&:hover': {
-                  borderColor: isSelected ? '#DE3F5E' : alpha('#000', 0.25),
-                  bgcolor: isSelected ? alpha('#DE3F5E', 0.06) : alpha('#000', 0.02),
+                  borderColor: isSelected ? COLORS.brand.primary : alpha(COLORS.text.strong, 0.25),
+                  bgcolor: isSelected ? alpha(COLORS.brand.primary, 0.06) : alpha(COLORS.text.strong, 0.02),
                 },
               }}
             >
               <Icon sx={{
                 fontSize: 32,
-                color: isSelected ? '#DE3F5E' : '#666',
+                color: isSelected ? COLORS.brand.primary : COLORS.text.subtle,
                 mb: 1,
               }} />
               <Typography sx={{
                 fontWeight: 700,
                 fontSize: '0.9rem',
-                color: isSelected ? '#DE3F5E' : '#1a1a1a',
+                color: isSelected ? COLORS.brand.primary : COLORS.text.strong,
                 mb: 0.25,
               }}>
                 {opt.label}
               </Typography>
               <Typography sx={{
-                fontSize: '0.7rem',
-                color: '#999',
+                fontSize: '0.875rem',
+                color: COLORS.text.faint,
                 lineHeight: 1.4,
               }}>
                 {opt.description}

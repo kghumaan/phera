@@ -9,6 +9,7 @@ import {
 } from '@mui/icons-material';
 import Image from 'next/image';
 import type { SvgIconComponent } from '@mui/icons-material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export interface TravelSectionData {
   id: string;
@@ -40,7 +41,7 @@ interface TravelSectionsDisplayProps {
 
 export default function TravelSectionsDisplay({
   sections,
-  primaryColor = '#DE3F5E',
+  primaryColor = COLORS.brand.primary,
   onViewDetails,
 }: TravelSectionsDisplayProps) {
   const visibleSections = sections.filter(s => {
@@ -63,7 +64,7 @@ export default function TravelSectionsDisplay({
             position: 'relative',
             width: '100%',
             height: 280,
-            borderRadius: '12px',
+            borderRadius: RADII.md,
             overflow: 'hidden',
           }}
         >
@@ -121,7 +122,7 @@ function TextSection({
         <Typography
           variant="subtitleCaps"
           sx={{
-            color: '#141414',
+            color: COLORS.text.strong,
             mb: 1,
             fontSize: { xs: '0.9rem', sm: '0.95rem' },
           }}
@@ -131,13 +132,13 @@ function TextSection({
       )}
 
       {section.type === 'hotel' && section.address && (
-        <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 0.5 }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 0.5 }}>
           {section.address}
         </Typography>
       )}
 
       {section.type === 'hotel' && section.phone && (
-        <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 0.5 }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 0.5 }}>
           {section.phone}
         </Typography>
       )}
@@ -151,7 +152,7 @@ function TextSection({
       {section.content && (
         <Typography
           variant="body2"
-          sx={{ color: '#474747', lineHeight: 1.7, mt: 1, whiteSpace: 'pre-line' }}
+          sx={{ color: COLORS.text.muted, lineHeight: 1.7, mt: 1, whiteSpace: 'pre-line' }}
         >
           {section.content}
         </Typography>
@@ -169,7 +170,7 @@ function TextSection({
             borderRadius: '32px',
             px: 3,
             fontWeight: 600,
-            fontSize: '0.85rem',
+            fontSize: '0.875rem',
             '&:hover': {
               borderColor: primaryColor,
               bgcolor: `${primaryColor}10`,

@@ -1,6 +1,7 @@
 'use client';
 
 import { Box, CircularProgress, Typography } from '@mui/material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface LoadingSpinnerProps {
   message?: string;
@@ -12,7 +13,7 @@ interface LoadingSpinnerProps {
 export default function LoadingSpinner({ 
   message = 'Loading...', 
   size = 48,
-  color = '#DE3F5E',
+  color = COLORS.brand.primary,
   minHeight = '400px'
 }: LoadingSpinnerProps) {
   return (
@@ -37,7 +38,7 @@ export default function LoadingSpinner({
         <Typography
           variant="body2"
           sx={{
-            color: '#6a6a6a',
+            color: COLORS.text.subtle,
             fontWeight: 500,
           }}
         >

@@ -2,6 +2,7 @@
 
 import { Box, Typography, IconButton } from '@mui/material';
 import { ArrowBack } from '@mui/icons-material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface Message {
   id: string;
@@ -31,10 +32,10 @@ export default function ConciergeConversationDetail({ guestName, messages, onBac
     <Box>
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <IconButton onClick={onBack} size="small">
-          <ArrowBack sx={{ fontSize: 20 }} />
+        <IconButton onClick={onBack} size="small" sx={{ color: COLORS.text.strong }}>
+          <ArrowBack sx={{ fontSize: 20, color: COLORS.text.strong }} />
         </IconButton>
-        <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: '#1a1a1a' }}>
+        <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: COLORS.text.strong }}>
           {guestName}
         </Typography>
       </Box>
@@ -54,16 +55,16 @@ export default function ConciergeConversationDetail({ guestName, messages, onBac
                 maxWidth: '75%',
                 px: 2,
                 py: 1.25,
-                borderRadius: '14px',
-                bgcolor: msg.role === 'assistant' ? '#DE3F5E10' : '#F3F3F3',
+                borderRadius: RADII.md,
+                bgcolor: msg.role === 'assistant' ? COLORS.brand.primarySubtle : COLORS.bg.muted,
                 borderTopLeftRadius: msg.role === 'user' ? '4px' : '14px',
                 borderTopRightRadius: msg.role === 'assistant' ? '4px' : '14px',
               }}
             >
               <Typography
                 sx={{
-                  fontSize: '0.85rem',
-                  color: '#1a1a1a',
+                  fontSize: '0.875rem',
+                  color: COLORS.text.strong,
                   lineHeight: 1.5,
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
@@ -73,8 +74,8 @@ export default function ConciergeConversationDetail({ guestName, messages, onBac
               </Typography>
               <Typography
                 sx={{
-                  fontSize: '0.65rem',
-                  color: '#9a9a9a',
+                  fontSize: '0.875rem',
+                  color: COLORS.text.faint,
                   mt: 0.5,
                   textAlign: msg.role === 'assistant' ? 'right' : 'left',
                 }}

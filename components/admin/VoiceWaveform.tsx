@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Box, alpha } from '@mui/material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface VoiceWaveformProps {
     stream: MediaStream;
@@ -13,7 +14,7 @@ interface VoiceWaveformProps {
 export default function VoiceWaveform({
     stream,
     isActive,
-    color = '#DE3F5E',
+    color = COLORS.brand.primary,
     barCount = 40
 }: VoiceWaveformProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -102,7 +103,7 @@ export default function VoiceWaveform({
                 alignItems: 'center',
                 justifyContent: 'center',
                 bgcolor: alpha(color, 0.03),
-                borderRadius: '12px',
+                borderRadius: RADII.md,
                 overflow: 'hidden',
                 px: 2
             }}

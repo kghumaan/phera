@@ -25,6 +25,10 @@ import {
   ViewKanban,
   ArrowBack,
   SupportAgent,
+  Radar,
+  ChatBubbleOutline,
+  Settings,
+  Hotel,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
@@ -35,6 +39,7 @@ import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
 import ProBadge from './ProBadge';
 import { CheckCircle } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase/client';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface SidebarItem {
   id: string;
@@ -61,72 +66,65 @@ export const groups: SidebarGroup[] = [
     icon: <Home />,
     standalone: true,
     items: [
-      { id: 'overview', label: 'Overview', path: '/overview' }
-    ]
+      { id: 'overview', label: 'Overview', path: '/overview' },
+    ],
   },
+  // Control Tower hidden from sidebar until feature is ready for broader
+  // rollout. Page still exists at /control-tower for direct navigation.
   {
-    id: 'website',
+    id: 'wedding-website',
     label: 'Wedding Website',
     icon: <Language />,
     items: [
       { id: 'details', label: 'Wedding Details', path: '/details', required: true },
       { id: 'design', label: 'Look & Feel', path: '/design', required: true },
-      { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
       { id: 'schedule', label: 'Schedule & Events', path: '/schedule', required: true },
       { id: 'travel', label: 'Travel & Stay', path: '/travel' },
+      { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
       { id: 'faq', label: 'FAQ', path: '/faq' },
-      { id: 'registry', label: 'Registry Integration', path: '/registry' },
-      { id: 'shopping', label: 'Shopping Guide', path: '/shopping' },
-      { id: 'pins', label: 'PIN Management', path: '/pins', required: true },
-    ]
+      { id: 'registry', label: 'Registry', path: '/registry' },
+      { id: 'shopping', label: 'Where to Shop', path: '/shopping' },
+      { id: 'pins', label: 'Event Access', path: '/pins', required: true },
+    ],
   },
   {
-    id: 'guest-responses',
-    label: 'Guest Responses',
+    id: 'guests-group',
+    label: 'Guest Management',
     icon: <People />,
     items: [
-      { id: 'guests', label: 'RSVPs', path: '/guests' },
+      { id: 'guest-list', label: 'Guest List', path: '/guest-list' },
+      { id: 'guests', label: 'Guest Responses', path: '/guests' },
+      { id: 'rooms', label: 'Room Assignments', path: '/rooms', isPro: true },
       { id: 'transportation', label: 'Transportation', path: '/transportation', isPro: true },
-    ]
+      { id: 'concierge', label: 'Guest Concierge', path: '/concierge', isPro: true },
+    ],
   },
   {
-    id: 'concierge',
-    label: 'Guest Concierge',
-    icon: <WhatsApp />,
-    standalone: true,
-    isPro: true,
-    items: [
-      { id: 'concierge', label: 'Guest Concierge', path: '/concierge', isPro: true }
-    ]
-  },
-  {
-    id: 'task-manager',
-    label: 'Task Manager',
+    id: 'planning',
+    label: 'Planning',
     icon: <ViewKanban />,
-    standalone: true,
-    isPro: true,
     items: [
-      { id: 'task-manager', label: 'Task Manager', path: '/task-manager', isPro: true }
-    ]
+      { id: 'task-manager', label: 'Task Manager', path: '/task-manager', isPro: true },
+      { id: 'coordinator', label: 'Vendor Management', path: '/coordinator', isPro: true },
+    ],
   },
   {
-    id: 'coordinator',
-    label: 'Vendor Management',
-    icon: <SupportAgent />,
-    standalone: true,
-    isPro: true,
-    items: [
-      { id: 'coordinator', label: 'Vendor Management', path: '/coordinator', isPro: true }
-    ]
-  },
-  {
-    id: 'team',
+    id: 'collaborators',
     label: 'Collaborators',
     icon: <Groups />,
     standalone: true,
     items: [
-      { id: 'team', label: 'Collaborators', path: '/team' }
-    ]
+      { id: 'team', label: 'Collaborators', path: '/team' },
+    ],
+  },
+  {
+    id: 'support',
+    label: 'Support',
+    icon: <HelpOutline />,
+    standalone: true,
+    items: [
+      { id: 'support', label: 'Support', path: '/support' },
+    ],
   },
 ];
 
@@ -181,15 +179,17 @@ export default function OnboardingSidebar({
     // Check child tables for content (only Wedding Website sections)
     const checks = [
       { key: 'schedule', query: supabase.from('wedding_schedule').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- travel_sections not in generated supabase types
       { key: 'travel', query: supabase.from('travel_sections' as any).select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
       { key: 'faq', query: supabase.from('wedding_faqs').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
       { key: 'registry', query: supabase.from('wedding_registry').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
       { key: 'shopping', query: supabase.from('wedding_shops').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests select shape not captured by generated types
       { key: 'pins', query: (supabase as any).from('guests').select('id', { count: 'exact', head: true }).eq('wedding_id', slug) },
     ];
 
     Promise.all(checks.map(c => c.query)).then(results => {
-      results.forEach((res: any, i) => {
+      results.forEach((res: { count: number | null }, i) => {
         completion[checks[i].key] = (res.count ?? 0) > 0;
       });
       setSectionComplete(completion);
@@ -202,7 +202,6 @@ export default function OnboardingSidebar({
 
     // Initialize based on current path
     groups.forEach(g => {
-      // Check if any item includes the current path
       const isActive = g.items.some(item => pathname.includes(item.path));
 
       if (isActive) {
@@ -218,13 +217,26 @@ export default function OnboardingSidebar({
       }
     });
 
-    // Default to first group if nothing active found
-    if (!foundActive && groups.length > 0 && !groups[1]?.standalone) {
-      initialState[groups[1].id] = true; // Index 1 is 'website' in the groups array
+    // Default: Operations expanded, others collapsed
+    if (!foundActive) {
+      initialState['coordination'] = true;
+      initialState['wedding-website'] = false;
+      initialState['settings'] = false;
     }
 
     return initialState;
   });
+
+  // Expand the correct sidebar group when route changes (e.g. via quick links)
+  useEffect(() => {
+    groups.forEach(g => {
+      if (g.standalone) return;
+      const isActive = g.items.some(item => pathname.includes(item.path));
+      if (isActive && !expandedGroups[g.id]) {
+        setExpandedGroups(prev => ({ ...prev, [g.id]: true }));
+      }
+    });
+  }, [pathname]);
 
   // Measure active item positions for arrow alignment
   useEffect(() => {
@@ -279,7 +291,12 @@ export default function OnboardingSidebar({
 
   const handleItemClick = (item: SidebarItem, collapseAll = false, groupId?: string) => {
     if (!checkGuard()) return;
-    onNavigating?.(true);
+    // Intentionally NOT calling onNavigating(true): Next.js App Router
+    // preserves this layout across sibling route transitions and the new
+    // page hydrates in a few tens of ms, so triggering the Backdrop spinner
+    // here just flashes a full-page blur + spinner over the content for no
+    // reason. Keep the prop in case we want to re-introduce a slow-route
+    // loading state later.
     router.push(`/admin/${weddingSlug}${item.path}`);
 
     if (collapseAll) {
@@ -318,7 +335,7 @@ export default function OnboardingSidebar({
                 sx={{
                   px: 2.25,
                   py: 0.5,
-                  color: '#1a1a1a',
+                  color: COLORS.text.strong,
                   fontWeight: 600,
                   fontSize: '0.95rem',
                 }}
@@ -333,9 +350,9 @@ export default function OnboardingSidebar({
                 py: 0.75,
                 mx: 0.75,
                 mb: 0.25,
-                borderRadius: '10px',
-                color: '#1a1a1a',
-                '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) },
+                borderRadius: RADII.sm,
+                color: COLORS.text.strong,
+                '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.08) },
               }}
             >
               <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>
@@ -366,14 +383,14 @@ export default function OnboardingSidebar({
                   py: 0.75,
                   mx: 0.75,
                   mb: 0.25,
-                  borderRadius: '10px',
-                  color: isActive ? 'white' : '#1a1a1a',
-                  '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) },
+                  borderRadius: RADII.sm,
+                  color: isActive ? COLORS.bg.white : COLORS.text.strong,
+                  '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.08) },
                   '&.Mui-selected': {
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    '&:hover': { bgcolor: '#C8365A' },
-                    '& .MuiListItemIcon-root': { color: 'white' },
+                    bgcolor: COLORS.brand.primary,
+                    color: COLORS.text.inverse,
+                    '&:hover': { bgcolor: COLORS.brand.primaryHover },
+                    '& .MuiListItemIcon-root': { color: COLORS.text.inverse },
                   },
                 }}
               >
@@ -402,14 +419,14 @@ export default function OnboardingSidebar({
                   py: 0.75,
                   mx: 0.75,
                   mb: 0.25,
-                  borderRadius: '10px',
-                  color: isGroupActive ? 'white' : '#1a1a1a',
-                  '&:hover': { bgcolor: isGroupActive ? '#C8365A' : alpha('#000', 0.02) },
+                  borderRadius: RADII.sm,
+                  color: isGroupActive ? COLORS.bg.white : COLORS.text.strong,
+                  '&:hover': { bgcolor: isGroupActive ? COLORS.brand.primaryHover : alpha(COLORS.text.strong, 0.02) },
                   '&.Mui-selected': {
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    '&:hover': { bgcolor: '#C8365A' },
-                    '& .MuiListItemIcon-root': { color: 'white' },
+                    bgcolor: COLORS.brand.primary,
+                    color: COLORS.text.inverse,
+                    '&:hover': { bgcolor: COLORS.brand.primaryHover },
+                    '& .MuiListItemIcon-root': { color: COLORS.text.inverse },
                   },
                 }}
               >
@@ -449,7 +466,7 @@ export default function OnboardingSidebar({
                           <path
                             d={`M 0 0 L 0 ${curveEndY - 8} Q 0 ${curveEndY} 8 ${curveEndY} L 14 ${curveEndY}`}
                             fill="none"
-                            stroke={alpha('#000', 0.15)}
+                            stroke={alpha(COLORS.text.strong, 0.15)}
                             strokeWidth="1.5"
                             strokeLinecap="round"
                           />
@@ -459,7 +476,7 @@ export default function OnboardingSidebar({
                           <path
                             d={`M 10 ${curveEndY - 3} L 14 ${curveEndY} L 10 ${curveEndY + 3}`}
                             fill="none"
-                            stroke={alpha('#000', 0.15)}
+                            stroke={alpha(COLORS.text.strong, 0.15)}
                             strokeWidth="1.5"
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -474,7 +491,7 @@ export default function OnboardingSidebar({
                     return (
                       <Box key={item.id} data-active={isActive ? 'true' : undefined} sx={{ position: 'relative' }}>
                         <ListItemButton
-                          {...(['build-ai', 'pins', 'guests'].includes(item.id) ? { 'data-tour': `tour-${item.id}` } : {})}
+                          {...(['pins', 'guests', 'travel', 'rooms', 'transportation', 'concierge', 'task-manager', 'coordinator', 'team'].includes(item.id) ? { 'data-tour': `tour-${item.id}` } : {})}
                           onClick={() => {
                             handleItemClick(item, false, group.id);
                           }}
@@ -486,13 +503,13 @@ export default function OnboardingSidebar({
                             py: 0.5,
                             pr: 1,
                             borderRadius: '6px',
-                            color: '#6a6a6a',
+                            color: COLORS.text.subtle,
                             minHeight: 30,
-                            '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) },
+                            '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.05) },
                             '&.Mui-selected': {
                               bgcolor: 'transparent',
-                              color: '#DE3F5E',
-                              '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) },
+                              color: COLORS.brand.primary,
+                              '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.05) },
                             },
                           }}
                         >
@@ -514,8 +531,8 @@ export default function OnboardingSidebar({
                               }
                             }}
                           />
-                          {group.id === 'website' && sectionComplete[item.id] && (
-                            <CheckCircle sx={{ fontSize: 14, color: '#DE3F5E', ml: 0.5, flexShrink: 0 }} />
+                          {group.id === 'wedding-website' && sectionComplete[item.id] && (
+                            <CheckCircle sx={{ fontSize: 14, color: COLORS.brand.primary, ml: 0.5, flexShrink: 0 }} />
                           )}
                           {item.isPro && !isPro && <ProBadge size="small" />}
                         </ListItemButton>
@@ -546,7 +563,13 @@ export default function OnboardingSidebar({
             '& .MuiDrawer-paper': {
               width: 220,
               boxSizing: 'border-box',
-              bgcolor: 'white', // Solid white
+              bgcolor: COLORS.bg.white,
+              // Start below the fixed AdminTopNav so the top items aren't hidden behind it
+              top: { xs: 48, md: 56 },
+              height: { xs: 'calc(100% - 48px)', md: 'calc(100% - 56px)' },
+            },
+            '& .MuiBackdrop-root': {
+              top: { xs: 48, md: 56 },
             },
           }}
         >
@@ -562,8 +585,8 @@ export default function OnboardingSidebar({
             '& .MuiDrawer-paper': {
               width: 220,
               boxSizing: 'border-box',
-              bgcolor: 'white', // Solid white
-              borderRight: `1px solid ${alpha('#000', 0.1)}`,
+              bgcolor: COLORS.bg.white, // Solid white
+              borderRight: `1px solid ${alpha(COLORS.text.strong, 0.1)}`,
               top: { xs: 48, md: 56 }, // Offset by Top Nav height
               height: { xs: 'calc(100% - 48px)', md: 'calc(100% - 56px)' },
             },
@@ -576,7 +599,7 @@ export default function OnboardingSidebar({
   );
 }
 
-function Stack(props: any) {
+function Stack(props: React.ComponentProps<typeof Box>) {
   return <Box sx={{ display: 'flex', ...props.sx }} {...props} />;
 }
 

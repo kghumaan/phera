@@ -1,8 +1,8 @@
 'use client';
 
-import { Box, Container, Typography, Stack, Button, Chip, Paper } from '@mui/material';
+import { Box, Container, Typography, Stack, Button, Paper } from '@mui/material';
 import Link from 'next/link';
-import StreamlineIcon from '@/components/ui/StreamlineIcon';
+import { COLORS, FONTS } from '@/lib/theme/tokens';
 
 export default function FinalCTA() {
     return (
@@ -13,7 +13,7 @@ export default function FinalCTA() {
                     borderRadius: { xs: '24px', md: '40px' },
                     background: 'linear-gradient(135deg, rgba(222, 63, 94, 0.05) 0%, rgba(255, 142, 83, 0.05) 100%)',
                     border: '1px solid rgba(222, 63, 94, 0.1)',
-                    color: '#1a1a1a',
+                    color: COLORS.text.strong,
                     textAlign: 'center',
                     position: 'relative',
                     overflow: 'hidden',
@@ -22,22 +22,22 @@ export default function FinalCTA() {
                 <Box sx={{ position: 'relative', zIndex: 2 }}>
                     <Typography
                         variant="h2"
-                        sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: { xs: 2, md: 3 }, color: '#1a1a1a', fontSize: { xs: '1.5rem', md: '2.5rem' } }}
+                        sx={{ fontFamily: FONTS.display, fontStyle: 'italic', mb: { xs: 2, md: 3 }, color: COLORS.text.strong, fontSize: { xs: '2.5rem', md: '3rem' }, lineHeight: 1.15 }}
                     >
-                        Your Wedding, Your Way
+                        Your wedding, beautifully handled.
                     </Typography>
                     <Typography
                         variant="h6"
                         sx={{
                             mb: { xs: 3, md: 5 },
-                            color: '#4a4a4a',
-                            maxWidth: '600px',
+                            color: COLORS.text.muted,
+                            maxWidth: '640px',
                             mx: 'auto',
-                            fontSize: { xs: '0.8rem', md: '1.25rem' }
+                            fontSize: { xs: '1rem', md: '1.25rem' },
+                            lineHeight: 1.5,
                         }}
                     >
-                        Join the couples who are planning beautiful Indian weddings
-                        without the burnout. Start free, upgrade when you need to.
+                        Hundreds of guests, days of events, people flying in from everywhere — all coordinated over WhatsApp so you can focus on the celebration.
                     </Typography>
                     <Stack
                         direction={{ xs: 'column', sm: 'row' }}
@@ -50,47 +50,19 @@ export default function FinalCTA() {
                             variant="contained"
                             size="large"
                             sx={{
-                                bgcolor: '#DE3F5E',
-                                color: 'white',
+                                bgcolor: COLORS.brand.primary,
+                                color: COLORS.text.inverse,
                                 px: { xs: 3, md: 5 },
                                 py: { xs: 1, md: 1.5 },
                                 borderRadius: '32px',
                                 fontSize: { xs: '0.85rem', md: '1.1rem' },
                                 fontWeight: 'bold',
                                 textTransform: 'none',
-                                '&:hover': { bgcolor: '#C8365A' },
+                                '&:hover': { bgcolor: COLORS.brand.primaryHover },
                             }}
                         >
-                            Get Started for Free
+                            Get Started
                         </Button>
-                    </Stack>
-                    <Stack
-                        direction="row"
-                        spacing={3}
-                        sx={{ justifyContent: 'center', mt: 4, flexWrap: 'wrap' }}
-                    >
-                        <Chip
-                            icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 24, height: 24 }} />}
-                            label="No credit card required"
-                            sx={{
-                                bgcolor: 'transparent',
-                                color: '#4a4a4a',
-                                border: 'none',
-                                fontWeight: 500,
-                                fontSize: '1.1rem',
-                            }}
-                        />
-                        <Chip
-                            icon={<StreamlineIcon name="check-circle" sx={{ color: '#DE3F5E !important', width: 24, height: 24 }} />}
-                            label="Free forever plan"
-                            sx={{
-                                bgcolor: 'transparent',
-                                color: '#4a4a4a',
-                                border: 'none',
-                                fontWeight: 500,
-                                fontSize: '1.1rem',
-                            }}
-                        />
                     </Stack>
                 </Box>
             </Paper>

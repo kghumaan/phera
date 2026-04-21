@@ -2,24 +2,24 @@
 
 import React, { useState } from 'react';
 import {
-  Dialog,
-  DialogTitle,
   DialogContent,
   Button,
   TextField,
   Stack,
   Typography,
   Divider,
-  Alert,
   IconButton,
   Box,
 } from '@mui/material';
+import { InfoAlert, ErrorAlert } from '@/components/shared/Alert';
+import { PheraDialog } from '@/components/shared/Dialog';
 import {
   Google as GoogleIcon,
   Close as CloseIcon,
   Phone as PhoneIcon,
 } from '@mui/icons-material';
 import { signInWithGoogle, signInWithPhone, verifyOTP } from '@/lib/supabase/auth-service';
+import { COLORS } from '@/lib/theme/tokens';
 
 interface LoginDialogProps {
   open: boolean;
@@ -120,36 +120,27 @@ export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: Lo
   };
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={handleClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 3,
-          p: 1,
-        }
-      }}
+      PaperProps={{ sx: { p: 1 } }}
     >
-      <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h5" sx={{ fontWeight: 600 }}>
-            {step === 'login' ? 'Welcome Back' : 'Enter Verification Code'}
-          </Typography>
-          <IconButton onClick={handleClose}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 3, pt: 3, pb: 1 }}>
+        <Typography variant="h5" sx={{ fontWeight: 600 }}>
+          {step === 'login' ? 'Welcome Back' : 'Enter Verification Code'}
+        </Typography>
+        <IconButton onClick={handleClose}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
       
       <DialogContent sx={{ pt: 2 }}>
         {step === 'login' ? (
           <Stack spacing={3}>
             {error && (
-              <Alert severity="error" sx={{ borderRadius: 2 }}>
-                {error}
-              </Alert>
+              <ErrorAlert>{error}</ErrorAlert>
             )}
             
             {/* Google Sign In */}
@@ -209,14 +200,14 @@ export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: Lo
                 onClick={handlePhoneSignIn}
                 disabled={loading}
                 sx={{
-                  backgroundColor: '#E91E63',
+                  backgroundColor: COLORS.brand.primary,
                   py: 1.5,
                   borderRadius: 2,
                   textTransform: 'none',
                   fontSize: '1rem',
                   fontWeight: 600,
                   '&:hover': {
-                    backgroundColor: '#C2185B',
+                    backgroundColor: COLORS.brand.primaryHover,
                   },
                 }}
               >
@@ -227,14 +218,12 @@ export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: Lo
         ) : (
           <Stack spacing={3}>
             {error && (
-              <Alert severity="error" sx={{ borderRadius: 2 }}>
-                {error}
-              </Alert>
+              <ErrorAlert>{error}</ErrorAlert>
             )}
             
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
+            <InfoAlert>
               We've sent a 6-digit verification code to {formatPhoneForDisplay(phone)}
-            </Alert>
+            </InfoAlert>
             
             <TextField
               label="Verification Code"
@@ -265,14 +254,14 @@ export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: Lo
                 onClick={handleOTPVerification}
                 disabled={loading || otp.length !== 6}
                 sx={{
-                  backgroundColor: '#E91E63',
+                  backgroundColor: COLORS.brand.primary,
                   py: 1.5,
                   borderRadius: 2,
                   textTransform: 'none',
                   fontSize: '1rem',
                   fontWeight: 600,
                   '&:hover': {
-                    backgroundColor: '#C2185B',
+                    backgroundColor: COLORS.brand.primaryHover,
                   },
                 }}
               >
@@ -285,7 +274,7 @@ export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: Lo
                 onClick={() => setStep('login')}
                 sx={{
                   textTransform: 'none',
-                  color: '#666',
+                  color: COLORS.text.subtle,
                 }}
               >
                 Back to Login
@@ -294,6 +283,6 @@ export default function LoginDialog({ open, onClose, onSuccess, redirectTo }: Lo
           </Stack>
         )}
       </DialogContent>
-    </Dialog>
+    </PheraDialog>
   );
-} 
+}

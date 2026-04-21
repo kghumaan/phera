@@ -16,12 +16,13 @@ import {
   Select,
   MenuItem,
   CircularProgress,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
 } from '@mui/material';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import {
   Add,
   Delete,
@@ -299,7 +300,7 @@ export default function TransportationSetupWizard({
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress sx={{ color: '#DE3F5E' }} />
+        <CircularProgress sx={{ color: COLORS.brand.primary }} />
       </Box>
     );
   }
@@ -315,16 +316,16 @@ export default function TransportationSetupWizard({
                 icon={directionIcon}
                 label={directionLabel}
                 sx={{
-                  bgcolor: isArrival ? alpha('#4CAF50', 0.1) : alpha('#2196F3', 0.1),
-                  color: isArrival ? '#4CAF50' : '#2196F3',
+                  bgcolor: isArrival ? alpha(COLORS.accent.success, 0.1) : alpha(COLORS.accent.info, 0.1),
+                  color: isArrival ? COLORS.accent.success : COLORS.accent.info,
                   fontWeight: 600,
                 }}
               /> */}
             </Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+            <Typography variant="h5" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
               {isArrival ? 'Add your pickup vehicles' : 'Add your departure vehicles'}
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
               Enter the shuttles or buses you've arranged. Guests will be able to reserve spots on these vehicles.
             </Typography>
           </Box>
@@ -335,10 +336,10 @@ export default function TransportationSetupWizard({
               size="small"
               onClick={() => setRestartDialogOpen(true)}
               sx={{
-                color: '#6a6a6a',
+                color: COLORS.text.subtle,
                 textTransform: 'none',
                 fontSize: '0.8125rem',
-                '&:hover': { color: '#DE3F5E', bgcolor: 'transparent', textDecoration: 'underline' }
+                '&:hover': { color: COLORS.brand.primary, bgcolor: 'transparent', textDecoration: 'underline' }
               }}
             >
               Restart from beginning?
@@ -374,54 +375,49 @@ export default function TransportationSetupWizard({
             onClick={onBack}
             startIcon={<ArrowBack />}
             sx={{
-              color: '#6a6a6a',
+              color: COLORS.text.subtle,
               textTransform: 'none',
               borderRadius: 1,
-              '&:hover': { bgcolor: alpha('#000', 0.05) },
+              '&:hover': { bgcolor: alpha(COLORS.text.strong, 0.05) },
             }}
           >
             Back
           </Button>
-          <Button
-            variant="contained"
+          <PrimaryActionButton
             onClick={handleSaveAndContinue}
-            disabled={!canContinue() || saving}
-            endIcon={saving ? <CircularProgress size={16} color="inherit" /> : <ArrowForward />}
+            disabled={!canContinue()}
+            loading={saving}
+            endIcon={<ArrowForward />}
             sx={{
-              bgcolor: '#DE3F5E',
-              color: 'white',
               px: 3,
-              textTransform: 'none',
-              fontWeight: 600,
               borderRadius: 1,
-              '&:hover': { bgcolor: '#c73552' },
               '&.Mui-disabled': {
-                bgcolor: alpha('#DE3F5E', 0.3),
-                color: 'white',
+                bgcolor: alpha(COLORS.brand.primary, 0.3),
+                color: COLORS.text.inverse,
               },
             }}
           >
             {isArrival ? 'Continue to Departure' : 'Complete Setup'}
-          </Button>
+          </PrimaryActionButton>
         </Box>
       </Stack>
-      <Dialog
+      <PheraDialog
         open={restartDialogOpen}
         onClose={() => setRestartDialogOpen(false)}
-        PaperProps={{
-          sx: { borderRadius: 1, p: 1, maxWidth: 400 }
-        }}
+        PaperProps={{ sx: { p: 1, maxWidth: 400 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>Restart Setup?</DialogTitle>
+        <PheraDialogTitle onClose={() => setRestartDialogOpen(false)}>
+          Restart Setup?
+        </PheraDialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             This will reset your transportation settings. You'll need to choose between prescheduled or flexible mode again.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 2, pt: 1 }}>
           <Button
             onClick={() => setRestartDialogOpen(false)}
-            sx={{ color: '#6a6a6a', textTransform: 'none' }}
+            sx={{ color: COLORS.text.subtle, textTransform: 'none' }}
           >
             Cancel
           </Button>
@@ -431,7 +427,7 @@ export default function TransportationSetupWizard({
               onRestart?.();
             }}
             sx={{
-              color: '#DE3F5E',
+              color: COLORS.brand.primary,
               textTransform: 'none',
               fontWeight: 600
             }}
@@ -439,7 +435,7 @@ export default function TransportationSetupWizard({
             Yes, Restart
           </Button>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
     </LocalizationProvider>
   );
 }
@@ -472,13 +468,13 @@ function PrescheduledSetup({
                 border: '1px solid',
                 borderColor: 'divider',
                 borderRadius: 1,
-                bgcolor: alpha('#000', 0.03),
+                bgcolor: alpha(COLORS.text.strong, 0.03),
               }}
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <DirectionsBus sx={{ color: '#DE3F5E' }} />
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                  <DirectionsBus sx={{ color: COLORS.brand.primary }} />
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
                     Vehicle {index + 1}
                   </Typography>
                 </Box>
@@ -486,7 +482,7 @@ function PrescheduledSetup({
                   <IconButton
                     size="small"
                     onClick={() => onRemoveVehicle(index)}
-                    sx={{ color: '#9a9a9a', '&:hover': { color: '#DE3F5E' } }}
+                    sx={{ color: COLORS.text.faint, '&:hover': { color: COLORS.brand.primary } }}
                   >
                     <Delete fontSize="small" />
                   </IconButton>
@@ -507,17 +503,17 @@ function PrescheduledSetup({
                   </Box>
                   <Box sx={{ minWidth: 120 }}>
                     <FormControl fullWidth sx={{ mt: 1 }}>
-                      <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } }}>Capacity</InputLabel>
+                      <InputLabel sx={{ color: COLORS.text.muted, fontWeight: 500, '&.Mui-focused': { color: COLORS.brand.primary } }}>Capacity</InputLabel>
                       <Select
                         value={vehicle.capacity}
                         onChange={(e) => onVehicleChange(index, 'capacity', e.target.value as number)}
                         label="Capacity"
                         sx={{
-                          borderRadius: '12px',
-                          bgcolor: 'white',
+                          borderRadius: RADII.md,
+                          bgcolor: COLORS.bg.white,
                           '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
-                          '&:hover fieldset': { borderColor: '#DE3F5E' },
-                          '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+                          '&:hover fieldset': { borderColor: COLORS.brand.primary },
+                          '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
                           '& .MuiSelect-select': { py: 1.75 },
                         }}
                       >
@@ -578,10 +574,10 @@ function PrescheduledSetup({
           onClick={onAddVehicle}
           sx={{
             mt: 2,
-            color: '#DE3F5E',
+            color: COLORS.brand.primary,
             textTransform: 'none',
             fontWeight: 600,
-            '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) },
+            '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.05) },
           }}
         >
           Add another vehicle
@@ -660,13 +656,13 @@ function FlexibleSetup({
           sx={{
             p: 3,
             borderRadius: 2,
-            bgcolor: 'white',
+            bgcolor: COLORS.bg.white,
           }}
         >
-          <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', mb: 1 }}>
+          <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong, mb: 1 }}>
             Pickup Locations
           </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
             Add up to 5 locations where guests can be picked up (e.g., airports, hotels, central spots)
           </Typography>
 
@@ -681,25 +677,25 @@ function FlexibleSetup({
                     p: 1.5,
                     display: 'flex',
                     alignItems: 'center',
-                    bgcolor: alpha('#4CAF50', 0.05),
+                    bgcolor: alpha(COLORS.accent.success, 0.05),
                     border: '1px solid',
-                    borderColor: alpha('#4CAF50', 0.2),
+                    borderColor: alpha(COLORS.accent.success, 0.2),
                     borderRadius: 1,
                   }}
                 >
-                  <LocationOn sx={{ color: '#4CAF50', mr: 1 }} />
+                  <LocationOn sx={{ color: COLORS.accent.success, mr: 1 }} />
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a', fontSize: '0.9rem' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: COLORS.text.strong, fontSize: '0.9rem' }}>
                       {location.name}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+                    <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
                       {location.address}
                     </Typography>
                   </Box>
                   <IconButton
                     size="small"
                     onClick={() => onRemoveLocation(index)}
-                    sx={{ color: '#9a9a9a', '&:hover': { color: '#DE3F5E' } }}
+                    sx={{ color: COLORS.text.faint, '&:hover': { color: COLORS.brand.primary } }}
                   >
                     <Delete fontSize="small" />
                   </IconButton>
@@ -720,7 +716,7 @@ function FlexibleSetup({
           )}
 
           {locations.length >= 5 && (
-            <Typography variant="body2" sx={{ color: '#FF9800', mt: 1 }}>
+            <Typography variant="body2" sx={{ color: COLORS.accent.warning, mt: 1 }}>
               Maximum 5 locations reached
             </Typography>
           )}
@@ -735,13 +731,13 @@ function FlexibleSetup({
           border: '1px solid',
           borderColor: 'divider',
           borderRadius: 1,
-          bgcolor: 'white',
+          bgcolor: COLORS.bg.white,
         }}
       >
-        <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', mb: 1 }}>
+        <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong, mb: 1 }}>
           Available {direction === 'arrival' ? 'Pickup' : 'Departure'} Times
         </Typography>
-        <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
           We'll offer guests hourly pickup slots within this time range
         </Typography>
 
@@ -782,7 +778,7 @@ function FlexibleSetup({
         {/* Preview slots */}
         {timeRangeStart && timeRangeEnd && (
           <Box>
-            <Typography variant="caption" sx={{ color: '#6a6a6a', mb: 1, display: 'block' }}>
+            <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 1, display: 'block' }}>
               Preview of available slots:
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -793,8 +789,8 @@ function FlexibleSetup({
                   label={slot}
                   size="medium"
                   sx={{
-                    bgcolor: alpha('#DE3F5E', 0.1),
-                    color: '#DE3F5E',
+                    bgcolor: alpha(COLORS.brand.primary, 0.1),
+                    color: COLORS.brand.primary,
                     fontSize: '18px',
                   }}
                 />

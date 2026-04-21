@@ -1,5 +1,46 @@
 # Phera — Claude Code Project Context
 
+## 🚨 DESIGN SYSTEM — BLOCKING RULES (read before any UI work)
+
+Before writing or editing ANY UI code, follow these non-negotiable rules. Migration is in progress — don't add new violations.
+
+**1. Tokens are the source of truth.** All colors, radii, fonts, shadows come from `@/lib/theme/tokens` (`COLORS`, `RADII`, `FONTS`, `SHADOWS`, `TEXT`). Never inline hex (`#DE3F5E`, `#1a1a1a`), raw rgba, or magic numbers for radii/shadows.
+
+**2. Shared primitives over raw MUI.** For common UI, use the wrappers in `components/shared/` and `components/admin/`:
+   - Alerts → `InfoAlert`, `SuccessAlert`, `WarningAlert`, `ErrorAlert` from `components/shared/Alert` (pass `onClose` for dismissible). Never import MUI's `Alert` directly in app code.
+   - Buttons → `PrimaryActionButton`, `SecondaryActionButton`, `IconActionButton` from `components/admin/ActionButton`. Never hand-roll a `<Button>` with pink sx.
+   - Dropdown menus → `PheraMenu`, `PheraMenuItem` from `components/shared/Menu`. Never import MUI's `Menu` directly — all dropdowns in Phera are white-bg with dark text.
+   - Text inputs → `PheraTextField` from `components/shared/TextField`. Never spread `ENHANCED_TEXT_FIELD_SX` on a raw `<TextField>` in new code.
+   - Cards / paper surfaces → `PheraCard` from `components/shared/Card` with `variant="default" | "muted" | "feature" | "hero"`. Never hand-roll a `<Paper>` with borderRadius + border inline.
+   - Page / section headings → `PageHeading`, `SectionHeading` from `components/shared/PageHeading`. Replaces the `h6 + body2` opening pair every admin page repeats.
+   - Empty states → `EmptyState` from `components/shared/EmptyState` (icon + title + subtitle + action).
+   - Stat cards → `StatCard` from `components/shared/StatCard` (icon + value + label, clickable + selected).
+   - Chips → `PheraChip` from `components/shared/Chip` with `tone="neutral" | "brand" | "success" | "warning" | "danger" | "info" | "side-bride" | "side-groom" | "side-both"`.
+   - Dialogs → `PheraDialog`, `PheraDialogTitle` from `components/shared/Dialog` (serif title + optional close button built-in).
+   - Switches / toggles → `PheraSwitch` from `components/shared/Switch`. Never import MUI's `Switch` directly. Off = neutral track, on = brand pink track — baked in. Don't override via sx unless truly one-off.
+   - If a primitive for your need doesn't exist, ADD IT to `components/shared/` first, then use it — don't inline.
+
+**3. Typography = variants, not inline fontSize.** Use `<Typography variant="body2">`, `subtitleCaps`, `h1`, etc. Never set `fontSize` inline unless it's a one-off ornament (tiny badge, numeric indicator). **14px (0.875rem) is the absolute minimum** for any readable text.
+
+**4. Fonts — only two.** `FONTS.body` (Outfit) for everything < 2rem. `FONTS.display` (Instrument Serif) for anything ≥ 2rem (h1, h2). Work Sans is dead — do not re-introduce.
+
+**5. Button/input radius = `RADII.md` (12px).** Modals/popovers = `RADII.dialog` (24px). Mobile guest CTAs ("View Details", "RSVP") = `RADII.cta` (24px).
+
+**6. Colors — canonical names.** Brand pink `COLORS.brand.primary`, hover `COLORS.brand.primaryHover` (kill any `#c73552` or `#c13550`). Destructive actions use brand pink, NEVER red (`COLORS.accent.danger` is reserved for status indicators like "Not Attending" dots, not for buttons).
+
+**7. Ask when unsure.** If you're inventing a new pattern (new card layout, new button variant, new empty-state style), STOP and ask the user before building — there's likely an existing example you should match.
+
+**Reference files:**
+- `lib/theme/tokens.ts` — source of truth for COLORS, RADII, FONTS, TEXT, SHADOWS
+- `lib/theme/m3-theme.ts` — MUI theme (typography variants live here)
+- `lib/constants/form-styles.ts` — shared SX constants (all token-backed)
+- `components/shared/Alert.tsx` — alert primitives
+- `components/admin/ActionButton.tsx` — button primitives
+
+If the file you're editing has inline hex or raw `<Alert>`/`<Button>`, migrate it while you're there.
+
+---
+
 ## What Is Phera
 
 Phera (phera.io) is an Indian wedding guest logistics platform pivoting from a DIY wedding website builder to a **wedding operations service**. The thesis: sell the work (guest coordination outcomes), not the tool. Based on Sequoia Capital's "Services: The New Software" framework — intelligence work (data collection, outreach, scheduling) is automated by AI, judgment work (aesthetics, family dynamics) stays human.

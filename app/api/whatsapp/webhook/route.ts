@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseStatusUpdate, updateMessageStatus, verifySignature, parseIncomingMessage, logChatMessage } from '@/lib/whatsapp/webhooks';
 import { createClient } from '@supabase/supabase-js';
-import { whatsappClient } from '@/lib/whatsapp/client';
+import { sendWhapiText } from '@/lib/whatsapp/whapi-send';
 import { generateAIResponse } from '@/lib/whatsapp/ai-handler';
+import { recordBroadcastReplyForGuest } from '@/lib/whatsapp/broadcast-replies';
 
 // Use service role client to bypass RLS for server-side webhook processing
 const supabase = createClient(
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest) {
 
         if (guests.length === 0) {
           console.log(`⚠️ No guest found for phone ${msg.from}`);
-          await whatsappClient.sendMessage(msg.from, `Hi there! I couldn't find your number in our guest list. Please make sure you RSVP with this phone number first, or contact the couple directly.`);
+          await sendWhapiText(msg.from, `Hi there! I couldn't find your number in our guest list. Please make sure you RSVP with this phone number first, or contact the couple directly.`);
           continue;
         }
 
@@ -180,9 +181,9 @@ export async function POST(request: NextRequest) {
             const weddingList = guests
               .map((g: any, i: number) => `${i + 1}. ${g.weddings?.couple_name || 'Wedding'}`)
               .join('\n');
-            await whatsappClient.sendMessage(
+            await sendWhapiText(
               msg.from,
-              `Hi! It looks like you're a guest at multiple weddings:\n\n${weddingList}\n\nPlease reply with the number of the wedding you'd like to ask about.`
+              `Hi! It looks like you're a guest at multiple weddings:\n\n${weddingList}\n\nPlease reply with the number of the wedding you'd like to ask about.`,
             );
 
             // Store the pending selection so we can resolve it on next message
@@ -242,36 +243,39 @@ export async function POST(request: NextRequest) {
                 metadata: { active_wedding_id: selectedWeddingId }
               });
 
-              await whatsappClient.sendMessage(
+              await sendWhapiText(
                 msg.from,
-                `Got it! I'll help you with ${meta.wedding_names[choice]}'s wedding. What would you like to know?`
+                `Got it! I'll help you with ${meta.wedding_names[choice]}'s wedding. What would you like to know?`,
               );
               continue;
             }
           }
         }
 
-        // 📝 Log incoming message to history
-        await logChatMessage({
-          weddingId: wedding.id,
-          guestId: guest.id,
-          role: 'user',
-          content: msg.text || (msg.type === 'interactive' ? `[Interactive: ${msg.interactive?.id}]` : '[Unsupported message type]'),
-          waMessageId: msg.id,
-          metadata: {
-            type: msg.type,
-            button_id: msg.interactive?.id,
-            timestamp: msg.timestamp
-          }
-        });
+        // NOTE: generateAIResponse (called below for text messages) writes
+        // the inbound + outbound chat history itself. We only need to log
+        // here for the interactive-button branch, which doesn't go through
+        // the AI handler. Text branch deduplication is handled by the
+        // ai-handler internal log + the idempotency guard in logChatMessage.
 
         // 2. Handle based on message type
         if (msg.type === 'interactive' && msg.interactive) {
           const buttonId = msg.interactive.id;
           console.log(`🔘 Button click: ${buttonId}`);
 
+          // Log the interactive (button) click manually since this branch
+          // bypasses the ai-handler.
+          await logChatMessage({
+            weddingId: wedding.id,
+            guestId: guest.id,
+            role: 'user',
+            content: `[Interactive: ${buttonId}]`,
+            waMessageId: msg.id,
+            metadata: { type: msg.type, button_id: buttonId, timestamp: msg.timestamp },
+          });
+
           let responseText = '';
-          
+
           // Tailored responses based on button IDs
           if (buttonId === 'GET_SCHEDULE') {
             responseText = `Hi ${guestName}! Here is the schedule for ${wedding.couple_name}'s wedding: ${process.env.NEXT_PUBLIC_APP_URL}/go/schedule/${wedding.slug}`;
@@ -281,9 +285,9 @@ export async function POST(request: NextRequest) {
             responseText = `Hi ${guestName}, thanks for your interest! You can find everything you need here: ${process.env.NEXT_PUBLIC_APP_URL}/${wedding.slug}`;
           }
 
-          await whatsappClient.sendMessage(msg.from, responseText);
-          
-          // 📝 Log response to history
+          await sendWhapiText(msg.from, responseText);
+
+          // 📝 Log response to history (button branch — not routed through ai-handler)
           await logChatMessage({
             weddingId: wedding.id,
             guestId: guest.id,
@@ -295,6 +299,13 @@ export async function POST(request: NextRequest) {
         } else if (msg.type === 'text') {
           console.log(`💬 Text message: ${msg.text}`);
 
+          // If the guest has a pending broadcast awaiting reply, attribute
+          // this message to that broadcast (reply text + optional
+          // structured data). Non-blocking: AI reply still runs.
+          await recordBroadcastReplyForGuest(guest.id, msg.text || '');
+
+          // generateAIResponse logs both the user message and its reply to
+          // whatsapp_chat_history internally — no explicit log calls here.
           const aiResponse = await generateAIResponse({
             weddingId: wedding.id,
             weddingSlug: wedding.slug,
@@ -303,16 +314,7 @@ export async function POST(request: NextRequest) {
             userMessage: msg.text || '',
           });
 
-          const sendResult = await whatsappClient.sendMessage(msg.from, aiResponse);
-
-          // 📝 Log response to history
-          await logChatMessage({
-            weddingId: wedding.id,
-            guestId: guest.id,
-            role: 'assistant',
-            content: aiResponse,
-            waMessageId: sendResult?.messages?.[0]?.id,
-          });
+          await sendWhapiText(msg.from, aiResponse);
         }
       }
       console.log(`✅ Processed ${incomingMessages.length} incoming messages`);

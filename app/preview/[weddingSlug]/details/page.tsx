@@ -15,6 +15,7 @@ import { ArrowBack } from '@mui/icons-material';
 import { WeddingProvider, useWedding } from '@/lib/contexts/WeddingContext';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { COLORS } from '@/lib/theme/tokens';
 
 // Diamond decorative component
 const DiamondDecoration = () => (
@@ -25,7 +26,7 @@ const DiamondDecoration = () => (
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      color: '#D1B99F',
+      color: COLORS.cultural.champagne,
       my: { xs: 0.5, sm: 0 },
     }}
   >
@@ -104,7 +105,7 @@ const MenuItem = ({
           lineHeight: 1.5,
           letterSpacing: '5.56%',
           textTransform: 'uppercase',
-          color: '#141414',
+          color: COLORS.text.strong,
           textAlign: 'center',
         }}
       >
@@ -183,7 +184,7 @@ function PreviewDetailsContent() {
 
   if (isLoading) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ minHeight: { xs: '100svh', md: '100vh' }, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <LoadingSpinner message="" />
       </Box>
     );
@@ -191,8 +192,8 @@ function PreviewDetailsContent() {
 
   if (error || !wedding) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography>Wedding not found or you don't have access</Typography>
+      <Box sx={{ minHeight: { xs: '100svh', md: '100vh' }, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography>Wedding not found or you don&apos;t have access</Typography>
       </Box>
     );
   }
@@ -262,7 +263,7 @@ function PreviewDetailsContent() {
             zIndex: 9999,
           }}
         >
-          <CircularProgress size={40} sx={{ color: '#000' }} />
+          <CircularProgress size={40} sx={{ color: COLORS.text.strong }} />
         </Box>
       )}
 
@@ -289,7 +290,7 @@ function PreviewDetailsContent() {
             <IconButton
               onClick={handleBack}
               sx={{
-                color: '#000',
+                color: COLORS.text.strong,
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 backdropFilter: 'blur(10px)',
                 width: { xs: 40, lg: 44, xl: 48 },
@@ -342,7 +343,7 @@ function PreviewDetailsContent() {
             <Stack spacing={{ xs: 1.5, sm: 2, md: 3 }} alignItems="center" sx={{ justifyContent: 'center' }}>
               {/* Menu Items */}
               {isLoadingSections ? (
-                <Typography sx={{ color: '#141414' }}>Loading...</Typography>
+                <Typography sx={{ color: COLORS.text.strong }}>Loading...</Typography>
               ) : (
                 <Stack
                   spacing={{ xs: 1.5, sm: 2, lg: 2.25, xl: 2.5 }}

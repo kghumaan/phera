@@ -28,7 +28,7 @@ export async function getTransportationSettings(weddingId: string): Promise<Tran
     console.error('Error fetching transportation settings:', error);
     return null;
   }
-  return data;
+  return data as any;
 }
 
 export async function createTransportationSettings(
@@ -51,7 +51,7 @@ export async function createTransportationSettings(
     console.error('Error creating transportation settings:', error);
     return null;
   }
-  return data;
+  return data as any;
 }
 
 export async function updateTransportationSettings(
@@ -69,7 +69,7 @@ export async function updateTransportationSettings(
     console.error('Error updating transportation settings:', error);
     return null;
   }
-  return data;
+  return data as any;
 }
 
 // ============================================
@@ -96,7 +96,7 @@ export async function getVehicles(
     console.error('Error fetching vehicles:', error);
     return [];
   }
-  return data || [];
+  return (data || []) as any;
 }
 
 export async function createVehicle(
@@ -126,7 +126,7 @@ export async function createVehicle(
     console.error('Error creating vehicle:', error);
     return null;
   }
-  return data;
+  return data as any;
 }
 
 export async function updateVehicle(
@@ -144,7 +144,7 @@ export async function updateVehicle(
     console.error('Error updating vehicle:', error);
     return null;
   }
-  return data;
+  return data as any;
 }
 
 export async function deleteVehicle(vehicleId: string): Promise<boolean> {
@@ -215,7 +215,7 @@ export async function getPickupLocations(
     console.error('Error fetching pickup locations:', error);
     return [];
   }
-  return data || [];
+  return (data || []) as any;
 }
 
 export async function createPickupLocation(
@@ -241,7 +241,7 @@ export async function createPickupLocation(
     console.error('Error creating pickup location:', error);
     return null;
   }
-  return data;
+  return data as any;
 }
 
 export async function deletePickupLocation(locationId: string): Promise<boolean> {
@@ -272,7 +272,7 @@ export async function updatePickupLocation(
     console.error('Error updating pickup location:', error);
     return null;
   }
-  return data;
+  return data as any;
 }
 
 // ============================================
@@ -298,7 +298,7 @@ export async function getTimeRanges(
     console.error('Error fetching time ranges:', error);
     return [];
   }
-  return data || [];
+  return (data || []) as any;
 }
 
 export async function upsertTimeRange(
@@ -335,7 +335,7 @@ export async function upsertTimeRange(
       console.error('Error updating time range:', error);
       return null;
     }
-    return data;
+    return data as any;
   }
 
   const { data, error } = await supabase
@@ -352,7 +352,7 @@ export async function upsertTimeRange(
     console.error('Error creating time range:', error);
     return null;
   }
-  return data;
+  return data as any;
 }
 
 // ============================================
@@ -369,7 +369,7 @@ export async function getVehicleTypes(weddingId: string): Promise<Transportation
     console.error('Error fetching vehicle types:', error);
     return [];
   }
-  return data || [];
+  return (data || []) as any;
 }
 
 export async function createVehicleType(
@@ -394,7 +394,7 @@ export async function createVehicleType(
     console.error('Error creating vehicle type:', error);
     return null;
   }
-  return data;
+  return data as any;
 }
 
 export async function deleteVehicleType(vehicleTypeId: string): Promise<boolean> {
@@ -439,7 +439,7 @@ export async function getReservations(
     console.error('Error fetching reservations:', error);
     return [];
   }
-  return data || [];
+  return (data || []) as any;
 }
 
 export async function getReservationsByVehicle(
@@ -458,7 +458,7 @@ export async function getReservationsByVehicle(
     console.error('Error fetching reservations by vehicle:', error);
     return [];
   }
-  return data || [];
+  return (data || []) as any;
 }
 
 export async function createReservation(
@@ -499,7 +499,7 @@ export async function createReservation(
       console.error('Error updating reservation:', error);
       return null;
     }
-    return data;
+    return data as any;
   }
 
   const { data, error } = await supabase
@@ -517,7 +517,7 @@ export async function createReservation(
     console.error('Error creating reservation:', error);
     return null;
   }
-  return data;
+  return data as any;
 }
 
 export async function createManualReservation(
@@ -551,7 +551,7 @@ export async function createManualReservation(
     console.error('Error creating manual reservation:', error);
     return null;
   }
-  return data;
+  return data as any;
 }
 
 export async function updateReservation(
@@ -569,7 +569,7 @@ export async function updateReservation(
     console.error('Error updating reservation:', error);
     return null;
   }
-  return data;
+  return data as any;
 }
 
 export async function moveReservationToVehicle(
@@ -710,7 +710,7 @@ export async function getGroups(
     console.error('Error fetching groups:', error);
     return [];
   }
-  return data || [];
+  return (data || []) as any;
 }
 
 export async function createGroup(
@@ -737,7 +737,7 @@ export async function createGroup(
     console.error('Error creating group:', error);
     return null;
   }
-  return data;
+  return data as any;
 }
 
 export async function finalizeGroups(
@@ -826,8 +826,8 @@ export async function getGuestReservations(
   }
 
   return {
-    arrival: data?.find(r => r.direction === 'arrival') || null,
-    departure: data?.find(r => r.direction === 'departure') || null,
+    arrival: (data?.find(r => r.direction === 'arrival') || null) as any,
+    departure: (data?.find(r => r.direction === 'departure') || null) as any,
   };
 }
 

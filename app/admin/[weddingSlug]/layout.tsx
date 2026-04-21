@@ -1,6 +1,7 @@
 'use client';
 
-import { Box, CircularProgress, Backdrop } from '@mui/material';
+import { Box, CircularProgress, Backdrop, IconButton, Typography } from '@mui/material';
+import { ExpandMore } from '@mui/icons-material';
 import OnboardingSidebar, { groups } from '@/components/admin/OnboardingSidebar';
 import AdminTopNav from '@/components/admin/AdminTopNav';
 import AdminPreviewPanel from '@/components/admin/AdminPreviewPanel';
@@ -16,6 +17,7 @@ import { AdminRoleProvider, AdminRole } from '@/lib/contexts/AdminRoleContext';
 import { NavigationGuardProvider } from '@/lib/contexts/NavigationGuardContext';
 import { AutoSaveProvider } from '@/lib/contexts/AutoSaveContext';
 import ViewerBanner from '@/components/admin/ViewerBanner';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function OnboardingLayout({
   children,
@@ -47,6 +49,7 @@ function OnboardingLayoutContent({
   const [isLoadingWedding, setIsLoadingWedding] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [isPlanner, setIsPlanner] = useState(false);
   const [adminRole, setAdminRole] = useState<AdminRole>(null);
   const pathname = usePathname();
@@ -135,7 +138,22 @@ function OnboardingLayoutContent({
   useEffect(() => {
     setIsNavigating(false);
     setMobileOpen(false); // Close sidebar on mobile when navigating
+    setMobilePreviewOpen(false); // Collapse preview when switching pages
   }, [pathname]);
+
+  // DemoTour asks us to open/close the mobile drawer so its spotlight can
+  // actually land on sidebar items (they're keepMounted but translated
+  // off-screen when the drawer is closed).
+  useEffect(() => {
+    const openHandler = () => setMobileOpen(true);
+    const closeHandler = () => setMobileOpen(false);
+    window.addEventListener('phera:open-mobile-sidebar', openHandler);
+    window.addEventListener('phera:close-mobile-sidebar', closeHandler);
+    return () => {
+      window.removeEventListener('phera:open-mobile-sidebar', openHandler);
+      window.removeEventListener('phera:close-mobile-sidebar', closeHandler);
+    };
+  }, []);
 
   const handleStatusChange = async (newStatus: 'draft' | 'live') => {
     if (wedding) {
@@ -210,19 +228,77 @@ function OnboardingLayoutContent({
                     const currentGroup = groups.find(group =>
                       group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'))
                     );
-                    return currentGroup?.id === 'website' ? '0 0 55%' : 1;
+                    return currentGroup?.id === 'wedding-website' ? '0 0 55%' : 1;
                   })()
                 },
-                bgcolor: 'white',
+                bgcolor: COLORS.bg.white,
                 p: { xs: 2, md: 4 },
-                pt: { xs: `calc(${TOP_NAV_HEIGHT.xs} + 24px)`, md: `calc(${TOP_NAV_HEIGHT.md} + 32px)` }, // Shift internal content down to clear fixed Top Nav + extra spacing
+                pt: { xs: `calc(${TOP_NAV_HEIGHT.xs} + 8px)`, md: `calc(${TOP_NAV_HEIGHT.md} + 32px)` },
                 height: '100%',
-                overflowY: 'auto', // Scrollable form area
+                overflowY: 'auto',
                 position: 'relative',
                 borderRight: '1px solid rgba(0, 0, 0, 0.04)',
+                // Mobile-only: tighten typography one notch so the admin dashboard
+                // reads like a compact tool, not a marketing page. Desktop unchanged.
+                '@media (max-width: 899px)': {
+                  '& .MuiTypography-h4': { fontSize: '1.75rem' },
+                  '& .MuiTypography-h5': { fontSize: '1.35rem' },
+                  '& .MuiTypography-h6': { fontSize: '1.15rem' },
+                  '& .MuiTypography-subtitle1': { fontSize: '0.95rem' },
+                  '& .MuiTypography-subtitle2': { fontSize: '0.875rem' },
+                  '& .MuiTypography-body1': { fontSize: '0.875rem' },
+                  '& .MuiTypography-body2': { fontSize: '0.875rem' },
+                  '& .MuiButton-root': { fontSize: '0.875rem' },
+                  '& .MuiInputBase-input': { fontSize: '0.9375rem' },
+                  '& .MuiInputLabel-root': { fontSize: '0.9375rem' },
+                },
               }}
             >
-              {children}
+              {isLoadingPlan || isLoadingWedding ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <CircularProgress sx={{ color: COLORS.brand.primary }} />
+                </Box>
+              ) : (
+                <>
+                  {/* Mobile preview trigger — opens a full-screen overlay (no inline iframe) */}
+                  {(() => {
+                    const currentGroup = groups.find(group =>
+                      group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'))
+                    );
+                    if (currentGroup?.id !== 'wedding-website') return null;
+                    return (
+                      <Box sx={{ display: { xs: 'block', lg: 'none' }, mb: 2 }}>
+                        <Box
+                          data-tour="tour-preview"
+                          onClick={() => setMobilePreviewOpen(true)}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            bgcolor: COLORS.bg.muted,
+                            border: `1px solid ${COLORS.border.faint}`,
+                            borderRadius: RADII.md,
+                            px: 2,
+                            py: 1.25,
+                            cursor: 'pointer',
+                            transition: 'background-color 0.15s ease',
+                            '&:hover': { bgcolor: COLORS.bg.subtle },
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
+                            Show preview
+                          </Typography>
+                          <IconButton size="small" sx={{ color: COLORS.text.subtle }}>
+                            <ExpandMore sx={{ transform: 'rotate(-90deg)' }} />
+                          </IconButton>
+                        </Box>
+                      </Box>
+                    );
+                  })()}
+
+                  {children}
+                </>
+              )}
 
               {/* Loading overlay */}
               <Backdrop
@@ -234,7 +310,7 @@ function OnboardingLayoutContent({
                   backdropFilter: 'blur(4px)',
                 }}
               >
-                <CircularProgress sx={{ color: '#DE3F5E' }} />
+                <CircularProgress sx={{ color: COLORS.brand.primary }} />
               </Backdrop>
             </Box>
 
@@ -244,8 +320,8 @@ function OnboardingLayoutContent({
                 group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'))
               );
 
-              // Only show preview for 'website' group
-              if (currentGroup?.id !== 'website') {
+              // Only show preview for 'wedding-website' group
+              if (currentGroup?.id !== 'wedding-website') {
                 return null;
               }
 
@@ -257,7 +333,7 @@ function OnboardingLayoutContent({
                     height: '100%',
                     overflow: 'hidden',
                     pt: TOP_NAV_HEIGHT, // Shift internal content down to clear fixed Top Nav
-                    bgcolor: '#f8f7f5', // Ensure background extends to top behind nav
+                    bgcolor: COLORS.bg.subtle, // Ensure background extends to top behind nav
                   }}
                 >
                   <AdminPreviewPanel
@@ -267,6 +343,7 @@ function OnboardingLayoutContent({
                     lastPublishedAt={wedding?.last_published_at ?? null}
                     currentAdminPath={currentAdminPath}
                     websiteLayout={wedding?.website_layout}
+                    isLive={wedding?.status === 'live'}
                     onPublished={() => {
                       if (wedding) {
                         setWedding({ ...wedding, has_unpublished_changes: false, last_published_at: new Date().toISOString(), status: 'live' });
@@ -280,20 +357,45 @@ function OnboardingLayoutContent({
         </Box>
       </OptimizedBackground>
 
+      {/* Mobile preview overlay — full-screen, only mounts while open so the
+          iframe doesn't live-refresh in the background */}
+      {mobilePreviewOpen && (() => {
+        const currentGroup = groups.find(group =>
+          group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'))
+        );
+        if (currentGroup?.id !== 'wedding-website') return null;
+        return (
+          <Box
+            sx={{
+              display: { xs: 'block', lg: 'none' },
+              position: 'fixed',
+              inset: 0,
+              zIndex: (theme) => theme.zIndex.modal + 10,
+              bgcolor: COLORS.bg.white,
+            }}
+          >
+            <AdminPreviewPanel
+              compact
+              onClose={() => setMobilePreviewOpen(false)}
+              weddingSlug={wedding?.slug || weddingSlug}
+              weddingId={wedding?.id}
+              hasUnpublishedChanges={wedding?.has_unpublished_changes ?? true}
+              lastPublishedAt={wedding?.last_published_at ?? null}
+              currentAdminPath={currentAdminPath}
+              websiteLayout={wedding?.website_layout}
+              isLive={wedding?.status === 'live'}
+              onPublished={() => {
+                if (wedding) {
+                  setWedding({ ...wedding, has_unpublished_changes: false, last_published_at: new Date().toISOString(), status: 'live' });
+                }
+              }}
+            />
+          </Box>
+        );
+      })()}
+
       {/* Demo tour overlay */}
       {showTour && <DemoTour weddingSlug={weddingSlug} />}
-
-      {/* Plan loading guard - show full page backdrop if plan is still loading */}
-      <Backdrop
-        open={isLoadingPlan}
-        sx={{
-          color: '#DE3F5E',
-          zIndex: (theme) => theme.zIndex.drawer + 2, // Highest priority
-          bgcolor: 'white', // Solid white background for initial load
-        }}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
 
       <ViewerBanner />
     </NavigationGuardProvider>

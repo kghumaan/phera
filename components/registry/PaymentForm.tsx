@@ -10,11 +10,12 @@ import {
   Box,
   Typography,
   Stack,
-  Alert,
   IconButton
 } from '@mui/material';
 import { motion } from 'framer-motion';
+import { COLORS } from '@/lib/theme/tokens';
 import { ArrowBack } from '@mui/icons-material';
+import { ErrorAlert } from '@/components/shared/Alert';
 
 interface PaymentFormProps {
   amount: string;
@@ -84,7 +85,7 @@ export default function PaymentForm({
           variant="body2"
           sx={{
             fontWeight: 300,
-            color: '#666',
+            color: COLORS.text.subtle,
             mb: 1,
           }}
         >
@@ -94,7 +95,7 @@ export default function PaymentForm({
           variant="h6"
           sx={{
             fontWeight: 600,
-            color: '#141414',
+            color: COLORS.text.strong,
             mb: 2,
           }}
         >
@@ -102,22 +103,22 @@ export default function PaymentForm({
         </Typography>
         
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-          <Typography variant="body2" color="#666">Amount:</Typography>
-          <Typography variant="body2" color="#141414" fontWeight={600}>${amount}</Typography>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Amount:</Typography>
+          <Typography variant="body2" sx={{ color: COLORS.text.strong }} fontWeight={600}>${amount}</Typography>
         </Stack>
-        
+
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-          <Typography variant="body2" color="#666">From:</Typography>
-          <Typography variant="body2" color="#141414">{donorName}</Typography>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>From:</Typography>
+          <Typography variant="body2" sx={{ color: COLORS.text.strong }}>{donorName}</Typography>
         </Stack>
-        
+
         {message && (
           <Box sx={{ mt: 2, p: 2, backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '8px' }}>
-            <Typography variant="caption" color="#666" sx={{ mb: 0.5, display: 'block' }}>
+            <Typography variant="caption" sx={{ color: COLORS.text.subtle, mb: 0.5, display: 'block' }}>
               Your message:
             </Typography>
-            <Typography variant="body2" color="#333">
-              "{message}"
+            <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
+              &quot;{message}&quot;
             </Typography>
           </Box>
         )}
@@ -127,9 +128,7 @@ export default function PaymentForm({
       <form onSubmit={handleSubmit}>
         <Stack spacing={3}>
           {error && (
-            <Alert severity="error" sx={{ borderRadius: '16px' }}>
-              {error}
-            </Alert>
+            <ErrorAlert>{error}</ErrorAlert>
           )}
 
           <Box
@@ -160,8 +159,8 @@ export default function PaymentForm({
               disabled={loading || !stripe || !elements}
               sx={{
                 width: '100%',
-                backgroundColor: loading ? '#666' : '#141414',
-                color: '#fff',
+                backgroundColor: loading ? COLORS.text.subtle : COLORS.text.strong,
+                color: COLORS.bg.white,
                 borderRadius: '16px',
                 border: 'none',
                 py: 3,
@@ -171,10 +170,10 @@ export default function PaymentForm({
                 fontSize: 16,
                 fontWeight: 600,
                 '&:hover': {
-                  backgroundColor: loading ? '#666' : '#2a2a2a',
+                  backgroundColor: loading ? COLORS.text.subtle : COLORS.text.strong,
                 },
                 '&:disabled': {
-                  backgroundColor: '#666',
+                  backgroundColor: COLORS.text.subtle,
                   cursor: 'not-allowed',
                 },
               }}
@@ -186,9 +185,9 @@ export default function PaymentForm({
           <Typography
             variant="caption"
             sx={{
-              fontSize: 12,
+              fontSize: 14,
               textAlign: 'center',
-              color: '#666',
+              color: COLORS.text.subtle,
               mt: 2,
             }}
           >

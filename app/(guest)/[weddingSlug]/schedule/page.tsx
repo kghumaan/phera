@@ -25,6 +25,7 @@ import { useParams } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import { ScheduleItem, WeddingEvent } from '@/lib/supabase/wedding-service';
 import { SlideContent, DiamondIndicators } from '@/components/guest/EventDetailCarousel';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Parse a date string in either ISO (yyyy-MM-dd) or legacy ("Monday - December 14, 2026") format
 function parseScheduleDate(dateStr: string): Date {
@@ -50,7 +51,7 @@ function formatScheduleDate(dateStr: string): string {
 
 function getBarColor(gradientBackground: string | null | undefined): string {
   if (gradientBackground && gradientBackground.startsWith('#')) return gradientBackground;
-  return '#DE3F5E';
+  return COLORS.brand.primary;
 }
 
 const timeTypographySx = {
@@ -120,7 +121,7 @@ const MajorEventRow = ({
         {event.description && (
           <Typography
             sx={{
-              color: '#858585',
+              color: COLORS.text.subtle,
               fontSize: '0.95rem',
               lineHeight: 1.5,
               mb: 1,
@@ -136,7 +137,7 @@ const MajorEventRow = ({
             {event.location && (
               <Stack direction="row" spacing={0.5} alignItems="center">
                 <StreamlineIcon name="map-pin" size={14} color="#6a6a6a" />
-                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem' }}>
                   {event.location}
                 </Typography>
               </Stack>
@@ -144,7 +145,7 @@ const MajorEventRow = ({
             {event.dress_code && (
               <Stack direction="row" spacing={0.5} alignItems="center">
                 <StreamlineIcon name="hanger" size={14} color="#6a6a6a" />
-                <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>
+                <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem' }}>
                   {event.dress_code}
                 </Typography>
               </Stack>
@@ -157,7 +158,7 @@ const MajorEventRow = ({
             onClick={onMoreDetails}
             sx={{ cursor: 'pointer', display: 'inline-block' }}
           >
-            <Typography sx={{ color: '#DE3F5E', fontSize: '0.875rem' }}>
+            <Typography sx={{ color: COLORS.brand.primary, fontSize: '0.875rem' }}>
               <Box component="span" sx={{ fontWeight: 700, textDecoration: 'underline' }}>More Details</Box>
               {' >'}
             </Typography>
@@ -197,7 +198,7 @@ const MinorEventRow = ({
       {event.location && (
         <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }}>
           <StreamlineIcon name="map-pin" size={14} color="#858585" />
-          <Typography variant="body2" sx={{ color: '#858585' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             {event.location}
           </Typography>
         </Stack>
@@ -257,7 +258,7 @@ const DayCard = ({
         sx={{
           backgroundColor: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(10px)',
-          borderRadius: '16px',
+          borderRadius: RADII.lg,
           p: 3,
           mb: 2,
           border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -282,7 +283,7 @@ const DayCard = ({
         {events.length === 0 ? (
           <Typography
             sx={{
-              color: '#999',
+              color: COLORS.text.faint,
               fontStyle: 'italic',
               fontSize: '1rem',
               textAlign: 'center',
@@ -334,7 +335,7 @@ const CarouselOverlay = ({
   const [currentSlide, setCurrentSlide] = useState(0);
   const slides = event.carousel_slides || [];
   const totalSlides = slides.length;
-  const textColor = event.text_color || '#FFFFFF';
+  const textColor = event.text_color || COLORS.bg.white;
   const gradientBackground = event.gradient_background || null;
 
   if (slides.length === 0) return null;
@@ -359,17 +360,14 @@ const CarouselOverlay = ({
           justifyContent: 'center',
         }}
       >
-        {/* Background — uses the wedding's main background */}
+        {/* Background — uses the wedding's main background, falls back to default look & feel */}
         <Box
           sx={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: weddingBackground
-              ? `url(${weddingBackground})`
-              : 'none',
+            backgroundImage: `url(${weddingBackground || '/images/backgrounds/pearl.webp'})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            backgroundColor: weddingBackground ? undefined : '#1a1a1a',
           }}
         />
         {/* Back button */}
@@ -380,7 +378,7 @@ const CarouselOverlay = ({
             top: 16,
             left: 16,
             backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            color: '#000',
+            color: COLORS.text.strong,
             zIndex: 20,
             '&:hover': { backgroundColor: 'rgba(255, 255, 255, 1)' },
           }}
@@ -397,7 +395,7 @@ const CarouselOverlay = ({
             fontSize: 14,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            color: '#fff',
+            color: COLORS.text.inverse,
             mb: 3,
             textAlign: 'center',
           }}
@@ -415,7 +413,7 @@ const CarouselOverlay = ({
             height: '65vh',
             maxHeight: 650,
             backgroundColor: 'transparent',
-            borderRadius: '24px',
+            borderRadius: RADII.dialog,
             boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.16)',
             border: '2px solid rgba(255, 255, 255, 0.3)',
             overflow: 'hidden',
@@ -472,8 +470,8 @@ const CarouselOverlay = ({
               width: 48,
               height: 48,
               backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              color: '#000',
-              '&:hover': { backgroundColor: '#fff' },
+              color: COLORS.text.strong,
+              '&:hover': { backgroundColor: COLORS.bg.white },
               '&:disabled': {
                 backgroundColor: 'rgba(255, 255, 255, 0.3)',
                 color: 'rgba(0, 0, 0, 0.3)',
@@ -490,8 +488,8 @@ const CarouselOverlay = ({
               width: 48,
               height: 48,
               backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              color: '#000',
-              '&:hover': { backgroundColor: '#fff' },
+              color: COLORS.text.strong,
+              '&:hover': { backgroundColor: COLORS.bg.white },
               '&:disabled': {
                 backgroundColor: 'rgba(255, 255, 255, 0.3)',
                 color: 'rgba(0, 0, 0, 0.3)',
@@ -579,7 +577,7 @@ export default function SchedulePage() {
               <IconButton
                 onClick={() => router.back()}
                 sx={{
-                  color: '#000',
+                  color: COLORS.text.strong,
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   backdropFilter: 'blur(10px)',
                   '&:hover': {
@@ -610,10 +608,10 @@ export default function SchedulePage() {
                   sx={{
                     width: 32,
                     height: 32,
-                    backgroundColor: '#000',
-                    color: '#fff',
+                    backgroundColor: COLORS.text.strong,
+                    color: COLORS.text.inverse,
                     '&:hover': {
-                      backgroundColor: '#333',
+                      backgroundColor: COLORS.text.strong,
                       transform: 'scale(1.05)',
                     },
                     transition: 'all 0.2s ease',

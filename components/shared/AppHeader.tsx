@@ -7,8 +7,6 @@ import {
   Chip,
   Avatar,
   IconButton,
-  Menu,
-  MenuItem,
   CircularProgress,
   Typography
 } from '@mui/material';
@@ -21,12 +19,20 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { getCurrentWeddingId } from '@/lib/utils/wedding-id-helpers';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 
 interface AppHeaderProps {
   showBackButton?: boolean;
   backHref?: string;
   title?: string;
   variant?: 'transparent' | 'solid';
+  /**
+   * Optional content rendered on the right side of the header, just before
+   * the user avatar / login button. Use for per-page controls like a nav
+   * Menu toggle that should align with the avatar.
+   */
+  rightSlot?: React.ReactNode;
 }
 
 export default function AppHeader({
@@ -34,6 +40,7 @@ export default function AppHeader({
   backHref = '/',
   title,
   variant = 'transparent',
+  rightSlot,
 }: AppHeaderProps) {
   const { user, isLoading, hasRSVPed, rsvpResponse, signOut, isAdmin, adminWeddingSlug } = useAuth();
   const pathname = usePathname();
@@ -165,14 +172,20 @@ export default function AppHeader({
           sx={{
             maxWidth: isLandingPage || isWeddingPage ? '100%' : { xs: '100%', sm: 361, md: 600, lg: 700 },
             width: '100%',
-            px: { xs: 2, md: 4 },
+            // Landing page marigolds sit in the corners, so inset the header
+            // content past them at each breakpoint (marigold widths: 120/160/200).
+            px: isLandingPage
+              ? { xs: '150px', sm: '200px', md: '250px' }
+              : { xs: 2, md: 4 },
             pt: { xs: 2, md: 4 },
           }}
         >
           <Box
             sx={{
               display: 'flex',
-              justifyContent: 'space-between',
+              justifyContent: isLandingPage
+                ? { xs: 'center', md: 'space-between' }
+                : 'space-between',
               alignItems: 'center',
               width: '100%',
               gap: { xs: 2, md: 3 },
@@ -185,10 +198,10 @@ export default function AppHeader({
                   component={Link}
                   href={backHref}
                   sx={{
-                    backgroundColor: '#000',
-                    color: '#fff',
+                    backgroundColor: COLORS.text.strong,
+                    color: COLORS.text.inverse,
                     '&:hover': {
-                      backgroundColor: '#333',
+                      backgroundColor: COLORS.text.strong,
                     },
                   }}
                 >
@@ -222,11 +235,18 @@ export default function AppHeader({
               </Link>
             </Box>
 
-            {/* Right side - WhatsApp + RSVP Status / User Avatar / Login Button */}
+            {/* Right side — on landing page, hide on mobile and render as floating bottom-right element below. */}
+            <Box
+              sx={{
+                display: isLandingPage ? { xs: 'none', md: 'flex' } : 'flex',
+                alignItems: 'center',
+              }}
+            >
             {isLoading ? (
               <Box sx={{ width: 80, height: 40 }} /> // Loading placeholder
             ) : user ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {rightSlot}
                 {/* WhatsApp Button - Only show if user RSVP'd yes or maybe */}
                 {shouldShowWhatsApp && (
                   <IconButton
@@ -234,10 +254,10 @@ export default function AppHeader({
                     sx={{
                       width: { xs: 32, md: 45 },
                       height: { xs: 32, md: 45 },
-                      backgroundColor: '#000',
-                      color: '#fff',
+                      backgroundColor: COLORS.text.strong,
+                      color: COLORS.text.inverse,
                       '&:hover': {
-                        backgroundColor: '#333',
+                        backgroundColor: COLORS.text.strong,
                         transform: 'scale(1.05)',
                       },
                       transition: 'all 0.2s ease',
@@ -263,8 +283,8 @@ export default function AppHeader({
                     variant="contained"
                     onClick={(e) => setRsvpMenuAnchor(e.currentTarget)}
                     sx={{
-                      backgroundColor: '#000',
-                      color: '#fff',
+                      backgroundColor: COLORS.text.strong,
+                      color: COLORS.text.inverse,
                       borderRadius: { xs: '20px', md: '28px' },
                       px: { xs: 2.5, md: 3.6 },
                       py: { xs: 0.5, md: 1.2 },
@@ -274,7 +294,7 @@ export default function AppHeader({
                       textTransform: 'none',
                       minHeight: { xs: 32, md: 45 },
                       '&:hover': {
-                        backgroundColor: '#333',
+                        backgroundColor: COLORS.text.strong,
                       },
                     }}
                   >
@@ -289,7 +309,7 @@ export default function AppHeader({
                     width: { xs: 32, md: 45 },
                     height: { xs: 32, md: 45 },
                     backgroundColor: user.avatar_color,
-                    color: 'white',
+                    color: COLORS.text.inverse,
                     fontWeight: 600,
                     fontSize: { xs: '0.9rem', md: '1.04rem' },
                     cursor: 'pointer',
@@ -323,6 +343,7 @@ export default function AppHeader({
               </Box>
             ) : (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {rightSlot}
                 {/* WhatsApp Button - Hidden for non-authenticated users since they can't have RSVP'd */}
 
                 <Button
@@ -332,8 +353,8 @@ export default function AppHeader({
                   disabled={isNavigatingToLogin}
                   variant="contained"
                   sx={{
-                    backgroundColor: '#000',
-                    color: '#fff',
+                    backgroundColor: COLORS.text.strong,
+                    color: COLORS.text.inverse,
                     borderRadius: { xs: '24px', md: '28px' },
                     px: { xs: 3, md: 4 },
                     py: { xs: 1, md: 1.2 },
@@ -344,30 +365,120 @@ export default function AppHeader({
                     minHeight: { xs: 40, md: 45 },
                     boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                     '&:hover': {
-                      backgroundColor: '#333',
+                      backgroundColor: COLORS.text.strong,
                       boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
                     },
                     '&.Mui-disabled': {
-                      backgroundColor: '#000',
+                      backgroundColor: COLORS.text.strong,
                     },
                   }}
                 >
                   <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Box component="span" sx={{ visibility: isNavigatingToLogin ? 'hidden' : 'visible' }}>Login</Box>
                     {isNavigatingToLogin && (
-                      <CircularProgress size={20} sx={{ color: '#fff', position: 'absolute' }} />
+                      <CircularProgress size={20} sx={{ color: COLORS.text.inverse, position: 'absolute' }} />
                     )}
                   </Box>
                 </Button>
               </Box>
             )}
+            </Box>
           </Box>
         </Container>
       </Box>
 
+      {/* Landing + mobile: floating auth control at bottom-right, slides in from the right. */}
+      {isLandingPage && !isLoading && (
+        <Box
+          sx={{
+            display: { xs: 'flex', md: 'none' },
+            position: 'fixed',
+            right: 16,
+            bottom: 16,
+            zIndex: 1200,
+            alignItems: 'center',
+            '@keyframes slideInFromRight': {
+              from: { transform: 'translateX(120%)', opacity: 0 },
+              to: { transform: 'translateX(0)', opacity: 1 },
+            },
+            animation: 'slideInFromRight 0.35s ease-out',
+          }}
+        >
+          {user ? (
+            <Avatar
+              onClick={(e) => setUserMenuAnchor(e.currentTarget)}
+              sx={{
+                width: 52,
+                height: 52,
+                backgroundColor: user.avatar_color,
+                color: COLORS.text.inverse,
+                fontWeight: 600,
+                fontSize: '1.1rem',
+                cursor: 'pointer',
+                boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                },
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {user.avatar_svg ? (
+                <Box
+                  dangerouslySetInnerHTML={{ __html: user.avatar_svg }}
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    '& svg': { width: '100%', height: '100%' },
+                  }}
+                />
+              ) : (
+                user.initials
+              )}
+            </Avatar>
+          ) : (
+            <Button
+              component={Link}
+              href={`/auth/login?redirect=${encodeURIComponent(pathname || '/')}`}
+              onClick={() => setIsNavigatingToLogin(true)}
+              disabled={isNavigatingToLogin}
+              variant="contained"
+              sx={{
+                backgroundColor: COLORS.text.strong,
+                color: COLORS.text.inverse,
+                borderRadius: '28px',
+                px: 3.5,
+                py: 1.25,
+                fontSize: '0.95rem',
+                fontWeight: 500,
+                textTransform: 'none',
+                minWidth: 96,
+                minHeight: 48,
+                boxShadow: '0 6px 20px rgba(0,0,0,0.25)',
+                '&:hover': {
+                  backgroundColor: COLORS.text.strong,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                },
+                '&.Mui-disabled': { backgroundColor: COLORS.text.strong },
+              }}
+            >
+              <Box sx={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Box component="span" sx={{ visibility: isNavigatingToLogin ? 'hidden' : 'visible' }}>Login</Box>
+                {isNavigatingToLogin && (
+                  <CircularProgress size={20} sx={{ color: COLORS.text.inverse, position: 'absolute' }} />
+                )}
+              </Box>
+            </Button>
+          )}
+        </Box>
+      )}
+
       {/* User Menu */}
       {user && (
-        <Menu
+        <PheraMenu
           anchorEl={userMenuAnchor}
           open={Boolean(userMenuAnchor)}
           onClose={() => setUserMenuAnchor(null)}
@@ -405,8 +516,8 @@ export default function AppHeader({
           >
             {/* <Box
               sx={{
-                color: '#999',
-                fontSize: '10px',
+                color: COLORS.text.faint,
+                fontSize: '14px',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
@@ -417,8 +528,8 @@ export default function AppHeader({
             </Box> */}
             <Box
               sx={{
-                color: '#333',
-                fontSize: '13px',
+                color: COLORS.text.strong,
+                fontSize: '14px',
                 fontWeight: 500,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -432,11 +543,11 @@ export default function AppHeader({
 
           {/* Admin Dashboard - Show if user is admin */}
           {isAdmin && adminWeddingSlug && (
-            <MenuItem
+            <PheraMenuItem
               onClick={handleAdminDashboardClick}
               disabled={isNavigatingToAdmin}
               sx={{
-                color: '#666',
+                color: COLORS.text.subtle,
                 gap: 1,
                 '&:hover': {
                   backgroundColor: 'rgba(0, 0, 0, 0.05)',
@@ -444,19 +555,19 @@ export default function AppHeader({
               }}
             >
               {isNavigatingToAdmin ? (
-                <CircularProgress size={18} sx={{ color: '#666' }} />
+                <CircularProgress size={18} sx={{ color: COLORS.text.subtle }} />
               ) : (
                 <DashboardIcon fontSize="small" />
               )}
-              <Typography sx={{ fontSize: '0.85rem' }}>Admin Dashboard</Typography>
-            </MenuItem>
+              <Typography sx={{ fontSize: '0.875rem' }}>Admin Dashboard</Typography>
+            </PheraMenuItem>
           )}
 
-          <MenuItem
+          <PheraMenuItem
             onClick={handleSignOut}
             disabled={isSigningOut}
             sx={{
-              color: '#666',
+              color: COLORS.text.subtle,
               gap: 1,
               '&:hover': {
                 backgroundColor: 'rgba(0, 0, 0, 0.05)',
@@ -464,18 +575,18 @@ export default function AppHeader({
             }}
           >
             {isSigningOut ? (
-              <CircularProgress size={18} sx={{ color: '#666' }} />
+              <CircularProgress size={18} sx={{ color: COLORS.text.subtle }} />
             ) : (
               <LogoutIcon fontSize="small" />
             )}
-            <Typography sx={{ fontSize: '0.85rem' }}>Sign Out</Typography>
-          </MenuItem>
-        </Menu>
+            <Typography sx={{ fontSize: '0.875rem' }}>Sign Out</Typography>
+          </PheraMenuItem>
+        </PheraMenu>
       )}
 
       {/* RSVP Menu */}
       {user && hasRSVPed && rsvpResponse && (
-        <Menu
+        <PheraMenu
           anchorEl={rsvpMenuAnchor}
           open={Boolean(rsvpMenuAnchor)}
           onClose={() => setRsvpMenuAnchor(null)}
@@ -498,12 +609,12 @@ export default function AppHeader({
             },
           }}
         >
-          <MenuItem
+          <PheraMenuItem
             component={Link}
             href={`/${weddingSlug}/rsvp`}
             onClick={() => setRsvpMenuAnchor(null)}
             sx={{
-              color: '#666',
+              color: COLORS.text.subtle,
               gap: 1,
               '&:hover': {
                 backgroundColor: 'rgba(0, 0, 0, 0.05)',
@@ -512,8 +623,8 @@ export default function AppHeader({
           >
             <EditIcon fontSize="small" />
             Change RSVP?
-          </MenuItem>
-        </Menu>
+          </PheraMenuItem>
+        </PheraMenu>
       )}
 
       {/* WhatsApp Channel Modal */}

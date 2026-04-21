@@ -5,28 +5,29 @@ import { Box, TextField, Stack, IconButton, InputAdornment, CircularProgress } f
 import { CheckCircle } from '@mui/icons-material';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import TimePicker from './TimePicker';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const fieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '8px',
-    bgcolor: 'white',
-    '& fieldset': { borderColor: '#BCBCBC' },
-    '&:hover fieldset': { borderColor: '#999' },
-    '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+    borderRadius: RADII.sm,
+    bgcolor: COLORS.bg.white,
+    '& fieldset': { borderColor: COLORS.text.faint },
+    '&:hover fieldset': { borderColor: COLORS.text.faint },
+    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
   },
   '& .MuiInputLabel-root': {
-    color: '#524344',
+    color: COLORS.text.muted,
     fontSize: '0.875rem',
     transform: 'translate(14px, 13px) scale(1)',
     '&.MuiInputLabel-shrink': {
       transform: 'translate(14px, -9px) scale(0.75)',
     },
     '&.Mui-focused': {
-      color: '#DE3F5E',
+      color: COLORS.brand.primary,
     },
   },
   '& .MuiInputBase-input': {
-    color: '#1a1a1a',
+    color: COLORS.text.strong,
     fontSize: '1rem',
     padding: '12.5px 14px',
   },
@@ -53,13 +54,14 @@ export default function InlineMinorForm({ onSave, onCancel, initialData, isSavin
 
   return (
     <Box sx={{
-      bgcolor: 'white',
+      bgcolor: COLORS.bg.white,
       border: '1px solid #EEE',
-      borderRadius: '12px',
+      borderRadius: RADII.md,
       px: 1.5, py: 2,
       display: 'flex',
+      flexDirection: { xs: 'column', sm: 'row' },
       gap: 2,
-      alignItems: 'center',
+      alignItems: { xs: 'stretch', sm: 'center' },
       position: 'relative',
       opacity: isSaving ? 0.6 : 1,
       pointerEvents: isSaving ? 'none' : 'auto',
@@ -67,7 +69,7 @@ export default function InlineMinorForm({ onSave, onCancel, initialData, isSavin
     }}>
       {isSaving && (
         <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
-          <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+          <CircularProgress size={24} sx={{ color: COLORS.brand.primary }} />
         </Box>
       )}
       <Stack spacing={2} sx={{ flex: 1 }}>
@@ -81,7 +83,7 @@ export default function InlineMinorForm({ onSave, onCancel, initialData, isSavin
           onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); if (e.key === 'Escape') onCancel(); }}
           sx={fieldSx}
         />
-        <Stack direction="row" spacing={1.5}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
           <TimePicker
             label="Time *"
             value={time}
@@ -104,8 +106,9 @@ export default function InlineMinorForm({ onSave, onCancel, initialData, isSavin
         onClick={handleSubmit}
         disabled={!canSubmit}
         sx={{
-          color: canSubmit ? '#DE3F5E' : '#ccc',
+          color: canSubmit ? COLORS.brand.primary : COLORS.border.default,
           flexShrink: 0,
+          alignSelf: { xs: 'flex-end', sm: 'center' },
         }}
       >
         <CheckCircle sx={{ fontSize: 28 }} />

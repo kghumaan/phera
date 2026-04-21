@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Box, Typography, IconButton, alpha } from '@mui/material';
 import { Visibility, Close } from '@mui/icons-material';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function ViewerBanner() {
   const { isViewOnly } = useAdminRole();
@@ -19,8 +20,8 @@ export default function ViewerBanner() {
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 1300,
-        bgcolor: alpha('#1a1a1a', 0.92),
-        color: 'white',
+        bgcolor: alpha(COLORS.text.strong, 0.92),
+        color: COLORS.text.inverse,
         pl: 2.5,
         pr: 1,
         py: 1,
@@ -32,14 +33,14 @@ export default function ViewerBanner() {
         backdropFilter: 'blur(8px)',
       }}
     >
-      <Visibility sx={{ fontSize: 18, color: alpha('#fff', 0.8) }} />
+      <Visibility sx={{ fontSize: 18, color: alpha(COLORS.bg.white, 0.8) }} />
       <Typography
         variant="body2"
-        sx={{ fontWeight: 600, fontSize: '0.85rem', letterSpacing: '0.02em' }}
+        sx={{ fontWeight: 600, fontSize: '0.875rem', letterSpacing: '0.02em' }}
       >
         View only — you don&apos;t have permission to edit
       </Typography>
-      <IconButton size="small" onClick={() => setDismissed(true)} sx={{ color: alpha('#fff', 0.6), '&:hover': { color: 'white' } }}>
+      <IconButton size="small" onClick={() => setDismissed(true)} sx={{ color: alpha(COLORS.bg.white, 0.6), '&:hover': { color: COLORS.text.inverse } }}>
         <Close sx={{ fontSize: 16 }} />
       </IconButton>
     </Box>

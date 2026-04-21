@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import {
-    Dialog,
     DialogContent,
     Box,
     Typography,
@@ -13,9 +12,12 @@ import {
     Stack,
     alpha
 } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { Close, CheckCircleOutline } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { useAuth } from '@/lib/contexts/AuthContext';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface FeatureRequestModalProps {
     open: boolean;
@@ -82,19 +84,12 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
     };
 
     return (
-        <Dialog
+        <PheraDialog
             open={open}
             onClose={handleClose}
             maxWidth="sm"
             fullWidth
-            PaperProps={{
-                sx: {
-                    borderRadius: '24px',
-                    p: { xs: 1, md: 2 },
-                    bgcolor: 'white',
-                    overflow: 'visible'
-                }
-            }}
+            PaperProps={{ sx: { p: { xs: 1, md: 2 }, overflow: 'visible' } }}
         >
             <IconButton
                 onClick={handleClose}
@@ -102,7 +97,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                     position: 'absolute',
                     right: 16,
                     top: 16,
-                    color: '#666',
+                    color: COLORS.text.subtle,
                     bgcolor: 'rgba(0,0,0,0.03)',
                     '&:hover': { bgcolor: 'rgba(0,0,0,0.06)' }
                 }}
@@ -119,7 +114,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                     variant="h4"
                                     sx={{
                                         fontWeight: 800,
-                                        color: '#1a1a1a',
+                                        color: COLORS.text.strong,
                                         mb: 1.5,
                                         fontSize: { xs: '1.75rem', md: '2.25rem' }
                                     }}
@@ -128,7 +123,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                 </Typography>
                                 <Typography
                                     sx={{
-                                        color: '#666',
+                                        color: COLORS.text.subtle,
                                         fontSize: '1.05rem',
                                         lineHeight: 1.6,
                                         maxWidth: '450px',
@@ -149,44 +144,41 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                 disabled={isSubmitting}
                                 sx={{
                                     '& .MuiOutlinedInput-root': {
-                                        borderRadius: '16px',
-                                        bgcolor: '#f8f9fa',
+                                        borderRadius: RADII.lg,
+                                        bgcolor: COLORS.bg.muted,
                                         fontSize: '1.1rem',
-                                        color: '#1a1a1a',
+                                        color: COLORS.text.strong,
                                         '& fieldset': { borderColor: 'rgba(0,0,0,0.08)' },
                                         '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.12)' },
-                                        '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+                                        '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
                                     },
                                     '& ::placeholder': {
-                                        color: '#666',
+                                        color: COLORS.text.subtle,
                                         opacity: 1,
                                     }
                                 }}
                             />
 
-                            <Button
-                                variant="contained"
+                            <PrimaryActionButton
                                 fullWidth
                                 onClick={handleSubmit}
-                                disabled={isSubmitting || !content.trim()}
+                                loading={isSubmitting}
+                                disabled={!content.trim()}
                                 sx={{
-                                    bgcolor: '#DE3F5E',
-                                    color: 'white',
                                     borderRadius: '100px',
                                     py: 2,
                                     fontWeight: 700,
                                     fontSize: '1.1rem',
-                                    textTransform: 'none',
                                     boxShadow: '0 8px 16px rgba(222, 63, 94, 0.2)',
                                     '&:hover': {
-                                        bgcolor: '#c23450',
+                                        bgcolor: COLORS.brand.primaryHover,
                                         boxShadow: '0 10px 20px rgba(222, 63, 94, 0.3)',
                                     },
-                                    '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' }
+                                    '&.Mui-disabled': { bgcolor: COLORS.border.faint, color: COLORS.text.faint },
                                 }}
                             >
-                                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'Submit Request'}
-                            </Button>
+                                Submit Request
+                            </PrimaryActionButton>
                         </Stack>
                     ) : (
                         <Stack spacing={3} alignItems="center" sx={{ py: 4 }}>
@@ -195,20 +187,20 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                     width: 80,
                                     height: 80,
                                     borderRadius: '50%',
-                                    bgcolor: alpha('#28c840', 0.1),
+                                    bgcolor: alpha(COLORS.accent.success, 0.1),
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     mb: 1
                                 }}
                             >
-                                <CheckCircleOutline sx={{ fontSize: 48, color: '#28c840' }} />
+                                <CheckCircleOutline sx={{ fontSize: 48, color: COLORS.accent.success }} />
                             </Box>
                             <Box>
-                                <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
+                                <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>
                                     Thank you!
                                 </Typography>
-                                <Typography sx={{ color: '#666' }}>
+                                <Typography sx={{ color: COLORS.text.subtle }}>
                                     {copy.success}
                                 </Typography>
                             </Box>
@@ -220,7 +212,7 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                                     px: 4,
                                     py: 1.5,
                                     mt: 2,
-                                    color: '#1a1a1a',
+                                    color: COLORS.text.strong,
                                     borderColor: 'rgba(0,0,0,0.1)',
                                     textTransform: 'none',
                                     fontWeight: 600,
@@ -236,6 +228,6 @@ export default function FeatureRequestModal({ open, onClose, weddingId, variant 
                     )}
                 </Box>
             </DialogContent>
-        </Dialog>
+        </PheraDialog>
     );
 }

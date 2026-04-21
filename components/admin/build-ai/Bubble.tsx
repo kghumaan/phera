@@ -4,6 +4,7 @@ import React from 'react';
 import { Box, Typography, alpha } from '@mui/material';
 import { AutoAwesome } from '@mui/icons-material';
 import { Message } from '@/lib/build-ai/types';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 function parseBoldText(text: string) {
   const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -21,14 +22,14 @@ export default function Bubble({ message }: { message: Message }) {
   if (isAI) {
     return (
       <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3, gap: 2 }}>
-        <Box sx={{ width: 32, height: 32, borderRadius: '50%', bgcolor: alpha('#DE3F5E', 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, mt: 0.5 }}>
-          <AutoAwesome sx={{ fontSize: 18, color: '#DE3F5E' }} />
+        <Box sx={{ width: 32, height: 32, borderRadius: '50%', bgcolor: alpha(COLORS.brand.primary, 0.1), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, mt: 0.5 }}>
+          <AutoAwesome sx={{ fontSize: 18, color: COLORS.brand.primary }} />
         </Box>
         <Box sx={{ maxWidth: '85%' }}>
           <Typography sx={{
             fontSize: '1rem',
             lineHeight: 1.6,
-            color: '#1a1a1a',
+            color: COLORS.text.strong,
             whiteSpace: 'pre-line',
           }}>
             {parseBoldText(message.text)}
@@ -51,14 +52,14 @@ export default function Bubble({ message }: { message: Message }) {
           px: 2.5,
           py: 1.5,
           borderRadius: '16px 16px 4px 16px',
-          bgcolor: '#eeeeee',
-          color: '#1a1a1a',
+          bgcolor: COLORS.bg.muted,
+          color: COLORS.text.strong,
           whiteSpace: 'pre-line',
         }}
       >
         <Typography sx={{
           fontSize: '1rem', lineHeight: 1.6,
-          color: '#1a1a1a',
+          color: COLORS.text.strong,
           whiteSpace: 'pre-line',
         }}>
           {parseBoldText(message.text)}

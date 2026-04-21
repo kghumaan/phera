@@ -31,6 +31,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PaletteIcon from '@mui/icons-material/Palette';
 import InfoIcon from '@mui/icons-material/Info';
 import { animationPresets, culturalColors } from '@/lib/animations/cultural';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface CulturalEvent {
   id: string;
@@ -135,7 +136,7 @@ const ceremoniesData: CulturalEvent[] = [
     time: '10:00 AM - 12:00 PM',
     location: 'Bride\'s Family Home',
     emoji: '✨',
-    color: '#FFC107',
+    color: COLORS.accent.warning,
     description: 'A purification ritual where turmeric paste is applied to the bride and groom for a natural glow and to ward off evil spirits before the wedding.',
     significance: 'Haldi (turmeric) has antiseptic properties and is believed to bring good luck, purify the soul, and give a natural glow to the couple.',
     dressCode: {
@@ -297,7 +298,7 @@ export default function CulturalGuide() {
                       <Avatar
                         sx={{
                           bgcolor: index === activeStep ? ceremony.color : 'grey.300',
-                          color: 'white',
+                          color: COLORS.text.inverse,
                           width: 40,
                           height: 40,
                           fontSize: '1.2rem',
@@ -366,7 +367,7 @@ export default function CulturalGuide() {
                 <Avatar
                   sx={{
                     bgcolor: currentCeremony.color,
-                    color: 'white',
+                    color: COLORS.text.inverse,
                     mr: 2,
                     width: 56,
                     height: 56,
@@ -475,7 +476,7 @@ export default function CulturalGuide() {
                               color: currentCeremony.color,
                               width: 32,
                               height: 32,
-                              fontSize: '0.8rem',
+                              fontSize: '0.875rem',
                             }}
                           >
                             {index + 1}

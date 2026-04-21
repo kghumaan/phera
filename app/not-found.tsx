@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { motion } from 'framer-motion';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 export default function NotFound() {
   return (
@@ -50,9 +51,9 @@ export default function NotFound() {
             <Typography
               variant="h2"
               sx={{
-                fontFamily: 'var(--font-instrument-serif)',
+                fontFamily: FONTS.display,
                 fontSize: { xs: '3rem', md: '4.5rem' },
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
                 mb: 1,
               }}
             >
@@ -62,7 +63,7 @@ export default function NotFound() {
             <Typography
               variant="h5"
               sx={{
-                color: '#4a4a4a',
+                color: COLORS.text.muted,
                 mb: 6,
                 fontWeight: 400,
                 lineHeight: 1.6,
@@ -78,7 +79,7 @@ export default function NotFound() {
               variant="contained"
               size="large"
               sx={{
-                bgcolor: '#DE3F5E',
+                bgcolor: COLORS.brand.primary,
                 color: 'white',
                 px: 6,
                 py: 2,
@@ -88,7 +89,7 @@ export default function NotFound() {
                 fontWeight: 600,
                 boxShadow: '0 4px 14px rgba(222, 63, 94, 0.39)',
                 '&:hover': { 
-                  bgcolor: '#C8365A',
+                  bgcolor: COLORS.brand.primaryHover,
                   boxShadow: '0 6px 20px rgba(222, 63, 94, 0.23)',
                   transform: 'translateY(-2px)',
                 },

@@ -7,16 +7,17 @@ import {
   Container,
   Typography,
   TextField,
-  Button,
   Stack,
   Paper,
-  Alert,
   alpha,
   CircularProgress,
 } from '@mui/material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { supabase } from '@/lib/supabase/client';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { ErrorAlert } from '@/components/shared/Alert';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 export default function NewWeddingPage() {
   const router = useRouter();
@@ -55,11 +56,12 @@ export default function NewWeddingPage() {
         return;
       }
 
-      // Check if user already has weddings
+      // Check if user already has weddings (exclude demo clones)
       const { data: existingWeddings } = await supabase
         .from('weddings')
         .select('slug')
         .eq('created_by', user.id)
+        .not('slug', 'like', 'demo-%')
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -142,7 +144,7 @@ export default function NewWeddingPage() {
         status: 'draft',
         created_by: userId,
         background_image: '/images/backgrounds/blue-clouds.webp',
-        primary_color: '#DE3F5E',
+        primary_color: COLORS.brand.primary,
       });
 
       if (wedding) {
@@ -170,7 +172,7 @@ export default function NewWeddingPage() {
             justifyContent: 'center',
           }}
         >
-          <CircularProgress size={48} sx={{ color: '#DE3F5E' }} />
+          <CircularProgress size={48} sx={{ color: COLORS.brand.primary }} />
         </Box>
       </OptimizedBackground>
     );
@@ -193,7 +195,7 @@ export default function NewWeddingPage() {
             sx={{
               p: { xs: 3, sm: 5 },
               borderRadius: '32px',
-              bgcolor: alpha('#fff', 0.95),
+              bgcolor: alpha(COLORS.bg.white, 0.95),
               backdropFilter: 'blur(10px)',
             }}
           >
@@ -202,10 +204,10 @@ export default function NewWeddingPage() {
                 <Typography
                   variant="h3"
                   sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
+                    fontFamily: FONTS.display,
                     mb: 1,
                     fontSize: { xs: '2rem', sm: '2.5rem' },
-                    color: '#1a1a1a',
+                    color: COLORS.text.strong,
                   }}
                 >
                   Create Your Wedding
@@ -213,7 +215,7 @@ export default function NewWeddingPage() {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: '#666',
+                    color: COLORS.text.subtle,
                     fontSize: { xs: '0.95rem', sm: '1.05rem' },
                   }}
                 >
@@ -237,7 +239,7 @@ export default function NewWeddingPage() {
                     autoFocus
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        borderRadius: '16px',
+                        borderRadius: RADII.lg,
                         '& fieldset': {
                           borderColor: 'rgba(0, 0, 0, 0.23)',
                         },
@@ -245,52 +247,37 @@ export default function NewWeddingPage() {
                           borderColor: 'rgba(0, 0, 0, 0.4)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#DE3F5E',
+                          borderColor: COLORS.brand.primary,
                         },
                       },
                       '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#DE3F5E',
+                        color: COLORS.brand.primary,
                       },
                     }}
                   />
 
                   {error && (
-                    <Alert
-                      severity="error"
-                      onClose={() => setError(null)}
-                      sx={{ borderRadius: '12px' }}
-                    >
+                    <ErrorAlert onClose={() => setError(null)}>
                       {error}
-                    </Alert>
+                    </ErrorAlert>
                   )}
 
-                  <Button
+                  <PrimaryActionButton
                     type="submit"
-                    variant="contained"
                     size="large"
-                    disabled={loading || !coupleName.trim()}
+                    loading={loading}
+                    disabled={!coupleName.trim()}
                     sx={{
-                      bgcolor: '#DE3F5E',
-                      color: 'white',
-                      borderRadius: '16px',
+                      borderRadius: RADII.lg,
                       py: 1.5,
                       fontSize: '1.1rem',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      '&:hover': {
-                        bgcolor: '#C8365A',
-                      },
                       '&:disabled': {
-                        bgcolor: '#ccc',
+                        bgcolor: COLORS.border.default,
                       },
                     }}
                   >
-                    {loading ? (
-                      <CircularProgress size={24} sx={{ color: 'white' }} />
-                    ) : (
-                      'Continue'
-                    )}
-                  </Button>
+                    Continue
+                  </PrimaryActionButton>
                 </Stack>
               </form>
 
@@ -298,8 +285,8 @@ export default function NewWeddingPage() {
                 variant="caption"
                 sx={{
                   textAlign: 'center',
-                  color: '#999',
-                  fontSize: '0.85rem',
+                  color: COLORS.text.faint,
+                  fontSize: '0.875rem',
                 }}
               >
                 Don't worry, you can change this later

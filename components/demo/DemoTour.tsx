@@ -6,68 +6,86 @@ import { Close, ArrowForward, ArrowBack } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { COLORS } from '@/lib/theme/tokens';
 
 interface TourStep {
   target: string;
   title: string;
   description: string;
+  /** Extra sentence rendered only on mobile, below the main description. */
+  mobileNote?: string;
   noSpotlight?: boolean;
   navigateTo?: string;
   expandGroup?: string; // group id (e.g. 'website', 'guest-responses')
   sidebarCutout?: boolean; // cut out entire sidebar instead of single element
   tooltipPosition?: 'right' | 'below-target' | 'left-of-target';
+  extraTargets?: string[]; // additional data-tour targets to union into the spotlight
+  /** Force the tooltip to pin to the top of the viewport on mobile. */
+  mobileTopPin?: boolean;
 }
 
 const TOUR_STEPS: TourStep[] = [
   {
     target: 'tour-overview',
     title: 'Welcome to Phera',
-    description: 'This is your wedding planning dashboard. Everything you need to set up and manage your celebration lives here.',
+    description: 'This is your wedding command center. Everything you need to plan, coordinate, and run your celebration lives here.',
+    mobileNote: 'For the full experience we recommend viewing Phera on a desktop.',
   },
   {
-    target: 'tour-website-group',
+    target: 'tour-wedding-website',
     title: 'Your Wedding Website',
-    description: 'This section is where you build your guest-facing website. Add wedding details, customize the look, set up your schedule, and publish when you\'re ready.',
+    description: "Build a beautiful, bespoke site for your guests — schedule, FAQ, registry, travel info, and more. Design it yourself, let AI build it, or work with our team.",
     navigateTo: '/details',
-    expandGroup: 'website',
+    expandGroup: 'wedding-website',
   },
   {
     target: 'tour-preview',
     title: 'Live Preview',
-    description: 'See your wedding website update in real time as you make changes. Toggle between Desktop and Mobile views at the top to see exactly how your guests will experience it.',
+    description: 'See your wedding website update in real time as you make changes. Toggle between Desktop and Mobile views to see exactly what your guests will experience.',
     tooltipPosition: 'left-of-target',
   },
   {
     target: 'tour-pins',
-    title: 'PIN Management',
-    description: 'Set up different PIN codes to control who sees what. Direct who gets a plus-one, which guests see certain events, and manage access levels — all from here.',
-    expandGroup: 'website',
+    title: 'Event Access',
+    description: 'Set PIN codes to control who sees what. Restrict sensitive events to close family, decide who gets a plus-one, and manage access levels — all from here.',
+    expandGroup: 'wedding-website',
   },
   {
-    target: 'tour-guest-responses-group',
-    title: 'Track Guest Responses',
-    description: 'See who\'s attending each event, dietary preferences, plus-ones, and travel details — all in one dashboard.',
-    expandGroup: 'guest-responses',
+    target: 'tour-guests-group',
+    title: 'Guest Management',
+    description: "Import your guest list, track RSVPs, dietary needs, plus-ones, and every detail your guests share — collected and organized in one dashboard.",
+    expandGroup: 'guests-group',
+  },
+  {
+    target: 'tour-rooms',
+    title: 'Travel, Rooms & Shuttles',
+    description: "Hotel blocks, room assignments, flight details, airport pickups, and shuttle routes — all coordinated so no one gets stranded. We collect travel plans from every guest and optimize the logistics.",
+    expandGroup: 'guests-group',
+    extraTargets: ['tour-transportation'],
   },
   {
     target: 'tour-concierge',
-    title: 'WhatsApp Concierge',
-    description: 'Your guests\' 24/7 AI assistant on WhatsApp. It answers questions about schedule, venue, dress code, and even recommends things to do in the area — so you don\'t have to.',
+    title: 'WhatsApp Agent',
+    description: "Your guests' 24/7 agent on WhatsApp. Answers schedule, venue, dress code, and local questions instantly — in English or Hindi, in their timezone.",
+    expandGroup: 'guests-group',
   },
   {
     target: 'tour-task-manager',
-    title: 'Wedding Task Manager',
-    description: 'Organize your entire planning process with a Kanban board. Simply ramble with voice about what\'s on your mind and we\'ll keep track of everything — vendors, to-dos, deadlines, all of it.',
+    title: 'Task Manager',
+    description: "Organize your entire planning process on a Kanban board. Ramble with voice about what's on your mind and we'll keep track — vendors, to-dos, deadlines, all of it.",
+    expandGroup: 'planning',
   },
   {
     target: 'tour-coordinator',
     title: 'Vendor Coordinator',
-    description: 'Manage all your wedding vendors in one place. Track conversations, get AI-powered insights and action items, and keep everything organized through WhatsApp integration.',
+    description: "Add our Agent to your WhatsApp groups with caterers, florists, and decorators. It summarizes threads, extracts action items, and flags risks so nothing slips.",
+    expandGroup: 'planning',
   },
   {
-    target: 'tour-team',
-    title: 'Team',
-    description: 'Invite family members, your partner, or anyone else to help plan. Add them as admins so they can contribute, edit details, and manage things alongside you.',
+    target: 'tour-collaborators',
+    title: 'Collaborators',
+    description: "Invite your partner, family members, or planner to help. Add them as admins so they can contribute, edit details, and manage things alongside you.",
+    mobileTopPin: true,
   },
   {
     target: 'tour-cta',
@@ -141,20 +159,37 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
       return;
     }
 
-    // Support both data-tour and data-tour-group attributes
-    const el = document.querySelector(`[data-tour="${step.target}"]`)
-      || document.querySelector(`[data-tour-group="${step.target.replace('tour-', '').replace('-group', '')}"]`);
-    if (!el) {
+    // Resolve all targets (primary + extras) to DOM rects
+    const resolve = (sel: string) =>
+      document.querySelector(`[data-tour="${sel}"]`) ||
+      document.querySelector(`[data-tour-group="${sel.replace('tour-', '').replace('-group', '')}"]`);
+
+    const rects: DOMRect[] = [];
+    const primaryEl = resolve(step.target);
+    if (primaryEl) rects.push(primaryEl.getBoundingClientRect());
+    if (step.extraTargets) {
+      for (const extra of step.extraTargets) {
+        const el = resolve(extra);
+        if (el) rects.push(el.getBoundingClientRect());
+      }
+    }
+
+    if (rects.length === 0) {
       setTargetRect(null);
       return;
     }
 
-    const rect = el.getBoundingClientRect();
+    // Union all rects into a single bounding box
+    const top = Math.min(...rects.map(r => r.top));
+    const left = Math.min(...rects.map(r => r.left));
+    const right = Math.max(...rects.map(r => r.right));
+    const bottom = Math.max(...rects.map(r => r.bottom));
+
     setTargetRect({
-      top: rect.top - PADDING,
-      left: rect.left - PADDING,
-      width: rect.width + PADDING * 2,
-      height: rect.height + PADDING * 2,
+      top: top - PADDING,
+      left: left - PADDING,
+      width: (right - left) + PADDING * 2,
+      height: (bottom - top) + PADDING * 2,
     });
 
     if (step.sidebarCutout) {
@@ -175,6 +210,29 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
       (groupEl as HTMLElement).click();
     }
   }, []);
+
+  // On mobile, the sidebar is a temporary drawer. Most tour steps point at a
+  // sidebar item — those elements live in the DOM (keepMounted) but sit
+  // translated off-screen when the drawer is closed, so the spotlight lands
+  // outside the viewport. Ask the admin layout to open/close the drawer based
+  // on whether the current step actually targets a sidebar element.
+  //
+  // The effect depends on `pathname` so it re-fires after every navigation
+  // (step 2 navigates to /details), and the 60ms delay lets the layout's own
+  // `[pathname]` effect (which blanket-closes the drawer) run first. Without
+  // that, the drawer would flash open and immediately close again as the
+  // layout's close wins the race.
+  useEffect(() => {
+    if (!isActive || !step || !isMobile) return;
+    const t = setTimeout(() => {
+      const targetEl = document.querySelector(`[data-tour="${step.target}"]`);
+      const isInSidebar = !!targetEl?.closest('.MuiDrawer-paper');
+      window.dispatchEvent(new CustomEvent(
+        isInSidebar ? 'phera:open-mobile-sidebar' : 'phera:close-mobile-sidebar'
+      ));
+    }, 60);
+    return () => clearTimeout(t);
+  }, [currentStep, isActive, step, isMobile, pathname]);
 
   // Handle step changes: navigation, sidebar expansion
   useEffect(() => {
@@ -206,8 +264,10 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
       };
     }
 
-    // No group expansion needed, measure right away
-    const timer = setTimeout(measureTarget, 150);
+    // No group expansion needed, measure right away.
+    // Delay slightly longer on mobile to let the sidebar drawer transition in
+    // (MUI default ~225ms) before we compute the spotlight rect.
+    const timer = setTimeout(measureTarget, isMobile ? 300 : 150);
 
     observerRef.current?.disconnect();
     observerRef.current = new ResizeObserver(measureTarget);
@@ -244,12 +304,16 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
 
   const handleNext = () => {
     if (currentStep < TOUR_STEPS.length - 1) {
+      // Clear the old rect so the new step's tooltip doesn't flash at the
+      // previous step's position while we wait for measureTarget to resolve.
+      setTargetRect(null);
       setCurrentStep(currentStep + 1);
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
+      setTargetRect(null);
       setCurrentStep(currentStep - 1);
     }
   };
@@ -270,12 +334,56 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
     }
 
     if (isMobile) {
+      // Pin the tooltip to the viewport's horizontal center using `left`
+      // arithmetic rather than a CSS `transform` — framer-motion owns the
+      // `transform` property during the enter/exit animation and would
+      // clobber any `translateX(-50%)` we set here, pushing the card off to
+      // the right.
+      const horizontalPad = 16;
+      const tooltipW = Math.min(TOOLTIP_WIDTH, window.innerWidth - horizontalPad * 2);
+      const tooltipH = 280; // approximate; used to pick a side with room
+      const topSafe = 84; // AdminTopNav + small gap
+      const bottomSafe = 16;
+
+      // Per-step override (e.g. Collaborators sits low in the sidebar on
+      // mobile and the auto-placed tooltip ends up outside the visible
+      // drawer area). We anchor slightly above the generic topSafe so the
+      // tooltip clears the item it's meant to be pointing at.
+      if (step.mobileTopPin) {
+        return {
+          top: 56,
+          left: `calc(50vw - ${tooltipW / 2}px)`,
+          width: tooltipW,
+        };
+      }
+
+      const spaceBelow = window.innerHeight - (targetRect.top + targetRect.height) - bottomSafe;
+      const spaceAbove = targetRect.top - topSafe;
+
+      // Prefer placing the tooltip below the target. If the target sits low
+      // in the viewport (e.g. "Event Access" at the bottom of an expanded
+      // group) and the below-target position would overflow, flip to above
+      // the target instead — that keeps the spotlighted row visible and the
+      // tooltip from overlapping it. Fall back to pinning near the top when
+      // neither side has enough room.
+      if (spaceBelow >= tooltipH) {
+        return {
+          top: targetRect.top + targetRect.height + 16,
+          left: `calc(50vw - ${tooltipW / 2}px)`,
+          width: tooltipW,
+        };
+      }
+      if (spaceAbove >= tooltipH) {
+        return {
+          top: targetRect.top - tooltipH - 16,
+          left: `calc(50vw - ${tooltipW / 2}px)`,
+          width: tooltipW,
+        };
+      }
       return {
-        top: Math.min(targetRect.top + targetRect.height + 16, window.innerHeight - 260),
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: TOOLTIP_WIDTH,
-        maxWidth: 'calc(100vw - 32px)',
+        top: topSafe,
+        left: `calc(50vw - ${tooltipW / 2}px)`,
+        width: tooltipW,
       };
     }
 
@@ -316,68 +424,45 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
 
   return (
     <>
-      {/* Dark overlay — 4 strips around cutout for clean rectangular spotlight */}
+      {/* Dark overlay — single box-shadow cutout (pixel-perfect, no gaps) */}
       {cutoutRect ? (
         <>
-          {/* Top strip */}
+          {/* Visual spotlight: a transparent box with a massive shadow that
+              paints the darkened overlay around it. Because the shadow is
+              rendered as one continuous paint, there are no seam/gap
+              artifacts between strips. pointer-events:none lets the user
+              still interact with the underlying element if they want. */}
           <Box
-            onClick={endTour}
-            sx={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: Math.max(0, cutoutRect.top),
-              zIndex: 9998,
-              bgcolor: 'rgba(0,0,0,0.6)',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-            }}
-          />
-          {/* Bottom strip */}
-          <Box
-            onClick={endTour}
-            sx={{
-              position: 'fixed',
-              top: cutoutRect.top + cutoutRect.height,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 9998,
-              bgcolor: 'rgba(0,0,0,0.6)',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-            }}
-          />
-          {/* Left strip (between top and bottom) */}
-          <Box
-            onClick={endTour}
             sx={{
               position: 'fixed',
               top: cutoutRect.top,
-              left: 0,
-              width: Math.max(0, cutoutRect.left),
+              left: cutoutRect.left,
+              width: cutoutRect.width,
               height: cutoutRect.height,
               zIndex: 9998,
-              bgcolor: 'rgba(0,0,0,0.6)',
-              cursor: 'pointer',
+              pointerEvents: 'none',
+              boxShadow: '0 0 0 100vmax rgba(0,0,0,0.6)',
               transition: 'all 0.3s ease',
             }}
           />
-          {/* Right strip (between top and bottom) */}
+          {/* Transparent click-catchers for endTour on the four surrounding
+              areas. Visual is already handled above; these only carry the
+              click handler. Gaps here are invisible. */}
           <Box
             onClick={endTour}
-            sx={{
-              position: 'fixed',
-              top: cutoutRect.top,
-              left: cutoutRect.left + cutoutRect.width,
-              right: 0,
-              height: cutoutRect.height,
-              zIndex: 9998,
-              bgcolor: 'rgba(0,0,0,0.6)',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-            }}
+            sx={{ position: 'fixed', top: 0, left: 0, right: 0, height: Math.max(0, cutoutRect.top), zIndex: 9998, cursor: 'pointer' }}
+          />
+          <Box
+            onClick={endTour}
+            sx={{ position: 'fixed', top: cutoutRect.top + cutoutRect.height, left: 0, right: 0, bottom: 0, zIndex: 9998, cursor: 'pointer' }}
+          />
+          <Box
+            onClick={endTour}
+            sx={{ position: 'fixed', top: cutoutRect.top, left: 0, width: Math.max(0, cutoutRect.left), height: cutoutRect.height, zIndex: 9998, cursor: 'pointer' }}
+          />
+          <Box
+            onClick={endTour}
+            sx={{ position: 'fixed', top: cutoutRect.top, left: cutoutRect.left + cutoutRect.width, right: 0, height: cutoutRect.height, zIndex: 9998, cursor: 'pointer' }}
           />
         </>
       ) : (
@@ -394,17 +479,20 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
         />
       )}
 
-      {/* Tooltip */}
+      {/* Tooltip — hold opacity at 0 until the spotlight target has been
+          measured so the card doesn't flash at the centered fallback on
+          every step change. */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
           initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={{ opacity: (targetRect || step.noSpotlight) ? 1 : 0, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.2 }}
           style={{
             position: 'fixed',
             zIndex: 9999,
+            pointerEvents: (targetRect || step.noSpotlight) ? 'auto' : 'none',
             ...getTooltipPosition(),
           }}
         >
@@ -425,8 +513,8 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                 position: 'absolute',
                 top: 8,
                 right: 8,
-                color: '#999',
-                '&:hover': { color: '#666' },
+                color: COLORS.text.faint,
+                '&:hover': { color: COLORS.text.subtle },
               }}
             >
               <Close fontSize="small" />
@@ -436,9 +524,9 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
             {!step.noSpotlight && (
               <Typography
                 sx={{
-                  fontSize: '0.7rem',
+                  fontSize: '0.875rem',
                   fontWeight: 700,
-                  color: '#DE3F5E',
+                  color: COLORS.brand.primary,
                   textTransform: 'uppercase',
                   letterSpacing: '1px',
                   mb: 1,
@@ -453,7 +541,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
               sx={{
                 fontSize: step.noSpotlight ? '1.5rem' : '1.1rem',
                 fontWeight: 700,
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
                 mb: 1,
                 pr: 3,
                 fontFamily: step.noSpotlight ? 'var(--font-instrument-serif)' : undefined,
@@ -469,9 +557,9 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
               <Typography
                 sx={{
                   fontSize: '0.875rem',
-                  color: '#666',
+                  color: COLORS.text.subtle,
                   lineHeight: 1.6,
-                  mb: 2.5,
+                  mb: step.mobileNote && isMobile ? 1.25 : 2.5,
                   textAlign: step.noSpotlight ? 'center' : undefined,
                 }}
               >
@@ -479,39 +567,54 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
               </Typography>
             )}
 
+            {/* Mobile-only note, e.g. recommending desktop on the welcome step */}
+            {step.mobileNote && isMobile && (
+              <Typography
+                sx={{
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  color: COLORS.brand.primary,
+                  lineHeight: 1.5,
+                  mb: 2.5,
+                }}
+              >
+                {step.mobileNote}
+              </Typography>
+            )}
+
             {/* CTA step */}
             {step.noSpotlight ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, alignItems: 'center', mt: 2 }}>
                 <Button
-                  component={Link}
-                  href="/auth/login"
+                  onClick={endTour}
                   variant="contained"
                   size="large"
                   sx={{
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
+                    bgcolor: COLORS.brand.primary,
+                    color: COLORS.text.inverse,
                     px: 5,
                     py: 1.5,
                     borderRadius: '32px',
                     fontSize: '1.1rem',
                     textTransform: 'none',
                     fontWeight: 700,
-                    '&:hover': { bgcolor: '#C8365A' },
+                    '&:hover': { bgcolor: COLORS.brand.primaryHover },
+                  }}
+                >
+                  Continue Exploring
+                </Button>
+                <Button
+                  component={Link}
+                  href="/auth/login"
+                  variant="text"
+                  sx={{
+                    color: COLORS.text.faint,
+                    textTransform: 'none',
+                    fontSize: '0.875rem',
+                    '&:hover': { color: COLORS.text.subtle, bgcolor: 'transparent' },
                   }}
                 >
                   Start Planning Free
-                </Button>
-                <Button
-                  onClick={endTour}
-                  variant="text"
-                  sx={{
-                    color: '#999',
-                    textTransform: 'none',
-                    fontSize: '0.85rem',
-                    '&:hover': { color: '#666', bgcolor: 'transparent' },
-                  }}
-                >
-                  Continue exploring
                 </Button>
               </Box>
             ) : (
@@ -521,10 +624,10 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                   variant="text"
                   size="small"
                   sx={{
-                    color: '#999',
+                    color: COLORS.text.faint,
                     textTransform: 'none',
-                    fontSize: '0.8rem',
-                    '&:hover': { color: '#666', bgcolor: 'transparent' },
+                    fontSize: '0.875rem',
+                    '&:hover': { color: COLORS.text.subtle, bgcolor: 'transparent' },
                   }}
                 >
                   Skip tour
@@ -536,10 +639,10 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                       onClick={handleBack}
                       size="small"
                       sx={{
-                        color: '#666',
+                        color: COLORS.text.subtle,
                         border: '1px solid',
-                        borderColor: alpha('#000', 0.12),
-                        '&:hover': { bgcolor: alpha('#000', 0.04) },
+                        borderColor: alpha(COLORS.text.strong, 0.12),
+                        '&:hover': { bgcolor: alpha(COLORS.text.strong, 0.04) },
                       }}
                     >
                       <ArrowBack fontSize="small" />
@@ -551,13 +654,13 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                     size="small"
                     endIcon={<ArrowForward sx={{ fontSize: '1rem !important' }} />}
                     sx={{
-                      bgcolor: '#DE3F5E',
+                      bgcolor: COLORS.brand.primary,
                       color: 'white',
                       borderRadius: '8px',
                       textTransform: 'none',
                       fontWeight: 600,
                       px: 2,
-                      '&:hover': { bgcolor: '#C8365A' },
+                      '&:hover': { bgcolor: COLORS.brand.primaryHover },
                     }}
                   >
                     Next
@@ -576,7 +679,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                       width: idx === currentStep ? 16 : 6,
                       height: 6,
                       borderRadius: 3,
-                      bgcolor: idx === currentStep ? '#DE3F5E' : alpha('#DE3F5E', 0.2),
+                      bgcolor: idx === currentStep ? COLORS.brand.primary : alpha(COLORS.brand.primary, 0.2),
                       transition: 'all 0.3s ease',
                     }}
                   />

@@ -11,7 +11,6 @@ import {
   Chip,
   FormControlLabel,
   Checkbox,
-  Paper,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { useState, useEffect, use, forwardRef } from 'react';
@@ -31,21 +30,18 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import ReadOnlyComments from '@/components/preview/ReadOnlyComments';
 import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 import ContinueButton from '@/components/admin/ContinueButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraCard } from '@/components/shared/Card';
 
 // Use enhanced TextField styling
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
-const sectionPaperSx = {
-  p: 3,
-  borderRadius: '16px',
-  bgcolor: '#fafafa',
-  boxShadow: 'none',
-};
 
 // Custom input for react-datepicker matching admin ENHANCED_TEXT_FIELD_SX style
 const AdminDateInput = forwardRef<HTMLInputElement, { value?: string; onClick?: () => void; placeholder?: string; label?: string; error?: boolean }>(
   ({ value, onClick, placeholder, label, error }, ref) => (
     <TextField
-      ref={ref as any}
+      ref={ref as React.Ref<HTMLInputElement>}
       value={value}
       onClick={onClick}
       placeholder={placeholder}
@@ -56,11 +52,11 @@ const AdminDateInput = forwardRef<HTMLInputElement, { value?: string; onClick?: 
       sx={{
         ...textFieldSx,
         '& .MuiOutlinedInput-root': {
-          ...(textFieldSx as any)['& .MuiOutlinedInput-root'],
+          ...(textFieldSx as unknown as Record<string, Record<string, unknown>>)['& .MuiOutlinedInput-root'],
           cursor: 'pointer',
           '& input': {
             cursor: 'pointer',
-            ...((textFieldSx as any)['& .MuiOutlinedInput-root'] as any)?.['& input'],
+            ...((textFieldSx as unknown as Record<string, Record<string, Record<string, unknown>>>)['& .MuiOutlinedInput-root'])?.['& input'],
           },
         },
       }}
@@ -232,29 +228,35 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
 
     return (
       <Box sx={{
-        bgcolor: '#FFFFFF',
+        bgcolor: COLORS.bg.white,
         borderRadius: 8,
         p: 3,
         boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         width: '100%', // Full width
       }}>
-        <Stack direction="row" spacing={2.5} justifyContent="center" alignItems="center">
+        <Stack
+          direction="row"
+          spacing={{ xs: 1, sm: 2.5 }}
+          justifyContent="center"
+          alignItems="center"
+          sx={{ flexWrap: 'wrap' }}
+        >
           {timeUnits.map((unit) => (
-            <Stack key={unit.label} alignItems="center" spacing={0.5} sx={{ minWidth: 60 }}>
+            <Stack key={unit.label} alignItems="center" spacing={0.5} sx={{ minWidth: { xs: 48, sm: 60 } }}>
               <Typography sx={{
                 fontWeight: 700,
-                color: '#000000',
-                fontSize: 64,
-                lineHeight: 1
+                color: COLORS.text.strong,
+                fontSize: { xs: 36, sm: 64 },
+                lineHeight: 1,
               }}>
                 {unit.value}
               </Typography>
               <Typography sx={{
-                color: '#000000',
-                fontSize: 11,
+                color: COLORS.text.strong,
+                fontSize: 14,
                 textAlign: 'center',
                 opacity: 0.7,
-                textTransform: 'lowercase'
+                textTransform: 'lowercase',
               }}>
                 {unit.label}
               </Typography>
@@ -329,9 +331,9 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           couple_image_url: wedding.couple_image_url || null,
           frame_image_url: wedding.frame_image_url || null,
           background_image: wedding.background_image || '',
-          primary_color: wedding.primary_color || '#DE3F5E',
-          font_color: wedding.font_color || '#1a1a1a',
-          button_font_color: wedding.button_font_color || '#FFFFFF',
+          primary_color: wedding.primary_color || COLORS.brand.primary,
+          font_color: wedding.font_color || COLORS.text.strong,
+          button_font_color: wedding.button_font_color || COLORS.bg.white,
           is_one_day: wedding.wedding_date === wedding.wedding_date_end || !wedding.wedding_date_end,
           welcome_text: wedding.welcome_text || '',
         };
@@ -356,7 +358,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     }
   };
 
-  const handleChange = (field: keyof DetailsFormData, value: any) => {
+  const handleChange = (field: keyof DetailsFormData, value: string) => {
     if (isViewOnly) return;
     let finalValue = value;
 
@@ -454,22 +456,16 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
   return (
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-              Wedding Details
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-              Basic information about your wedding
-            </Typography>
-          </Box>
-        </Box>
+        <PageHeading
+          title="Wedding Details"
+          subtitle="Basic information about your wedding"
+        />
 
         {/* Form Content */}
         <Stack spacing={3}>
           {/* Couple Names */}
-          <Paper sx={sectionPaperSx}>
-            <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', fontSize: '1rem', mb: 2 }}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
+            <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong, fontSize: '1rem', mb: 2 }}>
               Couple Information *
             </Typography>
             <Grid container spacing={2}>
@@ -498,12 +494,12 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                 />
               </Grid>
             </Grid>
-          </Paper>
+          </PheraCard>
 
 
           {/* Wedding Date */}
-          <Paper sx={sectionPaperSx}>
-            <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', fontSize: '1rem', mb: 2 }}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
+            <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong, fontSize: '1rem', mb: 2 }}>
               Wedding Dates *
             </Typography>
             <Grid container spacing={2}>
@@ -530,13 +526,13 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                 />
               </Grid>
             </Grid>
-          </Paper>
+          </PheraCard>
 
           {/* Date Display Preview and Edit */}
           {/* {weddingDateStart && (
-            <Box sx={{ p: 2, bgcolor: alpha('#DE3F5E', 0.05), borderRadius: '12px', border: `1px solid ${alpha('#DE3F5E', 0.2)}` }}>
+            <Box sx={{ p: 2, bgcolor: alpha(COLORS.brand.primary, 0.05), borderRadius: RADII.md, border: `1px solid ${alpha(COLORS.brand.primary, 0.2)}` }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                   Date Display Preview (Auto-generated):
                 </Typography>
                 {!editingDateDisplay ? (
@@ -549,9 +545,9 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                       }
                     }}
                     sx={{
-                      color: '#DE3F5E',
+                      color: COLORS.brand.primary,
                       '&:hover': {
-                        bgcolor: alpha('#DE3F5E', 0.1),
+                        bgcolor: alpha(COLORS.brand.primary, 0.1),
                       },
                     }}
                   >
@@ -566,9 +562,9 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                         setEditingDateDisplay(false);
                       }}
                       sx={{
-                        color: '#10B981',
+                        color: COLORS.accent.success,
                         '&:hover': {
-                          bgcolor: alpha('#10B981', 0.1),
+                          bgcolor: alpha(COLORS.accent.success, 0.1),
                         },
                       }}
                     >
@@ -581,9 +577,9 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                         setTempDateDisplay('');
                       }}
                       sx={{
-                        color: '#EF4444',
+                        color: COLORS.accent.danger,
                         '&:hover': {
-                          bgcolor: alpha('#EF4444', 0.1),
+                          bgcolor: alpha(COLORS.accent.danger, 0.1),
                         },
                       }}
                     >
@@ -603,7 +599,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                   autoFocus
                 />
               ) : (
-                <Typography variant="h6" sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+                <Typography variant="h6" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
                   {formData.wedding_date_display || formatWeddingDateDisplay(weddingDateStart, weddingDateEnd)}
                 </Typography>
               )}
@@ -611,8 +607,8 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
           )} */}
 
           {/* Venue */}
-          <Paper sx={sectionPaperSx}>
-            <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', fontSize: '1rem', mb: 2 }}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
+            <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong, fontSize: '1rem', mb: 2 }}>
               Venue Information *
             </Typography>
             <Grid container spacing={2}>
@@ -639,14 +635,14 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                 />
               </Grid>
             </Grid>
-          </Paper>
+          </PheraCard>
 
           {/* Welcome Message Section */}
-          <Paper sx={sectionPaperSx}>
-            <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', fontSize: '1rem', mb: 2 }}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
+            <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong, fontSize: '1rem', mb: 2 }}>
               Welcome Message
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 2 }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
               A short note for your guests that appears on your home page.
             </Typography>
             <TextField
@@ -658,11 +654,11 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               placeholder="e.g. Can't wait to celebrate with you all! ❤️"
               sx={textFieldSx}
             />
-          </Paper>
+          </PheraCard>
 
           {/* RSVP Deadline */}
-          <Paper sx={sectionPaperSx}>
-            <Typography variant="subtitleCaps" sx={{ color: '#1a1a1a', fontSize: '1rem', mb: 2 }}>
+          <PheraCard variant="muted" sx={{ p: 3 }}>
+            <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong, fontSize: '1rem', mb: 2 }}>
               RSVP Information
             </Typography>
           <Stack spacing={2}>
@@ -681,15 +677,15 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                     }
                   }}
                   sx={{
-                    color: '#DE3F5E',
+                    color: COLORS.brand.primary,
                     '&.Mui-checked': {
-                      color: '#DE3F5E',
+                      color: COLORS.brand.primary,
                     },
                   }}
                 />
               }
               label="Set RSVP Deadline"
-              sx={{ color: '#4a4a4a' }}
+              sx={{ color: COLORS.text.muted }}
             />
 
             {!!formData.rsvp_deadline && formData.rsvp_deadline !== 'TBD' && (
@@ -716,7 +712,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
               </Grid>
             )}
           </Stack>
-          </Paper>
+          </PheraCard>
 
         </Stack>
       </Stack>

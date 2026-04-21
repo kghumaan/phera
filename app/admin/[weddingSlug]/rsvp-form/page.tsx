@@ -8,16 +8,13 @@ import {
   Paper,
   IconButton,
   TextField,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Select,
   MenuItem,
   FormControl,
   InputLabel,
-  Switch,
-  FormControlLabel,
+    FormControlLabel,
   Chip,
   CircularProgress,
   alpha,
@@ -68,6 +65,12 @@ import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import ContinueButton from '@/components/admin/ContinueButton';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraDialog } from '@/components/shared/Dialog';
+import { PheraCard } from '@/components/shared/Card';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
@@ -78,10 +81,11 @@ const FIXED_STEPS = [
   'Plus One Details',
   'Dietary Restrictions',
   'Team Bride/Groom',
-  'Music Request & Comment',
+  'Music Request',
+  'Comment',
 ];
 
-const OPTIONAL_FIXED_STEPS = new Set(['Team Bride/Groom', 'Music Request & Comment']);
+const OPTIONAL_FIXED_STEPS = new Set(['Team Bride/Groom', 'Music Request', 'Comment']);
 
 const FIXED_STEP_DESCRIPTIONS: Record<string, string> = {
   'Basic Information': 'Collects guest name, email, and phone number',
@@ -90,7 +94,8 @@ const FIXED_STEP_DESCRIPTIONS: Record<string, string> = {
   'Plus One Details': 'This step is only shown to guests whose PIN allows a plus-one. You can configure this in Pin Management.',
   'Dietary Restrictions': 'Food preferences and dietary restriction details',
   'Team Bride/Groom': 'Guest picks whose side they\'re celebrating',
-  'Music Request & Comment': 'Song request and a personal message to the couple',
+  'Music Request': 'Song request — what should the DJ play?',
+  'Comment': 'A personal message and optional GIF for the couple',
 };
 
 const QUESTION_TYPES = [
@@ -153,27 +158,27 @@ function SortableStepRow({
       style={style}
       onClick={onClick}
       sx={{
-        bgcolor: 'white',
-        borderRadius: '12px',
+        bgcolor: COLORS.bg.white,
+        borderRadius: RADII.md,
         p: 2,
         border: isSelected ? '1.5px solid #DE3F5E' : '1px solid #eee',
         boxShadow: isDragging ? '0 8px 16px rgba(0,0,0,0.1)' : 'none',
         cursor: 'pointer',
-        '&:hover': { borderColor: isSelected ? '#DE3F5E' : '#ddd', bgcolor: isSelected ? alpha('#DE3F5E', 0.02) : '#fafafa' },
+        '&:hover': { borderColor: isSelected ? COLORS.brand.primary : COLORS.border.default, bgcolor: isSelected ? alpha(COLORS.brand.primary, 0.02) : COLORS.bg.muted },
       }}
     >
       <Stack direction="row" alignItems="center" spacing={2}>
         {isCustom ? (
-          <Box {...attributes} {...listeners} sx={{ cursor: 'grab', color: '#999', display: 'flex' }}>
+          <Box {...attributes} {...listeners} sx={{ cursor: 'grab', color: COLORS.text.faint, display: 'flex' }}>
             <DragIndicator />
           </Box>
         ) : !isOptionalFixed ? (
-          <Lock sx={{ color: '#DE3F5E', fontSize: 20, opacity: 0.6 }} />
+          <Lock sx={{ color: COLORS.brand.primary, fontSize: 20, opacity: 0.6 }} />
         ) : null}
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography variant="body2" sx={{ fontWeight: isCustom ? 600 : 500, color: '#1a1a1a' }}>
+            <Typography variant="body2" sx={{ fontWeight: isCustom ? 600 : 500, color: COLORS.text.strong }}>
               {isCustom ? item.step.step_title : item.name}
             </Typography>
             {isCustom && (
@@ -182,9 +187,9 @@ function SortableStepRow({
                 size="small"
                 sx={{
                   height: 22,
-                  fontSize: '0.7rem',
-                  bgcolor: alpha('#DE3F5E', 0.1),
-                  color: '#DE3F5E',
+                  fontSize: '0.875rem',
+                  bgcolor: alpha(COLORS.brand.primary, 0.1),
+                  color: COLORS.brand.primary,
                   fontWeight: 600,
                 }}
               />
@@ -192,7 +197,7 @@ function SortableStepRow({
           </Stack>
           {/* Subtext description for fixed steps when selected */}
           {!isCustom && isSelected && description && (
-            <Typography variant="caption" sx={{ color: '#6a6a6a', mt: 0.5, display: 'block' }}>
+            <Typography variant="caption" sx={{ color: COLORS.text.subtle, mt: 0.5, display: 'block' }}>
               {description}
             </Typography>
           )}
@@ -205,7 +210,7 @@ function SortableStepRow({
             onClick={e => { e.stopPropagation(); onPinNavigate(); }}
             variant="caption"
             sx={{
-              color: '#DE3F5E',
+              color: COLORS.brand.primary,
               textDecoration: 'none',
               whiteSpace: 'nowrap',
               flexShrink: 0,
@@ -223,7 +228,7 @@ function SortableStepRow({
             <IconButton
               size="medium"
               onClick={onEdit}
-              sx={{ color: '#4a4a4a', '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
+              sx={{ color: COLORS.text.muted, '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
             >
               <Edit fontSize="small" />
             </IconButton>
@@ -231,9 +236,9 @@ function SortableStepRow({
               size="medium"
               onClick={onDelete}
               disabled={isDeleting}
-              sx={{ color: '#DE3F5E', '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
+              sx={{ color: COLORS.brand.primary, '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
             >
-              {isDeleting ? <CircularProgress size={18} sx={{ color: '#DE3F5E' }} /> : <Delete fontSize="small" />}
+              {isDeleting ? <CircularProgress size={18} sx={{ color: COLORS.brand.primary }} /> : <Delete fontSize="small" />}
             </IconButton>
           </Stack>
         )}
@@ -245,9 +250,9 @@ function SortableStepRow({
               size="medium"
               onClick={onDelete}
               disabled={isDeleting}
-              sx={{ color: '#DE3F5E', '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
+              sx={{ color: COLORS.brand.primary, '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' } }}
             >
-              {isDeleting ? <CircularProgress size={18} sx={{ color: '#DE3F5E' }} /> : <Delete fontSize="small" />}
+              {isDeleting ? <CircularProgress size={18} sx={{ color: COLORS.brand.primary }} /> : <Delete fontSize="small" />}
             </IconButton>
           </Box>
         )}
@@ -259,27 +264,27 @@ function SortableStepRow({
 // Consistent disabled field preview styling
 const PREVIEW_FIELD_SX = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
-    bgcolor: '#f0f0f0',
+    borderRadius: RADII.md,
+    bgcolor: COLORS.border.faint,
     '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.2)' },
     '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
   },
   '& .Mui-disabled': {
-    WebkitTextFillColor: '#888',
+    WebkitTextFillColor: COLORS.text.faint,
   },
   '& .MuiOutlinedInput-input::placeholder': {
-    color: '#888',
-    WebkitTextFillColor: '#888',
+    color: COLORS.text.faint,
+    WebkitTextFillColor: COLORS.text.faint,
     opacity: 1,
   },
 };
 
 const PREVIEW_SELECT_SX = {
-  borderRadius: '12px',
-  bgcolor: '#f0f0f0',
+  borderRadius: RADII.md,
+  bgcolor: COLORS.border.faint,
   '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.2)' },
   '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
-  '& .Mui-disabled': { WebkitTextFillColor: '#888' },
+  '& .Mui-disabled': { WebkitTextFillColor: COLORS.text.faint },
 };
 
 // Field preview for each question type (disabled inputs)
@@ -325,7 +330,7 @@ function FieldPreview({ type, options }: { type: CustomQuestion['type']; options
           value=""
           size="small"
           sx={{ ...PREVIEW_SELECT_SX, maxWidth: 280 }}
-          renderValue={() => <Typography sx={{ color: '#888', fontSize: '0.875rem' }}>Select an option</Typography>}
+          renderValue={() => <Typography sx={{ color: COLORS.text.faint, fontSize: '0.875rem' }}>Select an option</Typography>}
         >
           {(options || []).map((opt, i) => (
             <MenuItem key={i} value={opt}>{opt}</MenuItem>
@@ -339,7 +344,7 @@ function FieldPreview({ type, options }: { type: CustomQuestion['type']; options
           placeholder="Month, day, year"
           size="small"
           InputProps={{
-            endAdornment: <CalendarToday sx={{ color: '#888', fontSize: 18 }} />,
+            endAdornment: <CalendarToday sx={{ color: COLORS.text.faint, fontSize: 18 }} />,
           }}
           sx={{ ...PREVIEW_FIELD_SX, maxWidth: 240 }}
         />
@@ -409,8 +414,13 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
         setWeddingId(wedding.id);
         const steps = await getCustomQuestions(weddingSlug);
         setCustomSteps(steps);
-        setHiddenFixedSteps(new Set(wedding.hidden_rsvp_steps || []));
-        const msgs = (wedding as any).rsvp_confirmation_messages;
+        // Normalize legacy combined step name into the two new separate steps
+        const rawHidden = (wedding.hidden_rsvp_steps || []) as string[];
+        const normalized = rawHidden.flatMap((s: string) =>
+          s === 'Music Request & Comment' ? ['Music Request', 'Comment'] : [s]
+        );
+        setHiddenFixedSteps(new Set(normalized));
+        const msgs = (wedding as { rsvp_confirmation_messages?: Record<string, { heading?: string; body?: string }> | null }).rsvp_confirmation_messages;
         if (msgs) {
           setConfirmationMessages({
             yes: { heading: msgs.yes?.heading || '', body: msgs.yes?.body || '' },
@@ -686,7 +696,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
     }
   };
 
-  const handleQuestionChange = (index: number, field: keyof CustomQuestion, value: any) => {
+  const handleQuestionChange = (index: number, field: keyof CustomQuestion, value: string | string[] | boolean) => {
     setDialogQuestions(prev => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
@@ -735,19 +745,14 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
 
   return (
     <Box sx={{ maxWidth: 1000 }}>
-      <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
-        {/* Header */}
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-            RSVP Form
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-            Customize the steps in your guest RSVP flow. Drag custom steps to reorder them. Click any step to preview it.
-          </Typography>
-        </Box>
+      <Stack spacing={4}>
+        <PageHeading
+          title="RSVP Form"
+          subtitle="Customize the steps in your guest RSVP flow. Drag custom steps to reorder them. Click any step to preview it."
+        />
 
         {/* Step List */}
-        <Paper sx={{ borderRadius: '16px', bgcolor: '#fafafa', p: 3 }}>
+        <PheraCard variant="muted" sx={{ p: 3 }}>
           <Stack spacing={1.5}>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext
@@ -783,34 +788,34 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
               disabled={saving || !!deletingStepId}
               sx={{
                 mt: 2,
-                color: '#DE3F5E',
+                color: COLORS.brand.primary,
                 textTransform: 'none',
                 fontWeight: 600,
-                borderRadius: '12px',
-                '&:hover': { bgcolor: alpha('#DE3F5E', 0.08) },
+                borderRadius: RADII.md,
+                '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.08) },
               }}
             >
               Add Custom Step
             </Button>
           )}
-        </Paper>
+        </PheraCard>
 
         {/* Confirmation Messages */}
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
             Confirmation Messages
           </Typography>
-          <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
             Customize the messages guests see after submitting their RSVP. Click a response to preview it.
           </Typography>
         </Box>
 
-        <Paper sx={{ borderRadius: '16px', bgcolor: '#fafafa', p: 3 }}>
+        <PheraCard variant="muted" sx={{ p: 3 }}>
           <Stack spacing={1.5}>
             {[
-              { key: 'yes', label: 'Attending', description: 'Shown when a guest confirms they are attending', icon: CheckCircleOutline, color: '#DE3F5E' },
-              { key: 'maybe', label: 'Maybe', description: 'Shown when a guest is undecided', icon: HelpOutline, color: '#1a1a1a' },
-              { key: 'no', label: 'Not Attending', description: 'Shown when a guest declines', icon: CancelOutlined, color: '#9e9e9e' },
+              { key: 'yes', label: 'Attending', description: 'Shown when a guest confirms they are attending', icon: CheckCircleOutline, color: COLORS.brand.primary },
+              { key: 'maybe', label: 'Maybe', description: 'Shown when a guest is undecided', icon: HelpOutline, color: COLORS.text.strong },
+              { key: 'no', label: 'Not Attending', description: 'Shown when a guest declines', icon: CancelOutlined, color: COLORS.text.faint },
             ].map(({ key, label, description, icon: Icon, color }) => {
               const isSelected = selectedConfirmation === key;
               return (
@@ -828,22 +833,22 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                     }
                   }}
                   sx={{
-                    bgcolor: 'white',
-                    borderRadius: '12px',
+                    bgcolor: COLORS.bg.white,
+                    borderRadius: RADII.md,
                     p: 2,
                     border: isSelected ? '1.5px solid #DE3F5E' : '1px solid #eee',
                     cursor: 'pointer',
-                    '&:hover': { borderColor: isSelected ? '#DE3F5E' : '#ddd', bgcolor: isSelected ? alpha('#DE3F5E', 0.02) : '#fafafa' },
+                    '&:hover': { borderColor: isSelected ? COLORS.brand.primary : COLORS.border.default, bgcolor: isSelected ? alpha(COLORS.brand.primary, 0.02) : COLORS.bg.muted },
                   }}
                 >
                   <Stack direction="row" alignItems="center" spacing={2}>
                     <Icon sx={{ color, fontSize: 20 }} />
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500, color: '#1a1a1a' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: COLORS.text.strong }}>
                         {label}
                       </Typography>
                       {isSelected && (
-                        <Typography variant="caption" sx={{ color: '#6a6a6a', mt: 0.5, display: 'block' }}>
+                        <Typography variant="caption" sx={{ color: COLORS.text.subtle, mt: 0.5, display: 'block' }}>
                           {description}
                         </Typography>
                       )}
@@ -889,22 +894,14 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                       />
                       {!isViewOnly && (
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                          <Button
+                          <PrimaryActionButton
                             onClick={(e) => { e.stopPropagation(); handleSaveConfirmationMessages(); }}
-                            variant="contained"
-                            disabled={savingMessages}
+                            loading={savingMessages}
                             size="small"
-                            sx={{
-                              bgcolor: '#DE3F5E',
-                              textTransform: 'none',
-                              fontWeight: 600,
-                              borderRadius: '12px',
-                              px: 3,
-                              '&:hover': { bgcolor: '#C8365A' },
-                            }}
+                            sx={{ px: 3 }}
                           >
-                            {savingMessages ? <CircularProgress size={18} sx={{ color: 'white' }} /> : 'Save'}
-                          </Button>
+                            Save
+                          </PrimaryActionButton>
                         </Box>
                       )}
                     </Stack>
@@ -913,7 +910,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
               );
             })}
           </Stack>
-        </Paper>
+        </PheraCard>
 
         <ContinueButton
           weddingSlug={weddingSlug}
@@ -922,25 +919,17 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
       </Stack>
 
       {/* Add/Edit Dialog — Google Forms style */}
-      <Dialog
+      <PheraDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: '16px', bgcolor: '#F8F8F8' } }}
+        PaperProps={{ sx: { bgcolor: COLORS.bg.subtle } }}
       >
-        <DialogContent sx={{ p: { xs: 2, sm: 3 }, bgcolor: '#F8F8F8' }}>
+        <DialogContent sx={{ p: { xs: 2, sm: 3 }, bgcolor: COLORS.bg.subtle }}>
           <Stack spacing={2.5}>
             {/* Title & Description */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                borderRadius: '12px',
-                border: '1px solid rgba(0,0,0,0.07)',
-                bgcolor: 'white',
-              }}
-            >
+            <PheraCard variant="default" sx={{ p: 3 }}>
               <Stack spacing={2.5}>
                 <TextField
                   value={dialogTitle}
@@ -961,7 +950,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                   sx={textFieldSx}
                 />
               </Stack>
-            </Paper>
+            </PheraCard>
 
             {/* Question Cards */}
             {dialogQuestions.map((q, qIndex) => {
@@ -974,9 +963,9 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                   onClick={() => setActiveQuestionIndex(qIndex)}
                   sx={{
                     p: isActive ? 3 : 2.5,
-                    borderRadius: '12px',
+                    borderRadius: RADII.md,
                     border: isActive ? '1.5px solid #DE3F5E' : '1px solid rgba(0,0,0,0.07)',
-                    bgcolor: 'white',
+                    bgcolor: COLORS.bg.white,
                     cursor: isActive ? 'default' : 'pointer',
                     transition: 'all 0.15s ease',
                     '&:hover': isActive ? {} : { borderColor: 'rgba(0,0,0,0.15)' },
@@ -999,17 +988,17 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                         </Box>
                         <Box sx={{ minWidth: 180 }}>
                           <FormControl fullWidth>
-                            <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E', fontWeight: 600 } }}>Type *</InputLabel>
+                            <InputLabel sx={{ color: COLORS.text.muted, fontWeight: 500, '&.Mui-focused': { color: COLORS.brand.primary, fontWeight: 600 } }}>Type *</InputLabel>
                             <Select
                               value={q.type}
                               onChange={e => handleQuestionChange(qIndex, 'type', e.target.value)}
                               label="Type *"
                               sx={{
-                                borderRadius: '12px',
-                                bgcolor: 'white',
+                                borderRadius: RADII.md,
+                                bgcolor: COLORS.bg.white,
                                 '& fieldset': { borderColor: 'rgba(0, 0, 0, 0.23)' },
-                                '&:hover fieldset': { borderColor: '#DE3F5E' },
-                                '&.Mui-focused fieldset': { borderColor: '#DE3F5E', borderWidth: '2px' },
+                                '&:hover fieldset': { borderColor: COLORS.brand.primary },
+                                '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
                               }}
                             >
                               {QUESTION_TYPES.map(t => (
@@ -1043,13 +1032,13 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                                   variant="standard"
                                   placeholder={`Option ${optIndex + 1}`}
                                   InputProps={{
-                                    sx: { fontSize: '0.875rem', color: '#1a1a1a' },
+                                    sx: { fontSize: '0.875rem', color: COLORS.text.strong },
                                   }}
                                 />
                                 <IconButton
                                   size="small"
                                   onClick={() => handleRemoveOption(qIndex, optIndex)}
-                                  sx={{ color: '#999', '&:hover': { color: '#d32f2f' } }}
+                                  sx={{ color: COLORS.text.faint, '&:hover': { color: COLORS.accent.danger } }}
                                 >
                                   <Close fontSize="small" />
                                 </IconButton>
@@ -1058,7 +1047,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                             <Button
                               size="small"
                               onClick={() => handleAddOption(qIndex)}
-                              sx={{ color: '#DE3F5E', textTransform: 'none', fontWeight: 600, alignSelf: 'flex-start', ml: 3.5 }}
+                              sx={{ color: COLORS.brand.primary, textTransform: 'none', fontWeight: 600, alignSelf: 'flex-start', ml: 3.5 }}
                             >
                               + Add option
                             </Button>
@@ -1078,25 +1067,21 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                                   setDialogQuestions(prev => prev.filter((_, i) => i !== qIndex));
                                   setActiveQuestionIndex(null);
                                 }}
-                                sx={{ color: '#6a6a6a', '&:hover': { color: '#d32f2f' } }}
+                                sx={{ color: COLORS.text.subtle, '&:hover': { color: COLORS.accent.danger } }}
                               >
                                 <Delete fontSize="small" />
                               </IconButton>
                               <Box sx={{ width: '1px', height: 24, bgcolor: 'rgba(0,0,0,0.12)', mx: 1 }} />
                             </>
                           )}
-                          <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.8125rem' }}>
+                          <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8125rem' }}>
                             Required
                           </Typography>
-                          <Switch
+                          <PheraSwitch
                             checked={q.required}
                             onChange={e => handleQuestionChange(qIndex, 'required', e.target.checked)}
                             size="small"
                             sx={{
-                              '& .MuiSwitch-switchBase': { color: '#999' },
-                              '& .MuiSwitch-track': { bgcolor: '#ccc', opacity: 1 },
-                              '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
-                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E', opacity: 0.5 },
                             }}
                           />
                         </Stack>
@@ -1105,7 +1090,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                   ) : (
                     /* ===== INACTIVE CARD ===== */
                     <Stack spacing={1.5}>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
                         {q.label || 'Untitled question'}
                       </Typography>
                       <FieldPreview type={q.type} options={q.options} />
@@ -1125,54 +1110,46 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
                     setActiveQuestionIndex(dialogQuestions.length);
                   }}
                   sx={{
-                    bgcolor: 'white',
+                    bgcolor: COLORS.bg.white,
                     border: '1px solid rgba(0,0,0,0.12)',
                     borderRadius: '50%',
                     width: 48,
                     height: 48,
-                    '&:hover': { bgcolor: alpha('#DE3F5E', 0.04), borderColor: '#DE3F5E' },
+                    '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.04), borderColor: COLORS.brand.primary },
                   }}
                 >
-                  <AddCircleOutline sx={{ color: '#DE3F5E', fontSize: 28 }} />
+                  <AddCircleOutline sx={{ color: COLORS.brand.primary, fontSize: 28 }} />
                 </IconButton>
               </Box>
             ) : (
-              <Typography variant="caption" sx={{ color: '#6a6a6a', fontStyle: 'italic', textAlign: 'center' }}>
+              <Typography variant="caption" sx={{ color: COLORS.text.subtle, fontStyle: 'italic', textAlign: 'center' }}>
                 Each step supports up to 3 questions. To add more, create another step.
               </Typography>
             )}
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3, bgcolor: '#F8F8F8' }}>
+        <DialogActions sx={{ px: 3, pb: 3, bgcolor: COLORS.bg.subtle }}>
           <Button
             onClick={() => setDialogOpen(false)}
-            sx={{ color: '#6a6a6a', textTransform: 'none', fontWeight: 600, borderRadius: '12px' }}
+            sx={{ color: COLORS.text.subtle, textTransform: 'none', fontWeight: 600, borderRadius: RADII.md }}
           >
             Cancel
           </Button>
-          <Button
+          <PrimaryActionButton
             onClick={handleSaveStep}
-            variant="contained"
-            disabled={saving}
-            sx={{
-              bgcolor: '#DE3F5E',
-              textTransform: 'none',
-              fontWeight: 600,
-              borderRadius: '12px',
-              px: 4,
-              '&:hover': { bgcolor: '#C8365A' },
-            }}
+            loading={saving}
+            sx={{ px: 4 }}
           >
-            {saving ? <CircularProgress size={20} sx={{ color: '#DE3F5E' }} /> : editingStep ? 'Update' : 'Add Step'}
-          </Button>
+            {editingStep ? 'Update' : 'Add Step'}
+          </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
 
       <ConfirmDialog
         open={confirmDialog.open}
         message={confirmDialog.message}
         confirmLabel={confirmDialog.confirmLabel || 'Delete'}
-        confirmColor={confirmDialog.confirmLabel ? '#DE3F5E' : '#d32f2f'}
+        confirmColor={confirmDialog.confirmLabel ? COLORS.brand.primary : COLORS.accent.danger}
         isLoading={navigatingToPin}
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => { setConfirmDialog(prev => ({ ...prev, open: false })); setNavigatingToPin(false); }}

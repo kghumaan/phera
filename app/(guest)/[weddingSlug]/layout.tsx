@@ -2,6 +2,7 @@
 
 import { WeddingProvider, useWedding } from '@/lib/contexts/WeddingContext';
 import { useParams, notFound } from 'next/navigation';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 function WeddingLayoutContent({ children }: { children: React.ReactNode }) {
   const { error, isLoading } = useWedding();

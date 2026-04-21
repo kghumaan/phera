@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import { CheckCircle, ErrorOutline } from '@mui/icons-material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function UpgradeSuccessPage() {
   return (
@@ -78,8 +79,8 @@ function UpgradeSuccessContent() {
     >
       {status === 'loading' && (
         <>
-          <CircularProgress sx={{ color: '#DE3F5E' }} size={48} />
-          <Typography sx={{ color: '#4a4a4a', fontWeight: 500, fontSize: '1.1rem' }}>
+          <CircularProgress sx={{ color: COLORS.brand.primary }} size={48} />
+          <Typography sx={{ color: COLORS.text.muted, fontWeight: 500, fontSize: '1.1rem' }}>
             Activating your {isPlanner ? 'Planner' : 'Pro'} plan...
           </Typography>
         </>
@@ -87,12 +88,12 @@ function UpgradeSuccessContent() {
 
       {status === 'success' && (
         <>
-          <CheckCircle sx={{ fontSize: 64, color: '#4CAF50' }} />
+          <CheckCircle sx={{ fontSize: 64, color: COLORS.accent.success }} />
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>
               {isPlanner ? 'Welcome, Planner!' : 'Welcome to Pro!'}
             </Typography>
-            <Typography sx={{ color: '#6a6a6a' }}>
+            <Typography sx={{ color: COLORS.text.subtle }}>
               Your account has been upgraded. Redirecting...
             </Typography>
           </Box>
@@ -101,12 +102,12 @@ function UpgradeSuccessContent() {
 
       {status === 'error' && (
         <>
-          <ErrorOutline sx={{ fontSize: 64, color: '#DE3F5E' }} />
+          <ErrorOutline sx={{ fontSize: 64, color: COLORS.brand.primary }} />
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>
               Something went wrong
             </Typography>
-            <Typography sx={{ color: '#6a6a6a' }}>
+            <Typography sx={{ color: COLORS.text.subtle }}>
               If your payment succeeded, your plan will be updated shortly. Redirecting...
             </Typography>
           </Box>

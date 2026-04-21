@@ -18,6 +18,7 @@ import {
 } from '@mui/icons-material';
 import { getAttendees } from '@/lib/supabase/rsvp-service';
 import { supabase } from '@/lib/supabase/client';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 interface ActivityItem {
   id: string;
@@ -120,7 +121,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
         timestamp: formatTimeAgo(rsvp.created_at),
         rawTimestamp: rsvp.created_at,
         initials: rsvp.guest?.initials || '??',
-        avatarColor: rsvp.guest?.avatar_color || '#666',
+        avatarColor: rsvp.guest?.avatar_color || COLORS.text.subtle,
         avatarStyle: rsvp.guest?.avatar_style,
         avatarSeed: rsvp.guest?.avatar_seed,
         avatarSvg: rsvp.guest?.avatar_svg,
@@ -161,7 +162,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
           textAlign: 'center',
         }}
       >
-        <Typography variant="body2" sx={{ color: '#666' }}>Loading activity...</Typography>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Loading activity...</Typography>
       </Paper>
     );
   }
@@ -189,8 +190,8 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
           variant="h6"
           fontWeight={600}
           sx={{
-            fontFamily: 'var(--font-instrument-serif)',
-            color: '#800020'
+            fontFamily: FONTS.display,
+            color: COLORS.cultural.maroon
           }}
         >
           Activity
@@ -200,7 +201,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
           size="small"
           sx={{
             backgroundColor: newActivityCount > 0 ? 'rgba(222, 63, 94, 0.2)' : 'rgba(128, 0, 32, 0.1)',
-            color: newActivityCount > 0 ? '#DE3F5E' : '#800020',
+            color: newActivityCount > 0 ? COLORS.brand.primary : COLORS.cultural.maroon,
             fontWeight: 500,
             transition: 'all 0.3s ease',
           }}
@@ -211,7 +212,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
       <Stack spacing={0} sx={{ px: 3, pb: 3 }}>
         {activities.length === 0 ? (
           <Typography
-            sx={{ color: '#666' }}
+            sx={{ color: COLORS.text.subtle }}
             textAlign="center"
             py={4}
           >
@@ -239,7 +240,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
                     width: 48,
                     height: 48,
                     backgroundColor: activity.avatarColor,
-                    color: 'white',
+                    color: COLORS.text.inverse,
                     fontWeight: 600,
                     fontSize: '1.1rem',
                   }}
@@ -260,19 +261,19 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
                       }}
                     />
                   ) : (
-                    <Box sx={{ width: '100%', height: '100%' }} />
+                    activity.initials || '??'
                   )}
                 </Avatar>
 
                 {/* Content */}
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5, color: '#800020' }}>
-                    <Box component="span" sx={{ fontWeight: 600, color: '#800020' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5, color: COLORS.cultural.maroon }}>
+                    <Box component="span" sx={{ fontWeight: 600, color: COLORS.cultural.maroon }}>
                       {activity.guestName}
                     </Box>{' '}
                     {activity.action} 👍
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#666' }}>
+                  <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
                     {activity.timestamp}
                   </Typography>
                 </Box>
@@ -283,7 +284,7 @@ export default function ActivityFeed({ weddingId }: ActivityFeedProps) {
                     size="small"
                     sx={{
                       backgroundColor: 'rgba(222, 63, 94, 0.1)',
-                      color: '#DE3F5E',
+                      color: COLORS.brand.primary,
                       '&:hover': {
                         backgroundColor: 'rgba(222, 63, 94, 0.2)',
                       },

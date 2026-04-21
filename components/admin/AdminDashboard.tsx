@@ -4,19 +4,18 @@ import {
   Box,
   Container,
   Typography,
-  Button,
   Grid,
   Card,
   CardContent,
   Stack,
   Chip,
-  Alert,
   CircularProgress,
   AppBar,
   Toolbar,
   IconButton,
   alpha,
 } from '@mui/material';
+import { PrimaryActionButton } from './ActionButton';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
@@ -27,6 +26,8 @@ import EventIcon from '@mui/icons-material/Event';
 import ChatIcon from '@mui/icons-material/Chat';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { ErrorAlert } from '@/components/shared/Alert';
 
 interface TableStats {
   guests: number;
@@ -81,8 +82,9 @@ const AdminDashboard = () => {
 
       // Fetch data based on table name
       if (tableName === 'rsvps_complete') {
-        // Use the view for complete RSVP data
-        const { data: viewData, error } = await supabase
+        // Use the view for complete RSVP data. Cast to any because
+        // Supabase types split Tables vs Views into separate overloads.
+        const { data: viewData, error } = await (supabase as any)
           .from('rsvps_complete')
           .select('*');
 
@@ -165,42 +167,42 @@ const AdminDashboard = () => {
       name: 'All Guests',
       description: 'Complete guest information including contact details',
       icon: <PeopleIcon />,
-      color: '#2196F3'
+      color: COLORS.accent.info
     },
     {
       key: 'rsvps',
       name: 'Raw RSVPs',
       description: 'Raw RSVP data with guest IDs',
       icon: <EventIcon />,
-      color: '#4CAF50'
+      color: COLORS.accent.success
     },
     {
       key: 'rsvps_complete',
       name: 'Complete RSVPs',
       description: 'RSVPs with guest names and all details (recommended)',
       icon: <EventIcon />,
-      color: '#FF9800'
+      color: COLORS.accent.warning
     },
     {
       key: 'rsvps_with_names',
       name: 'RSVPs with Names',
       description: 'Simple RSVPs with guest names',
       icon: <EventIcon />,
-      color: '#9C27B0'
+      color: COLORS.side.both
     },
     {
       key: 'comments',
       name: 'Guest Comments',
       description: 'All comments and messages from guests',
       icon: <ChatIcon />,
-      color: '#FF5722'
+      color: COLORS.accent.warning
     },
     {
       key: 'whatsapp_channel_clicks',
       name: 'WhatsApp Clicks',
       description: 'WhatsApp channel engagement tracking',
       icon: <WhatsAppIcon />,
-      color: '#25D366'
+      color: COLORS.accent.success
     },
   ];
 
@@ -208,7 +210,7 @@ const AdminDashboard = () => {
     <OptimizedBackground useAppDefault={true} className="min-h-screen flex flex-col">
       <Box sx={{ flexGrow: 1, minHeight: '100vh' }}>
         {/* Header */}
-        <AppBar position="static" sx={{ bgcolor: alpha('#1a1a1a', 0.95), backdropFilter: 'blur(10px)', boxShadow: 'none' }}>
+        <AppBar position="static" sx={{ bgcolor: alpha(COLORS.text.strong, 0.95), backdropFilter: 'blur(10px)', boxShadow: 'none' }}>
           <Toolbar>
             <Box
               component="img"
@@ -251,7 +253,7 @@ const AdminDashboard = () => {
               variant="h4"
               sx={{
                 fontWeight: 700,
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
                 mb: 1,
               }}
             >
@@ -260,7 +262,7 @@ const AdminDashboard = () => {
             <Typography
               variant="body2"
               sx={{
-                color: '#4a4a4a',
+                color: COLORS.text.muted,
                 mb: 4,
               }}
             >
@@ -275,9 +277,9 @@ const AdminDashboard = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
             >
-              <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+              <ErrorAlert sx={{ mb: 3 }} onClose={() => setError(null)}>
                 {error}
-              </Alert>
+              </ErrorAlert>
             </motion.div>
           )}
 
@@ -289,17 +291,17 @@ const AdminDashboard = () => {
           >
             <Grid spacing={3} sx={{ mb: 4 }}>
               {[
-                { label: 'Total Guests', value: stats.guests, color: '#2196F3', icon: <PeopleIcon /> },
-                { label: 'RSVPs Received', value: stats.rsvps, color: '#4CAF50', icon: <EventIcon /> },
-                { label: 'Comments Posted', value: stats.comments, color: '#FF5722', icon: <ChatIcon /> },
-                { label: 'WhatsApp Clicks', value: stats.whatsapp_clicks, color: '#25D366', icon: <WhatsAppIcon /> },
+                { label: 'Total Guests', value: stats.guests, color: COLORS.accent.info, icon: <PeopleIcon /> },
+                { label: 'RSVPs Received', value: stats.rsvps, color: COLORS.accent.success, icon: <EventIcon /> },
+                { label: 'Comments Posted', value: stats.comments, color: COLORS.accent.warning, icon: <ChatIcon /> },
+                { label: 'WhatsApp Clicks', value: stats.whatsapp_clicks, color: COLORS.accent.success, icon: <WhatsAppIcon /> },
               ].map((stat, index) => (
                 <Grid size={{ xs: 12, sm: 6, md: 3 }} key={stat.label}>
                   <Card
                     sx={{
                       height: '100%',
-                      borderRadius: '24px',
-                      bgcolor: alpha('#fff', 0.95),
+                      borderRadius: RADII.dialog,
+                      bgcolor: alpha(COLORS.bg.white, 0.95),
                       backdropFilter: 'blur(10px)',
                       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
                       border: `2px solid ${alpha(stat.color, 0.2)}`,
@@ -322,7 +324,7 @@ const AdminDashboard = () => {
                       <Typography
                         variant="body2"
                         sx={{
-                          color: '#4a4a4a',
+                          color: COLORS.text.muted,
                           fontWeight: 500,
                         }}
                       >
@@ -345,7 +347,7 @@ const AdminDashboard = () => {
               variant="h5"
               sx={{
                 fontWeight: 700,
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
                 mb: 3,
               }}
             >
@@ -363,8 +365,8 @@ const AdminDashboard = () => {
                     <Card
                       sx={{
                         height: '100%',
-                        borderRadius: '24px',
-                        bgcolor: alpha('#fff', 0.95),
+                        borderRadius: RADII.dialog,
+                        bgcolor: alpha(COLORS.bg.white, 0.95),
                         backdropFilter: 'blur(10px)',
                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
                         transition: 'all 0.3s ease-in-out',
@@ -379,7 +381,7 @@ const AdminDashboard = () => {
                           <Box
                             sx={{
                               p: 1.5,
-                              borderRadius: '12px',
+                              borderRadius: RADII.md,
                               backgroundColor: `${option.color}15`,
                               color: option.color,
                               display: 'flex',
@@ -395,7 +397,7 @@ const AdminDashboard = () => {
                                 variant="h6"
                                 sx={{
                                   fontWeight: 600,
-                                  color: '#1a1a1a',
+                                  color: COLORS.text.strong,
                                 }}
                               >
                                 {option.name}
@@ -405,9 +407,9 @@ const AdminDashboard = () => {
                                   label="Recommended"
                                   size="small"
                                   sx={{
-                                    backgroundColor: '#4CAF50',
-                                    color: 'white',
-                                    fontSize: '0.7rem',
+                                    backgroundColor: COLORS.accent.success,
+                                    color: COLORS.text.inverse,
+                                    fontSize: '0.875rem',
                                     height: 20,
                                   }}
                                 />
@@ -416,37 +418,29 @@ const AdminDashboard = () => {
                             <Typography
                               variant="body2"
                               sx={{
-                                color: '#4a4a4a',
+                                color: COLORS.text.muted,
                                 mb: 2,
                               }}
                             >
                               {option.description}
                             </Typography>
-                            <Button
-                              variant="contained"
-                              startIcon={exportLoading === option.key ? <CircularProgress size={16} /> : <DownloadIcon />}
+                            <PrimaryActionButton
+                              startIcon={<DownloadIcon />}
                               onClick={() => exportTableToCSV(option.key, option.name)}
-                              disabled={exportLoading === option.key || loading}
+                              loading={exportLoading === option.key}
+                              disabled={loading}
                               sx={{
-                                bgcolor: option.color === '#DE3F5E' ? option.color : '#DE3F5E',
-                                color: 'white',
                                 py: 1.2,
                                 borderRadius: '32px',
                                 fontSize: '1rem',
-                                fontWeight: 600,
-                                textTransform: 'none',
                                 boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
-                                '&:hover': {
-                                  bgcolor: '#C8365A',
-                                  boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
-                                },
                                 '&:disabled': {
-                                  bgcolor: alpha('#DE3F5E', 0.5),
+                                  bgcolor: alpha(COLORS.brand.primary, 0.5),
                                 },
                               }}
                             >
-                              {exportLoading === option.key ? 'Exporting...' : 'Export CSV'}
-                            </Button>
+                              Export CSV
+                            </PrimaryActionButton>
                           </Box>
                         </Stack>
                       </CardContent>
@@ -462,7 +456,7 @@ const AdminDashboard = () => {
             <Typography
               variant="body2"
               sx={{
-                color: '#6a6a6a',
+                color: COLORS.text.subtle,
               }}
             >
               Phera Wedding Platform - Admin Dashboard

@@ -4,9 +4,7 @@ import {
   Box,
   Typography,
   Paper,
-  IconButton,
-  Switch,
-  Chip,
+    Chip,
   TextField,
   Select,
   MenuItem,
@@ -14,10 +12,12 @@ import {
   InputLabel,
   Button,
   Stack,
-  CircularProgress,
 } from '@mui/material';
 import { Delete, AutoAwesome } from '@mui/icons-material';
 import { useState } from 'react';
+import { PrimaryActionButton, IconActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 const CATEGORIES = [
   { value: 'dining', label: 'Dining' },
@@ -34,17 +34,17 @@ const CATEGORIES = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  dining: '#FF6B35',
-  activities: '#4CAF50',
-  transportation: '#2196F3',
-  accommodation: '#9C27B0',
-  local_tips: '#FF9800',
-  weather: '#0288D1',
-  emergency: '#D32F2F',
-  nightlife: '#7B1FA2',
-  shopping: '#E91E63',
-  cultural_etiquette: '#795548',
-  other: '#607D8B',
+  dining: COLORS.brand.primary,
+  activities: COLORS.brand.primary,
+  transportation: COLORS.brand.primary,
+  accommodation: COLORS.brand.primary,
+  local_tips: COLORS.brand.primary,
+  weather: COLORS.brand.primary,
+  emergency: COLORS.brand.primary,
+  nightlife: COLORS.brand.primary,
+  shopping: COLORS.brand.primary,
+  cultural_etiquette: COLORS.brand.primary,
+  other: COLORS.brand.primary,
 };
 
 interface KnowledgeEntry {
@@ -105,7 +105,7 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
           p: 2.5,
           borderRadius: 1,
           border: '1px solid rgba(0,0,0,0.15)',
-          bgcolor: 'white',
+          bgcolor: COLORS.bg.white,
         }}
       >
         <Stack spacing={2}>
@@ -117,17 +117,17 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
               size="small"
               fullWidth
               sx={{
-                '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', height: 40, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' }, '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' }, '&.Mui-focused fieldset': { borderColor: '#DE3F5E' } },
-                '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } },
+                '& .MuiOutlinedInput-root': { bgcolor: COLORS.bg.white, borderRadius: RADII.sm, height: 40, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' }, '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' }, '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary } },
+                '& .MuiInputLabel-root': { color: COLORS.text.muted, fontWeight: 500, '&.Mui-focused': { color: COLORS.brand.primary } },
               }}
             />
             <FormControl size="small" sx={{ minWidth: 160, flexShrink: 0, '& .MuiOutlinedInput-root': { height: 40 } }}>
-              <InputLabel sx={{ color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } }}>Category</InputLabel>
+              <InputLabel sx={{ color: COLORS.text.muted, fontWeight: 500, '&.Mui-focused': { color: COLORS.brand.primary } }}>Category</InputLabel>
               <Select
                 value={editCategory}
                 label="Category"
                 onChange={(e) => setEditCategory(e.target.value)}
-                sx={{ bgcolor: 'white', borderRadius: '10px', color: '#1a1a1a', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' }, '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' }, '&.Mui-focused fieldset': { borderColor: '#DE3F5E' } }}
+                sx={{ bgcolor: COLORS.bg.white, borderRadius: RADII.sm, color: COLORS.text.strong, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' }, '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' }, '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary } }}
               >
                 {CATEGORIES.map((cat) => (
                   <MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>
@@ -144,32 +144,27 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
             multiline
             minRows={3}
             sx={{
-              '& .MuiOutlinedInput-root': { bgcolor: 'white', borderRadius: '10px', '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' }, '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' }, '&.Mui-focused fieldset': { borderColor: '#DE3F5E' } },
-              '& .MuiInputLabel-root': { color: '#4a4a4a', fontWeight: 500, '&.Mui-focused': { color: '#DE3F5E' } },
+              '& .MuiOutlinedInput-root': { bgcolor: COLORS.bg.white, borderRadius: RADII.sm, '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' }, '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' }, '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary } },
+              '& .MuiInputLabel-root': { color: COLORS.text.muted, fontWeight: 500, '&.Mui-focused': { color: COLORS.brand.primary } },
             }}
           />
           <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
             <Button
               size="small"
               onClick={handleCancel}
-              sx={{ textTransform: 'none', color: '#6a6a6a', borderRadius: '10px' }}
+              sx={{ textTransform: 'none', color: COLORS.text.subtle, borderRadius: RADII.sm }}
             >
               Cancel
             </Button>
-            <Button
+            <PrimaryActionButton
               size="small"
-              variant="contained"
               onClick={handleSave}
-              disabled={!editTitle.trim() || !editContent.trim() || saving}
-              sx={{
-                textTransform: 'none',
-                bgcolor: '#DE3F5E',
-                borderRadius: '10px',
-                '&:hover': { bgcolor: '#c73552' },
-              }}
+              disabled={!editTitle.trim() || !editContent.trim()}
+              loading={saving}
+              sx={{ borderRadius: RADII.sm }}
             >
-              {saving ? <CircularProgress size={18} color="inherit" /> : 'Save'}
-            </Button>
+              Save
+            </PrimaryActionButton>
           </Box>
         </Stack>
       </Paper>
@@ -183,25 +178,25 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
         p: 2.5,
         borderRadius: 1,
         border: '1px solid rgba(0,0,0,0.07)',
-        bgcolor: entry.is_active ? 'white' : '#FAFAFA',
+        bgcolor: entry.is_active ? COLORS.bg.white : COLORS.bg.muted,
         opacity: entry.is_active ? 1 : 0.65,
         transition: 'opacity 0.2s',
         cursor: !isViewOnly ? 'pointer' : 'default',
-        '&:hover': !isViewOnly ? { borderColor: '#ddd' } : {},
+        '&:hover': !isViewOnly ? { borderColor: COLORS.border.default } : {},
       }}
       onClick={() => !isViewOnly && setEditing(true)}
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, cursor: !isViewOnly ? 'pointer' : 'default' }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75, flexWrap: 'wrap' }}>
-            <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>
+            <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: COLORS.text.strong }}>
               {entry.title}
             </Typography>
             <Chip
               label={categoryLabel}
               size="small"
               sx={{
-                fontSize: '0.65rem',
+                fontSize: '0.875rem',
                 height: 20,
                 bgcolor: `${categoryColor}15`,
                 color: categoryColor,
@@ -214,12 +209,12 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
                 label="AI Generated"
                 size="small"
                 sx={{
-                  fontSize: '0.6rem',
+                  fontSize: '0.875rem',
                   height: 20,
                   bgcolor: '#DE3F5E10',
-                  color: '#DE3F5E',
+                  color: COLORS.brand.primary,
                   fontWeight: 600,
-                  '& .MuiChip-icon': { color: '#DE3F5E', ml: '4px' },
+                  '& .MuiChip-icon': { color: COLORS.brand.primary, ml: '4px' },
                 }}
               />
             )}
@@ -227,10 +222,10 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
           <Typography
             variant="body2"
             sx={{
-              color: '#4a4a4a',
+              color: COLORS.text.muted,
               lineHeight: 1.6,
               whiteSpace: 'pre-wrap',
-              fontSize: '0.85rem',
+              fontSize: '0.875rem',
             }}
           >
             {entry.content.length > 200 ? entry.content.slice(0, 200) + '...' : entry.content}
@@ -238,28 +233,25 @@ export default function ConciergeKnowledgeEntry({ entry, onUpdate, onDelete, isV
         </Box>
         {!isViewOnly && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
-            <Switch
+            <PheraSwitch
               size="small"
               checked={entry.is_active}
               onChange={(e) => onUpdate(entry.id, { is_active: e.target.checked })}
               sx={{
-                '& .MuiSwitch-switchBase': { color: '#999' },
-                '& .MuiSwitch-track': { bgcolor: '#bbb' },
-                '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
-                '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' },
               }}
             />
-            <IconButton
+            <IconActionButton
               size="small"
-              disabled={deleting}
+              loading={deleting}
+              spinnerColor={COLORS.text.subtle}
               onClick={async (e) => {
                 e.stopPropagation();
                 setDeleting(true);
                 try { await onDelete(entry.id); } finally { setDeleting(false); }
               }}
             >
-              {deleting ? <CircularProgress size={18} sx={{ color: '#6a6a6a' }} /> : <Delete sx={{ fontSize: 18, color: '#6a6a6a' }} />}
-            </IconButton>
+              <Delete sx={{ fontSize: 18, color: COLORS.text.subtle }} />
+            </IconActionButton>
           </Box>
         )}
       </Box>

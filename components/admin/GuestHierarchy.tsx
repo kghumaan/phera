@@ -8,8 +8,6 @@ import {
   Typography,
   Button,
   TextField,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Chip,
@@ -31,6 +29,7 @@ import {
   Badge,
   Collapse,
 } from '@mui/material';
+import { PrimaryActionButton } from './ActionButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -43,6 +42,8 @@ import PendingIcon from '@mui/icons-material/Pending';
 import CancelIcon from '@mui/icons-material/Cancel';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 interface Guest {
   id: string;
@@ -67,7 +68,7 @@ interface FamilyGroup {
 }
 
 const guestTiers = [
-  { value: 'immediate', label: 'Immediate Family', color: '#800020' },
+  { value: 'immediate', label: 'Immediate Family', color: COLORS.cultural.maroon },
   { value: 'extended', label: 'Extended Family', color: '#D4AF37' },
   { value: 'friends', label: 'Friends', color: '#FF6B6B' },
   { value: 'colleagues', label: 'Colleagues', color: '#20C997' },
@@ -222,8 +223,7 @@ export default function GuestHierarchy() {
             Organize your wedding guests with family grouping and tier management
           </Typography>
         </Box>
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           startIcon={<AddIcon />}
           onClick={handleAddGuest}
           sx={{
@@ -233,7 +233,7 @@ export default function GuestHierarchy() {
           }}
         >
           Add Guest
-        </Button>
+        </PrimaryActionButton>
       </Box>
 
       {/* RSVP Stats */}
@@ -328,12 +328,12 @@ export default function GuestHierarchy() {
                         <Chip
                           label={guest.tier}
                           size="small"
-                          sx={{ height: 20, fontSize: '0.75rem' }}
+                          sx={{ height: 20, fontSize: '0.875rem' }}
                         />
                         <Chip
                           label={guest.side}
                           size="small"
-                          sx={{ height: 20, fontSize: '0.75rem' }}
+                          sx={{ height: 20, fontSize: '0.875rem' }}
                         />
                         <Chip
                           icon={getStatusIcon(guest.rsvpStatus)}
@@ -341,7 +341,7 @@ export default function GuestHierarchy() {
                           size="small"
                           sx={{
                             height: 20,
-                            fontSize: '0.75rem',
+                            fontSize: '0.875rem',
                             bgcolor: getStatusColor(guest.rsvpStatus) + '20',
                             color: getStatusColor(guest.rsvpStatus),
                           }}
@@ -368,9 +368,9 @@ export default function GuestHierarchy() {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                     Start building your guest list by adding your first guest
                   </Typography>
-                  <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddGuest}>
+                  <PrimaryActionButton startIcon={<AddIcon />} onClick={handleAddGuest}>
                     Add First Guest
-                  </Button>
+                  </PrimaryActionButton>
                 </Box>
               )}
             </List>
@@ -416,20 +416,15 @@ export default function GuestHierarchy() {
       </Card>
 
       {/* Guest Dialog */}
-      <Dialog 
-        open={isDialogOpen} 
+      <PheraDialog
+        open={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         maxWidth="md"
         fullWidth
-        PaperProps={{
-          sx: { borderRadius: 3 }
-        }}
       >
-        <DialogTitle>
-          <Typography variant="h5" component="div">
-            {editingGuest ? 'Edit Guest' : 'Add New Guest'}
-          </Typography>
-        </DialogTitle>
+        <PheraDialogTitle onClose={() => setIsDialogOpen(false)}>
+          {editingGuest ? 'Edit Guest' : 'Add New Guest'}
+        </PheraDialogTitle>
         
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
@@ -519,15 +514,14 @@ export default function GuestHierarchy() {
           <Button onClick={() => setIsDialogOpen(false)}>
             Cancel
           </Button>
-          <Button 
-            variant="contained" 
+          <PrimaryActionButton
             onClick={handleSaveGuest}
             disabled={!formData.name}
           >
             {editingGuest ? 'Update Guest' : 'Add Guest'}
-          </Button>
+          </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
     </Box>
   );
 } 

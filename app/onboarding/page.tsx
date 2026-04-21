@@ -50,12 +50,33 @@ import { supabase } from '@/lib/supabase/client';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 // --- Types ---
-type OnboardingStep = 1 | 2;
+type OnboardingStep = 1 | 2 | 3;
+
+interface OnboardingGoal {
+  id: string;
+  label: string;
+  subtext: string;
+}
+
+// Deliberately shuffled so related items don't cluster — we want users to
+// scan the whole list before picking.
+const ONBOARDING_GOALS: OnboardingGoal[] = [
+  { id: 'save_the_dates',   label: 'Send out Save The Dates',    subtext: 'Share the news with your guests.' },
+  { id: 'guest_list',       label: 'Manage my guest list',       subtext: 'One organized place for every invite.' },
+  { id: 'wedding_website',  label: 'Build Wedding Website',      subtext: 'A branded site for schedule, travel, and RSVPs.' },
+  { id: 'rsvp_invites',     label: 'Send RSVP invites to guests', subtext: 'Bulk RSVP requests via email or WhatsApp.' },
+  { id: 'rsvp_gather',      label: 'Gather RSVPs',                subtext: 'Track yes / no / maybe responses in one view.' },
+  { id: 'broadcast',        label: 'Broadcast messages',          subtext: 'Send a note to all guests at once.' },
+  { id: 'room_assignments', label: 'Room Assignments',            subtext: 'Place guests into hotel rooms from a floorplan.' },
+  { id: 'guest_logistics',  label: 'Guest Logistics',             subtext: 'Shuttles, airport pickups, and transfers.' },
+  { id: 'vendor_mgmt',      label: 'Vendor Management',           subtext: 'Track vendor conversations and stay organized.' },
+];
 
 type UserRole = 'couple' | 'planner';
 
@@ -100,8 +121,8 @@ const features: Feature[] = [
 
 const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
-    backgroundColor: '#f8f9fa !important',
+    borderRadius: RADII.md,
+    backgroundColor: `${COLORS.bg.muted} !important`,
     fontSize: '0.9rem',
     '& fieldset': {
       borderColor: 'rgba(222, 63, 94, 0.2) !important',
@@ -111,28 +132,28 @@ const StyledTextField = styled(TextField)({
       borderColor: 'rgba(222, 63, 94, 0.4) !important',
     },
     '&.Mui-focused fieldset': {
-      borderColor: '#DE3F5E !important',
+      borderColor: `${COLORS.brand.primary} !important`,
       borderWidth: '2px !important',
     },
     '& input': {
-      color: '#1a1a1a !important',
-      WebkitTextFillColor: '#1a1a1a !important',
+      color: `${COLORS.text.strong} !important`,
+      WebkitTextFillColor: `${COLORS.text.strong} !important`,
       padding: '10px 14px',
       fontSize: '0.9rem',
     },
     '& .MuiPickersSectionList-selectableSection': {
-      color: '#1a1a1a !important',
+      color: `${COLORS.text.strong} !important`,
     },
     '& .MuiInputAdornment-root .MuiSvgIcon-root': {
-      color: '#666 !important',
+      color: `${COLORS.text.subtle} !important`,
     },
   },
   '& .MuiInputLabel-root': {
-    color: '#666 !important',
-    fontSize: '0.85rem',
+    color: `${COLORS.text.subtle} !important`,
+    fontSize: '0.875rem',
   },
   '& .MuiInputLabel-root.Mui-focused': {
-    color: '#DE3F5E !important',
+    color: `${COLORS.brand.primary} !important`,
   },
 });
 
@@ -153,18 +174,18 @@ const DateRangeInput = forwardRef<HTMLInputElement, { value?: string; onClick?: 
       style={{
         width: '100%',
         padding: '10px 14px',
-        borderRadius: '12px',
+        borderRadius: RADII.md,
         border: '1px solid rgba(222, 63, 94, 0.2)',
-        backgroundColor: '#f8f9fa',
+        backgroundColor: COLORS.bg.muted,
         fontSize: '0.9rem',
-        color: '#1a1a1a',
+        color: COLORS.text.strong,
         fontFamily: 'inherit',
         outline: 'none',
         cursor: disabled ? 'default' : 'pointer',
         boxSizing: 'border-box',
         opacity: disabled ? 0.5 : 1,
       }}
-      onFocus={(e) => { e.target.style.borderColor = '#DE3F5E'; e.target.style.borderWidth = '2px'; e.target.style.padding = '9px 13px'; }}
+      onFocus={(e) => { e.target.style.borderColor = COLORS.brand.primary; e.target.style.borderWidth = '2px'; e.target.style.padding = '9px 13px'; }}
       onBlur={(e) => { e.target.style.borderColor = 'rgba(222, 63, 94, 0.2)'; e.target.style.borderWidth = '1px'; e.target.style.padding = '10px 14px'; }}
     />
   )
@@ -179,6 +200,7 @@ export default function OnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [role, setRole] = useState<UserRole | null>(null);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [plan, setPlan] = useState<'basic' | 'pro'>('basic');
   const [coupleName, setCoupleName] = useState('');
   const [partnerName, setPartnerName] = useState('');
@@ -200,6 +222,14 @@ export default function OnboardingPage() {
   const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Preparing your experience...');
+
+  // Service-oriented onboarding fields
+  const [coupleCountry, setCoupleCountry] = useState('');
+  const [coupleCity, setCoupleCity] = useState('');
+  const [estimatedGuestCount, setEstimatedGuestCount] = useState('');
+  const [hasNonIndianGuests, setHasNonIndianGuests] = useState(false);
+  const [weddingLocationType, setWeddingLocationType] = useState('');
+  const [destination, setDestination] = useState('');
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -338,11 +368,14 @@ export default function OnboardingPage() {
         }
 
         if (settings.subscription_tier === 'basic') {
-          // Verify user actually has a wedding before skipping onboarding
+          // Verify user actually has a wedding before skipping onboarding.
+          // Exclude demo clones so a stale demo session doesn't short-circuit
+          // the onboarding flow for a real wedding.
           const { data: wedding } = await supabase
             .from('weddings')
             .select('slug')
             .eq('created_by', userId)
+            .not('slug', 'like', 'demo-%')
             .limit(1)
             .single();
 
@@ -444,6 +477,7 @@ export default function OnboardingPage() {
     venueName?: string | null,
     venueLocation?: string | null,
     selectedFeatures: string[],
+    selectedGoals?: string[],
     companyName?: string,
     plannerLocation?: string,
   }) => {
@@ -455,7 +489,7 @@ export default function OnboardingPage() {
       console.log('[Onboarding DEBUG] Step 1: Upserting user_settings...');
       const userEmail = authUser?.email || data.userId;
       const avatar = generateGuestAvatar(userEmail, data.coupleName);
-      const settingsToSave = {
+      const settingsToSave: Record<string, any> = {
         user_id: data.userId,
         account_type: data.role,
         enabled_features: data.selectedFeatures,
@@ -466,6 +500,12 @@ export default function OnboardingPage() {
         avatar_svg: avatar.svg,
         avatar_color: null,
       };
+      // Persist onboarding goals if the column exists. If the migration hasn't
+      // been run the upsert will error out below and we'll fall back to the
+      // contact_submissions record created in handleSubmit.
+      if (data.selectedGoals && data.selectedGoals.length > 0) {
+        settingsToSave.onboarding_goals = data.selectedGoals;
+      }
       console.log('[Onboarding DEBUG] Data to upsert:', settingsToSave);
 
       const { data: upsertData, error: settingsError } = await (supabase as any)
@@ -541,7 +581,7 @@ export default function OnboardingPage() {
               status: 'draft',
               created_by: data.userId,
               background_image: '/images/backgrounds/blue-clouds.webp',
-              primary_color: '#DE3F5E',
+              primary_color: COLORS.brand.primary,
               couple_images: ['/images/couple/placeholder1.png', '/images/couple/placeholder2.png'],
               couple_image_url: '/images/couple/placeholder1.png',
             });
@@ -602,7 +642,7 @@ export default function OnboardingPage() {
 
   const handleNext = () => {
     console.log('[Onboarding] handleNext clicked', { step });
-    if (step < 2) {
+    if (step < 3) {
       setStep((step + 1) as OnboardingStep);
     }
     else {
@@ -645,9 +685,25 @@ export default function OnboardingPage() {
         venueName: venueTbd ? 'TBD' : venueName,
         venueLocation: venueTbd ? null : venueLocation,
         selectedFeatures,
+        selectedGoals,
         companyName,
         plannerLocation,
       });
+
+      // Record onboarding goals for product research — non-fatal on error.
+      if (selectedGoals.length > 0 && authUser?.email) {
+        try {
+          await (supabase as any).from('contact_submissions').insert([
+            {
+              name: coupleName || companyName || authUser?.email || 'Onboarded user',
+              email: authUser.email.toLowerCase(),
+              message: `Onboarding goals: ${selectedGoals.join(', ')}`,
+            },
+          ]);
+        } catch (err) {
+          console.error('[Onboarding] Failed to record goals:', err);
+        }
+      }
     } catch (error) {
       console.error('[Onboarding DEBUG] handleSubmit: Error completing onboarding:', error);
       alert('Something went wrong. Please try again.');
@@ -666,16 +722,16 @@ export default function OnboardingPage() {
         justifyContent: 'center',
         alignItems: 'center',
         minHeight: '100vh',
-        bgcolor: '#f8f9fa',
+        bgcolor: COLORS.bg.muted,
         gap: 3
       }}>
-        <CircularProgress sx={{ color: '#DE3F5E' }} />
+        <CircularProgress sx={{ color: COLORS.brand.primary }} />
         <Typography
           variant="h6"
           sx={{
-            color: '#1a1a1a',
+            color: COLORS.text.strong,
             fontWeight: 400,
-            fontFamily: 'var(--font-instrument-serif)',
+            fontFamily: FONTS.display,
             fontStyle: 'italic',
             letterSpacing: '0.02em'
           }}
@@ -712,8 +768,8 @@ export default function OnboardingPage() {
               <Paper elevation={0} sx={{
                 py: { xs: 2.5, md: 4 },
                 px: { xs: 1.5, md: 3 },
-                borderRadius: '24px',
-                bgcolor: alpha('#fff', 0.9),
+                borderRadius: RADII.dialog,
+                bgcolor: alpha(COLORS.bg.white, 0.9),
                 backdropFilter: 'blur(10px)',
                 textAlign: 'center',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.05)',
@@ -740,8 +796,8 @@ export default function OnboardingPage() {
                     zIndex: 10,
                     gap: 3
                   }}>
-                    <CircularProgress sx={{ color: '#DE3F5E' }} />
-                    <Typography variant="h6" sx={{ color: '#1a1a1a', fontWeight: 800 }}>
+                    <CircularProgress sx={{ color: COLORS.brand.primary }} />
+                    <Typography variant="h6" sx={{ color: COLORS.text.strong, fontWeight: 800 }}>
                       Preparing your workspace...
                     </Typography>
                   </Box>
@@ -755,7 +811,7 @@ export default function OnboardingPage() {
                         sx={{
                           position: 'absolute',
                           left: 0,
-                          color: '#666',
+                          color: COLORS.text.subtle,
                           p: { xs: 0.5, md: 1 }
                         }}
                       >
@@ -765,7 +821,7 @@ export default function OnboardingPage() {
                         variant="h5"
                         sx={{
                           fontWeight: 700,
-                          color: '#1a1a1a',
+                          color: COLORS.text.strong,
                           fontSize: { xs: '1.2rem', md: '1.5rem' },
                           px: 5 // Add padding to avoid overlapping with absolute icon
                         }}
@@ -780,25 +836,25 @@ export default function OnboardingPage() {
                         <Box sx={{
                           textAlign: 'left',
                           p: { xs: 2, md: 4 },
-                          bgcolor: alpha('#DE3F5E', 0.05),
-                          borderRadius: '24px',
+                          bgcolor: alpha(COLORS.brand.primary, 0.05),
+                          borderRadius: RADII.dialog,
                           border: '1px solid',
-                          borderColor: alpha('#DE3F5E', 0.1),
+                          borderColor: alpha(COLORS.brand.primary, 0.1),
                           display: 'flex',
                           flexDirection: 'column'
                         }}>
                           <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: { xs: 2, md: 4 } }}>
-                            <Box sx={{ bgcolor: '#DE3F5E', color: 'white', p: { xs: 1, md: 1.5 }, borderRadius: '12px', display: 'flex' }}>
+                            <Box sx={{ bgcolor: COLORS.brand.primary, color: COLORS.text.inverse, p: { xs: 1, md: 1.5 }, borderRadius: RADII.md, display: 'flex' }}>
                               <CreditCard sx={{ fontSize: { xs: 20, md: 28 } }} />
                             </Box>
                             <Box>
-                              <Typography variant="h6" sx={{ fontWeight: 800, color: '#1a1a1a', lineHeight: 1.2, fontSize: { xs: '1rem', md: '1.25rem' } }}>Pro Plan</Typography>
-                              <Typography variant="h4" sx={{ fontWeight: 800, color: '#DE3F5E', fontSize: { xs: '1.5rem', md: '2.125rem' } }}>$99</Typography>
+                              <Typography variant="h6" sx={{ fontWeight: 800, color: COLORS.text.strong, lineHeight: 1.2, fontSize: { xs: '1rem', md: '1.25rem' } }}>Pro Plan</Typography>
+                              <Typography variant="h4" sx={{ fontWeight: 800, color: COLORS.brand.primary, fontSize: { xs: '1.5rem', md: '2.125rem' } }}>$99</Typography>
                             </Box>
                           </Stack>
 
                           {/* Desktop Feature Title */}
-                          <Typography variant="subtitle2" sx={{ display: { xs: 'none', md: 'block' }, fontWeight: 700, color: '#1a1a1a', mb: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.75rem', opacity: 0.7 }}>
+                          <Typography variant="subtitle2" sx={{ display: { xs: 'none', md: 'block' }, fontWeight: 700, color: COLORS.text.strong, mb: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.875rem', opacity: 0.7 }}>
                             What's included:
                           </Typography>
 
@@ -810,13 +866,13 @@ export default function OnboardingPage() {
                             endIcon={<ArrowForward sx={{ transform: showAllFeatures ? 'rotate(90deg)' : 'none', transition: '0.2s', fontSize: 16 }} />}
                             sx={{
                               display: { xs: 'flex', md: 'none' },
-                              color: '#DE3F5E',
+                              color: COLORS.brand.primary,
                               fontWeight: 700,
                               p: 0,
                               mb: showAllFeatures ? 2 : 0,
                               justifyContent: 'flex-start',
                               textTransform: 'none',
-                              fontSize: '0.8rem'
+                              fontSize: '0.875rem'
                             }}
                           >
                             {showAllFeatures ? 'Hide premium features' : 'Show all premium features'}
@@ -835,14 +891,14 @@ export default function OnboardingPage() {
                               ].map((item, i) => (
                                 <Stack key={i} direction="row" spacing={1.5} alignItems="flex-start">
                                   {React.cloneElement(item.icon as React.ReactElement<any>, {
-                                    sx: { color: '#DE3F5E', fontSize: { xs: 16, md: 20 }, mt: 0.3 }
+                                    sx: { color: COLORS.brand.primary, fontSize: { xs: 16, md: 20 }, mt: 0.3 }
                                   })}
-                                  <Typography variant="body2" sx={{ color: '#333', fontWeight: 500, lineHeight: 1.5, fontSize: { xs: '0.85rem', md: '0.95rem' } }}>
+                                  <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 500, lineHeight: 1.5, fontSize: { xs: '0.85rem', md: '0.95rem' } }}>
                                     {item.text}
                                   </Typography>
                                 </Stack>
                               ))}
-                              <Typography variant="caption" sx={{ color: '#888', fontStyle: 'italic', mt: 2, display: 'block', fontSize: '0.8rem' }}>
+                              <Typography variant="caption" sx={{ color: COLORS.text.faint, fontStyle: 'italic', mt: 2, display: 'block', fontSize: '0.875rem' }}>
                                 + even more features coming soon
                               </Typography>
                             </Stack>
@@ -855,8 +911,8 @@ export default function OnboardingPage() {
                         <Box id="checkout" sx={{
                           width: '100%',
                           minHeight: 'auto',
-                          bgcolor: 'white',
-                          borderRadius: '24px',
+                          bgcolor: COLORS.bg.white,
+                          borderRadius: RADII.dialog,
                           p: { xs: 1, md: 2 },
                           '& iframe': {
                             width: '100% !important',
@@ -877,10 +933,10 @@ export default function OnboardingPage() {
                     {/* STEP 1: ROLE SELECTION */}
                     {step === 1 && (
                       <Box>
-                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 1, color: '#1a1a1a', fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
+                        <Typography variant="h4" sx={{ fontFamily: FONTS.display, fontStyle: 'italic', mb: 1, color: COLORS.text.strong, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
                           Welcome to Phera
                         </Typography>
-                        <Typography variant="body2" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
+                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                           How do you plan to use our platform?
                         </Typography>
 
@@ -889,18 +945,21 @@ export default function OnboardingPage() {
                             <Card
                               elevation={0}
                               sx={{
-                                borderRadius: '16px',
+                                borderRadius: RADII.lg,
                                 border: '2px solid',
-                                borderColor: role === 'couple' ? '#DE3F5E' : 'transparent',
-                                bgcolor: role === 'couple' ? alpha('#DE3F5E', 0.05) : '#f8f9fa',
+                                borderColor: role === 'couple' ? COLORS.brand.primary : 'transparent',
+                                bgcolor: role === 'couple' ? alpha(COLORS.brand.primary, 0.05) : COLORS.bg.muted,
                                 transition: 'all 0.3s ease',
                                 height: '100%'
                               }}
                             >
-                              <CardActionArea sx={{ p: 3, height: '100%' }} onClick={() => setRole('couple')}>
-                                <Favorite sx={{ fontSize: 40, color: '#DE3F5E', mb: 1.5 }} />
-                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#1a1a1a', fontSize: '1rem' }}>I'm a Couple</Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Planning my own multi-day destination wedding</Typography>
+                              <CardActionArea
+                                sx={{ p: 3, height: '100%' }}
+                                onClick={() => { setRole('couple'); setStep(2); }}
+                              >
+                                <Favorite sx={{ fontSize: 40, color: COLORS.brand.primary, mb: 1.5 }} />
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: COLORS.text.strong, fontSize: '1rem' }}>I'm a Couple</Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ color: COLORS.text.muted, fontSize: '0.875rem' }}>Planning my own wedding</Typography>
                               </CardActionArea>
                             </Card>
                           </Grid>
@@ -908,18 +967,21 @@ export default function OnboardingPage() {
                             <Card
                               elevation={0}
                               sx={{
-                                borderRadius: '16px',
+                                borderRadius: RADII.lg,
                                 border: '2px solid',
-                                borderColor: role === 'planner' ? '#DE3F5E' : 'transparent',
-                                bgcolor: role === 'planner' ? alpha('#DE3F5E', 0.05) : '#f8f9fa',
+                                borderColor: role === 'planner' ? COLORS.brand.primary : 'transparent',
+                                bgcolor: role === 'planner' ? alpha(COLORS.brand.primary, 0.05) : COLORS.bg.muted,
                                 transition: 'all 0.3s ease',
                                 height: '100%'
                               }}
                             >
-                              <CardActionArea sx={{ p: 3, height: '100%' }} onClick={() => setRole('planner')}>
-                                <Work sx={{ fontSize: 40, color: '#DE3F5E', mb: 1.5 }} />
-                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#1a1a1a', fontSize: '1rem' }}>I'm a Planner</Typography>
-                                <Typography variant="body2" color="text.secondary" sx={{ color: '#444', fontSize: '0.6rem' }}>Managing multiple weddings for my clients</Typography>
+                              <CardActionArea
+                                sx={{ p: 3, height: '100%' }}
+                                onClick={() => { setRole('planner'); setStep(2); }}
+                              >
+                                <Work sx={{ fontSize: 40, color: COLORS.brand.primary, mb: 1.5 }} />
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: COLORS.text.strong, fontSize: '1rem' }}>I'm a Planner</Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ color: COLORS.text.muted, fontSize: '0.875rem' }}>Managing multiple weddings</Typography>
                               </CardActionArea>
                             </Card>
                           </Grid>
@@ -930,10 +992,10 @@ export default function OnboardingPage() {
                     {/* STEP 2: NAMES, VENUE, DATE (Moved from step 4) */}
                     {step === 2 && (
                       <Box>
-                        <Typography variant="h4" sx={{ fontFamily: 'var(--font-instrument-serif)', fontStyle: 'italic', mb: 0.5, color: '#1a1a1a', fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
-                          {role === 'planner' ? 'Tell us about your business' : "Let's get ready to get planning"}
+                        <Typography variant="h4" sx={{ fontFamily: FONTS.display, fontStyle: 'italic', mb: 0.5, color: COLORS.text.strong, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
+                          {role === 'planner' ? 'Tell us about your business' : "Let's get your wedding set up"}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: '#666', mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
+                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 4, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
                           We'll need a few details first.
                         </Typography>
 
@@ -942,7 +1004,7 @@ export default function OnboardingPage() {
                             {role === 'planner' && (
                               <>
                                 <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Company / Business Name</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Company / Business Name</Typography>
                                   <StyledTextField
                                     fullWidth
                                     label=""
@@ -954,7 +1016,7 @@ export default function OnboardingPage() {
                                 </Box>
 
                                 <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Where are you based?</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Where are you based?</Typography>
                                   <StyledTextField
                                     fullWidth
                                     label=""
@@ -970,7 +1032,7 @@ export default function OnboardingPage() {
                               <>
                                 <Stack direction="row" spacing={2}>
                                   <Box sx={{ flex: 1 }}>
-                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Your First Name</Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Your First Name</Typography>
                                     <StyledTextField
                                       fullWidth
                                       label=""
@@ -981,7 +1043,7 @@ export default function OnboardingPage() {
                                     />
                                   </Box>
                                   <Box sx={{ flex: 1 }}>
-                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Partner's First Name</Typography>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Partner's First Name</Typography>
                                     <StyledTextField
                                       fullWidth
                                       label=""
@@ -994,14 +1056,14 @@ export default function OnboardingPage() {
 
                                 <Stack direction="row" alignItems="center" spacing={1.5} sx={{ my: 0.5 }}>
                                   <Divider sx={{ flex: 1, borderColor: 'rgba(0,0,0,0.1)' }} />
-                                  <Typography variant="caption" sx={{ color: '#999', fontWeight: 500, fontSize: '0.7rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                                  <Typography variant="caption" sx={{ color: COLORS.text.faint, fontWeight: 500, fontSize: '0.875rem', whiteSpace: 'nowrap', flexShrink: 0 }}>
                                     Optionally provide details below
                                   </Typography>
                                   <Divider sx={{ flex: 1, borderColor: 'rgba(0,0,0,0.1)' }} />
                                 </Stack>
 
                                 <Box ref={venueContainerRef} sx={{ position: 'relative' }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Event Venue</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Event Venue</Typography>
                                   <StyledTextField
                                     fullWidth
                                     label=""
@@ -1012,7 +1074,7 @@ export default function OnboardingPage() {
                                     onFocus={() => { if (venueSuggestions.length > 0) setShowVenueSuggestions(true); }}
                                     InputProps={{
                                       endAdornment: venueSearchLoading ? (
-                                        <CircularProgress size={18} sx={{ color: '#DE3F5E' }} />
+                                        <CircularProgress size={18} sx={{ color: COLORS.brand.primary }} />
                                       ) : null,
                                     }}
                                     sx={{ mb: 1 }}
@@ -1028,7 +1090,7 @@ export default function OnboardingPage() {
                                         right: 0,
                                         zIndex: 1000,
                                         borderRadius: 1,
-                                        bgcolor: 'white',
+                                        bgcolor: COLORS.bg.white,
                                         overflow: 'hidden',
                                         maxHeight: 240,
                                         overflowY: 'auto',
@@ -1039,14 +1101,14 @@ export default function OnboardingPage() {
                                           <ListItemButton
                                             key={s.id}
                                             onClick={() => handleSelectVenue(s)}
-                                            sx={{ py: 1, '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) } }}
+                                            sx={{ py: 1, '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.05) } }}
                                           >
                                             <ListItemIcon sx={{ minWidth: 36 }}>
-                                              <LocationOn sx={{ color: '#DE3F5E', fontSize: 20 }} />
+                                              <LocationOn sx={{ color: COLORS.brand.primary, fontSize: 20 }} />
                                             </ListItemIcon>
                                             <ListItemText
-                                              primary={<Typography sx={{ fontWeight: 500, color: '#1a1a1a', fontSize: '0.85rem' }}>{s.name}</Typography>}
-                                              secondary={<Typography variant="caption" sx={{ color: '#6a6a6a' }}>{s.place_name}</Typography>}
+                                              primary={<Typography sx={{ fontWeight: 500, color: COLORS.text.strong, fontSize: '0.875rem' }}>{s.name}</Typography>}
+                                              secondary={<Typography variant="caption" sx={{ color: COLORS.text.subtle }}>{s.place_name}</Typography>}
                                             />
                                           </ListItemButton>
                                         ))}
@@ -1060,7 +1122,7 @@ export default function OnboardingPage() {
                                         height: 15,
                                         borderRadius: '3px',
                                         border: '1.5px solid',
-                                        borderColor: venueTbd ? '#999' : 'rgba(0,0,0,0.2)',
+                                        borderColor: venueTbd ? COLORS.text.faint : 'rgba(0,0,0,0.2)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
@@ -1076,19 +1138,19 @@ export default function OnboardingPage() {
                                         >
                                           <path
                                             d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-                                            fill="#999"
+                                            fill={COLORS.text.faint}
                                           />
                                         </Box>
                                       )}
                                     </Box>
-                                    <Typography variant="caption" sx={{ color: '#999', fontWeight: 400, fontSize: '0.7rem' }}>
+                                    <Typography variant="caption" sx={{ color: COLORS.text.faint, fontWeight: 400, fontSize: '0.875rem' }}>
                                       Venue TBD
                                     </Typography>
                                   </Stack>
                                 </Box>
 
                                 <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Wedding Dates</Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Wedding Dates</Typography>
                                   <DatePicker
                                     selectsRange
                                     startDate={weddingDate ? new Date(weddingDate) : undefined}
@@ -1102,6 +1164,11 @@ export default function OnboardingPage() {
                                     customInput={<DateRangeInput />}
                                     dateFormat="MMM d, yyyy"
                                     monthsShown={1}
+                                    showMonthDropdown
+                                    showYearDropdown
+                                    dropdownMode="select"
+                                    yearDropdownItemNumber={5}
+                                    scrollableYearDropdown
                                     wrapperClassName="onboarding-datepicker-wrapper"
                                   />
                                   <Stack direction="row" spacing={1} alignItems="center" onClick={() => { if (!dateTbd) { setWeddingDate(''); setWeddingEndDate(''); } setDateTbd(!dateTbd); }} sx={{ cursor: 'pointer', mt: 1 }}>
@@ -1111,7 +1178,7 @@ export default function OnboardingPage() {
                                         height: 15,
                                         borderRadius: '3px',
                                         border: '1.5px solid',
-                                        borderColor: dateTbd ? '#999' : 'rgba(0,0,0,0.2)',
+                                        borderColor: dateTbd ? COLORS.text.faint : 'rgba(0,0,0,0.2)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
@@ -1127,16 +1194,17 @@ export default function OnboardingPage() {
                                         >
                                           <path
                                             d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-                                            fill="#999"
+                                            fill={COLORS.text.faint}
                                           />
                                         </Box>
                                       )}
                                     </Box>
-                                    <Typography variant="caption" sx={{ color: '#999', fontWeight: 400, fontSize: '0.7rem' }}>
+                                    <Typography variant="caption" sx={{ color: COLORS.text.faint, fontWeight: 400, fontSize: '0.875rem' }}>
                                       Dates TBD
                                     </Typography>
                                   </Stack>
                                 </Box>
+
                               </>
                             )}
                           </Stack>
@@ -1144,55 +1212,127 @@ export default function OnboardingPage() {
                       </Box>
                     )}
 
-                    {/* STEP 3 & 4 (LEGACY) REMOVED */}
+                    {/* STEP 3: ONBOARDING GOALS — multi-select topics */}
+                    {step === 3 && (
+                      <Box>
+                        <Typography variant="h4" sx={{ fontFamily: FONTS.display, fontStyle: 'italic', mb: 0.5, color: COLORS.text.strong, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
+                          What do you want to get done?
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 3, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
+                          Pick everything that sounds useful — we'll tailor your setup around it. You can change this later.
+                        </Typography>
 
-                    {/* Navigation Buttons */}
-                    <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 5 }}>
-                      {step > 1 && (
+                        <Grid container spacing={1.5} sx={{ maxWidth: '720px', mx: 'auto' }}>
+                          {ONBOARDING_GOALS.map((goal) => {
+                            const selected = selectedGoals.includes(goal.id);
+                            return (
+                              <Grid size={{ xs: 12, sm: 6 }} key={goal.id}>
+                                <Card
+                                  elevation={0}
+                                  sx={{
+                                    borderRadius: RADII.md,
+                                    border: '2px solid',
+                                    borderColor: selected ? COLORS.brand.primary : 'transparent',
+                                    bgcolor: selected ? alpha(COLORS.brand.primary, 0.06) : COLORS.bg.muted,
+                                    transition: 'all 0.2s ease',
+                                    height: '100%',
+                                  }}
+                                >
+                                  <CardActionArea
+                                    sx={{ p: 2, height: '100%', textAlign: 'left' }}
+                                    onClick={() =>
+                                      setSelectedGoals((prev) =>
+                                        prev.includes(goal.id)
+                                          ? prev.filter((g) => g !== goal.id)
+                                          : [...prev, goal.id],
+                                      )
+                                    }
+                                  >
+                                    <Typography
+                                      variant="subtitle2"
+                                      sx={{
+                                        fontWeight: 700,
+                                        mb: 0.25,
+                                        fontSize: '0.9rem',
+                                        color: selected ? COLORS.brand.primary : COLORS.text.strong,
+                                        transition: 'color 0.2s ease',
+                                      }}
+                                    >
+                                      {goal.label}
+                                    </Typography>
+                                    <Typography
+                                      variant="caption"
+                                      sx={{
+                                        color: COLORS.text.subtle,
+                                        fontSize: '0.875rem',
+                                        lineHeight: 1.4,
+                                        display: 'block',
+                                      }}
+                                    >
+                                      {goal.subtext}
+                                    </Typography>
+                                  </CardActionArea>
+                                </Card>
+                              </Grid>
+                            );
+                          })}
+                        </Grid>
+
+                        {selectedGoals.length > 0 && (
+                          <Typography
+                            variant="caption"
+                            sx={{ display: 'block', color: COLORS.brand.primary, mt: 2, fontWeight: 600, textAlign: 'center' }}
+                          >
+                            {selectedGoals.length} selected — you can skip or select more.
+                          </Typography>
+                        )}
+                      </Box>
+                    )}
+
+                    {/* Navigation Buttons — hidden on step 1 (role cards auto-advance) */}
+                    {step > 1 && (
+                      <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 5 }}>
                         <Button
                           variant="text"
                           onClick={handleBack}
-                          sx={{ color: '#666', fontWeight: 700, fontSize: '0.9rem' }}
+                          sx={{ color: COLORS.text.subtle, fontWeight: 700, fontSize: '0.9rem' }}
                         >
                           Back
                         </Button>
-                      )}
-                      <Button
-                        variant="contained"
-                        endIcon={submitting ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : <ArrowForward sx={{ fontSize: 18 }} />}
-                        title={
-                          (step === 1 && !role) ? "Please select your role" :
+                        <Button
+                          variant="contained"
+                          endIcon={submitting ? <CircularProgress size={18} sx={{ color: COLORS.text.inverse }} /> : <ArrowForward sx={{ fontSize: 18 }} />}
+                          title={
                             (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) ? "Please fill in all celebration details" :
                               (step === 2 && role === 'planner' && !companyName) ? "Please enter your company name" :
                                 ""
-                        }
-                        onClick={() => {
-                          if (step === 1 && !role) return;
-                          if (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) return;
-                          if (step === 2 && role === 'planner' && !companyName) return;
-                          handleNext();
-                        }}
-                        sx={{
-                          bgcolor: '#DE3F5E',
-                          color: 'white',
-                          px: 4,
-                          py: 1,
-                          borderRadius: '24px',
-                          textTransform: 'none',
-                          fontSize: '0.95rem',
-                          fontWeight: 700,
-                          boxShadow: '0 8px 24px rgba(222,63,94,0.3)',
-                          opacity: (
-                            (step === 1 && !role) ||
-                            (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) ||
-                            (step === 2 && role === 'planner' && !companyName)
-                          ) ? 0.6 : 1, // Desaturate if "disabled"
-                          '&:hover': { bgcolor: '#C8365A' },
-                        }}
-                      >
-                        {step === 2 ? (submitting ? 'Setting up...' : 'Start Planning') : 'Continue'}
-                      </Button>
-                    </Stack>
+                          }
+                          onClick={() => {
+                            if (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) return;
+                            if (step === 2 && role === 'planner' && !companyName) return;
+                            handleNext();
+                          }}
+                          sx={{
+                            bgcolor: COLORS.brand.primary,
+                            color: COLORS.text.inverse,
+                            px: 4,
+                            py: 1,
+                            borderRadius: RADII.dialog,
+                            textTransform: 'none',
+                            fontSize: '0.95rem',
+                            fontWeight: 700,
+                            boxShadow: '0 8px 24px rgba(222,63,94,0.3)',
+                            opacity: (
+                              (step === 2 && role === 'couple' && (!coupleName || !partnerName || (!weddingDate && !dateTbd))) ||
+                              (step === 2 && role === 'planner' && !companyName)
+                            ) ? 0.6 : 1,
+                            '&:hover': { bgcolor: COLORS.brand.primaryHover },
+                          }}
+                        >
+                          {step === 3 ? (submitting ? 'Setting up...' : 'Get Started') : 'Continue'}
+                        </Button>
+                      </Stack>
+                    )}
                   </>
                 )}
               </Paper>
@@ -1202,14 +1342,14 @@ export default function OnboardingPage() {
           {/* Progress Dots */}
           {!checkoutClientSecret && (
             <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 3 }}>
-              {[1, 2].map(s => (
+              {[1, 2, 3].map(s => (
                 <Box
                   key={s}
                   sx={{
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    bgcolor: step >= s ? '#DE3F5E' : alpha('#DE3F5E', 0.15),
+                    bgcolor: step >= s ? COLORS.brand.primary : alpha(COLORS.brand.primary, 0.15),
                     transition: 'background-color 0.3s ease',
                   }}
                 />

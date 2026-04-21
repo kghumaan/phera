@@ -5,6 +5,8 @@ import { Box, Fab, IconButton, Typography, alpha, Stack, Popover, Button, TextFi
 import { Publish, ContentCopy, Check, Edit } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { FONTS, COLORS, RADII } from '@/lib/theme/tokens';
 
 interface AdminPublishButtonProps {
     weddingSlug: string;
@@ -151,10 +153,10 @@ export default function AdminPublishButton({
                     aria-label="publish"
                     onClick={handlePublishClick}
                     sx={{
-                        bgcolor: statusSaved ? '#10B981' : '#DE3F5E',
-                        color: 'white',
+                        bgcolor: statusSaved ? COLORS.accent.success : COLORS.brand.primary,
+                        color: COLORS.text.inverse,
                         '&:hover': {
-                            bgcolor: statusSaved ? '#059669' : '#C8365A',
+                            bgcolor: statusSaved ? COLORS.accent.success : COLORS.brand.primaryHover,
                             transform: 'scale(1.05)',
                         },
                         boxShadow: statusSaved ? '0 4px 20px rgba(16, 185, 129, 0.4)' : '0 4px 20px rgba(222, 63, 94, 0.4)',
@@ -198,22 +200,22 @@ export default function AdminPublishButton({
                 PaperProps={{
                     sx: {
                         width: 500,
-                        borderRadius: '16px',
+                        borderRadius: RADII.lg,
                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
                         p: 3,
-                        bgcolor: 'white',
+                        bgcolor: COLORS.bg.white,
                     },
                 }}
             >
                 <Stack spacing={2.5}>
                     {/* Title */}
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
                         Publish Settings
                     </Typography>
 
                     {/* Wedding URL */}
                     <Box>
-                        <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, mb: 1, display: 'block' }}>
+                        <Typography variant="caption" sx={{ color: COLORS.text.subtle, fontWeight: 600, mb: 1, display: 'block' }}>
                             Your Wedding ID
                         </Typography>
                         {!editingSlug ? (
@@ -221,18 +223,18 @@ export default function AdminPublishButton({
                                 <Box
                                     sx={{
                                         flex: 1,
-                                        bgcolor: alpha('#DE3F5E', 0.05),
+                                        bgcolor: alpha(COLORS.brand.primary, 0.05),
                                         p: 1.5,
-                                        borderRadius: '8px',
+                                        borderRadius: RADII.sm,
                                         border: '1px solid rgba(222, 63, 94, 0.2)',
                                     }}
                                 >
                                     <Typography
                                         variant="body2"
                                         sx={{
-                                            color: '#1a1a1a',
+                                            color: COLORS.text.strong,
                                             fontWeight: 600,
-                                            fontFamily: 'monospace',
+                                            fontFamily: FONTS.body,
                                             fontSize: '0.9rem',
                                         }}
                                     >
@@ -243,10 +245,10 @@ export default function AdminPublishButton({
                                     size="small"
                                     onClick={() => copyToClipboard(`${window.location.origin}/${weddingSlug}`)}
                                     sx={{
-                                        bgcolor: urlCopied ? '#10B981' : alpha('#DE3F5E', 0.1),
-                                        color: urlCopied ? 'white' : '#DE3F5E',
+                                        bgcolor: urlCopied ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.1),
+                                        color: urlCopied ? COLORS.bg.white : COLORS.brand.primary,
                                         '&:hover': {
-                                            bgcolor: urlCopied ? '#059669' : alpha('#DE3F5E', 0.2),
+                                            bgcolor: urlCopied ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.2),
                                         },
                                     }}
                                 >
@@ -256,10 +258,10 @@ export default function AdminPublishButton({
                                     size="small"
                                     onClick={() => setEditingSlug(true)}
                                     sx={{
-                                        bgcolor: slugSaved ? '#10B981' : alpha('#DE3F5E', 0.1),
-                                        color: slugSaved ? 'white' : '#DE3F5E',
+                                        bgcolor: slugSaved ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.1),
+                                        color: slugSaved ? COLORS.bg.white : COLORS.brand.primary,
                                         '&:hover': {
-                                            bgcolor: slugSaved ? '#059669' : alpha('#DE3F5E', 0.2),
+                                            bgcolor: slugSaved ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.2),
                                         },
                                         transition: 'all 0.2s ease',
                                     }}
@@ -277,19 +279,19 @@ export default function AdminPublishButton({
                                     sx={{
                                         flex: 1,
                                         '& .MuiOutlinedInput-root': {
-                                            borderRadius: '8px',
+                                            borderRadius: RADII.sm,
                                             '& fieldset': {
-                                                borderColor: '#1a1a1a',
+                                                borderColor: COLORS.text.strong,
                                                 borderWidth: '1px',
                                             },
                                             '&:hover fieldset': {
-                                                borderColor: '#1a1a1a',
+                                                borderColor: COLORS.text.strong,
                                             },
                                             '&.Mui-focused fieldset': {
-                                                borderColor: '#DE3F5E',
+                                                borderColor: COLORS.brand.primary,
                                             },
                                             '& input': {
-                                                color: '#1a1a1a',
+                                                color: COLORS.text.strong,
                                             },
                                         },
                                     }}
@@ -302,43 +304,37 @@ export default function AdminPublishButton({
                                         setEditingSlug(false);
                                     }}
                                     sx={{
-                                        borderRadius: '8px',
+                                        borderRadius: RADII.sm,
                                         textTransform: 'none',
-                                        borderColor: '#DE3F5E',
-                                        color: '#DE3F5E',
+                                        borderColor: COLORS.brand.primary,
+                                        color: COLORS.brand.primary,
                                         minWidth: 'auto',
                                         px: 2,
                                         '&:hover': {
-                                            borderColor: '#C8365A',
-                                            bgcolor: alpha('#DE3F5E', 0.05),
+                                            borderColor: COLORS.brand.primaryHover,
+                                            bgcolor: alpha(COLORS.brand.primary, 0.05),
                                         },
                                     }}
                                 >
                                     Cancel
                                 </Button>
-                                <Button
+                                <PrimaryActionButton
                                     size="small"
-                                    variant="contained"
                                     onClick={handleSlugUpdate}
+                                    loading={savingSlug}
                                     disabled={customSlug === weddingSlug || !customSlug}
                                     sx={{
-                                        borderRadius: '8px',
-                                        textTransform: 'none',
-                                        bgcolor: '#DE3F5E',
-                                        color: 'white',
+                                        borderRadius: RADII.sm,
                                         minWidth: 'auto',
                                         px: 2,
-                                        '&:hover': {
-                                            bgcolor: '#C8365A',
-                                        },
                                         '&.Mui-disabled': {
-                                            bgcolor: alpha('#DE3F5E', 0.5),
+                                            bgcolor: alpha(COLORS.brand.primary, 0.5),
                                             color: 'rgba(255, 255, 255, 0.7)',
                                         },
                                     }}
                                 >
                                     Save
-                                </Button>
+                                </PrimaryActionButton>
                             </Box>
                         )}
                     </Box>
@@ -349,40 +345,30 @@ export default function AdminPublishButton({
                     <Box>
                         <Box sx={{ display: 'flex', gap: 1.5 }}>
                             {/* Publish Button - Primary Style */}
-                            <Button
+                            <PrimaryActionButton
                                 fullWidth
-                                variant="contained"
-                                startIcon={savingStatus && weddingStatus === 'draft' ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Publish />}
+                                startIcon={<Publish />}
                                 onClick={() => handleStatusUpdate('live')}
-                                disabled={savingStatus}
+                                loading={savingStatus && weddingStatus === 'draft'}
+                                disabled={savingStatus && weddingStatus !== 'draft'}
                                 sx={{
-                                    bgcolor: '#DE3F5E',
-                                    color: 'white',
                                     py: 1.5,
-                                    borderRadius: '12px',
-                                    textTransform: 'none',
-                                    fontWeight: 600,
-                                    '&:hover': {
-                                        bgcolor: '#C8365A',
-                                    },
                                     '&.Mui-disabled': {
-                                        bgcolor: alpha('#DE3F5E', 0.5),
+                                        bgcolor: alpha(COLORS.brand.primary, 0.5),
                                         color: 'rgba(255, 255, 255, 0.7)',
                                     },
                                 }}
                             >
-                                {savingStatus && weddingStatus === 'draft' ? 'Publishing...' : 'Publish'}
-                            </Button>
+                                Publish
+                            </PrimaryActionButton>
 
                             {/* Unpublish Button - Secondary Style */}
-                            <Button
+                            <SecondaryActionButton
                                 fullWidth
-                                variant="outlined"
-                                startIcon={savingStatus && weddingStatus === 'live' ? <CircularProgress size={16} sx={{ color: 'black' }} /> : null}
                                 onClick={() => handleStatusUpdate('draft')}
-                                disabled={savingStatus}
+                                loading={savingStatus && weddingStatus === 'live'}
+                                disabled={savingStatus && weddingStatus !== 'live'}
                                 sx={{
-                                    ...SECONDARY_BUTTON_SX,
                                     py: 1.5,
                                     '&.Mui-disabled': {
                                         bgcolor: 'rgba(255, 255, 255, 0.5)',
@@ -391,8 +377,8 @@ export default function AdminPublishButton({
                                     },
                                 }}
                             >
-                                {savingStatus && weddingStatus === 'live' ? 'Unpublishing...' : 'Unpublish'}
-                            </Button>
+                                Unpublish
+                            </SecondaryActionButton>
                         </Box>
                     </Box>
                 </Stack>

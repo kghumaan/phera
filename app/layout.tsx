@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { Outfit, Instrument_Serif } from "next/font/google";
+import { Outfit, Instrument_Serif, Ballet, Tenor_Sans, Petit_Formal_Script, Forum, Cormorant } from "next/font/google";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { ClientThemeProvider } from '@/components/shared/ThemeProvider';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
@@ -23,6 +23,41 @@ const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
   weight: ["400"],
   style: ["normal", "italic"],
+  display: 'swap',
+});
+
+const ballet = Ballet({
+  variable: "--font-ballet",
+  subsets: ["latin"],
+  weight: ["400"],
+  display: 'swap',
+});
+
+const tenorSans = Tenor_Sans({
+  variable: "--font-tenor-sans",
+  subsets: ["latin"],
+  weight: ["400"],
+  display: 'swap',
+});
+
+const petitFormalScript = Petit_Formal_Script({
+  variable: "--font-petit-formal-script",
+  subsets: ["latin"],
+  weight: ["400"],
+  display: 'swap',
+});
+
+const forum = Forum({
+  variable: "--font-forum",
+  subsets: ["latin"],
+  weight: ["400"],
+  display: 'swap',
+});
+
+const cormorant = Cormorant({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["600"],
   display: 'swap',
 });
 
@@ -124,7 +159,7 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body className={`${outfit.variable} ${instrumentSerif.variable} antialiased`}>
+      <body className={`${outfit.variable} ${instrumentSerif.variable} ${ballet.variable} ${tenorSans.variable} ${petitFormalScript.variable} ${forum.variable} ${cormorant.variable} antialiased`}>
         <ErrorBoundary>
           <AppRouterCacheProvider>
             <ClientThemeProvider>

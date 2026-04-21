@@ -11,8 +11,8 @@ import {
   alpha,
   CircularProgress,
   Snackbar,
-  Alert,
 } from '@mui/material';
+import { SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 import { useState } from 'react';
 import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
@@ -20,6 +20,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Send } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import AppFooter from '@/components/shared/AppFooter';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -87,10 +88,10 @@ export default function ContactPage() {
                 <Typography
                   variant="h2"
                   sx={{
-                    fontFamily: 'var(--font-instrument-serif)',
+                    fontFamily: FONTS.display,
                     fontStyle: 'italic',
                     fontSize: { xs: '2.5rem', md: '3.5rem' },
-                    color: '#1a1a1a',
+                    color: COLORS.text.strong,
                     mb: 1,
                   }}
                 >
@@ -166,14 +167,14 @@ export default function ContactPage() {
                       size="large"
                       startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Send />}
                       sx={{
-                        bgcolor: '#DE3F5E',
+                        bgcolor: COLORS.brand.primary,
                         color: 'white',
                         py: 2,
-                        borderRadius: '16px',
+                        borderRadius: RADII.lg,
                         fontSize: '1.1rem',
                         fontWeight: 700,
                         textTransform: 'none',
-                        '&:hover': { bgcolor: '#C8365A' },
+                        '&:hover': { bgcolor: COLORS.brand.primaryHover },
                         boxShadow: '0 8px 16px rgba(222, 63, 94, 0.2)',
                       }}
                     >
@@ -193,9 +194,9 @@ export default function ContactPage() {
         onClose={() => setSuccess(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert onClose={() => setSuccess(false)} severity="success" sx={{ width: '100%', borderRadius: '12px' }}>
+        <SuccessAlert onClose={() => setSuccess(false)} sx={{ width: '100%' }}>
           Message sent successfully! We'll get back to you soon.
-        </Alert>
+        </SuccessAlert>
       </Snackbar>
 
       <Snackbar
@@ -204,9 +205,9 @@ export default function ContactPage() {
         onClose={() => setError(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%', borderRadius: '12px' }}>
+        <ErrorAlert onClose={() => setError(null)} sx={{ width: '100%' }}>
           {error}
-        </Alert>
+        </ErrorAlert>
       </Snackbar>
       <AppFooter />
     </OptimizedBackground>
@@ -215,16 +216,16 @@ export default function ContactPage() {
 
 const textFieldSx = {
   '& .MuiOutlinedInput-root': {
-    borderRadius: '16px',
+    borderRadius: RADII.lg,
     '& fieldset': {
       borderColor: alpha('#000', 0.15),
     },
     '&:hover fieldset': {
-      borderColor: '#DE3F5E',
+      borderColor: COLORS.brand.primary,
     },
     '&.Mui-focused fieldset': {
       borderWidth: '2px',
-      borderColor: '#DE3F5E',
+      borderColor: COLORS.brand.primary,
     },
     '& input::placeholder': {
       color: '#444',
@@ -240,7 +241,7 @@ const textFieldSx = {
     fontWeight: 500,
   },
   '& .MuiInputLabel-root.Mui-focused': {
-    color: '#DE3F5E',
+    color: COLORS.brand.primary,
   },
 };
 

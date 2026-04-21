@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export async function generateMetadata({ params }: { params: Promise<{ weddingSlug: string }> }): Promise<Metadata> {
   const { weddingSlug } = await params;

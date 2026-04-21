@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import { LocationOn, Search, Edit, Clear } from '@mui/icons-material';
 import { Coordinates } from '@/lib/supabase/types';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface LocationPickerProps {
   value?: {
@@ -222,20 +223,20 @@ export default function LocationPicker({
             p: 1.5,
             display: 'flex',
             alignItems: 'center',
-            bgcolor: alpha('#DE3F5E', 0.03),
+            bgcolor: alpha(COLORS.brand.primary, 0.03),
             border: '1px solid',
-            borderColor: alpha('#DE3F5E', 0.2),
+            borderColor: alpha(COLORS.brand.primary, 0.2),
             borderRadius: 1,
             minHeight: 40,
             width: '100%',
           }}
         >
-          <LocationOn sx={{ color: '#DE3F5E', mr: 1, fontSize: 20, flexShrink: 0 }} />
+          <LocationOn sx={{ color: COLORS.brand.primary, mr: 1, fontSize: 20, flexShrink: 0 }} />
           <Box sx={{ flex: 1, overflow: 'hidden', minWidth: 0 }}>
             <Typography
               sx={{
                 fontWeight: 600,
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
                 fontSize: '0.9rem',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -248,7 +249,7 @@ export default function LocationPicker({
               <Typography
                 variant="caption"
                 sx={{
-                  color: '#6a6a6a',
+                  color: COLORS.text.subtle,
                   display: 'block',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -268,8 +269,8 @@ export default function LocationPicker({
             sx={{
               ml: 1,
               flexShrink: 0,
-              color: '#6a6a6a',
-              '&:hover': { color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.05) },
+              color: COLORS.text.subtle,
+              '&:hover': { color: COLORS.brand.primary, bgcolor: alpha(COLORS.brand.primary, 0.05) },
             }}
           >
             <Edit fontSize="small" />
@@ -282,8 +283,8 @@ export default function LocationPicker({
             }}
             sx={{
               flexShrink: 0,
-              color: '#6a6a6a',
-              '&:hover': { color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.05) },
+              color: COLORS.text.subtle,
+              '&:hover': { color: COLORS.brand.primary, bgcolor: alpha(COLORS.brand.primary, 0.05) },
             }}
           >
             <Clear fontSize="small" />
@@ -300,35 +301,35 @@ export default function LocationPicker({
           placeholder={label ? undefined : placeholder}
           disabled={disabled}
           InputProps={{
-            startAdornment: <Search sx={{ color: '#6a6a6a', mr: 1, fontSize: 20 }} />,
+            startAdornment: <Search sx={{ color: COLORS.text.subtle, mr: 1, fontSize: 20 }} />,
             endAdornment: loading ? (
-              <CircularProgress size={20} sx={{ color: '#DE3F5E' }} />
+              <CircularProgress size={20} sx={{ color: COLORS.brand.primary }} />
             ) : null,
           }}
           sx={{
             '& .MuiOutlinedInput-root': {
-              bgcolor: 'white',
-              borderRadius: '12px',
+              bgcolor: COLORS.bg.white,
+              borderRadius: RADII.md,
               '& .MuiInputBase-input': {
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
                 py: { xs: 1.5, md: 1.75, lg: 2 },
               },
               '& fieldset': {
                 borderColor: 'rgba(0, 0, 0, 0.23)',
               },
               '&:hover fieldset': {
-                borderColor: '#DE3F5E',
+                borderColor: COLORS.brand.primary,
               },
               '&.Mui-focused fieldset': {
-                borderColor: '#DE3F5E',
+                borderColor: COLORS.brand.primary,
                 borderWidth: '2px',
               },
             },
             '& .MuiInputLabel-root': {
-              color: '#4a4a4a',
+              color: COLORS.text.muted,
               fontWeight: 500,
               '&.Mui-focused': {
-                color: '#DE3F5E',
+                color: COLORS.brand.primary,
               },
             },
           }}
@@ -347,7 +348,7 @@ export default function LocationPicker({
             zIndex: 1000,
             mt: 0.5,
             borderRadius: 2,
-            bgcolor: 'white',
+            bgcolor: COLORS.bg.white,
             overflow: 'hidden',
             maxHeight: 300,
             overflowY: 'auto',
@@ -361,23 +362,23 @@ export default function LocationPicker({
                 sx={{
                   py: 1.5,
                   '&:hover': {
-                    bgcolor: alpha('#DE3F5E', 0.05),
+                    bgcolor: alpha(COLORS.brand.primary, 0.05),
                   },
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 40 }}>
-                  <LocationOn sx={{ color: '#DE3F5E' }} />
+                  <LocationOn sx={{ color: COLORS.brand.primary }} />
                 </ListItemIcon>
                 <ListItemText
                   primary={
-                    <Typography sx={{ fontWeight: 500, color: '#1a1a1a', fontSize: '0.9rem' }}>
+                    <Typography sx={{ fontWeight: 500, color: COLORS.text.strong, fontSize: '0.9rem' }}>
                       {feature.text}
                     </Typography>
                   }
                   secondary={
                     <Typography
                       variant="caption"
-                      sx={{ color: '#6a6a6a', display: 'block', mt: 0.25 }}
+                      sx={{ color: COLORS.text.subtle, display: 'block', mt: 0.25 }}
                     >
                       {feature.place_name}
                     </Typography>
@@ -403,10 +404,10 @@ export default function LocationPicker({
             borderRadius: 1,
             p: 2,
             textAlign: 'center',
-            bgcolor: 'white'
+            bgcolor: COLORS.bg.white
           }}
         >
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             No locations found. Try a different search.
           </Typography>
         </Paper>

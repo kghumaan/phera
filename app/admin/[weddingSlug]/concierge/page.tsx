@@ -2,35 +2,36 @@
 
 import {
   Box,
-  Button,
   Typography,
   Stack,
   Paper,
   Avatar,
   Chip,
-  Switch,
-  Divider,
+    Divider,
   Tabs,
   Tab,
   CircularProgress,
   IconButton,
   Tooltip,
 } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material';
 import React, { useState, use, useEffect } from 'react';
-import { WhatsApp, LockOutlined, CheckCircleOutline, InfoOutlined, PhoneAndroid, ContentCopy } from '@mui/icons-material';
+import { useSearchParams } from 'next/navigation';
+import { WhatsApp, LockOutlined, CheckCircleOutline, PhoneAndroid, ContentCopy, AutoAwesome, Bolt, Schedule, Campaign } from '@mui/icons-material';
 import { usePlan } from '@/lib/contexts/PlanContext';
-import { useAuth } from '@/lib/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
-import ConciergeDashboard from '@/components/admin/concierge/ConciergeDashboard';
 import ConciergeConversations from '@/components/admin/concierge/ConciergeConversations';
 import ConciergeKnowledgeBase from '@/components/admin/concierge/ConciergeKnowledgeBase';
-
-const BETA_ACCESS_EMAILS = [
-  'kv.s.ghumaan@gmail.com',
-  'savani.simran@google.com',
-];
+import ConciergeBroadcasts from '@/components/admin/concierge/ConciergeBroadcasts';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
+import { PheraCard } from '@/components/shared/Card';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { StatCard } from '@/components/shared/StatCard';
+import { PheraChip } from '@/components/shared/Chip';
 
 const mockChats = [
   { name: 'Priya Sharma', avatar: 'PS', time: '2h ago', message: 'What time does the shuttle leave from the Oberoi on Saturday?', status: 'answered' },
@@ -59,16 +60,39 @@ const notifications = [
 export default function ConciergePage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
-  const { user } = useAuth();
   const { isViewOnly } = useAdminRole();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [requestStatus, setRequestStatus] = useState<'idle' | 'checking' | 'submitting' | 'success' | 'error'>('idle');
   const [activeTab, setActiveTab] = useState(0);
   const [weddingId, setWeddingId] = useState<string | null>(null);
+  const [conciergeEnabled, setConciergeEnabled] = useState<boolean | null>(null);
+  const [enabling, setEnabling] = useState(false);
+  const [generatingKB, setGeneratingKB] = useState(false);
   const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
   const [phoneCopied, setPhoneCopied] = useState(false);
+  const [conciergePhone, setConciergePhone] = useState('');
+  const searchParams = useSearchParams();
 
-  const conciergePhone = '+1 (555) 839-7813';
+  // Fetch the configured phone number (shared with Coordinator — driven by
+  // COORDINATOR_PHONE_NUMBER env var so both features show the same number).
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/vendors/coordinator-info');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.phoneNumber) setConciergePhone(data.phoneNumber);
+      } catch {}
+    })();
+  }, []);
+
+  // Deep-link: if ?guest=<id> is in URL, auto-select that guest and switch to conversations tab
+  useEffect(() => {
+    const guestParam = searchParams.get('guest');
+    if (guestParam) {
+      setSelectedGuestId(guestParam);
+      setActiveTab(2); // Switch to Conversations tab (index 2)
+    }
+  }, [searchParams]);
 
   const handleCopyPhone = async () => {
     try {
@@ -78,297 +102,367 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
     } catch {}
   };
 
-  const isBetaUser = BETA_ACCESS_EMAILS.includes(user?.email?.toLowerCase() || '');
+  // Demo weddings skip the enablement gate entirely — the point of the demo
+  // is to show what a live Concierge looks like, not to ask the visitor to
+  // click "Enable". The dashboard below falls back to mocked chats/stats
+  // when there's no real data yet.
+  const isDemo = weddingSlug.startsWith('demo');
 
-  // Load wedding ID
+  // Load wedding ID + concierge_enabled flag for pro users.
   useEffect(() => {
-    if (isPro && isBetaUser) {
-      const loadWeddingId = async () => {
-        const { data: wedding } = await (supabase as any)
-          .from('weddings')
-          .select('id')
-          .eq('slug', weddingSlug)
-          .single();
-        if (wedding) setWeddingId(wedding.id);
-      };
-      loadWeddingId();
-    }
-  }, [isPro, isBetaUser, weddingSlug]);
+    if (!isPro) return;
+    (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- weddings table is not in generated supabase types
+      const { data: wedding } = await (supabase as any)
+        .from('weddings')
+        .select('id')
+        .eq('slug', weddingSlug)
+        .single();
+      if (!wedding) return;
+      setWeddingId(wedding.id);
+      if (isDemo) {
+        // Skip the DB read and force-enable for demo.
+        setConciergeEnabled(true);
+        return;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_settings table is not in generated supabase types
+      const { data: settings } = await (supabase as any)
+        .from('wedding_settings')
+        .select('concierge_enabled')
+        .eq('wedding_id', wedding.id)
+        .maybeSingle();
+      setConciergeEnabled(!!settings?.concierge_enabled);
+    })();
+  }, [isPro, weddingSlug, isDemo]);
 
-  // Early access request check (for non-beta Pro users)
-  useEffect(() => {
-    if (isPro && !isBetaUser && user?.email) {
-      const checkExistingRequest = async () => {
-        const hasRequestedLocal = localStorage.getItem(`phera_concierge_requested_${user.email.toLowerCase()}`);
-        if (hasRequestedLocal === 'true') {
-          setRequestStatus('success');
-          return;
-        }
-
-        setRequestStatus('checking');
-        try {
-          const { data, error } = await (supabase as any)
-            .from('contact_submissions')
-            .select('id')
-            .eq('email', user.email.toLowerCase())
-            .eq('message', 'Guest Concierge: Early Preview Setup Request')
-            .limit(1);
-
-          if (error) {
-            setRequestStatus('idle');
-            return;
-          }
-
-          if (data && data.length > 0) {
-            setRequestStatus('success');
-            localStorage.setItem(`phera_concierge_requested_${user.email.toLowerCase()}`, 'true');
-          } else {
-            setRequestStatus('idle');
-          }
-        } catch {
-          setRequestStatus('idle');
-        }
-      };
-
-      checkExistingRequest();
-    }
-  }, [isPro, isBetaUser, user?.email]);
-
-  const handleRequestSetup = async () => {
-    if (isViewOnly) return;
-    if (!user?.email) return;
-    setRequestStatus('submitting');
+  const handleEnableConcierge = async () => {
+    if (isViewOnly || !weddingId || enabling) return;
+    setEnabling(true);
     try {
-      const { error } = await (supabase as any)
-        .from('contact_submissions')
-        .insert([{
-          name: user.name || 'Admin',
-          email: user.email.toLowerCase(),
-          message: 'Guest Concierge: Early Preview Setup Request'
-        }]);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_settings table is not in generated supabase types
+      const { data: existing } = await (supabase as any)
+        .from('wedding_settings')
+        .select('id')
+        .eq('wedding_id', weddingId)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (existing) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_settings table is not in generated supabase types
+        await (supabase as any)
+          .from('wedding_settings')
+          .update({ concierge_enabled: true, concierge_enabled_at: new Date().toISOString() })
+          .eq('wedding_id', weddingId);
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_settings table is not in generated supabase types
+        await (supabase as any)
+          .from('wedding_settings')
+          .insert({
+            wedding_id: weddingId,
+            concierge_enabled: true,
+            concierge_enabled_at: new Date().toISOString(),
+            pin_codes: [],
+            whatsapp_group_link: '',
+            google_sheets_id: '',
+            lapse_event_codes: {},
+          });
+      }
+      setConciergeEnabled(true);
 
-      localStorage.setItem(`phera_concierge_requested_${user.email.toLowerCase()}`, 'true');
-      setRequestStatus('success');
-    } catch {
-      setRequestStatus('error');
+      // Seed the Knowledge Bank from the wedding's venue + dates so the
+      // agent has useful context the moment Concierge turns on. Best-effort
+      // — users can regenerate later from the KB tab.
+      setGeneratingKB(true);
+      try {
+        await fetch('/api/concierge/knowledge/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ weddingId }),
+        });
+      } catch (err) {
+        console.error('Auto KB generation failed:', err);
+      } finally {
+        setGeneratingKB(false);
+      }
+    } finally {
+      setEnabling(false);
     }
   };
 
-  const handleViewConversation = (guestId: string) => {
-    setSelectedGuestId(guestId);
-    setActiveTab(1);
-  };
-
-  // ─── State C: Beta user with Pro → Full tabbed dashboard ───
-  if ((isPro && isBetaUser) || weddingSlug.startsWith('demo-')) {
-    return (
-      <Box sx={{ maxWidth: 1000 }}>
-        <Stack spacing={3}>
-          <Box>
-            <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', flex: 1 }}>
-                Guest Concierge
-              </Typography>
-              <Chip
-                icon={<Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#4CAF50', ml: 1 }} />}
-                label="Concierge Active"
-                size="small"
-                sx={{
-                  bgcolor: 'rgba(76, 175, 80, 0.1)',
-                  color: '#4CAF50',
-                  fontWeight: 600,
-                  fontSize: '0.75rem',
-                  border: '1px solid rgba(76, 175, 80, 0.3)',
-                }}
-              />
-              <Paper
-                elevation={0}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: 2,
-                  py: 0.75,
-                  bgcolor: '#F8F8F8',
-                  borderRadius: 1,
-                  border: '1px solid rgba(0,0,0,0.07)',
-                }}
-              >
-                <PhoneAndroid sx={{ fontSize: 18, color: '#6a6a6a' }} />
-                <Typography variant="subtitle2" sx={{ color: '#1a1a1a', letterSpacing: 0.5 }}>
-                  {conciergePhone}
-                </Typography>
-              </Paper>
-              <Tooltip title={phoneCopied ? 'Copied!' : 'Copy Concierge number — this is our business number that guests can contact'} arrow>
-                <IconButton
-                  size="small"
-                  onClick={handleCopyPhone}
-                  sx={{ color: phoneCopied ? '#4CAF50' : '#6a6a6a' }}
-                >
-                  {phoneCopied ? <CheckCircleOutline fontSize="small" /> : <ContentCopy fontSize="small" />}
-                </IconButton>
-              </Tooltip>
-            </Stack>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-              24/7 WhatsApp concierge for your guests — powered by your wedding details
-            </Typography>
-          </Box>
-
-          <Tabs
-            value={activeTab}
-            onChange={(_, val) => {
-              setActiveTab(val);
-              if (val !== 1) setSelectedGuestId(null);
-            }}
-            sx={{
-              '& .MuiTab-root': {
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-                color: '#6a6a6a',
-                minHeight: 42,
-                '&.Mui-selected': { color: '#DE3F5E' },
-              },
-              '& .MuiTabs-indicator': { backgroundColor: '#DE3F5E' },
-            }}
-          >
-            <Tab label="Knowledge Bank" />
-            <Tab label="Conversations" />
-          </Tabs>
-
-          {weddingId ? (
-            <>
-              {activeTab === 0 && (
-                <ConciergeKnowledgeBase
-                  weddingId={weddingId}
-                  isViewOnly={isViewOnly}
-                />
-              )}
-              {activeTab === 1 && (
-                <ConciergeConversations
-                  weddingId={weddingId}
-                  initialGuestId={selectedGuestId}
-                />
-              )}
-            </>
-          ) : (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-              <CircularProgress size={28} sx={{ color: '#DE3F5E' }} />
-            </Box>
-          )}
-        </Stack>
-      </Box>
-    );
-  }
-
-  // ─── State B: Pro but NOT beta → Early Preview request ───
+  // ─── Pro users ───────────────────────────────────────────────────
+  // Pro + concierge_enabled → tabbed dashboard.
+  // Pro + not enabled → intro/marketing page with Enable button.
   if (isPro) {
+    // Still loading flag.
+    if (conciergeEnabled === null) {
+      return (
+        <Box sx={{ maxWidth: 1000, display: 'flex', justifyContent: 'center', p: 8 }}>
+          <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
+        </Box>
+      );
+    }
+
+    // Seeding the Knowledge Bank right after enable — show a dedicated
+    // status screen so users know what's happening before the dashboard
+    // renders with populated entries.
+    if (generatingKB) {
+      return (
+        <Box sx={{ maxWidth: 1000 }}>
+          <Stack spacing={3} alignItems="center" sx={{ py: 10, px: 3 }}>
+            <CircularProgress size={44} sx={{ color: COLORS.brand.primary }} />
+            <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong, textAlign: 'center' }}>
+              Building your Concierge&apos;s knowledge bank
+            </Typography>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle, textAlign: 'center', maxWidth: 460, lineHeight: 1.65 }}>
+              Generating venue details, event timing, and local guides for your wedding — so the agent has context from the moment your first guest messages in. Takes about 20 seconds.
+            </Typography>
+          </Stack>
+        </Box>
+      );
+    }
+
+    // Enabled → active dashboard (Knowledge Bank / Conversations / Broadcasts).
+    if (conciergeEnabled) {
+      return (
+        <Box sx={{ maxWidth: 1000 }}>
+          <Stack spacing={3}>
+            <Box>
+              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, flex: 1 }}>
+                  Guest Concierge
+                </Typography>
+                <Tooltip
+                  title="This is the WhatsApp number your guests message. Phera's Concierge answers from this line 24/7."
+                  arrow
+                >
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      px: 2,
+                      py: 0.75,
+                      bgcolor: COLORS.bg.subtle,
+                      borderRadius: 1,
+                      border: '1px solid rgba(0,0,0,0.07)',
+                      cursor: 'help',
+                    }}
+                  >
+                    <PhoneAndroid sx={{ fontSize: 18, color: COLORS.text.subtle }} />
+                    <Typography variant="subtitle2" sx={{ color: COLORS.text.strong, letterSpacing: 0.5 }}>
+                      {conciergePhone}
+                    </Typography>
+                  </Paper>
+                </Tooltip>
+                <Tooltip title={phoneCopied ? 'Copied!' : 'Copy Concierge number — this is our business number that guests can contact'} arrow>
+                  <IconButton
+                    size="small"
+                    onClick={handleCopyPhone}
+                    sx={{ color: phoneCopied ? COLORS.accent.success : COLORS.text.subtle }}
+                  >
+                    {phoneCopied ? <CheckCircleOutline fontSize="small" /> : <ContentCopy fontSize="small" />}
+                  </IconButton>
+                </Tooltip>
+              </Stack>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
+                24/7 WhatsApp concierge for your guests — powered by your wedding details
+              </Typography>
+            </Box>
+
+            <Tabs
+              value={activeTab}
+              onChange={(_, val) => {
+                setActiveTab(val);
+                if (val !== 2) setSelectedGuestId(null);
+              }}
+              sx={{
+                '& .MuiTab-root': {
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  color: COLORS.text.subtle,
+                  minHeight: 42,
+                  '&.Mui-selected': { color: COLORS.brand.primary },
+                },
+                '& .MuiTabs-indicator': { backgroundColor: COLORS.brand.primary },
+              }}
+            >
+              <Tab label="Knowledge Bank" />
+              <Tab label="Broadcast Messages" />
+              <Tab label="Conversations" />
+            </Tabs>
+
+            {weddingId ? (
+              <>
+                {activeTab === 0 && (
+                  <ConciergeKnowledgeBase
+                    weddingId={weddingId}
+                    isViewOnly={isViewOnly}
+                  />
+                )}
+                {activeTab === 1 && (
+                  <ConciergeBroadcasts
+                    weddingId={weddingId}
+                    weddingSlug={weddingSlug}
+                    isViewOnly={isViewOnly}
+                  />
+                )}
+                {activeTab === 2 && (
+                  <ConciergeConversations
+                    weddingId={weddingId}
+                    initialGuestId={selectedGuestId}
+                  />
+                )}
+              </>
+            ) : (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
+                <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
+              </Box>
+            )}
+          </Stack>
+        </Box>
+      );
+    }
+
+    // Not enabled → marketing intro page with Enable CTA.
+    const features: Array<{ icon: React.ComponentType<{ sx?: SxProps<Theme> }>; title: string; body: string }> = [
+      {
+        icon: AutoAwesome,
+        title: 'Answers on autopilot',
+        body: 'Shuttle times, venue addresses, dress codes, dietary questions — answered in seconds using your wedding details.',
+      },
+      {
+        icon: Schedule,
+        title: 'Reminders before every event',
+        body: 'Nudge guests before each ceremony, shuttle, or change break so no one misses a moment.',
+      },
+      {
+        icon: Campaign,
+        title: 'Broadcast & collect in one tap',
+        body: 'Send updates to everyone or targeted groups — and when you need info back (flight details, dietary preferences, hotel check-in times), collect it right in the same thread.',
+      },
+      {
+        icon: Bolt,
+        title: 'You stay in control',
+        body: 'Review every conversation, edit knowledge the AI uses, and jump in personally whenever you want.',
+      },
+    ];
+
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={4}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-              Guest Concierge
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-              24/7 WhatsApp concierge for your guests — powered by your wedding details
-            </Typography>
-          </Box>
+          <PageHeading
+            title="Guest Concierge"
+            subtitle="24/7 WhatsApp assistant for your guests — powered by your wedding details"
+          />
 
-          <Paper
-            elevation={0}
-            sx={{
-              p: { xs: 4, md: 8 },
-              borderRadius: '32px',
-              bgcolor: 'white',
-              border: '1px solid rgba(0, 0, 0, 0.08)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-            }}
-          >
-            <Box
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: '20px',
-                bgcolor: '#DE3F5E10',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 3,
-              }}
-            >
-              <InfoOutlined sx={{ fontSize: 32, color: '#DE3F5E' }} />
-            </Box>
-
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: '#1a1a1a' }}>
-              Early Preview Mode
-            </Typography>
-
-            <Typography variant="body2" sx={{ color: '#4a4a4a', maxWidth: 500, mb: 4, lineHeight: 1.6 }}>
-              Guest Concierge is currently in early preview. We are rolling this out to our Pro members in batches to ensure the best experience for you and your guests.
-            </Typography>
-
-            {requestStatus === 'checking' ? (
-              <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
-            ) : requestStatus === 'success' ? (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  p: 3,
-                  bgcolor: '#F1F8E9',
-                  borderRadius: '16px',
-                  border: '1px solid #C5E1A5',
-                }}
-              >
-                <CheckCircleOutline sx={{ color: '#2E7D32', fontSize: 28 }} />
-                <Typography variant="body2" sx={{ color: '#1B5E20', fontWeight: 600 }}>
-                  We've received your request! Someone from our team will be in touch shortly to get you set up.
-                </Typography>
-              </Box>
-            ) : (
-              <Stack spacing={2} alignItems="center">
-                <Button
-                  variant="contained"
-                  disabled={requestStatus === 'submitting'}
-                  onClick={handleRequestSetup}
+          <PheraCard variant="default" sx={{ p: { xs: 3, md: 5 } }}>
+            <Stack spacing={3} alignItems="flex-start">
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 2, flexWrap: 'wrap' }}>
+                <Box
                   sx={{
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    px: 4,
-                    py: 1.5,
-                    borderRadius: '14px',
-                    fontWeight: 700,
-                    textTransform: 'none',
-                    fontSize: '1rem',
-                    boxShadow: '0 8px 16px rgba(222, 63, 94, 0.2)',
-                    '&:hover': { bgcolor: '#c73552' },
-                    '&.Mui-disabled': { bgcolor: '#DE3F5E80', color: 'rgba(255,255,255,0.8)' }
+                    width: 56,
+                    height: 56,
+                    borderRadius: RADII.lg,
+                    bgcolor: '#DE3F5E12',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  {requestStatus === 'submitting' ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    'Request Early Access'
-                  )}
-                </Button>
-                {requestStatus === 'error' && (
-                  <Typography variant="caption" sx={{ color: '#d32f2f' }}>
-                    Something went wrong. Please try again or contact support.
-                  </Typography>
-                )}
-              </Stack>
-            )}
-          </Paper>
+                  <WhatsApp sx={{ fontSize: 28, color: COLORS.brand.primary }} />
+                </Box>
+                <PrimaryActionButton
+                  startIcon={<WhatsApp />}
+                  onClick={handleEnableConcierge}
+                  loading={enabling}
+                  disabled={isViewOnly || !weddingId}
+                  sx={{
+                    px: 3,
+                    py: 1.25,
+                    fontSize: '0.9rem',
+                    flexShrink: 0,
+                    boxShadow: '0 4px 16px rgba(222, 63, 94, 0.25)',
+                  }}
+                >
+                  Enable Guest Concierge
+                </PrimaryActionButton>
+              </Box>
+
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 1 }}>
+                  Give every guest a personal concierge
+                </Typography>
+                <Typography variant="body1" sx={{ color: COLORS.text.muted, lineHeight: 1.65 }}>
+                  Guests always have the same handful of questions — shuttle times, dress code, where to park. Concierge answers all of it over WhatsApp, 24/7, so you don&apos;t have to. When you&apos;re ready, flip it on and we&apos;ll do the rest.
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+                  gap: 2,
+                  width: '100%',
+                  mt: 1,
+                }}
+              >
+                {features.map(({ icon: Icon, title, body }) => (
+                  <Box
+                    key={title}
+                    sx={{
+                      display: 'flex',
+                      gap: 1.5,
+                      alignItems: 'flex-start',
+                      p: 2,
+                      borderRadius: 1,
+                      border: '1px solid rgba(0,0,0,0.07)',
+                      bgcolor: COLORS.bg.subtle,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 1,
+                        bgcolor: COLORS.bg.white,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        border: '1px solid rgba(0,0,0,0.06)',
+                      }}
+                    >
+                      <Icon sx={{ fontSize: 18, color: COLORS.brand.primary }} />
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.9rem', mb: 0.25 }}>
+                        {title}
+                      </Typography>
+                      <Typography sx={{ color: COLORS.text.muted, fontSize: '0.875rem', lineHeight: 1.55 }}>
+                        {body}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+
+              <Box
+                sx={{
+                  mt: 1,
+                  p: 2.5,
+                  borderRadius: 1,
+                  bgcolor: '#DE3F5E08',
+                  border: '1px solid rgba(222, 63, 94, 0.15)',
+                  width: '100%',
+                }}
+              >
+                <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
+                  <strong style={{ color: COLORS.text.strong }}>How it works:</strong> Click Enable. We spin up a dedicated WhatsApp line for your wedding. You fill your Knowledge Bank (or let AI draft it from your wedding details), send broadcasts to your guests, and review every conversation from this page.
+                </Typography>
+              </Box>
+            </Stack>
+          </PheraCard>
         </Stack>
       </Box>
     );
@@ -380,40 +474,24 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
       <Stack spacing={3}>
 
         {/* Header row */}
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-              Guest Concierge
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-              24/7 WhatsApp concierge for your guests — powered by your wedding details
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            startIcon={<WhatsApp />}
-            onClick={() => setUpgradeModalOpen(true)}
-            sx={{
-              bgcolor: '#DE3F5E',
-              color: 'white',
-              px: 3,
-              py: 1.25,
-              borderRadius: 2,
-              fontWeight: 600,
-              textTransform: 'none',
-              fontSize: '0.9rem',
-              flexShrink: 0,
-              '&:hover': { bgcolor: '#c73552' },
-            }}
-          >
-            Upgrade to Pro
-          </Button>
-        </Box>
+        <PageHeading
+          title="Guest Concierge"
+          subtitle="24/7 WhatsApp concierge for your guests — powered by your wedding details"
+          actions={
+            <PrimaryActionButton
+              startIcon={<WhatsApp />}
+              onClick={() => setUpgradeModalOpen(true)}
+              sx={{ px: 3, py: 1.25, fontSize: '0.9rem' }}
+            >
+              Upgrade to Pro
+            </PrimaryActionButton>
+          }
+        />
 
         {/* Description */}
         <Box sx={{ maxWidth: 640 }}>
-          <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
-            Leading up to your wedding, guests will have a lot of questions — and most of them are ones you've already answered on your website. <strong>Guest Concierge is your defense layer</strong>: a 24/7 WhatsApp assistant that handles it all, so you don't have to.
+          <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.75, mb: 1.25 }}>
+            Leading up to your wedding, guests will have a lot of questions — and most of them are ones you&apos;ve already answered on your website. <strong>Guest Concierge is your defense layer</strong>: a 24/7 WhatsApp assistant that handles it all, so you don&apos;t have to.
           </Typography>
           <Stack spacing={0.6} sx={{ pl: 0 }}>
             {([
@@ -425,13 +503,13 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               <>Instantly <strong>broadcast a message to your entire guest list</strong> — urgent news, last-minute changes, or anything exciting</>,
             ] as React.ReactNode[]).map((content, i) => (
               <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                <Typography variant="body2" sx={{ color: '#DE3F5E', lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
-                <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.65 }}>{content}</Typography>
+                <Typography variant="body2" sx={{ color: COLORS.brand.primary, lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
+                <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.65 }}>{content}</Typography>
               </Box>
             ))}
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-              <Typography variant="body2" sx={{ color: '#DE3F5E', lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
-              <Typography variant="body2" sx={{ color: '#9a9a9a', lineHeight: 1.65, fontStyle: 'italic' }}>and lots more</Typography>
+              <Typography variant="body2" sx={{ color: COLORS.brand.primary, lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
+              <Typography variant="body2" sx={{ color: COLORS.text.faint, lineHeight: 1.65, fontStyle: 'italic' }}>and lots more</Typography>
             </Box>
           </Stack>
         </Box>
@@ -445,70 +523,61 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
             {/* Stats row */}
             <Box sx={{ display: 'flex', gap: 2, mb: 2.5, flexWrap: 'wrap' }}>
               {mockStats.map((stat) => (
-                <Paper key={stat.label} elevation={0} sx={{ flex: 1, minWidth: 120, p: 2.5, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: 'white' }}>
-                  <Typography sx={{ fontSize: '2rem', fontWeight: 700, color: '#1a1a1a', lineHeight: 1 }}>{stat.value}</Typography>
-                  <Typography variant="body2" sx={{ color: '#6a6a6a', mt: 0.5 }}>{stat.label}</Typography>
-                </Paper>
+                <StatCard key={stat.label} value={stat.value} label={stat.label} />
               ))}
             </Box>
 
             {/* Two-column layout */}
-            <Box sx={{ display: 'flex', gap: 2.5, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2.5 }}>
 
               {/* Guest chat list */}
-              <Paper elevation={0} sx={{ flex: 1.4, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', overflow: 'hidden', bgcolor: 'white' }}>
-                <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>Recent Guest Inquiries</Typography>
+              <PheraCard variant="default" sx={{ flex: { xs: 'none', md: 1.4 }, width: { xs: '100%', md: 'auto' }, overflow: 'hidden' }}>
+                <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${COLORS.border.faint}` }}>
+                  <Typography variant="subtitle2" sx={{ color: COLORS.text.strong }}>Recent Guest Inquiries</Typography>
                 </Box>
                 <Stack divider={<Divider />}>
                   {mockChats.map((chat) => (
                     <Box key={chat.name} sx={{ px: 2.5, py: 1.75, display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-                      <Avatar sx={{ width: 36, height: 36, bgcolor: '#DE3F5E15', color: '#DE3F5E', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}>
+                      <Avatar sx={{ width: 36, height: 36, bgcolor: COLORS.brand.primarySubtle, color: COLORS.brand.primary, fontSize: '0.875rem', fontWeight: 700, flexShrink: 0 }}>
                         {chat.avatar}
                       </Avatar>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.25 }}>
-                          <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1a1a' }}>{chat.name}</Typography>
-                          <Typography sx={{ fontSize: '0.75rem', color: '#9a9a9a', flexShrink: 0, ml: 1 }}>{chat.time}</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>{chat.name}</Typography>
+                          <Typography variant="caption" sx={{ color: COLORS.text.faint, flexShrink: 0, ml: 1 }}>{chat.time}</Typography>
                         </Box>
-                        <Typography sx={{ fontSize: '0.8rem', color: '#6a6a6a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {chat.message}
                         </Typography>
                       </Box>
-                      <Chip
+                      <PheraChip
                         label={chat.status}
                         size="small"
-                        sx={{
-                          fontSize: '0.7rem',
-                          height: 20,
-                          flexShrink: 0,
-                          bgcolor: chat.status === 'answered' ? '#E8F5E9' : '#FFF3E0',
-                          color: chat.status === 'answered' ? '#2E7D32' : '#E65100',
-                          fontWeight: 600,
-                        }}
+                        tone={chat.status === 'answered' ? 'success' : 'warning'}
+                        sx={{ flexShrink: 0 }}
                       />
                     </Box>
                   ))}
                 </Stack>
-              </Paper>
+              </PheraCard>
 
               {/* Notification toggles */}
-              <Paper elevation={0} sx={{ flex: 1, borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)', bgcolor: 'white', alignSelf: 'flex-start' }}>
-                <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>Guest Notifications</Typography>
+              <PheraCard variant="default" sx={{ flex: { xs: 'none', md: 1 }, width: { xs: '100%', md: 'auto' }, alignSelf: { md: 'flex-start' } }}>
+                <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${COLORS.border.faint}` }}>
+                  <Typography variant="subtitle2" sx={{ color: COLORS.text.strong }}>Guest Notifications</Typography>
                 </Box>
                 <Stack divider={<Divider />}>
                   {notifications.map((n) => (
                     <Box key={n.label} sx={{ px: 2.5, py: 1.75, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
                       <Box>
-                        <Typography sx={{ fontSize: '0.85rem', fontWeight: n.bold ? 700 : 500, color: '#1a1a1a' }}>{n.label}</Typography>
-                        <Typography sx={{ fontSize: '0.75rem', color: '#9a9a9a', mt: 0.25 }}>{n.desc}</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: n.bold ? 700 : 500, color: COLORS.text.strong }}>{n.label}</Typography>
+                        <Typography variant="caption" sx={{ color: COLORS.text.faint, mt: 0.25, display: 'block' }}>{n.desc}</Typography>
                       </Box>
-                      <Switch size="small" checked={n.enabled} readOnly sx={{ flexShrink: 0, '& .MuiSwitch-switchBase': { color: '#999' }, '& .MuiSwitch-track': { bgcolor: '#bbb' }, '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' } }} />
+                      <PheraSwitch size="small" checked={n.enabled} readOnly sx={{ flexShrink: 0 }} />
                     </Box>
                   ))}
                 </Stack>
-              </Paper>
+              </PheraCard>
 
             </Box>
           </Box>
@@ -532,34 +601,28 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
                 width: 56,
                 height: 56,
                 borderRadius: '50%',
-                bgcolor: 'white',
+                bgcolor: COLORS.bg.white,
                 boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
+              <LockOutlined sx={{ fontSize: 26, color: COLORS.brand.primary }} />
             </Box>
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               startIcon={<WhatsApp />}
               onClick={() => setUpgradeModalOpen(true)}
               sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
                 px: 3.5,
                 py: 1.5,
                 borderRadius: 2,
-                fontWeight: 600,
-                textTransform: 'none',
                 fontSize: '0.95rem',
                 boxShadow: '0 4px 20px rgba(222,63,94,0.35)',
-                '&:hover': { bgcolor: '#c73552' },
               }}
             >
               Unlock Guest Concierge
-            </Button>
+            </PrimaryActionButton>
           </Box>
 
         </Box>

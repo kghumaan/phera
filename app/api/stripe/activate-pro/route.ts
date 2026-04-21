@@ -5,6 +5,7 @@ import { autoGenerateForUser } from '@/lib/concierge/generate-knowledge';
 
 export async function POST(request: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     apiVersion: '2025-08-27.basil' as any,
   });
 
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-    if (session.payment_status !== 'paid') {
+    if (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required') {
       return NextResponse.json({ error: 'Payment not completed' }, { status: 400 });
     }
 
@@ -31,14 +32,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No user ID in session metadata' }, { status: 400 });
     }
 
-    const tier = session.metadata?.tier || 'pro';
+    const tier = session.metadata?.tier || 'base';
+    // Any paid non-planner tier grants Pro access; planner tiers grant Planner access.
+    const accountType = session.metadata?.accountType || 'pro';
 
     const upsertData: Record<string, string> = {
       user_id: userId,
-      subscription_tier: tier,
+      subscription_tier: accountType,
       updated_at: new Date().toISOString(),
     };
-    if (tier === 'planner') {
+    if (accountType === 'planner') {
       upsertData.account_type = 'planner';
     }
 
@@ -56,7 +59,7 @@ export async function POST(request: NextRequest) {
       console.error('Auto KB generation failed:', err)
     );
 
-    return NextResponse.json({ success: true, tier });
+    return NextResponse.json({ success: true, tier, accountType });
   } catch (err) {
     console.error('Error in activate-pro:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

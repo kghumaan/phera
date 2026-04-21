@@ -27,7 +27,11 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const phoneNumber = process.env.COORDINATOR_PHONE_NUMBER || '';
+  // Phera uses ONE phone number for everything (guest concierge + vendor
+  // coordinator). PHERA_PHONE_NUMBER is the source of truth;
+  // COORDINATOR_PHONE_NUMBER is a legacy fallback for pre-consolidation
+  // deployments.
+  const phoneNumber = process.env.PHERA_PHONE_NUMBER || process.env.COORDINATOR_PHONE_NUMBER || '';
   const isConfigured = !!phoneNumber;
   const digits = phoneNumber.replace(/\D/g, '');
   const whatsappLink = isConfigured ? `https://wa.me/${digits}` : '';

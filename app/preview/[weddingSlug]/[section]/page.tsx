@@ -1,7 +1,8 @@
 'use client';
 
 import { use, useRef, useState, useEffect } from 'react';
-import { Box, Typography, Stack, useTheme, useMediaQuery, Button, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Box, Typography, Stack, useTheme, useMediaQuery, Button, ListItemIcon, ListItemText } from '@mui/material';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { Visibility, Lock, PersonOff, HowToReg } from '@mui/icons-material';
 import { redirect } from 'next/navigation';
 import { WeddingProvider, useWedding } from '@/lib/contexts/WeddingContext';
@@ -14,6 +15,7 @@ import SchedulePage from '@/app/(guest)/[weddingSlug]/schedule/page';
 import TravelPage from '@/app/(guest)/[weddingSlug]/travel/page';
 import RegistryPage from '@/app/(guest)/[weddingSlug]/registry/page';
 import WhereToShopPage from '@/app/(guest)/[weddingSlug]/where-to-shop/page';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const VALID_SECTIONS = ['schedule', 'travel', 'faq', 'registry', 'shopping'];
 
@@ -70,7 +72,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   return (
     <Box
       sx={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.bg.white,
         borderRadius: 8,
         px: { xs: 3, sm: 4, md: 5, lg: 5.5, xl: 6 },
         py: { xs: 1.5, sm: 1.75, md: 2, lg: 2.5, xl: 3 },
@@ -91,10 +93,9 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               variant="h4"
               sx={{
                 fontWeight: 400,
-                color: '#000000',
+                color: COLORS.text.strong,
                 fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem', lg: '2.25rem', xl: '2.75rem' },
                 lineHeight: 1.2,
-                fontFamily: 'Outfit, sans-serif',
               }}
             >
               {unit.value}
@@ -102,11 +103,10 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
             <Typography
               variant="caption"
               sx={{
-                color: '#000000',
+                color: COLORS.text.strong,
                 fontWeight: 400,
                 fontSize: { xs: '0.75rem', sm: '0.75rem', lg: '0.85rem', xl: '0.9rem' },
                 lineHeight: 1.4,
-                fontFamily: 'Outfit, sans-serif',
                 textAlign: 'center',
               }}
             >
@@ -145,7 +145,7 @@ function SectionPreviewContent({ section }: { section: string }) {
 
   if (isLoading) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ minHeight: { xs: '100svh', md: '100vh' }, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <LoadingSpinner message="" />
       </Box>
     );
@@ -153,8 +153,8 @@ function SectionPreviewContent({ section }: { section: string }) {
 
   if (error || !wedding) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography>Wedding not found or you don't have access</Typography>
+      <Box sx={{ minHeight: { xs: '100svh', md: '100vh' }, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography>Wedding not found or you don&apos;t have access</Typography>
       </Box>
     );
   }
@@ -190,7 +190,7 @@ function SectionPreviewContent({ section }: { section: string }) {
           bgcolor: 'rgba(0, 0, 0, 0.7)',
           color: 'white',
           backdropFilter: 'blur(8px)',
-          borderRadius: '20px',
+          borderRadius: RADII.xl,
           textTransform: 'none',
           fontWeight: 600,
           fontSize: '0.8rem',
@@ -202,7 +202,7 @@ function SectionPreviewContent({ section }: { section: string }) {
       >
         {PREVIEW_VIEW_OPTIONS.find(o => o.value === previewView)?.label || 'Change View'}
       </Button>
-      <Menu
+      <PheraMenu
         anchorEl={viewMenuAnchor}
         open={Boolean(viewMenuAnchor)}
         onClose={() => setViewMenuAnchor(null)}
@@ -222,7 +222,7 @@ function SectionPreviewContent({ section }: { section: string }) {
         }}
       >
         {PREVIEW_VIEW_OPTIONS.map((option) => (
-          <MenuItem
+          <PheraMenuItem
             key={option.value}
             selected={previewView === option.value}
             onClick={() => { setPreviewView(option.value); setViewMenuAnchor(null); }}
@@ -235,9 +235,9 @@ function SectionPreviewContent({ section }: { section: string }) {
           >
             <ListItemIcon>{option.icon}</ListItemIcon>
             <ListItemText>{option.label}</ListItemText>
-          </MenuItem>
+          </PheraMenuItem>
         ))}
-      </Menu>
+      </PheraMenu>
     </>
   );
 
@@ -276,7 +276,7 @@ function SectionPreviewContent({ section }: { section: string }) {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 36, height: 36, borderRadius: '50%', backgroundColor: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600, fontSize: '0.8rem' }}>
+            <Box sx={{ width: 36, height: 36, borderRadius: '50%', backgroundColor: COLORS.side.both, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text.inverse, fontWeight: 600, fontSize: '0.875rem' }}>
               KG
             </Box>
           </Box>
@@ -294,7 +294,7 @@ function SectionPreviewContent({ section }: { section: string }) {
           venue_flag: wedding.venue_flag || '',
           rsvp_deadline: wedding.rsvp_deadline,
           welcome_text: wedding.welcome_text || undefined,
-          registry_description: (wedding as any).registry_description || undefined,
+          registry_description: (wedding as { registry_description?: string | null }).registry_description || undefined,
           primary_color: wedding.primary_color || undefined,
           couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
         }}

@@ -1,14 +1,14 @@
 'use client';
 
 import {
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Typography,
   Button,
-  CircularProgress,
 } from '@mui/material';
+import { ActionButton } from './ActionButton';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -28,27 +28,21 @@ export default function ConfirmDialog({
   message,
   confirmLabel = 'Delete',
   cancelLabel = 'Cancel',
-  confirmColor = '#d32f2f',
+  confirmColor = COLORS.brand.primary,
   isLoading = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={onCancel}
       maxWidth="xs"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: '16px',
-          bgcolor: 'white',
-        },
-      }}
     >
-      <DialogTitle sx={{ color: '#1a1a1a', fontWeight: 600 }}>{title}</DialogTitle>
+      <PheraDialogTitle onClose={onCancel}>{title}</PheraDialogTitle>
       <DialogContent>
-        <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+        <Typography variant="body1" sx={{ color: COLORS.text.muted }}>
           {message}
         </Typography>
       </DialogContent>
@@ -56,24 +50,24 @@ export default function ConfirmDialog({
         <Button
           onClick={onCancel}
           sx={{
-            color: '#6a6a6a',
+            color: COLORS.text.subtle,
             textTransform: 'none',
             fontWeight: 600,
-            borderRadius: '12px',
+            borderRadius: RADII.md,
           }}
         >
           {cancelLabel}
         </Button>
-        <Button
+        <ActionButton
           variant="contained"
           onClick={onConfirm}
-          disabled={isLoading}
+          loading={isLoading}
           sx={{
             bgcolor: confirmColor,
-            color: 'white',
+            color: COLORS.text.inverse,
             textTransform: 'none',
             fontWeight: 600,
-            borderRadius: '12px',
+            borderRadius: RADII.md,
             minWidth: 80,
             '&:hover': {
               bgcolor: confirmColor,
@@ -81,9 +75,9 @@ export default function ConfirmDialog({
             },
           }}
         >
-          {isLoading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : confirmLabel}
-        </Button>
+          {confirmLabel}
+        </ActionButton>
       </DialogActions>
-    </Dialog>
+    </PheraDialog>
   );
 }

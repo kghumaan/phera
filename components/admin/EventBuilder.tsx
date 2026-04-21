@@ -8,8 +8,6 @@ import {
   Typography,
   Button,
   TextField,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Chip,
@@ -22,6 +20,7 @@ import {
   MenuItem,
   TextareaAutosize,
 } from '@mui/material';
+import { PrimaryActionButton } from './ActionButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -30,6 +29,8 @@ import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PeopleIcon from '@mui/icons-material/People';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog } from '@/components/shared/Dialog';
 
 interface WeddingEvent {
   id: string;
@@ -69,7 +70,7 @@ const eventTemplates = [
   {
     name: 'Wedding Ceremony',
     type: 'main',
-    color: '#800020', // Maroon
+    color: COLORS.cultural.maroon, // Maroon
     icon: '💍',
     description: 'Sacred wedding rituals and exchange of vows',
   },
@@ -140,7 +141,7 @@ export default function EventBuilder() {
     setEvents(events.filter(e => e.id !== eventId));
   };
 
-  const handleTemplateSelect = (template: any) => {
+  const handleTemplateSelect = (template: { name: string; type: string; color: string; icon: string; description: string }) => {
     setFormData({
       ...formData,
       name: template.name,
@@ -182,8 +183,7 @@ export default function EventBuilder() {
             Create and manage your wedding celebration timeline
           </Typography>
         </Box>
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           startIcon={<AddIcon />}
           onClick={handleAddEvent}
           sx={{
@@ -193,7 +193,7 @@ export default function EventBuilder() {
           }}
         >
           Add Event
-        </Button>
+        </PrimaryActionButton>
       </Box>
 
       {/* Events Grid */}
@@ -256,7 +256,7 @@ export default function EventBuilder() {
                       <IconButton onClick={() => handleEditEvent(event)} size="small">
                         <EditIcon />
                       </IconButton>
-                      <IconButton onClick={() => handleDeleteEvent(event.id)} size="small" color="error">
+                      <IconButton onClick={() => handleDeleteEvent(event.id)} size="small" sx={{ color: COLORS.text.subtle, '&:hover': { color: COLORS.brand.primary } }}>
                         <DeleteIcon />
                       </IconButton>
                     </Box>
@@ -309,32 +309,29 @@ export default function EventBuilder() {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 Start building your wedding timeline by adding your first event
               </Typography>
-              <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddEvent}>
+              <PrimaryActionButton startIcon={<AddIcon />} onClick={handleAddEvent}>
                 Create First Event
-              </Button>
+              </PrimaryActionButton>
             </CardContent>
           </Card>
         )}
       </Box>
 
       {/* Event Dialog */}
-      <Dialog 
-        open={isDialogOpen} 
+      <PheraDialog
+        open={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         maxWidth="md"
         fullWidth
-        PaperProps={{
-          sx: { borderRadius: 3 }
-        }}
       >
-        <DialogTitle sx={{ pb: 1 }}>
+        <Box sx={{ px: 3, pt: 3, pb: 1 }}>
           <Typography variant="h5" component="div">
             {editingEvent ? 'Edit Event' : 'Create New Event'}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {editingEvent ? 'Update your event details' : 'Add a new celebration to your wedding timeline'}
           </Typography>
-        </DialogTitle>
+        </Box>
         
         <DialogContent>
           {/* Template Selection */}
@@ -382,7 +379,7 @@ export default function EventBuilder() {
               </Select>
             </FormControl>
 
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
               <TextField
                 label="Date"
                 type="date"
@@ -431,15 +428,14 @@ export default function EventBuilder() {
           <Button onClick={() => setIsDialogOpen(false)}>
             Cancel
           </Button>
-          <Button 
-            variant="contained" 
+          <PrimaryActionButton
             onClick={handleSaveEvent}
             disabled={!formData.name || !formData.type}
           >
             {editingEvent ? 'Update Event' : 'Create Event'}
-          </Button>
+          </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
     </Box>
   );
 } 

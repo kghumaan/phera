@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import PlannerDashboard from '@/components/admin/PlannerDashboard';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -128,6 +129,7 @@ export default function AdminPage() {
           .from('weddings')
           .select('*')
           .eq('created_by', currentUser.id)
+          .not('slug', 'like', 'demo-%')
           .order('created_at', { ascending: false })
           .limit(1)
           .single();
@@ -178,7 +180,7 @@ export default function AdminPage() {
         alignItems: 'center',
         minHeight: '100vh'
       }}>
-        <CircularProgress sx={{ color: '#DE3F5E' }} />
+        <CircularProgress sx={{ color: COLORS.brand.primary }} />
       </Box>
     </OptimizedBackground>
   );

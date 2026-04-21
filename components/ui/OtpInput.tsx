@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { Box } from '@mui/material';
+import { FONTS, COLORS } from '@/lib/theme/tokens';
 
 interface OtpInputProps {
   length?: number;
@@ -101,28 +102,28 @@ export default function OtpInput({ length = 6, value, onChange, disabled = false
             height: { xs: 52, sm: 60 },
             borderRadius: '12px',
             border: '1.5px solid',
-            borderColor: digits[i] ? '#DE3F5E' : 'rgba(0, 0, 0, 0.23)',
+            borderColor: digits[i] ? COLORS.brand.primary : 'rgba(0, 0, 0, 0.23)',
             bgcolor: 'white',
             textAlign: 'center',
             fontSize: { xs: '22px', sm: '28px' },
             fontWeight: 600,
-            fontFamily: 'monospace',
-            color: '#1a1a1a',
+            fontFamily: FONTS.body,
+            color: COLORS.text.strong,
             outline: 'none',
-            caretColor: '#DE3F5E',
+            caretColor: COLORS.brand.primary,
             transition: 'border-color 0.15s ease',
             '&:focus': {
-              borderColor: '#DE3F5E',
+              borderColor: COLORS.brand.primary,
               borderWidth: '2px',
               boxShadow: '0 0 0 3px rgba(222, 63, 94, 0.1)',
             },
             '&:disabled': {
               bgcolor: 'rgba(255, 255, 255, 0.8)',
               borderColor: 'rgba(0, 0, 0, 0.15)',
-              color: '#4a4a4a',
+              color: COLORS.text.muted,
             },
             '&::placeholder': {
-              color: '#ccc',
+              color: COLORS.text.faint,
             },
           }}
         />

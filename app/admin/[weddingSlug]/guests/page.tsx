@@ -22,9 +22,6 @@ import {
   IconButton,
   Tooltip,
   LinearProgress,
-  Button,
-  Menu,
-  MenuItem,
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
@@ -42,16 +39,22 @@ import {
   MusicNote,
   Delete,
   Download,
+  Upload,
 } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { getAllRSVPs, deleteRSVP, getCustomQuestions } from '@/lib/supabase/rsvp-service';
 import { CustomQuestion, RSVPCustomQuestionStep } from '@/lib/supabase/types';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import * as XLSX from 'xlsx';
-import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import { SecondaryActionButton } from '@/components/admin/ActionButton';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import CollectedDataTab from '@/components/admin/rsvp/CollectedDataTab';
 
 interface RSVPData {
   id: string;
@@ -65,7 +68,7 @@ interface RSVPData {
   song_request: string | null;
   special_message: string | null;
   maybe_comment: string | null;
-  custom_answers?: Record<string, any> | null;
+  custom_answers?: Record<string, string | string[] | null | undefined> | null;
   created_at: string;
   guest: {
     id: string;
@@ -172,7 +175,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
   const prepareRSVPDataForExport = (data: RSVPData[]) => {
     return data.map(r => {
-      const base: Record<string, any> = {
+      const base: Record<string, unknown> = {
         'Guest Name': r.guest?.name || 'Unknown',
         'Email': r.guest?.email || '',
         'Phone': r.guest?.phone || '',
@@ -285,19 +288,19 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
   const getAttendingColor = (attending: string) => {
     switch (attending) {
-      case 'yes': return '#10B981';
-      case 'no': return '#EF4444';
-      case 'maybe': return '#F59E0B';
-      default: return '#6B7280';
+      case 'yes': return COLORS.accent.success;
+      case 'no': return COLORS.accent.danger;
+      case 'maybe': return COLORS.accent.warning;
+      default: return COLORS.text.subtle;
     }
   };
 
   const getAttendingIcon = (attending: string) => {
     switch (attending) {
-      case 'yes': return <CheckCircle sx={{ color: '#10B981' }} />;
-      case 'no': return <Cancel sx={{ color: '#EF4444' }} />;
-      case 'maybe': return <HelpOutline sx={{ color: '#F59E0B' }} />;
-      default: return <HelpOutline sx={{ color: '#6B7280' }} />;
+      case 'yes': return <CheckCircle sx={{ color: COLORS.accent.success }} />;
+      case 'no': return <Cancel sx={{ color: COLORS.accent.danger }} />;
+      case 'maybe': return <HelpOutline sx={{ color: COLORS.accent.warning }} />;
+      default: return <HelpOutline sx={{ color: COLORS.text.subtle }} />;
     }
   };
 
@@ -326,7 +329,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
   if (error) {
     return (
       <Box sx={{ width: '100%' }}>
-        <Paper sx={{ p: 4, borderRadius: '24px', bgcolor: alpha('#EF4444', 0.1), textAlign: 'center' }}>
+        <Paper sx={{ p: 4, borderRadius: RADII.dialog, bgcolor: alpha(COLORS.accent.danger, 0.1), textAlign: 'center' }}>
           <Typography color="error">{error}</Typography>
         </Paper>
       </Box>
@@ -335,105 +338,92 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
-        {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-              Guest Responses
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
-              Track RSVPs, dietary restrictions, and guest preferences
-            </Typography>
-          </Box>
-          <Box sx={{ flexShrink: 0 }}>
-            <Button
-              variant="outlined"
-              startIcon={<Download />}
-              onClick={handleDownloadMenuOpen}
-              sx={SECONDARY_BUTTON_SX}
-            >
-              Export Data
-            </Button>
-            <Menu
-              anchorEl={downloadMenuAnchor}
-              open={Boolean(downloadMenuAnchor)}
-              onClose={handleDownloadMenuClose}
-              PaperProps={{
-                sx: { borderRadius: '12px', mt: 1, minWidth: 200 }
-              }}
-            >
-              <MenuItem onClick={handleExportExcelAll}>
-                <ListItemIcon><Download fontSize="small" sx={{ color: '#DE3F5E' }} /></ListItemIcon>
-                <ListItemText>Export All (Excel)</ListItemText>
-              </MenuItem>
-              <MenuItem onClick={() => handleExportCSV('all')}>
-                <ListItemIcon><Download fontSize="small" /></ListItemIcon>
-                <ListItemText>All RSVPs (CSV)</ListItemText>
-              </MenuItem>
-              <MenuItem onClick={() => handleExportCSV('attending')}>
-                <ListItemIcon><CheckCircle fontSize="small" sx={{ color: '#10B981' }} /></ListItemIcon>
-                <ListItemText>Attending (CSV)</ListItemText>
-              </MenuItem>
-              <MenuItem onClick={() => handleExportCSV('not_attending')}>
-                <ListItemIcon><Cancel fontSize="small" sx={{ color: '#EF4444' }} /></ListItemIcon>
-                <ListItemText>Not Attending (CSV)</ListItemText>
-              </MenuItem>
-              <MenuItem onClick={() => handleExportCSV('maybe')}>
-                <ListItemIcon><HelpOutline fontSize="small" sx={{ color: '#F59E0B' }} /></ListItemIcon>
-                <ListItemText>Maybe (CSV)</ListItemText>
-              </MenuItem>
-            </Menu>
-          </Box>
-        </Box>
+      <Stack spacing={4}>
+        <PageHeading
+          title="RSVPs"
+          subtitle="Track RSVPs, dietary restrictions, and guest preferences"
+          actions={
+            <Stack direction="row" spacing={1}>
+              <SecondaryActionButton startIcon={<Download />} onClick={handleDownloadMenuOpen}>
+                Export Data
+              </SecondaryActionButton>
+              <PheraMenu
+                anchorEl={downloadMenuAnchor}
+                open={Boolean(downloadMenuAnchor)}
+                onClose={handleDownloadMenuClose}
+              >
+                <PheraMenuItem onClick={handleExportExcelAll}>
+                  <ListItemIcon><Download fontSize="small" sx={{ color: COLORS.brand.primary }} /></ListItemIcon>
+                  <ListItemText>Export All (Excel)</ListItemText>
+                </PheraMenuItem>
+                <PheraMenuItem onClick={() => handleExportCSV('all')}>
+                  <ListItemIcon><Download fontSize="small" /></ListItemIcon>
+                  <ListItemText>All RSVPs (CSV)</ListItemText>
+                </PheraMenuItem>
+                <PheraMenuItem onClick={() => handleExportCSV('attending')}>
+                  <ListItemIcon><CheckCircle fontSize="small" sx={{ color: COLORS.accent.success }} /></ListItemIcon>
+                  <ListItemText>Attending (CSV)</ListItemText>
+                </PheraMenuItem>
+                <PheraMenuItem onClick={() => handleExportCSV('not_attending')}>
+                  <ListItemIcon><Cancel fontSize="small" sx={{ color: COLORS.accent.danger }} /></ListItemIcon>
+                  <ListItemText>Not Attending (CSV)</ListItemText>
+                </PheraMenuItem>
+                <PheraMenuItem onClick={() => handleExportCSV('maybe')}>
+                  <ListItemIcon><HelpOutline fontSize="small" sx={{ color: COLORS.accent.warning }} /></ListItemIcon>
+                  <ListItemText>Maybe (CSV)</ListItemText>
+                </PheraMenuItem>
+              </PheraMenu>
+            </Stack>
+          }
+        />
 
         {/* Stats Cards */}
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
           <Card
             sx={{
-              flex: '1 1 200px',
-              minWidth: 180,
-              borderRadius: '16px',
+              flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 200px' },
+              minWidth: { xs: 0, sm: 180 },
+              borderRadius: RADII.lg,
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-              bgcolor: 'white',
+              bgcolor: COLORS.bg.white,
               cursor: 'pointer',
-              border: activeTab === 0 ? '2px solid #DE3F5E' : '2px solid transparent',
+              border: activeTab === 0 ? `2px solid ${COLORS.brand.primary}` : '2px solid transparent',
               transition: 'border 0.2s ease'
             }}
             onClick={() => setActiveTab(0)}
           >
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: alpha('#DE3F5E', 0.1), color: '#DE3F5E' }}>
+              <Avatar sx={{ bgcolor: alpha(COLORS.brand.primary, 0.1), color: COLORS.brand.primary }}>
                 <People />
               </Avatar>
               <Box>
-                <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stats.total}</Typography>
-                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Total Responses</Typography>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: COLORS.text.strong }}>{stats.total}</Typography>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Total Responses</Typography>
               </Box>
             </CardContent>
           </Card>
 
           <Card
             sx={{
-              flex: '1 1 200px',
-              minWidth: 180,
-              borderRadius: '16px',
+              flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 200px' },
+              minWidth: { xs: 0, sm: 180 },
+              borderRadius: RADII.lg,
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-              bgcolor: 'white',
+              bgcolor: COLORS.bg.white,
               cursor: 'pointer',
-              border: activeTab === 1 ? '2px solid #DE3F5E' : '2px solid transparent',
+              border: activeTab === 1 ? `2px solid ${COLORS.brand.primary}` : '2px solid transparent',
               transition: 'border 0.2s ease'
             }}
             onClick={() => setActiveTab(1)}
           >
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: alpha('#10B981', 0.1), color: '#10B981' }}>
+              <Avatar sx={{ bgcolor: alpha(COLORS.accent.success, 0.1), color: COLORS.accent.success }}>
                 <CheckCircle />
               </Avatar>
               <Box>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stats.totalGuests}</Typography>
-                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Attending</Typography>
-                <Typography variant="caption" sx={{ color: '#9a9a9a', fontSize: '0.7rem', display: 'block', mt: 0.25 }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: COLORS.text.strong }}>{stats.totalGuests}</Typography>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Attending</Typography>
+                <Typography variant="caption" sx={{ color: COLORS.text.faint, display: 'block', mt: 0.25 }}>
                   including plus-ones
                 </Typography>
               </Box>
@@ -442,48 +432,48 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
           <Card
             sx={{
-              flex: '1 1 200px',
-              minWidth: 180,
-              borderRadius: '16px',
+              flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 200px' },
+              minWidth: { xs: 0, sm: 180 },
+              borderRadius: RADII.lg,
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-              bgcolor: 'white',
+              bgcolor: COLORS.bg.white,
               cursor: 'pointer',
-              border: activeTab === 3 ? '2px solid #DE3F5E' : '2px solid transparent',
+              border: activeTab === 3 ? `2px solid ${COLORS.brand.primary}` : '2px solid transparent',
               transition: 'border 0.2s ease'
             }}
             onClick={() => setActiveTab(3)}
           >
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: alpha('#F59E0B', 0.1), color: '#F59E0B' }}>
+              <Avatar sx={{ bgcolor: alpha(COLORS.accent.warning, 0.1), color: COLORS.accent.warning }}>
                 <HelpOutline />
               </Avatar>
               <Box>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stats.maybe}</Typography>
-                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Maybe</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: COLORS.text.strong }}>{stats.maybe}</Typography>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Maybe</Typography>
               </Box>
             </CardContent>
           </Card>
 
           <Card
             sx={{
-              flex: '1 1 200px',
-              minWidth: 180,
-              borderRadius: '16px',
+              flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 200px' },
+              minWidth: { xs: 0, sm: 180 },
+              borderRadius: RADII.lg,
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-              bgcolor: 'white',
+              bgcolor: COLORS.bg.white,
               cursor: 'pointer',
-              border: activeTab === 2 ? '2px solid #DE3F5E' : '2px solid transparent',
+              border: activeTab === 2 ? `2px solid ${COLORS.brand.primary}` : '2px solid transparent',
               transition: 'border 0.2s ease'
             }}
             onClick={() => setActiveTab(2)}
           >
             <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: alpha('#EF4444', 0.1), color: '#EF4444' }}>
+              <Avatar sx={{ bgcolor: alpha(COLORS.accent.danger, 0.1), color: COLORS.accent.danger }}>
                 <Cancel />
               </Avatar>
               <Box>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#1a1a1a' }}>{stats.notAttending}</Typography>
-                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>Not Attending</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: COLORS.text.strong }}>{stats.notAttending}</Typography>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Not Attending</Typography>
               </Box>
             </CardContent>
           </Card>
@@ -491,16 +481,16 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
         {/* Response Rate Progress - Show for all RSVP related tabs (0-3) */}
         {stats.total > 0 && activeTab <= 3 && (
-          <Paper sx={{ p: 3, borderRadius: '16px', bgcolor: alpha('#fff', 0.95) }}>
-            <Typography variant="subtitle2" sx={{ mb: 2, color: '#1a1a1a' }}>
+          <Paper sx={{ p: 3, borderRadius: RADII.lg, bgcolor: alpha(COLORS.bg.white, 0.95) }}>
+            <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.text.strong }}>
               Response Breakdown
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1, height: 12, borderRadius: 6, overflow: 'hidden', bgcolor: '#f5f5f5' }}>
+            <Box sx={{ display: 'flex', gap: 1, height: 12, borderRadius: 6, overflow: 'hidden', bgcolor: COLORS.bg.subtle }}>
               {stats.attending > 0 && (
                 <Box
                   sx={{
                     width: `${(stats.attending / stats.total) * 100}%`,
-                    bgcolor: '#10B981',
+                    bgcolor: COLORS.accent.success,
                     transition: 'width 0.3s ease'
                   }}
                 />
@@ -509,7 +499,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                 <Box
                   sx={{
                     width: `${(stats.maybe / stats.total) * 100}%`,
-                    bgcolor: '#F59E0B',
+                    bgcolor: COLORS.accent.warning,
                     transition: 'width 0.3s ease'
                   }}
                 />
@@ -518,7 +508,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                 <Box
                   sx={{
                     width: `${(stats.notAttending / stats.total) * 100}%`,
-                    bgcolor: '#EF4444',
+                    bgcolor: COLORS.accent.danger,
                     transition: 'width 0.3s ease'
                   }}
                 />
@@ -526,20 +516,20 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             </Box>
             <Box sx={{ display: 'flex', gap: 3, mt: 2, flexWrap: 'wrap' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#10B981' }} />
-                <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
+                <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
                   Attending ({Math.round((stats.attending / stats.total) * 100)}%)
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#F59E0B' }} />
-                <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
                   Maybe ({Math.round((stats.maybe / stats.total) * 100)}%)
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: '#EF4444' }} />
-                <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
                   Not Attending ({Math.round((stats.notAttending / stats.total) * 100)}%)
                 </Typography>
               </Box>
@@ -551,7 +541,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
         {/* Summary content for tabs 4, 5, 6 is removed as per user request to show data in rows */}
 
         {/* Guest List Table */}
-        <Paper sx={{ borderRadius: '16px', overflow: 'hidden', bgcolor: alpha('#fff', 0.95) }}>
+        <Paper sx={{ borderRadius: RADII.lg, overflow: 'hidden', bgcolor: alpha(COLORS.bg.white, 0.95) }}>
           <Tabs
             value={activeTab}
             onChange={(_, newValue) => setActiveTab(newValue)}
@@ -565,16 +555,16 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                 textTransform: 'none',
                 fontWeight: 600,
                 minHeight: 56,
-                color: '#4a4a4a', // Default color for non-selected tabs
+                color: COLORS.text.muted,
                 '&:hover': {
-                  color: '#1a1a1a',
+                  color: COLORS.text.strong,
                 },
               },
               '& .Mui-selected': {
-                color: '#DE3F5E !important', // Selected color
+                color: `${COLORS.brand.primary} !important`,
               },
               '& .MuiTabs-indicator': {
-                bgcolor: '#DE3F5E',
+                bgcolor: COLORS.brand.primary,
               },
             }}
           >
@@ -586,35 +576,38 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
             <Tab label="Dietary Restrictions" />
             <Tab label="Song Requests" />
             {allCustomQuestions.length > 0 && <Tab label="Extra Details" />}
+            <Tab label="Collected Data" />
           </Tabs>
 
-          {getFilteredRSVPs().length > 0 ? (
-            <TableContainer>
-              <Table>
+          {activeTab === (allCustomQuestions.length > 0 ? 8 : 7) ? (
+            <CollectedDataTab weddingSlug={weddingSlug} />
+          ) : getFilteredRSVPs().length > 0 ? (
+            <TableContainer sx={{ overflowX: 'auto', maxWidth: '100%' }}>
+              <Table sx={{ minWidth: { xs: 600, md: 'auto' } }}>
                 <TableHead>
-                  <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-                    <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Guest</TableCell>
+                  <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
+                    <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Guest</TableCell>
                     {activeTab <= 3 && (
                       <>
-                        <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Contact</TableCell>
-                        <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Status</TableCell>
-                        <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Party Size</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Contact</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Status</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Party Size</TableCell>
                       </>
                     )}
                     {activeTab === 4 && (
-                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Food Preferences</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Food Preferences</TableCell>
                     )}
                     {activeTab === 5 && (
-                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Dietary Restrictions</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Dietary Restrictions</TableCell>
                     )}
                     {activeTab === 6 && (
-                      <TableCell sx={{ fontWeight: 600, color: '#1a1a1a' }}>Song Request</TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Song Request</TableCell>
                     )}
                     {activeTab === 7 && allCustomQuestions.map(q => (
-                      <TableCell key={q.id} sx={{ fontWeight: 600, color: '#1a1a1a' }}>{q.label}</TableCell>
+                      <TableCell key={q.id} sx={{ fontWeight: 600, color: COLORS.text.strong }}>{q.label}</TableCell>
                     ))}
-                    <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', width: 50 }}></TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: '#1a1a1a', width: 50 }}></TableCell>
+                    <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, width: 50 }}></TableCell>
+                    <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, width: 50 }}></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -622,7 +615,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                     <Fragment key={rsvp.id}>
                       <TableRow
                         sx={{
-                          '&:hover': { bgcolor: alpha('#DE3F5E', 0.02) },
+                          '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.02) },
                           cursor: 'pointer',
                         }}
                         onClick={() => toggleRowExpand(rsvp.id)}
@@ -637,20 +630,20 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                   height: 40,
                                   borderRadius: '50%',
                                   overflow: 'hidden',
-                                  bgcolor: rsvp.guest?.avatar_color || '#DE3F5E'
+                                  bgcolor: rsvp.guest?.avatar_color || COLORS.brand.primary
                                 }}
                               />
                             ) : (
-                              <Avatar sx={{ bgcolor: rsvp.guest?.avatar_color || '#DE3F5E' }}>
+                              <Avatar sx={{ bgcolor: rsvp.guest?.avatar_color || COLORS.brand.primary }}>
                                 {rsvp.guest?.name?.[0] || '?'}
                               </Avatar>
                             )}
                             <Box>
-                              <Typography variant="subtitle2" sx={{ color: '#1a1a1a' }}>
+                              <Typography variant="subtitle2" sx={{ color: COLORS.text.strong }}>
                                 {rsvp.guest?.name || 'Unknown'}
                               </Typography>
                               {rsvp.plus_one && rsvp.plus_one_name && (
-                                <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+                                <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
                                   + {rsvp.plus_one_name}
                                 </Typography>
                               )}
@@ -664,16 +657,16 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                               <Stack spacing={0.5}>
                                 {rsvp.guest?.email && (
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                    <Email sx={{ fontSize: 14, color: '#6a6a6a' }} />
-                                    <Typography variant="caption" sx={{ color: '#4a4a4a' }}>
+                                    <Email sx={{ fontSize: 14, color: COLORS.text.subtle }} />
+                                    <Typography variant="caption" sx={{ color: COLORS.text.muted }}>
                                       {rsvp.guest.email}
                                     </Typography>
                                   </Box>
                                 )}
                                 {rsvp.guest?.phone && (
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                    <Phone sx={{ fontSize: 14, color: '#6a6a6a' }} />
-                                    <Typography variant="caption" sx={{ color: '#4a4a4a' }}>
+                                    <Phone sx={{ fontSize: 14, color: COLORS.text.subtle }} />
+                                    <Typography variant="caption" sx={{ color: COLORS.text.muted }}>
                                       {rsvp.guest.phone}
                                     </Typography>
                                   </Box>
@@ -690,7 +683,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                   bgcolor: alpha(getAttendingColor(rsvp.attending), 0.1),
                                   color: getAttendingColor(rsvp.attending),
                                   fontWeight: 700,
-                                  fontSize: '0.85rem',
+                                  fontSize: '0.875rem',
                                   borderRadius: '16px',
                                   '& .MuiChip-icon': {
                                     color: 'inherit',
@@ -700,7 +693,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                               />
                             </TableCell>
                             <TableCell>
-                              <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 600 }}>
+                              <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
                                 {rsvp.guest_count}
                               </Typography>
                             </TableCell>
@@ -716,10 +709,10 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                   label={pref}
                                   sx={{
                                     height: 28,
-                                    bgcolor: alpha('#DE3F5E', 0.1),
-                                    color: '#DE3F5E',
+                                    bgcolor: alpha(COLORS.brand.primary, 0.1),
+                                    color: COLORS.brand.primary,
                                     fontWeight: 600,
-                                    fontSize: '0.8rem',
+                                    fontSize: '0.875rem',
                                   }}
                                 />
                               ))}
@@ -729,7 +722,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
                         {activeTab === 5 && (
                           <TableCell>
-                            <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
+                            <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
                               {rsvp.dietary_restrictions}
                             </Typography>
                           </TableCell>
@@ -737,7 +730,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
                         {activeTab === 6 && (
                           <TableCell>
-                            <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
+                            <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
                               {rsvp.song_request}
                             </Typography>
                           </TableCell>
@@ -745,7 +738,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
                         {activeTab === 7 && allCustomQuestions.map(q => (
                           <TableCell key={q.id}>
-                            <Typography variant="body2" sx={{ color: '#1a1a1a' }}>
+                            <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
                               {rsvp.custom_answers?.[q.id] || '-'}
                             </Typography>
                           </TableCell>
@@ -760,8 +753,8 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                 handleDeleteClick(rsvp.id);
                               }}
                               sx={{
-                                color: '#EF4444',
-                                '&:hover': { bgcolor: alpha('#EF4444', 0.1) }
+                                color: COLORS.accent.danger,
+                                '&:hover': { bgcolor: alpha(COLORS.accent.danger, 0.1) }
                               }}
                             >
                               <Delete fontSize="small" />
@@ -776,12 +769,12 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                       </TableRow>
                       {expandedRows.has(rsvp.id) && (
                         <TableRow>
-                          <TableCell colSpan={activeTab === 7 ? allCustomQuestions.length + 3 : activeTab <= 3 ? 6 : 4} sx={{ bgcolor: alpha('#DE3F5E', 0.02), py: 2 }}>
-                            <Box sx={{ px: 2 }}>
-                              <Box sx={{ display: 'flex', gap: 4, rowGap: 3, flexWrap: 'wrap' }}>
+                          <TableCell colSpan={activeTab === 7 ? allCustomQuestions.length + 3 : activeTab <= 3 ? 6 : 4} sx={{ bgcolor: alpha(COLORS.brand.primary, 0.02), py: 2 }}>
+                            <Box sx={{ px: { xs: 0, sm: 2 } }}>
+                              <Box sx={{ display: 'flex', gap: { xs: 2, sm: 4 }, rowGap: 3, flexWrap: 'wrap' }}>
                                 {rsvp.food_preference && rsvp.food_preference.length > 0 && (
                                   <Box sx={{ minWidth: 200 }}>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
                                       Food Preferences
                                     </Typography>
                                     <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
@@ -791,10 +784,10 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                           label={pref}
                                           sx={{
                                             height: 28,
-                                            bgcolor: '#e0e0e0',
-                                            color: '#1a1a1a',
+                                            bgcolor: COLORS.border.default,
+                                            color: COLORS.text.strong,
                                             fontWeight: 600,
-                                            fontSize: '0.8rem',
+                                            fontSize: '0.875rem',
                                           }}
                                         />
                                       ))}
@@ -803,31 +796,31 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                 )}
 
                                 <Box sx={{ minWidth: 200 }}>
-                                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
                                     Guest Contact
                                   </Typography>
-                                  <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                  <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
                                     {rsvp.guest?.email || '-'}
                                   </Typography>
                                   {rsvp.guest?.phone && (
-                                    <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.85rem' }}>
+                                    <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.875rem' }}>
                                       {rsvp.guest.phone}
                                     </Typography>
                                   )}
                                 </Box>
 
                                 <Box sx={{ minWidth: 120 }}>
-                                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
                                     Party Size
                                   </Typography>
-                                  <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                  <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
                                     {rsvp.guest_count} person{rsvp.guest_count !== 1 ? 's' : ''}
                                   </Typography>
                                 </Box>
 
                                 {rsvp.guest?.wedding_side && (
                                   <Box sx={{ minWidth: 150 }}>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
                                       Wedding Side
                                     </Typography>
                                     <Box sx={{ mt: 0.5 }}>
@@ -835,10 +828,10 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                         label={rsvp.guest.wedding_side === 'bride' ? "Bride's Side" : rsvp.guest.wedding_side === 'groom' ? "Groom's Side" : 'Both'}
                                         sx={{
                                           height: 28,
-                                          bgcolor: alpha('#6B7280', 0.1),
-                                          color: '#6B7280',
+                                                bgcolor: alpha(COLORS.text.subtle, 0.1),
+                                          color: COLORS.text.subtle,
                                           fontWeight: 600,
-                                          fontSize: '0.8rem',
+                                          fontSize: '0.875rem',
                                         }}
                                       />
                                     </Box>
@@ -846,10 +839,10 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                 )}
 
                                 <Box sx={{ minWidth: 200 }}>
-                                  <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
                                     Responded Date
                                   </Typography>
-                                  <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                  <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
                                     {new Date(rsvp.created_at).toLocaleDateString('en-US', {
                                       year: 'numeric',
                                       month: 'long',
@@ -862,10 +855,10 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
                                 {rsvp.dietary_restrictions && (
                                   <Box sx={{ minWidth: 200 }}>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
                                       Dietary Restrictions
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                    <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
                                       {rsvp.dietary_restrictions}
                                     </Typography>
                                   </Box>
@@ -873,10 +866,10 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
                                 {rsvp.song_request && (
                                   <Box sx={{ minWidth: 200 }}>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
                                       Song Request
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                    <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
                                       🎵 {rsvp.song_request}
                                     </Typography>
                                   </Box>
@@ -884,21 +877,21 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
                                 {rsvp.special_message && (
                                   <Box sx={{ minWidth: 300, maxWidth: 500 }}>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
                                       Special Message
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5, fontStyle: 'italic' }}>
-                                      "{rsvp.special_message}"
+                                    <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5, fontStyle: 'italic' }}>
+                                      &quot;{rsvp.special_message}&quot;
                                     </Typography>
                                   </Box>
                                 )}
 
                                 {rsvp.maybe_comment && rsvp.attending === 'maybe' && (
                                   <Box sx={{ minWidth: 200 }}>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
                                       Comment
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                    <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
                                       {rsvp.maybe_comment}
                                     </Typography>
                                   </Box>
@@ -906,14 +899,14 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
                                 {rsvp.plus_one && rsvp.plus_one_name && (
                                   <Box sx={{ minWidth: 200 }}>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
                                       Plus One
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                    <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
                                       {rsvp.plus_one_name}
                                     </Typography>
                                     {rsvp.plus_one_email && (
-                                      <Typography variant="body2" sx={{ color: '#4a4a4a', fontSize: '0.85rem' }}>
+                                      <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.875rem' }}>
                                         {rsvp.plus_one_email}
                                       </Typography>
                                     )}
@@ -921,8 +914,8 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                 )}
 
                                 {rsvp.custom_answers && Object.keys(rsvp.custom_answers).length > 0 && (
-                                  <Box sx={{ minWidth: 200, width: '100%', mt: 1, pt: 1, borderTop: '1px solid #eee' }}>
-                                    <Typography variant="caption" sx={{ fontWeight: 600, color: '#DE3F5E', mb: 1, display: 'block' }}>
+                                  <Box sx={{ minWidth: 200, width: '100%', mt: 1, pt: 1, borderTop: `1px solid ${COLORS.border.faint}` }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.brand.primary, mb: 1, display: 'block' }}>
                                       Custom Answers
                                     </Typography>
                                     <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
@@ -931,10 +924,10 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                         if (!answer) return null;
                                         return (
                                           <Box key={q.id} sx={{ minWidth: 150 }}>
-                                            <Typography variant="caption" sx={{ fontWeight: 600, color: '#6a6a6a' }}>
+                                            <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
                                               {q.label}
                                             </Typography>
-                                            <Typography variant="body2" sx={{ color: '#1a1a1a', mt: 0.5 }}>
+                                            <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
                                               {answer}
                                             </Typography>
                                           </Box>
@@ -954,22 +947,23 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
               </Table>
             </TableContainer>
           ) : (
-            <Box sx={{ textAlign: 'center', py: 10, px: 3 }}>
-              <People sx={{ fontSize: 80, color: alpha('#DE3F5E', 0.1), mb: 3 }} />
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1.5 }}>
-                {weddingStatus === 'live' ? 'No Responses Yet' : 'Website Not Published'}
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a', maxWidth: 500, mx: 'auto', mb: 4 }}>
-                {weddingStatus === 'live'
-                  ? 'Your guests haven\'t started RSVPing yet. Once they do, their responses will appear here automatically.'
-                  : 'Your wedding website is currently in draft mode. Publish your website to start collecting RSVPs from your guests.'}
-              </Typography>
-              {weddingStatus === 'draft' && (
-                <Typography variant="body2" sx={{ color: '#DE3F5E', fontWeight: 600 }}>
-                  Tip: You can publish your website using the button in the bottom left sidebar.
-                </Typography>
-              )}
-            </Box>
+            <EmptyState
+              icon={<People sx={{ fontSize: 80, color: alpha(COLORS.brand.primary, 0.1) }} />}
+              title={weddingStatus === 'live' ? 'No Responses Yet' : 'Website Not Published'}
+              subtitle={
+                weddingStatus === 'live'
+                  ? "Your guests haven't started RSVPing yet. Once they do, their responses will appear here automatically."
+                  : 'Your wedding website is currently in draft mode. Publish your website to start collecting RSVPs from your guests.'
+              }
+              action={
+                weddingStatus === 'draft' ? (
+                  <Typography variant="body2" sx={{ color: COLORS.brand.primary, fontWeight: 600 }}>
+                    Tip: You can publish your website using the button in the bottom left sidebar.
+                  </Typography>
+                ) : undefined
+              }
+              sx={{ py: 10 }}
+            />
           )}
         </Paper>
       </Stack>
@@ -980,6 +974,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
       />
+
     </Box>
   );
 }

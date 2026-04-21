@@ -27,6 +27,7 @@ import {
 } from '@mui/icons-material';
 import { getOptInStats, getMessageStats, getRecentMessages } from '@/lib/whatsapp/analytics';
 import type { OptInStats, MessageStats, RecentMessage } from '@/lib/whatsapp/analytics';
+import { FONTS, COLORS, RADII } from '@/lib/theme/tokens';
 
 interface WhatsAppAnalyticsProps {
   weddingId: string;
@@ -107,7 +108,7 @@ export default function WhatsAppAnalytics({ weddingId }: WhatsAppAnalyticsProps)
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <WhatsAppIcon sx={{ color: '#25D366', mr: 1 }} />
+                <WhatsAppIcon sx={{ color: COLORS.accent.success, mr: 1 }} />
                 <Typography variant="body2" color="text.secondary">
                   Total Opt-ins
                 </Typography>
@@ -224,7 +225,7 @@ export default function WhatsAppAnalytics({ weddingId }: WhatsAppAnalyticsProps)
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                        <Typography variant="body2" sx={{ fontFamily: FONTS.body }}>
                           {message.template_name}
                         </Typography>
                       </TableCell>

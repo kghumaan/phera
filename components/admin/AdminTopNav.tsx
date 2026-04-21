@@ -12,19 +12,16 @@ import {
     alpha,
     useTheme,
     useMediaQuery,
-    Menu,
-    MenuItem,
     Divider,
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    Switch,
-    Chip,
-    Dialog,
-    DialogTitle,
+        Chip,
     DialogContent,
     DialogActions,
 } from '@mui/material';
+import { PrimaryActionButton, ActionButton } from './ActionButton';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import {
     Menu as MenuIcon,
     SettingsOutlined,
@@ -47,6 +44,9 @@ import UpgradeModal from './UpgradeModal';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import AutoSaveIndicator from './AutoSaveIndicator';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 interface AdminTopNavProps {
     weddingSlug: string;
@@ -66,6 +66,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     const [featureModalOpen, setFeatureModalOpen] = React.useState(false);
     const [upgradeModalOpen, setUpgradeModalOpen] = React.useState(false);
     const [homeModalOpen, setHomeModalOpen] = React.useState(false);
+    const [signOutModalOpen, setSignOutModalOpen] = React.useState(false);
     const open = Boolean(anchorEl);
 
     const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -78,9 +79,14 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
 
     const isDemo = isDemoUser();
 
-    const handleSignOut = async () => {
+    const handleSignOut = () => {
         handleMenuClose();
-        await signOut();
+        setSignOutModalOpen(true);
+    };
+
+    const confirmSignOut = () => {
+        setSignOutModalOpen(false);
+        signOut();
         router.push('/');
     };
 
@@ -89,6 +95,11 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
         sessionStorage.removeItem('phera_demo_mode');
         sessionStorage.removeItem('demo-wedding-slug');
         sessionStorage.removeItem('demo-tour-step');
+        // Fire signOut without awaiting — AuthContext updates user state
+        // synchronously, the supabase network call finishes in background.
+        // Awaiting here was blocking the router.push long enough that the
+        // first attempt appeared to do nothing.
+        signOut();
         router.push('/');
     };
 
@@ -114,9 +125,9 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
             sx={{
                 zIndex: (theme) => theme.zIndex.drawer + 1,
                 backgroundColor: '#ffffff !important',
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
                 borderBottom: '1px solid',
-                borderColor: alpha('#000', 0.08),
+                borderColor: alpha(COLORS.text.strong, 0.08),
                 boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
             }}
         >
@@ -128,8 +139,8 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             size="small"
                             onClick={onMenuToggle}
                             sx={{
-                                color: '#1a1a1a',
-                                '&:hover': { bgcolor: alpha('#DE3F5E', 0.05) }
+                                color: COLORS.text.strong,
+                                '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.05) }
                             }}
                         >
                             <MenuIcon />
@@ -178,14 +189,14 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 borderRadius: 1,
                                 textTransform: 'none',
                                 fontWeight: 600,
-                                fontSize: '0.8rem',
-                                color: '#1a1a1a',
-                                bgcolor: alpha('#DE3F5E', 0.05),
+                                fontSize: '0.875rem',
+                                color: COLORS.text.strong,
+                                bgcolor: alpha(COLORS.brand.primary, 0.05),
                                 border: '1px solid',
-                                borderColor: alpha('#DE3F5E', 0.1),
+                                borderColor: alpha(COLORS.brand.primary, 0.1),
                                 '&:hover': {
-                                    bgcolor: alpha('#DE3F5E', 0.1),
-                                    borderColor: alpha('#DE3F5E', 0.2),
+                                    bgcolor: alpha(COLORS.brand.primary, 0.1),
+                                    borderColor: alpha(COLORS.brand.primary, 0.2),
                                 }
                             }}
                         >
@@ -200,28 +211,28 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             alignItems: 'center',
                             gap: 1,
                             height: 34,
-                            bgcolor: alpha('#DE3F5E', 0.05),
+                            bgcolor: alpha(COLORS.brand.primary, 0.05),
                             px: 1.5,
                             py: 0,
                             borderRadius: 1,
                             cursor: 'pointer',
                             transition: 'all 0.2s ease',
                             border: '1px solid',
-                            borderColor: alpha('#DE3F5E', 0.1),
+                            borderColor: alpha(COLORS.brand.primary, 0.1),
                             '&:hover': {
-                                bgcolor: alpha('#DE3F5E', 0.1),
-                                borderColor: alpha('#DE3F5E', 0.2),
+                                bgcolor: alpha(COLORS.brand.primary, 0.1),
+                                borderColor: alpha(COLORS.brand.primary, 0.2),
                             },
                         }}
                     >
-                        <SettingsOutlined sx={{ fontSize: 20, color: '#1a1a1a' }} />
+                        <SettingsOutlined sx={{ fontSize: 20, color: COLORS.text.strong }} />
                         <Avatar
                             sx={{
                                 width: 28,
                                 height: 28,
-                                bgcolor: user?.avatar_color || '#DE3F5E',
-                                color: 'white',
-                                fontSize: '0.85rem',
+                                bgcolor: user?.avatar_color || COLORS.brand.primary,
+                                color: COLORS.text.inverse,
+                                fontSize: '0.875rem',
                                 fontWeight: 700,
                                 border: '2px solid white',
                                 boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
@@ -254,22 +265,22 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 }
                             }}
                             sx={{
-                                fontSize: '0.8rem',
+                                fontSize: '0.875rem',
                                 fontWeight: 600,
-                                color: isPro ? '#DE3F5E' : '#666',
+                                color: isPro ? COLORS.brand.primary : COLORS.text.subtle,
                                 cursor: isPro ? 'default' : 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 0.5,
                             }}
                         >
-                            {isPro && <AutoAwesome sx={{ fontSize: 14, color: '#DE3F5E' }} />}
+                            {isPro && <AutoAwesome sx={{ fontSize: 14, color: COLORS.brand.primary }} />}
                             {isPro ? 'Pro' : 'Basic'}
                         </Typography>
                     </Box>
 
                     {/* User Menu */}
-                    <Menu
+                    <PheraMenu
                         anchorEl={anchorEl}
                         open={open}
                         onClose={handleMenuClose}
@@ -280,10 +291,10 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 overflow: 'visible',
                                 filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
                                 mt: 1.5,
-                                borderRadius: '24px',
+                                borderRadius: RADII.dialog,
                                 minWidth: 280,
                                 p: 1,
-                                bgcolor: 'white',
+                                bgcolor: COLORS.bg.white,
                                 '& .MuiAvatar-root': {
                                     width: 64,
                                     height: 64,
@@ -298,8 +309,8 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         <Box sx={{ p: 2.5, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <Avatar
                                 sx={{
-                                    bgcolor: user?.avatar_color || '#DE3F5E',
-                                    color: 'white',
+                                    bgcolor: user?.avatar_color || COLORS.brand.primary,
+                                    color: COLORS.text.inverse,
                                     fontSize: '1.5rem',
                                     fontWeight: 700,
                                     mb: 1,
@@ -324,10 +335,10 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                     user?.initials || user?.email?.[0].toUpperCase() || 'U'
                                 )}
                             </Avatar>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#111111', lineHeight: 1.2 }}>
-                                {isDemo ? 'Simran & Karanvir' : (wedding?.couple_name || 'Your Wedding')}
+                            <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong, lineHeight: 1.2 }}>
+                                {wedding?.couple_name || 'Your Wedding'}
                             </Typography>
-                            <Typography variant="body2" sx={{ color: '#444444', mt: 0.5, fontSize: '0.875rem' }}>
+                            <Typography variant="body2" sx={{ color: COLORS.text.muted, mt: 0.5, fontSize: '0.875rem' }}>
                                 {isDemo ? 'Demo Mode' : user?.email}
                             </Typography>
 
@@ -338,16 +349,16 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 onClick={() => !isPro && setUpgradeModalOpen(true)}
                                 sx={{
                                     mt: 1.5,
-                                    bgcolor: isPro ? '#DE3F5E' : '#f0f0f0',
-                                    color: isPro ? 'white' : '#666',
+                                    bgcolor: isPro ? COLORS.brand.primary : COLORS.border.faint,
+                                    color: isPro ? COLORS.bg.white : COLORS.text.subtle,
                                     fontWeight: 600,
-                                    fontSize: '0.8rem',
+                                    fontSize: '0.875rem',
                                     cursor: isPro ? 'default' : 'pointer',
                                     '&:hover': {
-                                        bgcolor: isPro ? '#DE3F5E' : '#e5e5e5',
+                                        bgcolor: isPro ? COLORS.brand.primary : COLORS.border.default,
                                     },
                                     '& .MuiChip-icon': {
-                                        color: 'white',
+                                        color: COLORS.text.inverse,
                                     },
                                 }}
                             />
@@ -356,37 +367,26 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         {/* <Divider sx={{ my: 1, opacity: 0.6 }} /> */}
 
                         {/* Dev Tools - Only visible to super admins */}
-                        {(user?.email === 'kv.s.ghumaan@gmail.com' || user?.email === 'savani.simran@google.com') && (
+                        {(user?.email === 'kv.s.ghumaan@gmail.com' || user?.email === 'simran@simmetrystudios.com') && (
                             <Box sx={{ px: 2, py: 1.5 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                                     <Box>
-                                        <Typography variant="body2" sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#666' }}>
+                                        <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.subtle }}>
                                             Test Mode
                                         </Typography>
-                                        <Typography variant="caption" sx={{ fontSize: '0.75rem', color: '#999' }}>
+                                        <Typography variant="caption" sx={{ fontSize: '0.875rem', color: COLORS.text.faint }}>
                                             Toggle plan for testing
                                         </Typography>
                                     </Box>
-                                    <Switch
+                                    <PheraSwitch
                                         checked={isPro}
-                                        onChange={togglePlan}
+                                        onChange={(e) => { e.stopPropagation(); togglePlan(); }}
                                         size="small"
-                                        sx={{
-                                            '& .MuiSwitch-switchBase': { color: '#999' },
-                                            '& .MuiSwitch-track': { bgcolor: '#bbb' },
-                                            '& .MuiSwitch-switchBase.Mui-checked': {
-                                                color: '#DE3F5E',
-                                            },
-                                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                                backgroundColor: '#DE3F5E',
-                                            },
-                                        }}
                                     />
                                 </Box>
-                                <Button
+                                <ActionButton
                                     fullWidth
                                     variant="outlined"
-                                    color="error"
                                     size="small"
                                     onClick={handleClearData}
                                     sx={{
@@ -394,49 +394,52 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                         borderRadius: '100px',
                                         textTransform: 'none',
                                         fontWeight: 600,
-                                        fontSize: '0.8rem',
-                                        borderWidth: '2px',
+                                        fontSize: '0.875rem',
+                                        borderWidth: '1.5px',
+                                        borderColor: 'rgba(0, 0, 0, 0.3)',
+                                        color: COLORS.text.muted,
                                         '&:hover': {
-                                            borderWidth: '2px',
-                                            bgcolor: alpha(theme.palette.error.main, 0.05)
-                                        }
+                                            borderWidth: '1.5px',
+                                            borderColor: COLORS.text.strong,
+                                            bgcolor: 'rgba(0, 0, 0, 0.04)',
+                                        },
                                     }}
                                 >
                                     Clear Local Data
-                                </Button>
+                                </ActionButton>
                             </Box>
                         )}
 
                         {/* <Divider sx={{ my: 1, opacity: 0.6 }} /> */}
 
                         {/* Menu Items */}
-                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: '12px', py: 1.2, mx: 0.5 }}>
+                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: RADII.md, py: 1.2, mx: 0.5 }}>
                             <ListItemIcon sx={{ minWidth: 40 }}>
-                                <SettingsOutlined sx={{ color: '#111111', fontSize: 22 }} />
+                                <SettingsOutlined sx={{ color: COLORS.text.strong, fontSize: 22 }} />
                             </ListItemIcon>
                             <ListItemText
                                 primary="Settings"
-                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: '#111111' } }}
+                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: COLORS.text.strong } }}
                             />
                         </ListItemButton>
 
-                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: '12px', py: 1.2, mx: 0.5 }}>
+                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: RADII.md, py: 1.2, mx: 0.5 }}>
                             <ListItemIcon sx={{ minWidth: 40 }}>
-                                <ChatBubbleOutline sx={{ color: '#111111', fontSize: 22 }} />
+                                <ChatBubbleOutline sx={{ color: COLORS.text.strong, fontSize: 22 }} />
                             </ListItemIcon>
                             <ListItemText
                                 primary="Contact Us"
-                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: '#111111' } }}
+                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: COLORS.text.strong } }}
                             />
                         </ListItemButton>
 
-                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: '12px', py: 1.2, mx: 0.5 }}>
+                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: RADII.md, py: 1.2, mx: 0.5 }}>
                             <ListItemIcon sx={{ minWidth: 40 }}>
-                                <HelpOutline sx={{ color: '#111111', fontSize: 22 }} />
+                                <HelpOutline sx={{ color: COLORS.text.strong, fontSize: 22 }} />
                             </ListItemIcon>
                             <ListItemText
                                 primary="Help"
-                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: '#111111' } }}
+                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: COLORS.text.strong } }}
                             />
                         </ListItemButton>
 
@@ -446,17 +449,17 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             <ListItemButton
                                 onClick={handleExitDemo}
                                 sx={{
-                                    borderRadius: '12px',
+                                    borderRadius: RADII.md,
                                     py: 1.2,
                                     mx: 0.5,
-                                    color: '#DE3F5E',
+                                    color: COLORS.brand.primary,
                                     '&:hover': {
-                                        bgcolor: alpha('#DE3F5E', 0.05),
+                                        bgcolor: alpha(COLORS.brand.primary, 0.05),
                                     },
                                 }}
                             >
                                 <ListItemIcon sx={{ minWidth: 40 }}>
-                                    <Logout sx={{ color: '#DE3F5E', fontSize: 22 }} />
+                                    <Logout sx={{ color: COLORS.brand.primary, fontSize: 22 }} />
                                 </ListItemIcon>
                                 <ListItemText
                                     primary="Exit Demo"
@@ -467,17 +470,17 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             <ListItemButton
                                 onClick={handleSignOut}
                                 sx={{
-                                    borderRadius: '12px',
+                                    borderRadius: RADII.md,
                                     py: 1.2,
                                     mx: 0.5,
-                                    color: '#DE3F5E',
+                                    color: COLORS.brand.primary,
                                     '&:hover': {
-                                        bgcolor: alpha('#DE3F5E', 0.05),
+                                        bgcolor: alpha(COLORS.brand.primary, 0.05),
                                     },
                                 }}
                             >
                                 <ListItemIcon sx={{ minWidth: 40 }}>
-                                    <Logout sx={{ color: '#DE3F5E', fontSize: 22 }} />
+                                    <Logout sx={{ color: COLORS.brand.primary, fontSize: 22 }} />
                                 </ListItemIcon>
                                 <ListItemText
                                     primary="Sign Out"
@@ -485,7 +488,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 />
                             </ListItemButton>
                         )}
-                    </Menu>
+                    </PheraMenu>
                 </Box>
             </Toolbar>
             <FeatureRequestModal
@@ -497,69 +500,51 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                 open={upgradeModalOpen}
                 onClose={() => setUpgradeModalOpen(false)}
             />
-            <Dialog
+            <PheraDialog
                 open={homeModalOpen}
                 onClose={() => setHomeModalOpen(false)}
-                PaperProps={{
-                    sx: {
-                        borderRadius: '24px',
-                        p: { xs: 2, md: 3 },
-                        textAlign: 'center',
-                        maxWidth: '400px'
-                    }
-                }}
+                PaperProps={{ sx: { p: { xs: 2, md: 3 }, textAlign: 'center', maxWidth: '400px' } }}
             >
-                <DialogTitle sx={{
-                    fontWeight: 600,
-                    fontSize: '1.8rem',
-                    color: '#1a1a1a',
-                    pb: 1
-                }}>
+                <PheraDialogTitle
+                    onClose={() => setHomeModalOpen(false)}
+                    sx={{ justifyContent: 'center', pb: 1 }}
+                >
                     Leave Admin Dashboard?
-                </DialogTitle>
+                </PheraDialogTitle>
                 <DialogContent>
-                    <Typography variant="body1" sx={{ color: '#666', fontSize: '1rem', mb: 1 }}>
+                    <Typography variant="body1" sx={{ color: COLORS.text.subtle, fontSize: '1rem', mb: 1 }}>
                         You are about to be taken to the Home page. Any unsaved data may be lost.
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 2 }}>
-                    <Button
+                    <PrimaryActionButton
                         onClick={() => {
                             setHomeModalOpen(false);
                             if (isDemo) {
                                 sessionStorage.removeItem('phera_demo_mode');
                                 sessionStorage.removeItem('demo-wedding-slug');
                                 sessionStorage.removeItem('demo-tour-step');
+                                signOut();
                             }
                             router.push('/');
                         }}
-                        variant="contained"
                         sx={{
-                            bgcolor: '#DE3F5E',
-                            color: 'white',
-                            borderRadius: '12px',
-                            textTransform: 'none',
-                            fontWeight: 700,
                             fontSize: '0.95rem',
                             px: 4,
                             py: 1,
                             boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
-                            '&:hover': {
-                                bgcolor: '#C8365A',
-                                boxShadow: '0 6px 16px rgba(222, 63, 94, 0.4)',
-                            },
                         }}
                     >
                         Go Home
-                    </Button>
+                    </PrimaryActionButton>
                     <Button
                         onClick={() => setHomeModalOpen(false)}
                         sx={{
-                            color: '#666',
+                            color: COLORS.text.subtle,
                             fontWeight: 600,
                             textTransform: 'none',
                             fontSize: '0.95rem',
-                            borderRadius: '12px',
+                            borderRadius: RADII.md,
                             px: 3,
                             py: 1,
                             bgcolor: 'rgba(0, 0, 0, 0.04)',
@@ -571,7 +556,55 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         Cancel
                     </Button>
                 </DialogActions>
-            </Dialog>
+            </PheraDialog>
+
+            {/* Sign Out confirmation */}
+            <PheraDialog
+                open={signOutModalOpen}
+                onClose={() => setSignOutModalOpen(false)}
+                PaperProps={{ sx: { p: { xs: 2, md: 3 }, textAlign: 'center', maxWidth: '400px' } }}
+            >
+                <PheraDialogTitle
+                    onClose={() => setSignOutModalOpen(false)}
+                    sx={{ justifyContent: 'center', pb: 1 }}
+                >
+                    Sign Out?
+                </PheraDialogTitle>
+                <DialogContent>
+                    <Typography variant="body1" sx={{ color: COLORS.text.subtle, fontSize: '1rem', mb: 1 }}>
+                        You will be signed out and taken to the home page.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 2 }}>
+                    <PrimaryActionButton
+                        onClick={confirmSignOut}
+                        sx={{
+                            fontSize: '0.95rem',
+                            px: 4,
+                            py: 1,
+                            boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
+                        }}
+                    >
+                        Sign Out
+                    </PrimaryActionButton>
+                    <Button
+                        onClick={() => setSignOutModalOpen(false)}
+                        sx={{
+                            color: COLORS.text.subtle,
+                            fontWeight: 600,
+                            textTransform: 'none',
+                            fontSize: '0.95rem',
+                            borderRadius: RADII.md,
+                            px: 3,
+                            py: 1,
+                            bgcolor: 'rgba(0, 0, 0, 0.04)',
+                            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.08)' },
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                </DialogActions>
+            </PheraDialog>
         </AppBar>
     );
 }

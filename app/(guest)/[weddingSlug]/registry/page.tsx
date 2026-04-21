@@ -8,8 +8,6 @@ import {
   Stack,
   useTheme,
   useMediaQuery,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
@@ -27,6 +25,8 @@ import { useParams } from 'next/navigation';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import type { WeddingRegistry } from '@/lib/supabase/wedding-service';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 export default function RegistryPage() {
   const params = useParams();
@@ -121,7 +121,7 @@ export default function RegistryPage() {
               <IconButton
                 onClick={handleBack}
                 sx={{
-                  color: '#000',
+                  color: COLORS.text.strong,
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   backdropFilter: 'blur(10px)',
                   '&:hover': {
@@ -152,10 +152,10 @@ export default function RegistryPage() {
                   sx={{
                     width: 32,
                     height: 32,
-                    backgroundColor: '#000',
-                    color: '#fff',
+                    backgroundColor: COLORS.text.strong,
+                    color: COLORS.text.inverse,
                     '&:hover': {
-                      backgroundColor: '#333',
+                      backgroundColor: COLORS.text.strong,
                       transform: 'scale(1.05)',
                     },
                     transition: 'all 0.2s ease',
@@ -188,7 +188,7 @@ export default function RegistryPage() {
         }}
       >
         {loading ? (
-          <CircularProgress sx={{ color: wedding?.primary_color || '#DE3F5E' }} />
+          <CircularProgress sx={{ color: wedding?.primary_color || COLORS.brand.primary }} />
         ) : registry.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -198,7 +198,7 @@ export default function RegistryPage() {
             <Typography
               sx={{
                 fontSize: 18,
-                color: '#6a6a6a',
+                color: COLORS.text.subtle,
                 textAlign: 'center',
               }}
             >
@@ -229,7 +229,7 @@ export default function RegistryPage() {
                       width: '100%',
                       textDecoration: 'none',
                       border: 'none',
-                      borderRadius: '20px',
+                      borderRadius: RADII.xl,
                       overflow: 'hidden',
                       boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.15)',
                       cursor: 'pointer',
@@ -247,7 +247,7 @@ export default function RegistryPage() {
                         justifyContent: 'center',
                         gap: 3,
                         padding: { xs: 4, md: 5 },
-                        backgroundColor: '#ffffff',
+                        backgroundColor: COLORS.bg.white,
                       }}
                     >
                       {/* Registry Name with Emoji */}
@@ -279,33 +279,24 @@ export default function RegistryPage() {
       </Container>
 
       {/* Confirmation Dialog */}
-      <Dialog
+      <PheraDialog
         open={confirmDialogOpen}
         onClose={() => setConfirmDialogOpen(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: '24px',
-            bgcolor: 'white',
-            p: 2,
-          }
-        }}
+        PaperProps={{ sx: { p: 2 } }}
       >
-        <DialogTitle sx={{
-          fontWeight: 600,
-          fontSize: 24,
-          color: '#141414',
-          textAlign: 'center',
-          pt: 3,
-        }}>
+        <PheraDialogTitle
+          onClose={() => setConfirmDialogOpen(false)}
+          sx={{ justifyContent: 'center', pt: 3 }}
+        >
           Leaving Site
-        </DialogTitle>
+        </PheraDialogTitle>
         <DialogContent>
           <Stack spacing={2} alignItems="center" sx={{ py: 2 }}>
-            <OpenInNew sx={{ fontSize: 48, color: wedding?.primary_color || '#DE3F5E' }} />
+            <OpenInNew sx={{ fontSize: 48, color: wedding?.primary_color || COLORS.brand.primary }} />
             <Typography
               sx={{
                 fontSize: 16,
-                color: '#4a4a4a',
+                color: COLORS.text.muted,
                 textAlign: 'center',
               }}
             >
@@ -327,8 +318,8 @@ export default function RegistryPage() {
           <Button
             onClick={() => setConfirmDialogOpen(false)}
             sx={{
-              color: '#6a6a6a',
-              borderRadius: '12px',
+              color: COLORS.text.subtle,
+              borderRadius: RADII.md,
               textTransform: 'none',
               fontWeight: 600,
               px: 3,
@@ -343,21 +334,21 @@ export default function RegistryPage() {
             variant="contained"
             onClick={handleConfirmRedirect}
             sx={{
-              bgcolor: wedding?.primary_color || '#DE3F5E',
-              color: 'white',
-              borderRadius: '12px',
+              bgcolor: wedding?.primary_color || COLORS.brand.primary,
+              color: COLORS.text.inverse,
+              borderRadius: RADII.md,
               textTransform: 'none',
               fontWeight: 600,
               px: 3,
               '&:hover': {
-                bgcolor: '#C8365A',
+                bgcolor: COLORS.brand.primaryHover,
               },
             }}
           >
             Continue
           </Button>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
 
       {/* WhatsApp Channel Modal */}
       <WhatsAppChannelModal

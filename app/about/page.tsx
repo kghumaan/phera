@@ -23,6 +23,7 @@ import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { BACKGROUNDS } from '@/lib/constants/images';
 import AppFooter from '@/components/shared/AppFooter';
+import { FONTS } from '@/lib/theme/tokens';
 
 
 export default function AboutPage() {
@@ -74,7 +75,7 @@ export default function AboutPage() {
                     <Typography
                       variant="h2"
                       sx={{
-                        fontFamily: 'var(--font-instrument-serif)',
+                        fontFamily: FONTS.display,
                         fontStyle: 'italic',
                         fontSize: { xs: '3rem', md: '4.5rem' },
                         color: '#1a1a1a',

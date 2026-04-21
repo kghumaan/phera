@@ -7,14 +7,12 @@ import {
   Container,
   Typography,
   Stack,
-  Paper,
   Card,
   CardContent,
   alpha,
   CircularProgress,
 } from '@mui/material';
 import {
-  DirectionsBus,
   AirportShuttle,
   ArrowForward,
   CheckCircle,
@@ -32,6 +30,11 @@ import { TransportationSettings, TransportationMode } from '@/lib/supabase/types
 import TransportationSetupWizard from '@/components/admin/transportation/TransportationSetupWizard';
 import TransportationDashboard from '@/components/admin/transportation/TransportationDashboard';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraCard } from '@/components/shared/Card';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 type WizardStep =
   | 'initial'
@@ -45,6 +48,7 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
   const { isViewOnly } = useAdminRole();
+  const { user } = useAuth();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -155,7 +159,7 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-          <CircularProgress sx={{ color: '#DE3F5E' }} />
+          <CircularProgress sx={{ color: COLORS.brand.primary }} />
         </Box>
       </Box>
     );
@@ -166,41 +170,22 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-                Transportation
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                Coordinate shuttles and buses for your guests
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              onClick={() => setUpgradeModalOpen(true)}
-              sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                px: 3,
-                py: 1,
-                borderRadius: 2,
-                fontWeight: 600,
-                textTransform: 'none',
-                fontSize: '0.875rem',
-                whiteSpace: 'nowrap',
-                '&:hover': { bgcolor: '#c73552' },
-              }}
-            >
-              Upgrade to Pro
-            </Button>
-          </Box>
+          <PageHeading
+            title="Transportation"
+            subtitle="Coordinate shuttles and buses for your guests"
+            actions={
+              <PrimaryActionButton onClick={() => setUpgradeModalOpen(true)} sx={{ whiteSpace: 'nowrap' }}>
+                Upgrade to Pro
+              </PrimaryActionButton>
+            }
+          />
 
-          <Typography variant="body2" sx={{ color: '#6a6a6a', lineHeight: 1.8, maxWidth: 680 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, lineHeight: 1.8, maxWidth: 680 }}>
             Help your guests get to and from your wedding with ease. Set up prescheduled shuttles or collect pickup preferences — we'll help you organize everything and notify your guests when their spot is confirmed.
           </Typography>
 
           {/* Locked Preview */}
-          <Box sx={{ position: 'relative', borderRadius: 3, overflow: 'hidden' }}>
+          <Box sx={{ position: 'relative', borderRadius: RADII.lg, overflow: 'hidden' }}>
             <Box
               sx={{
                 position: 'absolute',
@@ -215,68 +200,42 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
                 gap: 2,
               }}
             >
-              <LockOutlined sx={{ fontSize: 32, color: '#DE3F5E' }} />
-              <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>
+              <LockOutlined sx={{ fontSize: 32, color: COLORS.brand.primary }} />
+              <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1rem' }}>
                 Upgrade to unlock Transportation
               </Typography>
-              <Button
-                variant="contained"
-                onClick={() => setUpgradeModalOpen(true)}
-                sx={{
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
-                  px: 3,
-                  py: 1,
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#c73552' },
-                }}
-              >
+              <PrimaryActionButton onClick={() => setUpgradeModalOpen(true)}>
                 Upgrade to Pro
-              </Button>
+              </PrimaryActionButton>
             </Box>
 
             {/* Mock Preview */}
             <Box sx={{ pointerEvents: 'none', userSelect: 'none', p: 4 }}>
-              <Paper
-                elevation={0}
+              <PheraCard
+                variant="default"
                 sx={{
                   p: 4,
                   textAlign: 'center',
                   border: '2px dashed',
-                  borderColor: alpha('#000', 0.1),
-                  borderRadius: 3,
-                  bgcolor: 'white',
+                  borderColor: alpha(COLORS.text.strong, 0.1),
                 }}
               >
-                <AirportShuttle sx={{ fontSize: 64, color: alpha('#DE3F5E', 0.3), mb: 2 }} />
-                <Typography variant="h6" sx={{ color: '#1a1a1a', mb: 1 }}>
+                <AirportShuttle sx={{ fontSize: 64, color: alpha(COLORS.brand.primary, 0.3), mb: 2 }} />
+                <Typography variant="h6" sx={{ color: COLORS.text.strong, mb: 1 }}>
                   Need help coordinating rides?
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3, maxWidth: 400, mx: 'auto' }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 3, maxWidth: 400, mx: 'auto' }}>
                   We'll help organize shuttles and buses for your guests arriving and departing from your wedding.
                 </Typography>
-                <Button
-                  variant="contained"
+                <PrimaryActionButton
                   disabled
                   sx={{
-                    bgcolor: '#DE3F5E',
-                    color: 'white',
-                    px: 4,
-                    py: 1.5,
-                    borderRadius: 2,
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    '&.Mui-disabled': {
-                      bgcolor: alpha('#DE3F5E', 0.5),
-                      color: 'white',
-                    },
+                    '&.Mui-disabled': { bgcolor: alpha(COLORS.brand.primary, 0.5), color: COLORS.text.inverse },
                   }}
                 >
-                  Yes, let's get started
-                </Button>
-              </Paper>
+                  Yes, let&apos;s get started
+                </PrimaryActionButton>
+              </PheraCard>
             </Box>
           </Box>
         </Stack>
@@ -340,52 +299,36 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
 function InitialPrompt({ onStart }: { onStart: () => void }) {
   return (
     <Stack spacing={3}>
-      <Box>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-          Transportation
-        </Typography>
-        <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-          Coordinate shuttles and buses for your guests
-        </Typography>
-      </Box>
+      <PageHeading
+        title="Transportation"
+        subtitle="Coordinate shuttles and buses for your guests"
+      />
 
-      <Paper
-        elevation={0}
+      <PheraCard
+        variant="default"
         sx={{
           p: 6,
           textAlign: 'center',
           border: '2px dashed',
-          borderColor: alpha('#DE3F5E', 0.3),
-          borderRadius: 3,
-          bgcolor: alpha('#DE3F5E', 0.02),
+          borderColor: alpha(COLORS.brand.primary, 0.3),
+          bgcolor: alpha(COLORS.brand.primary, 0.02),
         }}
       >
-        <AirportShuttle sx={{ fontSize: 64, color: '#DE3F5E', mb: 2 }} />
-        <Typography variant="h6" sx={{ color: '#1a1a1a', mb: 1 }}>
+        <AirportShuttle sx={{ fontSize: 64, color: COLORS.brand.primary, mb: 2 }} />
+        <Typography variant="h6" sx={{ color: COLORS.text.strong, mb: 1 }}>
           Need help coordinating rides to your event?
         </Typography>
-        <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3, maxWidth: 480, mx: 'auto' }}>
-          We'll help organize shuttles and buses for your guests arriving and departing from your wedding. Set up in minutes!
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 3, maxWidth: 480, mx: 'auto' }}>
+          We&apos;ll help organize shuttles and buses for your guests arriving and departing from your wedding. Set up in minutes!
         </Typography>
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           onClick={onStart}
           endIcon={<ArrowForward />}
-          sx={{
-            bgcolor: '#DE3F5E',
-            color: 'white',
-            px: 4,
-            py: 1.5,
-            borderRadius: 2,
-            fontWeight: 600,
-            textTransform: 'none',
-            fontSize: '1rem',
-            '&:hover': { bgcolor: '#c73552' },
-          }}
+          sx={{ px: 4, py: 1.5, fontSize: '1rem' }}
         >
-          Yes, let's get started
-        </Button>
-      </Paper>
+          Yes, let&apos;s get started
+        </PrimaryActionButton>
+      </PheraCard>
     </Stack>
   );
 }
@@ -394,26 +337,13 @@ function InitialPrompt({ onStart }: { onStart: () => void }) {
 function ModeSelector({ onSelect }: { onSelect: (mode: TransportationMode) => void }) {
   return (
     <Stack spacing={3}>
-      <Box>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-          Transportation Setup
-        </Typography>
-        <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-          Let's figure out the best way to organize rides for your guests
-        </Typography>
-      </Box>
+      <PageHeading
+        title="Transportation Setup"
+        subtitle="Let's figure out the best way to organize rides for your guests"
+      />
 
-      <Paper
-        elevation={0}
-        sx={{
-          pt: 4,
-          border: '1px solid',
-          borderColor: 'divider',
-          borderRadius: 3,
-          bgcolor: 'white',
-        }}
-      >
-        <Typography variant="h6" sx={{ color: '#1a1a1a', mb: 3, textAlign: 'left', fontWeight: 400 }}>
+      <PheraCard variant="default" sx={{ pt: 4 }}>
+        <Typography variant="h6" sx={{ color: COLORS.text.strong, mb: 3, textAlign: 'left', fontWeight: 400 }}>
           Do you already have shuttles or buses booked?
         </Typography>
 
@@ -426,22 +356,21 @@ function ModeSelector({ onSelect }: { onSelect: (mode: TransportationMode) => vo
               flex: 1,
               cursor: 'pointer',
               border: '2px solid',
-              borderColor: alpha('#000', 0.15),
+              borderColor: alpha(COLORS.text.strong, 0.15),
               borderRadius: 2,
-              bgcolor: 'white',
+              bgcolor: COLORS.bg.white,
               transition: 'all 0.2s',
               '&:hover': {
-                borderColor: '#DE3F5E',
-                bgcolor: 'white',
+                borderColor: COLORS.brand.primary,
+                bgcolor: COLORS.bg.white,
               },
             }}
           >
             <CardContent sx={{ p: 3, textAlign: 'center' }}>
-              <DirectionsBus sx={{ fontSize: 48, color: '#DE3F5E', mb: 2 }} />
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 1 }}>
                 Yes, I have vehicles booked
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 I've already arranged shuttles or buses with specific departure times. I want guests to reserve spots on these vehicles.
               </Typography>
             </CardContent>
@@ -455,28 +384,27 @@ function ModeSelector({ onSelect }: { onSelect: (mode: TransportationMode) => vo
               flex: 1,
               cursor: 'pointer',
               border: '2px solid',
-              borderColor: alpha('#000', 0.15),
+              borderColor: alpha(COLORS.text.strong, 0.15),
               borderRadius: 2,
-              bgcolor: 'white',
+              bgcolor: COLORS.bg.white,
               transition: 'all 0.2s',
               '&:hover': {
-                borderColor: '#DE3F5E',
-                bgcolor: 'white',
+                borderColor: COLORS.brand.primary,
+                bgcolor: COLORS.bg.white,
               },
             }}
           >
             <CardContent sx={{ p: 3, textAlign: 'center' }}>
-              <AirportShuttle sx={{ fontSize: 48, color: '#4CAF50', mb: 2 }} />
-              <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a1a1a', mb: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 1 }}>
                 No, I need help organizing
               </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                 I want to collect guest preferences first, then figure out the best way to group them into vehicles based on their pickup times and locations.
               </Typography>
             </CardContent>
           </Card>
         </Stack>
-      </Paper>
+      </PheraCard>
     </Stack>
   );
 }
@@ -485,52 +413,36 @@ function ModeSelector({ onSelect }: { onSelect: (mode: TransportationMode) => vo
 function SetupComplete({ onViewResponses }: { onViewResponses: () => void }) {
   return (
     <Stack spacing={3}>
-      <Box>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-          Transportation
-        </Typography>
-        <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-          Coordinate shuttles and buses for your guests
-        </Typography>
-      </Box>
+      <PageHeading
+        title="Transportation"
+        subtitle="Coordinate shuttles and buses for your guests"
+      />
 
-      <Paper
-        elevation={0}
+      <PheraCard
+        variant="default"
         sx={{
           p: 6,
           textAlign: 'center',
           border: '2px solid',
-          borderColor: '#4CAF50',
-          borderRadius: 2,
-          bgcolor: alpha('#4CAF50', 0.02),
+          borderColor: COLORS.accent.success,
+          bgcolor: alpha(COLORS.accent.success, 0.02),
         }}
       >
-        <CheckCircle sx={{ fontSize: 64, color: '#4CAF50', mb: 2 }} />
-        <Typography variant="h4" sx={{ color: '#1a1a1a', mb: 1 }}>
-          You're all set!
+        <CheckCircle sx={{ fontSize: 64, color: COLORS.accent.success, mb: 2 }} />
+        <Typography variant="h4" sx={{ color: COLORS.text.strong, mb: 1 }}>
+          You&apos;re all set!
         </Typography>
-        <Typography variant="body2" sx={{ color: '#6a6a6a', mb: 3, maxWidth: 580, mx: 'auto' }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 3, maxWidth: 580, mx: 'auto' }}>
           Your guests can now reserve transportation from your wedding website. You can view and manage their reservations from the dashboard.
         </Typography>
-        <Button
-          variant="contained"
+        <PrimaryActionButton
           onClick={onViewResponses}
           endIcon={<ArrowForward />}
-          sx={{
-            bgcolor: '#DE3F5E',
-            color: 'white',
-            px: 4,
-            py: 1.5,
-            borderRadius: 1,
-            fontWeight: 600,
-            textTransform: 'none',
-            fontSize: '1rem',
-            '&:hover': { bgcolor: '#c73552' },
-          }}
+          sx={{ px: 4, py: 1.5, fontSize: '1rem' }}
         >
           View Reservations
-        </Button>
-      </Paper>
+        </PrimaryActionButton>
+      </PheraCard>
     </Stack>
   );
 }

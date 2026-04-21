@@ -2,29 +2,51 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Dialog,
   DialogContent,
   Box,
   Typography,
   IconButton,
   CircularProgress,
 } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { Close, AutoAwesome } from '@mui/icons-material';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { useParams } from 'next/navigation';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
+export type UpgradeTier = 'base' | 'premium' | 'planner_perwedding' | 'planner_studio';
 
 interface UpgradeModalProps {
   open: boolean;
   onClose: () => void;
-  tier?: 'pro' | 'planner';
+  tier?: UpgradeTier;
   returnPath?: string;
 }
 
-export default function UpgradeModal({ open, onClose, tier = 'pro', returnPath }: UpgradeModalProps) {
+const TIER_COPY: Record<UpgradeTier, { title: string; subtitle: string }> = {
+  base: {
+    title: 'Upgrade to Phera Base',
+    subtitle: 'Unlock Proactive WhatsApp outreach, travel & shuttle coordination, 24/7 Guest Concierge, and the Control Tower dashboard.',
+  },
+  premium: {
+    title: 'Upgrade to Phera Premium',
+    subtitle: 'Everything in Base plus Vendor Coordinator Agent, reverse-destination cultural guides, and priority escalation support.',
+  },
+  planner_perwedding: {
+    title: 'Start as a Planner',
+    subtitle: 'Pay per wedding — resell to couples at your own rate. No commitment.',
+  },
+  planner_studio: {
+    title: 'Planner Studio',
+    subtitle: 'Up to 20 active weddings. White-label, team seats, wholesale pricing.',
+  },
+};
+
+export default function UpgradeModal({ open, onClose, tier = 'base', returnPath }: UpgradeModalProps) {
   const { user } = useAuth();
   const params = useParams();
   const weddingSlug = params?.weddingSlug as string | undefined;
@@ -73,19 +95,12 @@ export default function UpgradeModal({ open, onClose, tier = 'pro', returnPath }
   }, [open]);
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: '24px',
-          bgcolor: 'white',
-          overflow: 'hidden',
-          minHeight: 300,
-        },
-      }}
+      PaperProps={{ sx: { overflow: 'hidden', minHeight: 300 } }}
     >
       <IconButton
         onClick={onClose}
@@ -94,7 +109,7 @@ export default function UpgradeModal({ open, onClose, tier = 'pro', returnPath }
           right: 16,
           top: 16,
           zIndex: 10,
-          color: '#666',
+          color: COLORS.text.subtle,
           bgcolor: 'rgba(255,255,255,0.9)',
           '&:hover': { bgcolor: 'rgba(0,0,0,0.06)' },
         }}
@@ -118,18 +133,16 @@ export default function UpgradeModal({ open, onClose, tier = 'pro', returnPath }
               mb: 2,
             }}
           >
-            <AutoAwesome sx={{ fontSize: 28, color: '#DE3F5E' }} />
+            <AutoAwesome sx={{ fontSize: 28, color: COLORS.brand.primary }} />
           </Box>
           <Typography
             variant="h5"
-            sx={{ fontWeight: 700, color: '#1a1a1a', mb: 0.5 }}
+            sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 0.5 }}
           >
-            {tier === 'planner' ? 'Start as a Planner' : 'Upgrade to Pro'}
+            {TIER_COPY[tier].title}
           </Typography>
-          <Typography variant="body2" sx={{ color: '#666', fontSize: '0.95rem', lineHeight: 1.6 }}>
-            {tier === 'planner'
-              ? 'Manage unlimited weddings with all Pro features included.'
-              : 'Unlock Travel Coordination, Guest Concierge, and all premium themes.'}
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontSize: '0.95rem', lineHeight: 1.6 }}>
+            {TIER_COPY[tier].subtitle}
           </Typography>
         </Box>
 
@@ -137,17 +150,17 @@ export default function UpgradeModal({ open, onClose, tier = 'pro', returnPath }
         <Box sx={{ px: 2, pb: 3, minHeight: 200 }}>
           {loading && (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 6 }}>
-              <CircularProgress sx={{ color: '#DE3F5E' }} />
+              <CircularProgress sx={{ color: COLORS.brand.primary }} />
             </Box>
           )}
 
           {error && (
             <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body2" sx={{ color: '#c0392b', mb: 1 }}>{error}</Typography>
+              <Typography variant="body2" sx={{ color: COLORS.accent.dangerText, mb: 1 }}>{error}</Typography>
               <Typography
                 component="span"
                 onClick={fetchClientSecret}
-                sx={{ color: '#DE3F5E', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
+                sx={{ color: COLORS.brand.primary, cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}
               >
                 Try again
               </Typography>
@@ -164,6 +177,6 @@ export default function UpgradeModal({ open, onClose, tier = 'pro', returnPath }
           )}
         </Box>
       </DialogContent>
-    </Dialog>
+    </PheraDialog>
   );
 }

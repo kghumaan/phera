@@ -10,6 +10,7 @@ import { ArrowBack } from '@mui/icons-material';
 import { useParams } from 'next/navigation';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import type { WeddingShop } from '@/lib/supabase/wedding-service';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function WhereToShopPage() {
   const params = useParams();
@@ -78,7 +79,7 @@ export default function WhereToShopPage() {
               <IconButton
                 onClick={() => router.push(`/${weddingId}/events`)}
                 sx={{
-                  color: '#000',
+                  color: COLORS.text.strong,
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   backdropFilter: 'blur(10px)',
                   '&:hover': {
@@ -124,7 +125,7 @@ export default function WhereToShopPage() {
         }}
       >
         {loading ? (
-          <CircularProgress sx={{ color: wedding?.primary_color || '#DE3F5E' }} />
+          <CircularProgress sx={{ color: wedding?.primary_color || COLORS.brand.primary }} />
         ) : shops.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -134,7 +135,7 @@ export default function WhereToShopPage() {
             <Typography
               sx={{
                 fontSize: 18,
-                color: '#6a6a6a',
+                color: COLORS.text.subtle,
                 textAlign: 'center',
               }}
             >
@@ -180,7 +181,7 @@ export default function WhereToShopPage() {
                     sx={{
                       display: 'block',
                       textDecoration: 'none',
-                      borderRadius: '16px',
+                      borderRadius: RADII.lg,
                       overflow: 'hidden',
                       boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.12)',
                       cursor: 'pointer',
@@ -197,7 +198,7 @@ export default function WhereToShopPage() {
                         alignItems: 'center',
                         gap: 1,
                         padding: 2,
-                        backgroundColor: '#ffffff',
+                        backgroundColor: COLORS.bg.white,
                       }}
                     >
                       <Box sx={{ flex: 1 }}>

@@ -10,14 +10,13 @@ import {
   Paper,
   Stack,
   Chip,
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   CircularProgress,
   alpha,
   TextField,
 } from '@mui/material';
+import { PrimaryActionButton } from './ActionButton';
 import { Add, AutoAwesome } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -28,10 +27,12 @@ import { weddingService, Wedding } from '@/lib/supabase/wedding-service';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import AdminTopNav from './AdminTopNav';
 import UpgradeModal from './UpgradeModal';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 
 const StyledTextField = styled(TextField)({
   '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
+    borderRadius: RADII.md,
     backgroundColor: '#f8f9fa !important',
     fontSize: '0.9rem',
     '& fieldset': {
@@ -54,7 +55,7 @@ const StyledTextField = styled(TextField)({
   },
   '& .MuiInputLabel-root': {
     color: '#666 !important',
-    fontSize: '0.85rem',
+    fontSize: '0.875rem',
   },
   '& .MuiInputLabel-root.Mui-focused': {
     color: '#DE3F5E !important',
@@ -151,7 +152,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
         status: 'draft',
         created_by: userId,
         background_image: '/images/backgrounds/blue-clouds.webp',
-        primary_color: '#DE3F5E',
+        primary_color: COLORS.brand.primary,
         couple_images: ['/images/couple/placeholder1.png', '/images/couple/placeholder2.png'],
         couple_image_url: '/images/couple/placeholder1.png',
       });
@@ -176,7 +177,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
           height: 18,
           borderRadius: '4px',
           border: '2px solid',
-          borderColor: checked ? '#1a1a1a' : 'rgba(0,0,0,0.25)',
+          borderColor: checked ? COLORS.text.strong : 'rgba(0,0,0,0.25)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -186,18 +187,18 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
       >
         {checked && (
           <Box component="svg" viewBox="0 0 24 24" sx={{ width: 14, height: 14 }}>
-            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#1a1a1a" />
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill={COLORS.text.strong} />
           </Box>
         )}
       </Box>
-      <Typography variant="body2" sx={{ color: '#1a1a1a', fontWeight: 500, fontSize: '0.8rem' }}>
+      <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 500, fontSize: '0.875rem' }}>
         {label}
       </Typography>
     </Stack>
   );
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f8f7f5' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: COLORS.bg.subtle }}>
       <AdminTopNav weddingSlug="" />
 
       <Container maxWidth="md" sx={{ pt: { xs: '72px', md: '88px' }, pb: 4 }}>
@@ -206,9 +207,9 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
           <Typography
             variant="h4"
             sx={{
-              fontFamily: 'var(--font-instrument-serif)',
+              fontFamily: FONTS.display,
               fontStyle: 'italic',
-              color: '#1a1a1a',
+              color: COLORS.text.strong,
               fontWeight: 700,
               fontSize: { xs: '1.6rem', md: '2rem' },
             }}
@@ -216,23 +217,17 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             My Weddings
           </Typography>
           {weddings.length > 0 && (
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               startIcon={<Add />}
               onClick={() => setDialogOpen(true)}
               sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                borderRadius: '24px',
-                textTransform: 'none',
-                fontWeight: 700,
+                borderRadius: RADII.dialog,
                 fontSize: '0.9rem',
                 px: 3,
-                '&:hover': { bgcolor: '#C8365A' },
               }}
             >
               Create New Wedding
-            </Button>
+            </PrimaryActionButton>
           )}
         </Stack>
 
@@ -243,11 +238,11 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             sx={{
               p: 3,
               mb: 3,
-              borderRadius: '16px',
-              bgcolor: 'white',
+              borderRadius: RADII.lg,
+              bgcolor: COLORS.bg.white,
               border: '1px solid',
-              borderColor: alpha('#DE3F5E', 0.2),
-              background: `linear-gradient(135deg, white 0%, ${alpha('#DE3F5E', 0.03)} 100%)`,
+              borderColor: alpha(COLORS.brand.primary, 0.2),
+              background: `linear-gradient(135deg, white 0%, ${alpha(COLORS.brand.primary, 0.03)} 100%)`,
             }}
           >
             <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" spacing={2}>
@@ -256,40 +251,34 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                   width: 48,
                   height: 48,
                   borderRadius: '50%',
-                  bgcolor: alpha('#DE3F5E', 0.1),
+                  bgcolor: alpha(COLORS.brand.primary, 0.1),
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                 }}
               >
-                <AutoAwesome sx={{ fontSize: 24, color: '#DE3F5E' }} />
+                <AutoAwesome sx={{ fontSize: 24, color: COLORS.brand.primary }} />
               </Box>
               <Box sx={{ flex: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 0.5 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 0.5 }}>
                   Activate your Planner subscription
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                   Get unlimited client weddings with all Pro features included — $249/year.
                 </Typography>
               </Box>
-              <Button
-                variant="contained"
+              <PrimaryActionButton
                 onClick={() => setUpgradeModalOpen(true)}
                 sx={{
-                  bgcolor: '#DE3F5E',
-                  color: 'white',
-                  borderRadius: '24px',
-                  textTransform: 'none',
-                  fontWeight: 700,
+                  borderRadius: RADII.dialog,
                   fontSize: '0.9rem',
                   px: 3,
                   whiteSpace: 'nowrap',
-                  '&:hover': { bgcolor: '#C8365A' },
                 }}
               >
                 Subscribe Now
-              </Button>
+              </PrimaryActionButton>
             </Stack>
           </Paper>
         )}
@@ -297,52 +286,46 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
         {/* Wedding List */}
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress sx={{ color: '#DE3F5E' }} />
+            <CircularProgress sx={{ color: COLORS.brand.primary }} />
           </Box>
         ) : weddings.length === 0 ? (
           <Paper
             elevation={0}
             sx={{
               p: 6,
-              borderRadius: '16px',
+              borderRadius: RADII.lg,
               textAlign: 'center',
-              bgcolor: 'white',
+              bgcolor: COLORS.bg.white,
               border: '1px solid',
-              borderColor: alpha('#000', 0.08),
+              borderColor: alpha(COLORS.text.strong, 0.08),
             }}
           >
-            <Typography variant="h6" sx={{ color: '#666', mb: 2 }}>
+            <Typography variant="h6" sx={{ color: COLORS.text.subtle, mb: 2 }}>
               No weddings yet
             </Typography>
-            <Button
-              variant="contained"
+            <PrimaryActionButton
               startIcon={<Add />}
               onClick={() => setDialogOpen(true)}
               sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
                 borderRadius: 1,
-                textTransform: 'none',
-                fontWeight: 700,
                 px: 4,
-                '&:hover': { bgcolor: '#C8365A' },
               }}
             >
               Create your first wedding
-            </Button>
+            </PrimaryActionButton>
           </Paper>
         ) : (
           <Paper
             elevation={0}
             sx={{
-              borderRadius: '16px',
-              bgcolor: 'white',
+              borderRadius: RADII.lg,
+              bgcolor: COLORS.bg.white,
               border: '1px solid',
-              borderColor: alpha('#000', 0.08),
+              borderColor: alpha(COLORS.text.strong, 0.08),
               overflow: 'hidden',
             }}
           >
-            <Stack divider={<Box sx={{ borderBottom: '1px solid', borderColor: alpha('#000', 0.08) }} />}>
+            <Stack divider={<Box sx={{ borderBottom: '1px solid', borderColor: alpha(COLORS.text.strong, 0.08) }} />}>
               {weddings.map((wedding) => (
                 <Box
                   key={wedding.id}
@@ -350,10 +333,10 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                   sx={{
                     p: 3,
                     cursor: 'pointer',
-                    bgcolor: 'white',
+                    bgcolor: COLORS.bg.white,
                     transition: 'all 0.2s',
                     '&:hover': {
-                      bgcolor: alpha('#DE3F5E', 0.04),
+                      bgcolor: alpha(COLORS.brand.primary, 0.04),
                     },
                   }}
                 >
@@ -362,9 +345,9 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                       <Typography
                         variant="h6"
                         sx={{
-                          fontFamily: 'var(--font-instrument-serif)',
+                          fontFamily: FONTS.display,
                           fontStyle: 'italic',
-                          color: '#1a1a1a',
+                          color: COLORS.text.strong,
                           fontWeight: 700,
                           fontSize: '1.4rem',
                           whiteSpace: 'nowrap',
@@ -381,13 +364,13 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1,
-                        bgcolor: alpha('#000', 0.04),
+                        bgcolor: alpha(COLORS.text.strong, 0.04),
                         px: 1.5,
                         py: 0.5,
-                        borderRadius: '8px',
+                        borderRadius: RADII.sm,
                       }}>
-                        <AccessTime sx={{ fontSize: '1.1rem', color: '#666' }} />
-                        <Typography variant="body2" sx={{ color: '#666', fontWeight: 500, fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                        <AccessTime sx={{ fontSize: '1.1rem', color: COLORS.text.subtle }} />
+                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontWeight: 500, fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
                           {wedding.wedding_date_display || 'Date TBD'}
                         </Typography>
                       </Box>
@@ -399,14 +382,14 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                           display: 'flex',
                           alignItems: 'center',
                           gap: 1,
-                          bgcolor: alpha('#000', 0.04),
+                          bgcolor: alpha(COLORS.text.strong, 0.04),
                           px: 1.5,
                           py: 0.5,
-                          borderRadius: '8px',
+                          borderRadius: RADII.sm,
                           maxWidth: '100%',
                         }}>
-                          <LocationOn sx={{ fontSize: '1.1rem', color: '#666', flexShrink: 0 }} />
-                          <Typography variant="body2" sx={{ color: '#666', fontWeight: 500, fontSize: '0.85rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <LocationOn sx={{ fontSize: '1.1rem', color: COLORS.text.subtle, flexShrink: 0 }} />
+                          <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontWeight: 500, fontSize: '0.875rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {[wedding.venue_name !== 'Venue Name' ? wedding.venue_name : null, wedding.venue_location !== 'City, Country' ? wedding.venue_location : null].filter(Boolean).join(', ')}
                           </Typography>
                         </Box>
@@ -418,10 +401,10 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                         label={wedding.status === 'live' ? 'Live' : 'Draft'}
                         size="small"
                         sx={{
-                          bgcolor: wedding.status === 'live' ? alpha('#4caf50', 0.1) : alpha('#000', 0.05),
-                          color: wedding.status === 'live' ? '#2e7d32' : '#888',
+                          bgcolor: wedding.status === 'live' ? alpha(COLORS.accent.success, 0.1) : alpha(COLORS.text.strong, 0.05),
+                          color: wedding.status === 'live' ? COLORS.accent.successText : COLORS.text.faint,
                           fontWeight: 600,
-                          fontSize: '0.75rem',
+                          fontSize: '0.875rem',
                         }}
                       />
                     </Box>
@@ -434,29 +417,23 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
       </Container>
 
       {/* Create Wedding Dialog*/}
-      <Dialog
+      <PheraDialog
         open={dialogOpen}
         onClose={() => { setDialogOpen(false); resetForm(); }}
         maxWidth="xs"
         fullWidth
-        PaperProps={{
-          sx: { borderRadius: '24px', p: 1 },
-        }}
+        PaperProps={{ sx: { p: 1 } }}
       >
-        <DialogTitle sx={{
-          fontFamily: 'var(--font-instrument-serif)',
-          fontStyle: 'italic',
-          fontWeight: 700,
-          fontSize: '1.4rem',
-          color: '#1a1a1a',
-          textAlign: 'center',
-        }}>
+        <PheraDialogTitle
+          onClose={() => { setDialogOpen(false); resetForm(); }}
+          sx={{ justifyContent: 'center', fontStyle: 'italic' }}
+        >
           Create New Wedding
-        </DialogTitle>
+        </PheraDialogTitle>
         <DialogContent>
           <Stack spacing={2.5} sx={{ mt: 1 }}>
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Partner 1 Name</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Partner 1 Name</Typography>
               <StyledTextField
                 fullWidth
                 label=""
@@ -468,7 +445,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             </Box>
 
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Partner 2 Name</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Partner 2 Name</Typography>
               <StyledTextField
                 fullWidth
                 label=""
@@ -479,7 +456,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             </Box>
 
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Event Venue</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Event Venue</Typography>
               <StyledTextField
                 fullWidth
                 label=""
@@ -493,7 +470,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
             </Box>
 
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a', fontSize: '0.8rem' }}>Wedding Dates</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong, fontSize: '0.875rem' }}>Wedding Dates</Typography>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <Stack direction="row" spacing={2}>
                   <Box sx={{ flex: 1 }}>
@@ -506,7 +483,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                       slots={{ textField: StyledTextField }}
                       slotProps={{
                         textField: { fullWidth: true, placeholder: 'Start Date' },
-                        actionBar: { actions: ['cancel', 'accept'], sx: { '& .MuiButton-root': { color: '#DE3F5E', fontWeight: 700 } } },
+                        actionBar: { actions: ['cancel', 'accept'], sx: { '& .MuiButton-root': { color: COLORS.brand.primary, fontWeight: 700 } } },
                         day: { sx: { '&.Mui-selected': { backgroundColor: '#DE3F5E !important', color: '#ffffff !important' } } },
                       }}
                     />
@@ -522,7 +499,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
                         slots={{ textField: StyledTextField }}
                         slotProps={{
                           textField: { fullWidth: true, placeholder: 'End Date' },
-                          actionBar: { actions: ['cancel', 'accept'], sx: { '& .MuiButton-root': { color: '#DE3F5E', fontWeight: 700 } } },
+                          actionBar: { actions: ['cancel', 'accept'], sx: { '& .MuiButton-root': { color: COLORS.brand.primary, fontWeight: 700 } } },
                           day: { sx: { '&.Mui-selected': { backgroundColor: '#DE3F5E !important', color: '#ffffff !important' } } },
                         }}
                       />
@@ -540,34 +517,29 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
         <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'center' }}>
           <Button
             onClick={() => { setDialogOpen(false); resetForm(); }}
-            sx={{ color: '#666', fontWeight: 700, textTransform: 'none', borderRadius: 1 }}
+            sx={{ color: COLORS.text.subtle, fontWeight: 700, textTransform: 'none', borderRadius: 1 }}
           >
             Cancel
           </Button>
-          <Button
-            variant="contained"
+          <PrimaryActionButton
             onClick={handleCreateWedding}
-            disabled={!partner1Name || !partner2Name || creating}
+            loading={creating}
+            disabled={!partner1Name || !partner2Name}
             sx={{
-              bgcolor: '#DE3F5E',
-              color: 'white',
               borderRadius: 1,
-              textTransform: 'none',
-              fontWeight: 700,
               px: 4,
               opacity: (!partner1Name || !partner2Name) ? 0.6 : 1,
-              '&:hover': { bgcolor: '#C8365A' },
             }}
           >
-            {creating ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Create Wedding'}
-          </Button>
+            Create Wedding
+          </PrimaryActionButton>
         </DialogActions>
-      </Dialog>
+      </PheraDialog>
 
       <UpgradeModal
         open={upgradeModalOpen}
         onClose={() => setUpgradeModalOpen(false)}
-        tier="planner"
+        tier="planner_perwedding"
       />
     </Box>
   );

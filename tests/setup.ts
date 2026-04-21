@@ -48,19 +48,22 @@ const localStorageMock = (() => {
   };
 })();
 
-Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+// Browser-only setup — skip when running integration tests in node env
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
-// Mock window.location
-const locationMock = {
-  pathname: '/',
-  search: '',
-  origin: 'https://phera.io',
-  href: 'https://phera.io/',
-  assign: vi.fn(),
-  replace: vi.fn(),
-};
+  // Mock window.location
+  const locationMock = {
+    pathname: '/',
+    search: '',
+    origin: 'https://phera.io',
+    href: 'https://phera.io/',
+    assign: vi.fn(),
+    replace: vi.fn(),
+  };
 
-Object.defineProperty(window, 'location', {
-  value: locationMock,
-  writable: true,
-});
+  Object.defineProperty(window, 'location', {
+    value: locationMock,
+    writable: true,
+  });
+}

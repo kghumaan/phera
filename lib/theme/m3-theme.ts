@@ -153,13 +153,16 @@ const baseTheme = createTheme({
         fontSize: '1.1rem',
       },
     },
+    // 14px (0.875rem) is the minimum readable size across the app.
+    // No text variant drops below it — consumers should not set inline
+    // fontSize smaller than 0.875rem.
     body2: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
       lineHeight: 1.5,
-      fontSize: '0.85rem', // Base mobile size
+      fontSize: '0.875rem', // 14px floor
       '@media (min-width:600px)': {
-        fontSize: '0.9rem',
+        fontSize: '0.925rem',
       },
       '@media (min-width:1200px)': {
         fontSize: '1rem',
@@ -169,31 +172,31 @@ const baseTheme = createTheme({
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
       lineHeight: 1.5,
-      fontSize: '0.75rem', // Base mobile size
+      fontSize: '0.875rem', // 14px floor
       '@media (min-width:600px)': {
-        fontSize: '0.8rem',
+        fontSize: '0.9rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '0.9rem',
+        fontSize: '0.95rem',
       },
     },
     body4: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
       lineHeight: 1.43,
-      fontSize: '0.7rem', // Base mobile size
+      fontSize: '0.875rem', // 14px floor
       '@media (min-width:600px)': {
-        fontSize: '0.75rem',
+        fontSize: '0.9rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '0.8rem',
+        fontSize: '0.925rem',
       },
     },
     subtitle1: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 600,
       lineHeight: 1.4,
-      fontSize: '0.9rem', // Base mobile size
+      fontSize: '0.9rem',
       '@media (min-width:600px)': {
         fontSize: '0.95rem',
       },
@@ -205,12 +208,12 @@ const baseTheme = createTheme({
       fontFamily: 'var(--font-outfit)',
       fontWeight: 600,
       lineHeight: 1.4,
-      fontSize: '0.75rem', // Base mobile size
+      fontSize: '0.875rem', // 14px floor
       '@media (min-width:600px)': {
-        fontSize: '0.8rem',
+        fontSize: '0.9rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '0.875rem',
+        fontSize: '0.925rem',
       },
     },
     subtitleCaps: {
@@ -219,43 +222,38 @@ const baseTheme = createTheme({
       lineHeight: 1.4,
       textTransform: 'uppercase',
       letterSpacing: '0.08em',
-      fontSize: '0.8rem', // Base mobile size
+      fontSize: '0.875rem', // 14px floor
       '@media (min-width:600px)': {
-        fontSize: '0.85rem',
+        fontSize: '0.9rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '0.9rem',
+        fontSize: '0.925rem',
       },
     },
     caption: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 400,
-      lineHeight: 1.33,
-
+      lineHeight: 1.4,
+      fontSize: '0.875rem', // 14px floor
       '@media (min-width:600px)': {
-        fontSize: '0.72rem',
-      },
-      '@media (min-width:900px)': {
-        fontSize: '0.78rem',
+        fontSize: '0.875rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '0.82rem',
+        fontSize: '0.9rem',
       },
     },
     overline: {
       fontFamily: 'var(--font-outfit)',
       fontWeight: 500,
-      lineHeight: 2.66,
+      lineHeight: 2,
       textTransform: 'uppercase',
       letterSpacing: '0.08333em',
+      fontSize: '0.875rem', // 14px floor
       '@media (min-width:600px)': {
-        fontSize: '0.72rem',
-      },
-      '@media (min-width:900px)': {
-        fontSize: '0.78rem',
+        fontSize: '0.875rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '0.82rem',
+        fontSize: '0.9rem',
       },
     },
     button: {
@@ -264,14 +262,12 @@ const baseTheme = createTheme({
       lineHeight: 1.75,
       textTransform: 'none',
       letterSpacing: '0.02857em',
+      fontSize: '0.875rem', // 14px floor
       '@media (min-width:600px)': {
-        fontSize: '0.875rem',
-      },
-      '@media (min-width:900px)': {
-        fontSize: '0.925rem',
+        fontSize: '0.9rem',
       },
       '@media (min-width:1200px)': {
-        fontSize: '0.975rem',
+        fontSize: '0.95rem',
       },
     },
   },
@@ -398,6 +394,16 @@ const baseTheme = createTheme({
           '&.Mui-focused': {
             color: '#DE3F5E',
           },
+        },
+      },
+    },
+    // Soften table row dividers — default MUI is ~rgba(224,224,224,1)
+    // which reads as a hard line. We want barely-there grey across every
+    // table in the app.
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
         },
       },
     },

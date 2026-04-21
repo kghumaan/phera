@@ -2,7 +2,8 @@
 
 import { use, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Box, Container, Typography, Button, Stack, useTheme, useMediaQuery, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Box, Container, Typography, Button, Stack, useTheme, useMediaQuery, ListItemIcon, ListItemText } from '@mui/material';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { Visibility, Lock, PersonOff, HowToReg } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -16,6 +17,8 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import PinEntry from '@/components/guest/PinEntry';
 import VerticalScrollLayout from '@/components/guest/VerticalScrollLayout';
 import { getFrameConfig } from '@/lib/constants/images';
+import { getCoupleFont } from '@/lib/constants/fonts';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const formatDeadline = (d: string) => { try { return format(parseISO(d), 'MMMM d, yyyy'); } catch { return d; } };
 
@@ -79,7 +82,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   return (
     <Box
       sx={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.bg.white,
         borderRadius: 8, // 64px from Figma converted to MUI scale
         px: { xs: 3, sm: 4, md: 5, lg: 5.5, xl: 6 }, // slightly less padding on mobile to fit 340px, reduced on lg/xl for overflow
         py: { xs: 1.5, sm: 1.75, md: 2, lg: 2.5, xl: 3 },
@@ -107,7 +110,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               variant="h4"
               sx={{
                 fontWeight: 400, // Regular weight like in Figma
-                color: '#000000',
+                color: COLORS.text.strong,
                 // Smoother font size progression to prevent overflow on small desktop
                 fontSize: {
                   xs: '1.25rem',  // Scaled down to fit smaller 340px container
@@ -125,7 +128,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
             <Typography
               variant="caption"
               sx={{
-                color: '#000000',
+                color: COLORS.text.strong,
                 fontWeight: 400,
                 fontSize: { xs: '0.75rem', sm: '0.75rem', lg: '0.85rem', xl: '0.9rem' },
                 lineHeight: 1.4,
@@ -342,7 +345,7 @@ function PreviewContent() {
 
   if (isLoading) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ minHeight: { xs: '100svh', md: '100vh' }, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <LoadingSpinner message="" />
       </Box>
     );
@@ -350,8 +353,8 @@ function PreviewContent() {
 
   if (error || !wedding) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography>Wedding not found or you don't have access</Typography>
+      <Box sx={{ minHeight: { xs: '100svh', md: '100vh' }, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography>Wedding not found or you don&apos;t have access</Typography>
       </Box>
     );
   }
@@ -372,7 +375,7 @@ function PreviewContent() {
           bgcolor: 'rgba(0, 0, 0, 0.7)',
           color: 'white',
           backdropFilter: 'blur(8px)',
-          borderRadius: '20px',
+          borderRadius: RADII.xl,
           textTransform: 'none',
           fontWeight: 600,
           fontSize: '0.8rem',
@@ -384,7 +387,7 @@ function PreviewContent() {
       >
         {PREVIEW_VIEW_OPTIONS.find(o => o.value === previewView)?.label || 'Change View'}
       </Button>
-      <Menu
+      <PheraMenu
         anchorEl={viewMenuAnchor}
         open={Boolean(viewMenuAnchor)}
         onClose={() => setViewMenuAnchor(null)}
@@ -404,7 +407,7 @@ function PreviewContent() {
         }}
       >
         {PREVIEW_VIEW_OPTIONS.map((option) => (
-          <MenuItem
+          <PheraMenuItem
             key={option.value}
             selected={previewView === option.value}
             onClick={() => { setPreviewView(option.value); setViewMenuAnchor(null); }}
@@ -417,9 +420,9 @@ function PreviewContent() {
           >
             <ListItemIcon>{option.icon}</ListItemIcon>
             <ListItemText>{option.label}</ListItemText>
-          </MenuItem>
+          </PheraMenuItem>
         ))}
-      </Menu>
+      </PheraMenu>
     </>
   );
 
@@ -501,7 +504,7 @@ function PreviewContent() {
                   width: 36,
                   height: 36,
                   borderRadius: '50%',
-                  backgroundColor: '#000',
+                  backgroundColor: COLORS.text.strong,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -518,13 +521,13 @@ function PreviewContent() {
                 </Box>
               </Box>
               <Button variant="contained" sx={{
-                bgcolor: '#000', color: '#fff',
-                borderRadius: '20px', px: 2,
+                bgcolor: COLORS.text.strong, color: COLORS.text.inverse,
+                borderRadius: RADII.xl, px: 2,
                 fontSize: '0.8rem', fontWeight: 500,
                 textTransform: 'none',
                 height: 36,
                 minHeight: 36,
-                '&:hover': { bgcolor: '#333' }
+                '&:hover': { bgcolor: COLORS.text.strong }
               }}>
                 Going
               </Button>
@@ -534,7 +537,7 @@ function PreviewContent() {
                   width: 36,
                   height: 36,
                   borderRadius: '50%',
-                  backgroundColor: '#8B5CF6',
+                  backgroundColor: COLORS.side.both,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -561,9 +564,10 @@ function PreviewContent() {
             venue_flag: wedding.venue_flag || '',
             rsvp_deadline: wedding.rsvp_deadline,
             welcome_text: wedding.welcome_text || undefined,
-            registry_description: (wedding as any).registry_description || undefined,
+            registry_description: (wedding as { registry_description?: string | null }).registry_description || undefined,
             primary_color: wedding.primary_color || undefined,
             couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
+            couple_name_font: (wedding as { couple_name_font?: string | null }).couple_name_font || undefined,
           }}
           weddingSlug={wedding.slug}
           isBypassPin={previewView === 'rsvp_submitted'}
@@ -654,7 +658,7 @@ function PreviewContent() {
                     width: 36,
                     height: 36,
                     borderRadius: '50%',
-                    backgroundColor: '#000',
+                    backgroundColor: COLORS.text.strong,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -671,13 +675,13 @@ function PreviewContent() {
                   </Box>
                 </Box>
                 <Button variant="contained" sx={{
-                  bgcolor: '#000', color: '#fff',
-                  borderRadius: '20px', px: 2,
+                  bgcolor: COLORS.text.strong, color: COLORS.text.inverse,
+                  borderRadius: RADII.xl, px: 2,
                   fontSize: '0.8rem', fontWeight: 500,
                   textTransform: 'none',
                   height: 36,
                   minHeight: 36,
-                  '&:hover': { bgcolor: '#333' }
+                  '&:hover': { bgcolor: COLORS.text.strong }
                 }}>
                   Going
                 </Button>
@@ -687,7 +691,7 @@ function PreviewContent() {
                     width: 36,
                     height: 36,
                     borderRadius: '50%',
-                    backgroundColor: '#8B5CF6',
+                    backgroundColor: COLORS.side.both,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -737,10 +741,10 @@ function PreviewContent() {
                     variant="h2"
                     sx={{
                       fontSize: { md: '2.5rem', lg: '3rem', xl: '3.5rem' },
-                      color: '#000',
+                      color: COLORS.text.strong,
                       lineHeight: 1.2,
-                      fontFamily: 'var(--font-instrument-serif)',
-                      fontStyle: 'italic',
+                      fontFamily: getCoupleFont((wedding as { couple_name_font?: string | null }).couple_name_font).cssVar,
+                      fontStyle: getCoupleFont((wedding as { couple_name_font?: string | null }).couple_name_font).fontStyle || 'normal',
                     }}
                   >
                     {wedding.couple_name}
@@ -751,7 +755,7 @@ function PreviewContent() {
                     <Typography
                       variant="subtitleCaps"
                       sx={{
-                        color: '#000',
+                        color: COLORS.text.strong,
                         fontSize: { md: '1rem', lg: '1.25rem' },
                       }}
                     >
@@ -773,7 +777,7 @@ function PreviewContent() {
                           '&:hover': { backgroundColor: 'rgba(0,0,0,0.15)' }
                         }}
                       >
-                        <Box component="svg" sx={{ width: 18, height: 18, color: '#000' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <Box component="svg" sx={{ width: 18, height: 18, color: COLORS.text.strong }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                         </Box>
                       </Box>
@@ -790,7 +794,7 @@ function PreviewContent() {
                           '&:hover': { backgroundColor: 'rgba(0,0,0,0.15)' }
                         }}
                       >
-                        <Box component="svg" sx={{ width: 18, height: 18, color: '#000' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <Box component="svg" sx={{ width: 18, height: 18, color: COLORS.text.strong }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" />
                         </Box>
                       </Box>
@@ -815,13 +819,13 @@ function PreviewContent() {
                   }}
                 >
                   <Stack direction="row" alignItems="center" spacing={1} justifyContent="flex-start">
-                    <Box component="svg" sx={{ width: 16, height: 16, color: '#666' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <Box component="svg" sx={{ width: 16, height: 16, color: COLORS.text.muted }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                     </Box>
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#000',
+                        color: COLORS.text.strong,
                         fontSize: { md: '1rem', lg: '1.125rem', xl: '1.25rem' },
                         textDecoration: 'underline',
                       }}
@@ -840,7 +844,7 @@ function PreviewContent() {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: '#333',
+                    color: COLORS.text.strong,
                     fontSize: { md: '1rem', lg: '1.125rem', xl: '1.25rem' },
                     lineHeight: 1.6,
                     maxWidth: { md: 400, lg: 460, xl: 520 },
@@ -918,16 +922,16 @@ function PreviewContent() {
                   size="large"
                   fullWidth
                   sx={{
-                    backgroundColor: wedding.primary_color || '#DE3F5E',
+                    backgroundColor: wedding.primary_color || COLORS.brand.primary,
                     color: 'white',
                     py: { md: 2, lg: 2.25, xl: 2.5 },
                     fontSize: { md: '1.125rem', lg: '1.25rem', xl: '1.375rem' },
                     fontWeight: 700,
-                    borderRadius: '16px',
+                    borderRadius: RADII.lg,
                     textTransform: 'uppercase',
                     letterSpacing: '6.25%',
                     '&:hover': {
-                      backgroundColor: wedding.primary_color || '#C8365A',
+                      backgroundColor: wedding.primary_color || COLORS.brand.primaryHover,
                       opacity: 0.9,
                     },
                   }}
@@ -939,7 +943,7 @@ function PreviewContent() {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: '#777',
+                    color: COLORS.text.subtle,
                     fontSize: '0.9rem',
                     textAlign: 'center',
                     lineHeight: 1.4,
@@ -958,7 +962,7 @@ function PreviewContent() {
         {/* Mobile/Tablet Layout (xs to md) */}
         <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
           <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2 }}>
-            <Box sx={{ pt: 10, pb: 1 }}>
+            <Box sx={{ pt: { xs: 3, md: 5 }, pb: 1 }}>
               {/* Couple Photo Section */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -982,7 +986,7 @@ function PreviewContent() {
                   <Typography
                     variant="subtitleCaps"
                     sx={{
-                      color: '#000',
+                      color: COLORS.text.strong,
                       fontSize: { xs: '1rem', lg: '1.125rem', xl: '1.25rem' },
                     }}
                   >
@@ -994,10 +998,10 @@ function PreviewContent() {
                     variant="h2"
                     sx={{
                       fontSize: { xs: '2.5rem', sm: '3rem', lg: '3.25rem', xl: '3.5rem' },
-                      color: '#000',
+                      color: COLORS.text.strong,
                       lineHeight: 1.2,
-                      fontFamily: 'var(--font-instrument-serif)',
-                      fontStyle: 'italic',
+                      fontFamily: getCoupleFont((wedding as { couple_name_font?: string | null }).couple_name_font).cssVar,
+                      fontStyle: getCoupleFont((wedding as { couple_name_font?: string | null }).couple_name_font).fontStyle || 'normal',
                     }}
                   >
                     {wedding.couple_name}
@@ -1022,7 +1026,7 @@ function PreviewContent() {
                       <Typography
                         variant="body2"
                         sx={{
-                          color: '#000',
+                          color: COLORS.text.strong,
                           fontSize: { xs: '1.1rem', lg: '1.2rem', xl: '1.3rem' },
                           textDecoration: 'underline',
                         }}
@@ -1047,7 +1051,7 @@ function PreviewContent() {
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#333',
+                        color: COLORS.text.strong,
                         fontSize: { xs: '0.95rem', sm: '1rem' },
                         lineHeight: 1.6,
                         textAlign: 'center',
@@ -1105,10 +1109,10 @@ function PreviewContent() {
                     variant="contained"
                     fullWidth
                     sx={{
-                      bgcolor: wedding?.primary_color || '#DE3F5E',
+                      bgcolor: wedding?.primary_color || COLORS.brand.primary,
                       color: 'white',
                       py: 1.5,
-                      borderRadius: '16px',
+                      borderRadius: '80px',
                       fontSize: '1.1rem',
                       fontWeight: 600,
                       textTransform: 'uppercase',
@@ -1119,7 +1123,7 @@ function PreviewContent() {
                   </Button>
                 </motion.div>
                 {previewView !== 'rsvp_submitted' && wedding?.rsvp_deadline && wedding.rsvp_deadline !== 'TBD' && (
-                  <Typography variant="body2" color="#777">
+                  <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                     Please RSVP by {formatDeadline(wedding.rsvp_deadline)}
                   </Typography>
                 )}

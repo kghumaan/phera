@@ -177,6 +177,15 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
 
     let guestId: string
 
+    // DPDPA consent — capture timestamp + language at first collection.
+    // Only set on this submit if the guest actually ticked the box and
+    // we don't already have a consent timestamp. Never overwrite with
+    // null so a later form without the checkbox doesn't wipe it.
+    const consentFields =
+      formData.consentGiven
+        ? { consent_given_at: new Date().toISOString(), consent_language: 'en' }
+        : {};
+
     if (existingGuest) {
       guestId = existingGuest.id
       // Update existing guest info (with new avatar data)
@@ -189,6 +198,7 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
         avatar_seed: avatarData.seed,
         avatar_svg: avatarData.svg,
         wedding_side: formData.weddingSide || null,
+        ...consentFields,
       };
       await supabase
         .from('guests')
@@ -207,6 +217,7 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
         avatar_svg: avatarData.svg,
         auth_method: 'email',
         wedding_side: formData.weddingSide || null,
+        ...consentFields,
       };
 
       const { data: newGuest, error: guestError } = await supabase
@@ -254,23 +265,31 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
       throw rsvpError;
     }
 
-    // Add special message as a comment if provided (keep for backwards compatibility)
+    // Add special message as a comment if provided — skip if guest already has one
     if (formData.specialMessage || formData.selectedGif) {
-      const commentData: any = {
-        guest_id: guestId,
-        wedding_id: weddingId,
-        message: formData.specialMessage || null
-      };
+      const { data: existingComment } = await supabase
+        .from('comments')
+        .select('id')
+        .eq('guest_id', guestId)
+        .eq('wedding_id', weddingId)
+        .limit(1);
 
-      // Add GIF data if selected
-      if (formData.selectedGif) {
-        commentData.gif_id = formData.selectedGif.id;
-        commentData.gif_url = formData.selectedGif.url;
-        commentData.gif_title = formData.selectedGif.title;
-        commentData.gif_preview_url = formData.selectedGif.preview_url;
+      if (!existingComment || existingComment.length === 0) {
+        const commentData: any = {
+          guest_id: guestId,
+          wedding_id: weddingId,
+          message: formData.specialMessage || null
+        };
+
+        if (formData.selectedGif) {
+          commentData.gif_id = formData.selectedGif.id;
+          commentData.gif_url = formData.selectedGif.url;
+          commentData.gif_title = formData.selectedGif.title;
+          commentData.gif_preview_url = formData.selectedGif.preview_url;
+        }
+
+        await supabase.from('comments').insert(commentData);
       }
-
-      await supabase.from('comments').insert(commentData);
     }
 
     // Handle WhatsApp opt-in if selected
@@ -420,6 +439,18 @@ export async function addComment(
     gif_preview_url: string;
   }
 ) {
+  // Prevent duplicate: one comment per guest per wedding
+  const { data: existing } = await supabase
+    .from('comments')
+    .select('id')
+    .eq('guest_id', guestId)
+    .eq('wedding_id', weddingId)
+    .limit(1);
+
+  if (existing && existing.length > 0) {
+    throw new Error('You have already posted a comment for this wedding.');
+  }
+
   const insertData: TablesInsert<'comments'> = {
     guest_id: guestId,
     wedding_id: weddingId,

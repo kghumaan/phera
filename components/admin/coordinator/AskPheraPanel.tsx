@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, Typography, IconButton, alpha } from '@mui/material';
-import { Close, AutoAwesome } from '@mui/icons-material';
+import { Box, Typography, IconButton, alpha, Grow } from '@mui/material';
+import { Close, AutoAwesome, Remove } from '@mui/icons-material';
 import ChatInput from '@/components/admin/build-ai/ChatInput';
 import TypingIndicator from '@/components/admin/build-ai/TypingIndicator';
 import { parseAIResponse } from '@/lib/vendors/format-ai-response';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface ChatMessage {
   id: string;
@@ -76,70 +77,103 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
     }
   };
 
-  if (!open) return null;
-
   return (
+    <Grow
+      in={open}
+      mountOnEnter
+      unmountOnExit
+      timeout={{ enter: 260, exit: 200 }}
+      style={{ transformOrigin: 'bottom right' }}
+    >
     <Box
       sx={{
-        width: 380,
-        flexShrink: 0,
+        position: 'fixed',
+        right: { xs: 12, md: 24 },
+        bottom: { xs: 12, md: 24 },
+        width: { xs: 'calc(100vw - 24px)', sm: 420 },
+        height: { xs: 'calc(100vh - 140px)', sm: 640 },
+        maxHeight: 'calc(100vh - 80px)',
+        zIndex: 1300,
         display: 'flex',
         flexDirection: 'column',
-        borderLeft: '1px solid rgba(0,0,0,0.07)',
-        bgcolor: 'white',
-        height: '100vh',
-        position: 'sticky',
-        top: 0,
-        pt: 'calc(34px + 32px)',
+        bgcolor: COLORS.bg.white,
+        borderRadius: RADII.lg,
+        boxShadow: '0 16px 48px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08)',
+        border: '1px solid rgba(0,0,0,0.07)',
+        overflow: 'hidden',
       }}
     >
-      {/* Header */}
+      {/* Header — light gray bar with title + close */}
       <Box
         sx={{
-          px: 2.5,
+          px: 2,
           py: 1.5,
+          bgcolor: COLORS.bg.muted,
           borderBottom: '1px solid rgba(0,0,0,0.07)',
+          color: COLORS.text.strong,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          flexShrink: 0,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box
             sx={{
-              width: 28,
-              height: 28,
+              width: 26,
+              height: 26,
               borderRadius: '50%',
-              bgcolor: alpha('#DE3F5E', 0.1),
+              bgcolor: alpha(COLORS.brand.primary, 0.12),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <AutoAwesome sx={{ fontSize: 16, color: '#DE3F5E' }} />
+            <AutoAwesome sx={{ fontSize: 15, color: COLORS.brand.primary }} />
           </Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1a1a' }}>
+          <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: COLORS.text.strong }}>
             Ask Phera
           </Typography>
         </Box>
-        <IconButton size="small" onClick={onClose} sx={{ color: '#6a6a6a' }}>
-          <Close sx={{ fontSize: 18 }} />
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+          <IconButton
+            size="small"
+            onClick={onClose}
+            aria-label="Minimize to floating button"
+            sx={{
+              color: COLORS.text.subtle,
+              '&:hover': { color: COLORS.text.strong, bgcolor: 'rgba(0,0,0,0.06)' },
+            }}
+          >
+            <Remove sx={{ fontSize: 18 }} />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={onClose}
+            aria-label="Close"
+            sx={{
+              color: COLORS.text.subtle,
+              '&:hover': { color: COLORS.text.strong, bgcolor: 'rgba(0,0,0,0.06)' },
+            }}
+          >
+            <Close sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Box>
       </Box>
 
       {/* Disabled overlay for demo */}
       {disabled && (
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', px: 3, textAlign: 'center', gap: 2 }}>
-          <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: alpha('#DE3F5E', 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AutoAwesome sx={{ fontSize: 24, color: '#DE3F5E' }} />
+          <Box sx={{ width: 48, height: 48, borderRadius: '50%', bgcolor: alpha(COLORS.brand.primary, 0.08), display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AutoAwesome sx={{ fontSize: 24, color: COLORS.brand.primary }} />
           </Box>
-          <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: '#1a1a1a' }}>
+          <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', color: COLORS.text.strong }}>
             AI Vendor Assistant
           </Typography>
-          <Typography sx={{ fontSize: '0.82rem', color: '#6a6a6a', lineHeight: 1.6 }}>
+          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.subtle, lineHeight: 1.6 }}>
             Ask questions about your vendor conversations, get quote comparisons, and receive suggestions — all powered by your actual vendor data.
           </Typography>
-          <Typography sx={{ fontSize: '0.75rem', color: '#999', mt: 1 }}>
+          <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint, mt: 1 }}>
             Disabled in demo mode
           </Typography>
         </Box>
@@ -164,7 +198,7 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
                     width: 28,
                     height: 28,
                     borderRadius: '50%',
-                    bgcolor: alpha('#DE3F5E', 0.1),
+                    bgcolor: alpha(COLORS.brand.primary, 0.1),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -172,7 +206,7 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
                     mt: 0.25,
                   }}
                 >
-                  <AutoAwesome sx={{ fontSize: 14, color: '#DE3F5E' }} />
+                  <AutoAwesome sx={{ fontSize: 14, color: COLORS.brand.primary }} />
                 </Box>
                 <Box sx={{ flex: 1 }}>
                   {parseAIResponse(msg.text)}
@@ -189,15 +223,15 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
                   px: 2,
                   py: 1.25,
                   borderRadius: '14px 14px 4px 14px',
-                  bgcolor: '#eeeeee',
+                  bgcolor: COLORS.bg.muted,
                 }}
               >
                 <Typography
                   variant="body2"
                   sx={{
-                    fontSize: '0.85rem',
+                    fontSize: '0.875rem',
                     lineHeight: 1.5,
-                    color: '#1a1a1a',
+                    color: COLORS.text.strong,
                     whiteSpace: 'pre-line',
                   }}
                 >
@@ -221,5 +255,6 @@ export default function AskPheraPanel({ weddingId, open, onClose, conversationId
         noBorder
       /></>)}
     </Box>
+    </Grow>
   );
 }

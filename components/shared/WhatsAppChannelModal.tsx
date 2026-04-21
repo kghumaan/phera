@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  Dialog,
   DialogContent,
   Box,
   Typography,
@@ -11,12 +10,14 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { QRCodeSVG } from 'qrcode.react';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface WhatsAppChannelModalProps {
   open: boolean;
@@ -77,18 +78,16 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
   };
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={onClose}
       maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px',
           backgroundColor: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(20px)',
           border: '1px solid rgba(255, 255, 255, 0.2)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
           m: 2,
           maxHeight: 'calc(100vh - 64px)',
         },
@@ -130,7 +129,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                 sx={{
                   width: 64,
                   height: 64,
-                  backgroundColor: '#25D366',
+                  backgroundColor: COLORS.accent.success,
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
@@ -149,7 +148,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                   fontWeight: 400,
                   fontSize: 28,
                   lineHeight: 1.3,
-                  color: '#141414',
+                  color: COLORS.text.strong,
                   fontStyle: 'italic',
                 }}
               >
@@ -163,7 +162,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                   fontWeight: 300,
                   fontSize: 16,
                   lineHeight: 1.5,
-                  color: '#474747',
+                  color: COLORS.text.muted,
                   textAlign: 'center',
                   maxWidth: 320,
                 }}
@@ -191,7 +190,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                       sx={{
                         width: 6,
                         height: 6,
-                        backgroundColor: '#25D366',
+                        backgroundColor: COLORS.accent.success,
                         borderRadius: '50%',
                         flexShrink: 0,
                       }}
@@ -201,7 +200,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                       sx={{
                         fontWeight: 400,
                         fontSize: 14,
-                        color: '#666',
+                        color: COLORS.text.subtle,
                       }}
                     >
                       {benefit}
@@ -218,7 +217,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                     sx={{
                       width: 180,
                       height: 180,
-                      backgroundColor: '#ffffff',
+                      backgroundColor: COLORS.bg.white,
                       borderRadius: 2,
                       display: 'flex',
                       alignItems: 'center',
@@ -238,8 +237,8 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                   <Typography
                     variant="caption"
                     sx={{
-                      fontSize: 12,
-                      color: '#666',
+                      fontSize: 14,
+                      color: COLORS.text.subtle,
                     }}
                   >
                     Scan with phone to join community
@@ -250,9 +249,9 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                   variant="outlined"
                   onClick={handleAppStoreClick}
                   sx={{
-                    borderColor: '#000',
-                    color: '#000',
-                    borderRadius: '12px',
+                    borderColor: COLORS.text.strong,
+                    color: COLORS.text.strong,
+                    borderRadius: RADII.md,
                     px: 3,
                     py: 1.5,
                     fontSize: '0.9rem',
@@ -262,7 +261,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                     maxWidth: 320,
                     '&:hover': {
                       backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                      borderColor: '#000',
+                      borderColor: COLORS.text.strong,
                     },
                   }}
                 >
@@ -280,9 +279,9 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                   variant="contained"
                   onClick={handleChannelClick}
                   sx={{
-                    backgroundColor: '#25D366',
-                    color: '#fff',
-                    borderRadius: '16px',
+                    backgroundColor: COLORS.accent.success,
+                    color: COLORS.text.inverse,
+                    borderRadius: RADII.lg,
                     px: 4,
                     py: 2,
                     fontSize: '1rem',
@@ -291,7 +290,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
                     width: '100%',
                     maxWidth: 320,
                     '&:hover': {
-                      backgroundColor: '#1fb855',
+                      backgroundColor: COLORS.accent.success,
                     },
                   }}
                 >
@@ -302,7 +301,7 @@ const WhatsAppChannelModal = ({ open, onClose }: WhatsAppChannelModalProps) => {
           </motion.div>
         </Box>
       </DialogContent>
-    </Dialog>
+    </PheraDialog>
   );
 };
 

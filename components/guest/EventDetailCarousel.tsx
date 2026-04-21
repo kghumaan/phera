@@ -13,9 +13,10 @@ import { ChevronLeft, ChevronRight, Close } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { CarouselSlide } from '@/lib/supabase/wedding-service';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 // Diamond indicators component — exported for reuse in admin preview
-export const DiamondIndicators = ({ total, current, activeColor = '#DE3F5E' }: { total: number; current: number; activeColor?: string }) => (
+export const DiamondIndicators = ({ total, current, activeColor = COLORS.brand.primary }: { total: number; current: number; activeColor?: string }) => (
   <Stack direction="row" spacing={1} justifyContent="center" alignItems="center">
     {[...Array(total)].map((_, index) => (
       <Box
@@ -32,7 +33,7 @@ export const DiamondIndicators = ({ total, current, activeColor = '#DE3F5E' }: {
             fillRule="evenodd"
             clipRule="evenodd"
             d="M10.1038 6.00065C10.6321 5.50893 10.6321 4.49105 10.1038 3.99933L6.05569 0.231742C5.7237 -0.0772472 5.2763 -0.0772472 4.94431 0.231742L0.896222 3.99933C0.367926 4.49105 0.367926 5.50893 0.896222 6.00065L4.94431 9.76823C5.2763 10.0773 5.7237 10.0773 6.05569 9.76823L10.1038 6.00065Z"
-            fill={index === current ? activeColor : '#D7A393'}
+            fill={index === current ? activeColor : COLORS.text.faint}
           />
         </svg>
       </Box>
@@ -62,7 +63,7 @@ export const SlideContent = ({
           fill
           style={{
             objectFit: 'cover',
-            borderRadius: '16px',
+            borderRadius: RADII.lg,
           }}
           sizes="(max-width: 768px) 100vw, 600px"
           priority
@@ -91,7 +92,7 @@ export const SlideContent = ({
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
                 color: textColor,
-                opacity: textColor === '#FFFFFF' ? 0.7 : 0.5,
+                opacity: textColor === COLORS.bg.white ? 0.7 : 0.5,
                 textAlign: 'center',
                 mb: 2,
               }}
@@ -130,7 +131,7 @@ export const SlideContent = ({
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
                 color: textColor,
-                opacity: textColor === '#FFFFFF' ? 0.7 : 0.5,
+                opacity: textColor === COLORS.bg.white ? 0.7 : 0.5,
                 textAlign: 'center',
                 mb: 2,
               }}
@@ -175,7 +176,7 @@ export const SlideContent = ({
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
               color: textColor,
-              opacity: textColor === '#FFFFFF' ? 0.7 : 0.5,
+              opacity: textColor === COLORS.bg.white ? 0.7 : 0.5,
               textAlign: 'center',
             }}
           >
@@ -188,7 +189,7 @@ export const SlideContent = ({
           <Typography
             variant="h2"
             sx={{
-              fontFamily: 'var(--font-instrument-serif)',
+              fontFamily: FONTS.display,
               fontWeight: 400,
               fontSize: { xs: 36, md: 48, lg: 56 },
               lineHeight: 1.2,
@@ -233,7 +234,7 @@ export const SlideContent = ({
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             color: textColor,
-            opacity: textColor === '#FFFFFF' ? 0.7 : 0.5,
+            opacity: textColor === COLORS.bg.white ? 0.7 : 0.5,
             textAlign: 'center',
           }}
         >
@@ -245,7 +246,7 @@ export const SlideContent = ({
         <Typography
           variant="h2"
           sx={{
-            fontFamily: 'var(--font-instrument-serif)',
+            fontFamily: FONTS.display,
             fontWeight: 400,
             fontSize: { xs: 32, md: 40, lg: 48 },
             lineHeight: 1.3,
@@ -286,7 +287,6 @@ interface EventDetailCarouselProps {
   gradientBackground: string | null;
   onClose: () => void;
   primaryColor?: string;
-  weddingBackground?: string;
 }
 
 export default function EventDetailCarousel({
@@ -296,7 +296,6 @@ export default function EventDetailCarousel({
   gradientBackground,
   onClose,
   primaryColor,
-  weddingBackground,
 }: EventDetailCarouselProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const totalSlides = slides.length;
@@ -343,18 +342,6 @@ export default function EventDetailCarousel({
           zIndex: 10,
         }}
       >
-        {/* Background layer — uses the wedding's main background */}
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: weddingBackground ? `url(${weddingBackground})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundColor: weddingBackground ? undefined : '#1a1a1a',
-          }}
-        />
-
         {/* Close Button */}
         <IconButton
           onClick={onClose}
@@ -363,7 +350,7 @@ export default function EventDetailCarousel({
             top: 24,
             right: 24,
             backgroundColor: 'rgba(254, 249, 242, 0.9)',
-            color: '#000',
+            color: COLORS.text.strong,
             zIndex: 20,
             '&:hover': {
               backgroundColor: 'rgba(255, 255, 255, 1)',
@@ -380,7 +367,7 @@ export default function EventDetailCarousel({
             fontSize: 14,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            color: '#000',
+            color: COLORS.text.strong,
             mb: 3,
             textAlign: 'center',
           }}
@@ -396,7 +383,7 @@ export default function EventDetailCarousel({
             height: '75vh',
             maxHeight: 750,
             backgroundColor: 'transparent',
-            borderRadius: '24px',
+            borderRadius: RADII.dialog,
             boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.16)',
             border: '2px solid #FEF9F2',
             overflow: 'hidden',
@@ -452,9 +439,9 @@ export default function EventDetailCarousel({
               width: 48,
               height: 48,
               backgroundColor: 'rgba(254, 249, 242, 0.9)',
-              color: '#000',
+              color: COLORS.text.strong,
               '&:hover': {
-                backgroundColor: '#FEF9F2',
+                backgroundColor: COLORS.bg.muted,
               },
               '&:disabled': {
                 backgroundColor: 'rgba(254, 249, 242, 0.3)',
@@ -472,9 +459,9 @@ export default function EventDetailCarousel({
               width: 48,
               height: 48,
               backgroundColor: 'rgba(254, 249, 242, 0.9)',
-              color: '#000',
+              color: COLORS.text.strong,
               '&:hover': {
-                backgroundColor: '#FEF9F2',
+                backgroundColor: COLORS.bg.muted,
               },
               '&:disabled': {
                 backgroundColor: 'rgba(254, 249, 242, 0.3)',

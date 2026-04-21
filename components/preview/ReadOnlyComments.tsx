@@ -4,6 +4,7 @@ import { Box, Typography, Paper, Stack, Avatar, Chip, Divider } from '@mui/mater
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useState, memo } from 'react';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Helper function to get initials from name
 const getInitials = (name: string): string => {
@@ -18,9 +19,9 @@ const getInitials = (name: string): string => {
 // Helper function to generate avatar color
 const getAvatarColor = (name: string, index: number): string => {
   const colors = [
-    '#E91E63', '#2196F3', '#FF9800', '#4CAF50', '#9C27B0',
+    COLORS.brand.primary, COLORS.accent.info, COLORS.accent.warning, COLORS.accent.success, COLORS.side.both,
     '#00BCD4', '#FF5722', '#607D8B', '#795548', '#3F51B5',
-    '#F44336', '#009688', '#FFC107', '#E91E63', '#673AB7',
+    COLORS.accent.danger, '#009688', '#FFC107', COLORS.brand.primary, '#673AB7',
   ];
   return colors[index % colors.length];
 };
@@ -32,7 +33,7 @@ const mockComments = [
     guest: {
       name: 'Priya Sharma',
       initials: 'PS',
-      avatar_color: '#E91E63',
+      avatar_color: COLORS.brand.primary,
     },
     message: "Can't wait to celebrate this special day with you both! So excited! 💃✨",
     created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
@@ -42,7 +43,7 @@ const mockComments = [
     guest: {
       name: 'Rahul Patel',
       initials: 'RP',
-      avatar_color: '#2196F3',
+      avatar_color: COLORS.accent.info,
     },
     message: "So excited to celebrate with you both! Can't wait for the festivities! 🎉",
     created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
@@ -52,7 +53,7 @@ const mockComments = [
     guest: {
       name: 'Anjali Desai',
       initials: 'AD',
-      avatar_color: '#FF9800',
+      avatar_color: COLORS.accent.warning,
     },
     message: 'This is going to be the wedding of the year! Already planning my outfit 💃',
     created_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
@@ -102,7 +103,7 @@ function ReadOnlyComments() {
   return (
     <Paper
       sx={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.bg.white,
         borderRadius: 1,
         overflow: 'hidden',
         boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
@@ -142,7 +143,7 @@ function ReadOnlyComments() {
                   fontSize: '14px',
                   lineHeight: '1.26em',
                   textAlign: 'center',
-                  color: activeTab === index ? '#DE3F5E' : '#000000',
+                  color: activeTab === index ? COLORS.brand.primary : '#000000',
                 }}
               >
                 {tab}
@@ -154,13 +155,13 @@ function ReadOnlyComments() {
                   label={mockGuestCounts.going}
                   size="small"
                   sx={{
-                    backgroundColor: '#D6D6D6',
+                    backgroundColor: COLORS.border.default,
                     color: '#000000',
                     height: 20,
                     minWidth: 20,
                     '& .MuiChip-label': {
                       px: 0.75,
-                      fontSize: '10px',
+                      fontSize: '14px',
                       fontWeight: 600,
                     },
                   }}
@@ -171,13 +172,13 @@ function ReadOnlyComments() {
                   label={mockGuestCounts.maybe}
                   size="small"
                   sx={{
-                    backgroundColor: '#D6D6D6',
+                    backgroundColor: COLORS.border.default,
                     color: '#000000',
                     height: 20,
                     minWidth: 20,
                     '& .MuiChip-label': {
                       px: 0.75,
-                      fontSize: '10px',
+                      fontSize: '14px',
                       fontWeight: 600,
                     },
                   }}
@@ -204,7 +205,7 @@ function ReadOnlyComments() {
             <Typography
               sx={{
                 fontSize: '14px',
-                color: '#DE3F5E',
+                color: COLORS.brand.primary,
                 textAlign: 'center',
               }}
             >
@@ -258,7 +259,7 @@ function ReadOnlyComments() {
                               fontWeight: 600,
                               fontSize: '14px',
                               lineHeight: '1.5em',
-                              color: '#141414',
+                              color: COLORS.text.strong,
                             }}
                           >
                             {comment.guest.name}
@@ -268,7 +269,7 @@ function ReadOnlyComments() {
                               fontWeight: 400,
                               fontSize: '14px',
                               lineHeight: '1.5em',
-                              color: '#858585',
+                              color: COLORS.text.faint,
                             }}
                           >
                             {formatTimeAgo(comment.created_at)}
@@ -282,7 +283,7 @@ function ReadOnlyComments() {
                               fontWeight: 400,
                               fontSize: '14px',
                               lineHeight: '1.5em',
-                              color: '#141414',
+                              color: COLORS.text.strong,
                               mb: (comment as any).gif_url ? 1 : 1,
                             }}
                           >
@@ -295,7 +296,7 @@ function ReadOnlyComments() {
                           <Box
                             sx={{
                               mt: comment.message ? 1 : 0,
-                              borderRadius: '16px',
+                              borderRadius: RADII.lg,
                               overflow: 'hidden',
                               maxWidth: '280px',
                               border: '1px solid rgba(0, 0, 0, 0.08)',
@@ -321,7 +322,7 @@ function ReadOnlyComments() {
 
                     {/* Divider - show for all comments except the last one */}
                     {index < mockComments.length - 1 && (
-                      <Divider sx={{ borderColor: '#EBEBEB' }} />
+                      <Divider sx={{ borderColor: COLORS.border.light }} />
                     )}
                   </Box>
                 </Box>
@@ -354,7 +355,7 @@ function ReadOnlyComments() {
                           fontWeight: 400,
                           fontSize: '14px',
                           lineHeight: '1.5em',
-                          color: '#141414',
+                          color: COLORS.text.strong,
                         }}
                       >
                         {guestName}
@@ -363,7 +364,7 @@ function ReadOnlyComments() {
 
                     {/* Divider - show for all guests except the last one */}
                     {index < mockGoingGuests.length - 1 && (
-                      <Divider sx={{ borderColor: '#EBEBEB' }} />
+                      <Divider sx={{ borderColor: COLORS.border.light }} />
                     )}
                   </Box>
                 </Box>
@@ -396,7 +397,7 @@ function ReadOnlyComments() {
                           fontWeight: 400,
                           fontSize: '14px',
                           lineHeight: '1.5em',
-                          color: '#141414',
+                          color: COLORS.text.strong,
                         }}
                       >
                         {guestName}
@@ -405,7 +406,7 @@ function ReadOnlyComments() {
 
                     {/* Divider - show for all guests except the last one */}
                     {index < mockMaybeGuests.length - 1 && (
-                      <Divider sx={{ borderColor: '#EBEBEB' }} />
+                      <Divider sx={{ borderColor: COLORS.border.light }} />
                     )}
                   </Box>
                 </Box>

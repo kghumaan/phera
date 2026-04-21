@@ -14,12 +14,13 @@ import {
   Radio,
   TextField,
   CircularProgress,
-  Alert,
   Divider,
   Chip,
   Tooltip,
   alpha,
 } from '@mui/material';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
+import { InfoAlert, ErrorAlert } from '@/components/shared/Alert';
 import {
   DirectionsBus,
   AccessTime,
@@ -103,7 +104,7 @@ export default function ReserveTransportation({
   const [hasExistingArrival, setHasExistingArrival] = useState(false);
   const [hasExistingDeparture, setHasExistingDeparture] = useState(false);
 
-  const primaryColor = primaryColorProp || '#DE3F5E';
+  const primaryColor = primaryColorProp || COLORS.brand.primary;
 
   useEffect(() => {
     loadData();
@@ -306,9 +307,9 @@ export default function ReserveTransportation({
         <Typography
           variant="h3"
           sx={{
-            fontFamily: 'var(--font-instrument-serif)',
+            fontFamily: FONTS.display,
             fontStyle: 'italic',
-            color: '#1a1a1a',
+            color: COLORS.text.strong,
             mb: 2,
           }}
         >
@@ -317,7 +318,7 @@ export default function ReserveTransportation({
         <Typography
           variant="body2"
           sx={{
-            color: '#666',
+            color: COLORS.text.subtle,
             maxWidth: 500,
             mb: 3,
             lineHeight: 1.7,
@@ -325,20 +326,9 @@ export default function ReserveTransportation({
         >
           Your transportation request has been submitted.
         </Typography>
-        <Alert
-          severity="info"
-          icon={<Info />}
-          sx={{
-            maxWidth: 400,
-            borderRadius: 2,
-            color: '#1a1a1a',
-            bgcolor: alpha(primaryColor, 0.05),
-            border: `1px solid ${alpha(primaryColor, 0.2)}`,
-            '& .MuiAlert-icon': { color: primaryColor },
-          }}
-        >
+        <InfoAlert sx={{ maxWidth: 400 }}>
           This reservation is not final until confirmed by the hosts. Please stay tuned for a confirmation alert.
-        </Alert>
+        </InfoAlert>
         {onClose && (
           <Button
             onClick={onClose}
@@ -353,7 +343,7 @@ export default function ReserveTransportation({
               py: 1.5,
               textTransform: 'none',
               fontWeight: 600,
-              '&:hover': { bgcolor: '#C8365A' },
+              '&:hover': { bgcolor: COLORS.brand.primaryHover },
             }}
           >
             Done
@@ -377,7 +367,7 @@ export default function ReserveTransportation({
         }}
       >
         <CircularProgress sx={{ color: primaryColor }} />
-        <Typography variant="body2" sx={{ mt: 2, color: '#666' }}>Loading transportation options...</Typography>
+        <Typography variant="body2" sx={{ mt: 2, color: COLORS.text.subtle }}>Loading transportation options...</Typography>
       </Box>
     );
   }
@@ -386,11 +376,11 @@ export default function ReserveTransportation({
   if (error && !settings) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
-        <DirectionsBus sx={{ fontSize: 60, color: '#ccc', mb: 2 }} />
-        <Typography variant="h6" sx={{ color: '#666', mb: 1 }}>
+        <DirectionsBus sx={{ fontSize: 60, color: COLORS.border.default, mb: 2 }} />
+        <Typography variant="h6" sx={{ color: COLORS.text.subtle, mb: 1 }}>
           Transportation Not Available
         </Typography>
-        <Typography variant="body2" sx={{ color: '#999' }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.faint }}>
           {error}
         </Typography>
         {onClose && (
@@ -421,15 +411,15 @@ export default function ReserveTransportation({
         <Typography
           variant="h3"
           sx={{
-            fontFamily: 'var(--font-instrument-serif)',
+            fontFamily: FONTS.display,
             fontStyle: 'italic',
-            color: '#1a1a1a',
+            color: COLORS.text.strong,
             mb: 1,
           }}
         >
           Reserve Transportation
         </Typography>
-        <Typography variant="body2" sx={{ color: '#666', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
           Select your preferred transportation for the wedding
           <Tooltip
             title="This reservation will reserve spots for you and your plus one(s) only."
@@ -437,7 +427,7 @@ export default function ReserveTransportation({
             enterTouchDelay={0}
             leaveTouchDelay={3000}
           >
-            <Info sx={{ fontSize: 16, color: '#999', cursor: 'pointer' }} />
+            <Info sx={{ fontSize: 16, color: COLORS.text.faint, cursor: 'pointer' }} />
           </Tooltip>
         </Typography>
         {partySize > 1 && (
@@ -455,9 +445,9 @@ export default function ReserveTransportation({
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+        <ErrorAlert sx={{ mb: 3 }}>
           {error}
-        </Alert>
+        </ErrorAlert>
       )}
 
       <Stack spacing={4}>
@@ -470,14 +460,14 @@ export default function ReserveTransportation({
               borderRadius: 1,
               border: '1px solid',
               borderColor: 'rgba(0,0,0,0.1)',
-              bgcolor: 'white',
+              bgcolor: COLORS.bg.white,
             }}
           >
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
               <FlightLand sx={{ color: primaryColor }} />
               <Typography
                 variant="h6"
-                sx={{ fontWeight: 600, color: '#1a1a1a' }}
+                sx={{ fontWeight: 600, color: COLORS.text.strong }}
               >
                 Arrival Transportation
               </Typography>
@@ -485,7 +475,7 @@ export default function ReserveTransportation({
                 <Chip
                   label="Previously submitted"
                   size="small"
-                  sx={{ bgcolor: alpha('#4CAF50', 0.1), color: '#4CAF50' }}
+                  sx={{ bgcolor: alpha(COLORS.accent.success, 0.1), color: COLORS.accent.success }}
                 />
               )}
             </Stack>
@@ -527,14 +517,14 @@ export default function ReserveTransportation({
               borderRadius: 1,
               border: '1px solid',
               borderColor: 'rgba(0,0,0,0.1)',
-              bgcolor: 'white',
+              bgcolor: COLORS.bg.white,
             }}
           >
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
               <FlightTakeoff sx={{ color: primaryColor }} />
               <Typography
                 variant="h6"
-                sx={{ fontWeight: 600, color: '#1a1a1a' }}
+                sx={{ fontWeight: 600, color: COLORS.text.strong }}
               >
                 Departure Transportation
               </Typography>
@@ -542,7 +532,7 @@ export default function ReserveTransportation({
                 <Chip
                   label="Previously submitted"
                   size="small"
-                  sx={{ bgcolor: alpha('#4CAF50', 0.1), color: '#4CAF50' }}
+                  sx={{ bgcolor: alpha(COLORS.accent.success, 0.1), color: COLORS.accent.success }}
                 />
               )}
             </Stack>
@@ -584,7 +574,7 @@ export default function ReserveTransportation({
           disabled={submitting}
           sx={{
             bgcolor: primaryColor,
-            color: 'white',
+            color: COLORS.text.inverse,
             py: 1.75,
             borderRadius: 1,
             textTransform: 'none',
@@ -592,16 +582,16 @@ export default function ReserveTransportation({
             fontSize: '1rem',
             boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
             '&:hover': {
-              bgcolor: '#C8365A',
+              bgcolor: COLORS.brand.primaryHover,
               boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
             },
             '&:disabled': {
-              bgcolor: '#ccc',
+              bgcolor: COLORS.border.default,
             },
           }}
         >
           {submitting ? (
-            <CircularProgress size={24} sx={{ color: 'white' }} />
+            <CircularProgress size={24} sx={{ color: COLORS.text.inverse }} />
           ) : (
             'Submit Reservation'
           )}
@@ -613,7 +603,7 @@ export default function ReserveTransportation({
             onClick={onClose}
             sx={{
               borderRadius: 1,
-              color: '#666',
+              color: COLORS.text.subtle,
               textTransform: 'none',
             }}
           >
@@ -634,7 +624,7 @@ function PrescheduledSection({
   onNotesChange,
   partySize,
   direction,
-  primaryColor = '#DE3F5E',
+  primaryColor = COLORS.brand.primary,
 }: {
   vehicles: VehicleWithCapacity[];
   selection: string;
@@ -648,7 +638,7 @@ function PrescheduledSection({
 
   if (vehicles.length === 0) {
     return (
-      <Typography variant="body2" sx={{ color: '#999', textAlign: 'center', py: 2 }}>
+      <Typography variant="body2" sx={{ color: COLORS.text.faint, textAlign: 'center', py: 2 }}>
         No {direction} vehicles have been scheduled yet.
       </Typography>
     );
@@ -668,7 +658,7 @@ function PrescheduledSection({
 
   return (
     <Stack spacing={2}>
-      <Typography variant="body2" sx={{ color: '#666', mb: 1 }}>
+      <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 1 }}>
         Select your preferred shuttle time:
       </Typography>
 
@@ -697,7 +687,7 @@ function PrescheduledSection({
                     : isFull
                       ? 'rgba(0,0,0,0.08)'
                       : 'rgba(0,0,0,0.12)',
-                  bgcolor: isFull ? 'rgba(0,0,0,0.02)' : 'white',
+                  bgcolor: isFull ? 'rgba(0,0,0,0.02)' : COLORS.bg.white,
                   opacity: isFull ? 0.7 : 1,
                   transition: 'all 0.2s',
                   cursor: isFull ? 'not-allowed' : 'pointer',
@@ -714,7 +704,7 @@ function PrescheduledSection({
                   control={
                     <Radio
                       sx={{
-                        color: '#ddd',
+                        color: COLORS.border.default,
                         '&.Mui-checked': { color: primaryColor },
                       }}
                     />
@@ -722,7 +712,7 @@ function PrescheduledSection({
                   label={
                     <Box sx={{ ml: 1 }}>
                       <Stack direction="row" spacing={1.5} alignItems="center">
-                        <Typography sx={{ fontWeight: 600, color: '#1a1a1a', fontSize: '1rem' }}>
+                        <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1rem' }}>
                           {formatDateTime(vehicle.departure_datetime)}
                         </Typography>
                         <Chip
@@ -730,19 +720,19 @@ function PrescheduledSection({
                           size="small"
                           sx={{
                             height: 22,
-                            fontSize: '0.75rem',
+                            fontSize: '0.875rem',
                             bgcolor: isFull
                               ? 'rgba(0,0,0,0.1)'
                               : alpha(primaryColor, 0.1),
-                            color: isFull ? '#999' : primaryColor,
+                            color: isFull ? COLORS.text.faint : primaryColor,
                             fontWeight: 600,
                           }}
                         />
                       </Stack>
                       {vehicle.pickup_location && (
                         <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }}>
-                          <LocationOn sx={{ fontSize: 16, color: '#6a6a6a' }} />
-                          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                          <LocationOn sx={{ fontSize: 16, color: COLORS.text.subtle }} />
+                          <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                             {vehicle.pickup_location}
                           </Typography>
                         </Stack>
@@ -772,7 +762,7 @@ function PrescheduledSection({
         sx={{
           mt: 1,
           '& .MuiInputLabel-root': {
-            color: '#1a1a1a',
+            color: COLORS.text.strong,
             fontWeight: 500,
           },
           '& .MuiOutlinedInput-root': {
@@ -781,11 +771,11 @@ function PrescheduledSection({
               borderColor: '#797979',
             },
             '& .MuiInputBase-input': {
-              color: '#1a1a1a',
-              WebkitTextFillColor: '#1a1a1a',
+              color: COLORS.text.strong,
+              WebkitTextFillColor: COLORS.text.strong,
               '&::placeholder': {
-                color: '#6a6a6a',
-                WebkitTextFillColor: '#6a6a6a',
+                color: COLORS.text.subtle,
+                WebkitTextFillColor: COLORS.text.subtle,
                 opacity: 1,
               },
             },
@@ -813,7 +803,7 @@ function FlexibleSection({
   notes,
   onNotesChange,
   direction,
-  primaryColor = '#DE3F5E',
+  primaryColor = COLORS.brand.primary,
 }: {
   locations: TransportationPickupLocation[];
   timeRange: TransportationTimeRange | null;
@@ -848,7 +838,7 @@ function FlexibleSection({
 
   if (locations.length === 0 && !timeRange) {
     return (
-      <Typography variant="body2" sx={{ color: '#999', textAlign: 'center', py: 2 }}>
+      <Typography variant="body2" sx={{ color: COLORS.text.faint, textAlign: 'center', py: 2 }}>
         No {direction} options have been configured yet.
       </Typography>
     );
@@ -859,7 +849,7 @@ function FlexibleSection({
       {/* Location Selection */}
       {locations.length > 0 && (
         <Box>
-          <Typography variant="body2" sx={{ color: '#1a1a1a', mb: 1.5, fontWeight: 500 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.strong, mb: 1.5, fontWeight: 500 }}>
             Select pickup location:
           </Typography>
           <FormControl component="fieldset" fullWidth>
@@ -881,7 +871,7 @@ function FlexibleSection({
                       : 'rgba(0,0,0,0.12)',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
-                    bgcolor: '#fff',
+                    bgcolor: COLORS.text.inverse,
                     '&:hover': {
                       borderColor: primaryColor,
                       bgcolor: alpha(primaryColor, 0.02),
@@ -894,18 +884,18 @@ function FlexibleSection({
                     control={
                       <Radio
                         sx={{
-                          color: '#ddd',
+                          color: COLORS.border.default,
                           '&.Mui-checked': { color: primaryColor },
                         }}
                       />
                     }
                     label={
                       <Box sx={{ ml: 1 }}>
-                        <Typography sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                        <Typography sx={{ fontWeight: 600, color: COLORS.text.strong }}>
                           {location.name}
                         </Typography>
                         {location.address && (
-                          <Typography variant="body2" sx={{ color: '#4a4a4a', mt: 0.25 }}>
+                          <Typography variant="body2" sx={{ color: COLORS.text.muted, mt: 0.25 }}>
                             {location.address}
                           </Typography>
                         )}
@@ -923,7 +913,7 @@ function FlexibleSection({
       {/* Time Selection */}
       {timeSlots.length > 0 && (
         <Box>
-          <Typography variant="body2" sx={{ color: '#1a1a1a', mb: 1.5, fontWeight: 500 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.strong, mb: 1.5, fontWeight: 500 }}>
             Select preferred time:
           </Typography>
           <FormControl component="fieldset" fullWidth>
@@ -949,7 +939,7 @@ function FlexibleSection({
                         border: '1px solid',
                         borderColor: isSelected ? primaryColor : 'rgba(0,0,0,0.15)',
                         bgcolor: isSelected ? alpha(primaryColor, 0.1) : 'transparent',
-                        color: isSelected ? primaryColor : '#333',
+                        color: isSelected ? primaryColor : COLORS.text.strong,
                         fontWeight: isSelected ? 600 : 400,
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -977,7 +967,7 @@ function FlexibleSection({
         fullWidth
         sx={{
           '& .MuiInputLabel-root': {
-            color: '#1a1a1a',
+            color: COLORS.text.strong,
             fontWeight: 500,
           },
           '& .MuiOutlinedInput-root': {
@@ -986,11 +976,11 @@ function FlexibleSection({
               borderColor: '#797979',
             },
             '& .MuiInputBase-input': {
-              color: '#1a1a1a',
-              WebkitTextFillColor: '#1a1a1a',
+              color: COLORS.text.strong,
+              WebkitTextFillColor: COLORS.text.strong,
               '&::placeholder': {
-                color: '#6a6a6a',
-                WebkitTextFillColor: '#6a6a6a',
+                color: COLORS.text.subtle,
+                WebkitTextFillColor: COLORS.text.subtle,
                 opacity: 1,
               },
             },

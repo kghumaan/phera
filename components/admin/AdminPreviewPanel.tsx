@@ -1,11 +1,18 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Box, IconButton, alpha, Typography, Button, Dialog, DialogContent, Stack, Switch, TextField, CircularProgress, Menu, MenuItem } from '@mui/material';
-import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check, Publish } from '@mui/icons-material';
+import { Box, IconButton, alpha, Typography, Button, DialogContent, Stack, TextField, CircularProgress } from '@mui/material';
+import { PheraDialog } from '@/components/shared/Dialog';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
+import { ActionButton, PrimaryActionButton } from './ActionButton';
+import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check, Publish, ArrowBack } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { weddingService, Wedding, WeddingSettings } from '@/lib/supabase/wedding-service';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import IPhoneMockup from '@/components/ui/IPhoneMockup';
+import MobileBrowserShell from '@/components/ui/MobileBrowserShell';
+import { COLORS, RADII, TEXT } from '@/lib/theme/tokens';
+import { PheraSwitch } from '@/components/shared/Switch';
 
 const SECTION_MAP: Record<string, string> = {
     '/schedule': 'Schedule',
@@ -26,6 +33,22 @@ interface AdminPreviewPanelProps {
     onPublished?: () => void;
     currentAdminPath?: string | null;
     websiteLayout?: string | null;
+    /**
+     * When true, the wedding is published — the mobile preview URL bar will
+     * show the live guest URL. Otherwise it shows the preview URL.
+     */
+    isLive?: boolean;
+    /**
+     * Compact mode — renders iframe directly without phone/desktop chrome.
+     * Used for the inline mobile preview in the admin layout.
+     */
+    compact?: boolean;
+    /**
+     * When provided in compact mode, renders a back button in the top bar
+     * that calls this handler — lets the preview own its full toolbar so
+     * the parent overlay doesn't need a separate header row.
+     */
+    onClose?: () => void;
 }
 
 interface PinCode {
@@ -42,6 +65,9 @@ export default function AdminPreviewPanel({
     onPublished,
     currentAdminPath,
     websiteLayout,
+    isLive = false,
+    compact = false,
+    onClose,
 }: AdminPreviewPanelProps) {
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('mobile');
     const iframeRefLine = useRef<HTMLIFrameElement>(null);
@@ -297,18 +323,210 @@ export default function AdminPreviewPanel({
         return frameWidth / (16 / 10);
     }, [containerWidth]);
 
-    // iPhone aspect ratio (roughly 9:19.5) — fit within available space
-    const MOBILE_ASPECT = 19.5 / 11;
+    // Match IPhoneMockup aspect (9 : 19) so the chrome fills exactly
+    const MOBILE_ASPECT = 19 / 9;
     const mobileWidth = useMemo(() => {
-        if (!containerHeight || !containerWidth) return 420;
-        const maxH = containerHeight * 0.92;
-        const maxW = containerWidth * 0.85;
+        if (!containerHeight || !containerWidth) return 400;
+        const maxH = containerHeight * 0.94;
+        const maxW = containerWidth * 0.82;
         // Width from fitting height
         const wFromH = maxH / MOBILE_ASPECT;
         // Use the smaller of the two to ensure it fits, but don't go below 340
-        return Math.max(Math.min(wFromH, maxW, 420), 360);
+        return Math.max(Math.min(wFromH, maxW, 400), 340);
     }, [containerHeight, containerWidth]);
     const mobileHeight = mobileWidth * MOBILE_ASPECT;
+
+    if (compact) {
+        return (
+            <Box
+                data-tour="tour-preview"
+                sx={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    bgcolor: COLORS.bg.subtle,
+                    overflow: 'hidden',
+                }}
+            >
+                {/* Single top action bar: back / publish / open / share.
+                    Consolidated so the iframe gets the maximum vertical space.
+                    `alignItems: 'stretch'` + matching heights keeps the icon
+                    buttons vertically aligned with the Publish action button. */}
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        px: 1,
+                        py: 0.75,
+                        bgcolor: COLORS.bg.white,
+                        borderBottom: `1px solid ${COLORS.border.faint}`,
+                        flexShrink: 0,
+                    }}
+                >
+                    {onClose && (
+                        <IconButton
+                            size="small"
+                            onClick={onClose}
+                            aria-label="Close preview"
+                            sx={{ color: COLORS.text.strong, mr: 0.5 }}
+                        >
+                            <ArrowBack />
+                        </IconButton>
+                    )}
+                    <Typography variant="body1" sx={{ fontWeight: 600, color: COLORS.text.strong, flexShrink: 0 }}>
+                        Preview
+                    </Typography>
+                    <Box sx={{ flex: 1 }} />
+                    <IconButton
+                        size="small"
+                        onClick={() => window.open(previewUrl, '_blank')}
+                        aria-label="Open in new tab"
+                        sx={{
+                            color: COLORS.text.strong,
+                            width: 32,
+                            height: 32,
+                            borderRadius: RADII.md,
+                        }}
+                    >
+                        <OpenInNew sx={{ fontSize: 18 }} />
+                    </IconButton>
+                    <IconButton
+                        size="small"
+                        onClick={handleShareClick}
+                        aria-label="Share"
+                        sx={{
+                            color: COLORS.text.strong,
+                            width: 32,
+                            height: 32,
+                            borderRadius: RADII.md,
+                        }}
+                    >
+                        <IosShare sx={{ fontSize: 18 }} />
+                    </IconButton>
+                    {showPublishButton && (
+                        <ActionButton
+                            variant="contained"
+                            onClick={handlePublish}
+                            loading={isPublishing}
+                            disabled={publishSuccess}
+                            startIcon={publishSuccess ? <Check sx={{ fontSize: 16 }} /> : <Publish sx={{ fontSize: 16 }} />}
+                            sx={{
+                                bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primary,
+                                color: COLORS.text.inverse,
+                                borderRadius: RADII.md,
+                                px: 1.5,
+                                py: 0.5,
+                                ml: 0.5,
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                fontSize: TEXT.sm,
+                                minHeight: 32,
+                                '&:hover': {
+                                    bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primaryHover,
+                                },
+                                '&.Mui-disabled': {
+                                    bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primary,
+                                    color: COLORS.text.inverse,
+                                    opacity: 0.8,
+                                },
+                            }}
+                        >
+                            {publishSuccess ? 'Published' : 'Publish'}
+                        </ActionButton>
+                    )}
+                </Box>
+                <Box
+                    sx={{
+                        flex: 1,
+                        minHeight: 0,
+                        width: '100%',
+                        bgcolor: COLORS.bg.white,
+                    }}
+                >
+                    <iframe
+                        key={iframeSrc}
+                        ref={iframeRefLine}
+                        src={iframeSrc}
+                        onLoad={handleIframeLoad}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            border: 'none',
+                            backgroundColor: COLORS.bg.white,
+                            display: 'block',
+                        }}
+                        title="Wedding Preview"
+                    />
+                </Box>
+
+                {/* Share Modal — reused from full mode */}
+                <PheraDialog
+                    open={isShareModalOpen}
+                    onClose={() => setIsShareModalOpen(false)}
+                    maxWidth="sm"
+                    fullWidth
+                    PaperProps={{ sx: { p: 1, m: { xs: 1, sm: 2 } } }}
+                >
+                    <DialogContent>
+                        <IconButton
+                            onClick={() => setIsShareModalOpen(false)}
+                            sx={{ position: 'absolute', right: 16, top: 16, color: COLORS.text.subtle }}
+                        >
+                            <Close />
+                        </IconButton>
+                        {isLoadingModal ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                                <CircularProgress sx={{ color: COLORS.brand.primary }} />
+                            </Box>
+                        ) : (
+                            <Stack spacing={3} sx={{ mt: 2, pb: 2 }}>
+                                <Typography variant="h5" sx={{ fontWeight: 700, textAlign: 'center', color: COLORS.text.strong }}>
+                                    Share with your guests
+                                </Typography>
+                                <Box>
+                                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: COLORS.text.strong }}>
+                                        Phera URL
+                                    </Typography>
+                                    <TextField
+                                        fullWidth
+                                        variant="outlined"
+                                        value={publicUrl}
+                                        InputProps={{
+                                            readOnly: true,
+                                            sx: {
+                                                borderRadius: RADII.md,
+                                                bgcolor: COLORS.bg.muted,
+                                                color: COLORS.text.subtle,
+                                            },
+                                        }}
+                                    />
+                                    <Stack direction="row" spacing={2} mt={1.5}>
+                                        <Button
+                                            startIcon={copiedStates['url'] ? <Check sx={{ fontSize: 18 }} /> : <ContentCopy sx={{ fontSize: 18 }} />}
+                                            onClick={() => copyToClipboard(publicUrl, 'url')}
+                                            sx={{ textTransform: 'none', color: COLORS.brand.primary, fontWeight: 600, p: 0, minWidth: 0 }}
+                                        >
+                                            {copiedStates['url'] ? 'Copied' : 'Copy URL'}
+                                        </Button>
+                                        <Button
+                                            startIcon={<OpenInNew sx={{ fontSize: 18 }} />}
+                                            href={publicUrl}
+                                            target="_blank"
+                                            sx={{ textTransform: 'none', color: COLORS.brand.primary, fontWeight: 600, p: 0, minWidth: 0 }}
+                                        >
+                                            Open
+                                        </Button>
+                                    </Stack>
+                                </Box>
+                            </Stack>
+                        )}
+                    </DialogContent>
+                </PheraDialog>
+            </Box>
+        );
+    }
 
     return (
         <Box
@@ -317,7 +535,7 @@ export default function AdminPreviewPanel({
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                bgcolor: '#f8f7f5',
+                bgcolor: COLORS.bg.subtle,
             }}
         >
             {/* Toggle Header with Publish Button */}
@@ -348,8 +566,8 @@ export default function AdminPreviewPanel({
                             sx={{
                                 display: 'flex',
                                 gap: 1.5,
-                                bgcolor: 'white',
-                                borderRadius: '16px',
+                                bgcolor: COLORS.bg.white,
+                                borderRadius: RADII.lg,
                                 p: 0.5,
                                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                             }}
@@ -358,13 +576,13 @@ export default function AdminPreviewPanel({
                                 onClick={() => setViewMode('desktop')}
                                 size="medium"
                                 sx={{
-                                    bgcolor: viewMode === 'desktop' ? alpha('#DE3F5E', 0.1) : 'transparent',
-                                    color: viewMode === 'desktop' ? '#DE3F5E' : '#666',
-                                    borderRadius: '14px',
+                                    bgcolor: viewMode === 'desktop' ? alpha(COLORS.brand.primary, 0.1) : 'transparent',
+                                    color: viewMode === 'desktop' ? COLORS.brand.primary : COLORS.text.subtle,
+                                    borderRadius: RADII.md,
                                     px: 2.5,
                                     py: 1,
                                     '&:hover': {
-                                        bgcolor: viewMode === 'desktop' ? alpha('#DE3F5E', 0.15) : alpha('#000', 0.04),
+                                        bgcolor: viewMode === 'desktop' ? alpha(COLORS.brand.primary, 0.15) : alpha(COLORS.text.strong, 0.04),
                                     },
                                 }}
                                 title="Desktop View"
@@ -375,13 +593,13 @@ export default function AdminPreviewPanel({
                                 onClick={() => setViewMode('mobile')}
                                 size="medium"
                                 sx={{
-                                    bgcolor: viewMode === 'mobile' ? alpha('#DE3F5E', 0.1) : 'transparent',
-                                    color: viewMode === 'mobile' ? '#DE3F5E' : '#666',
-                                    borderRadius: '14px',
+                                    bgcolor: viewMode === 'mobile' ? alpha(COLORS.brand.primary, 0.1) : 'transparent',
+                                    color: viewMode === 'mobile' ? COLORS.brand.primary : COLORS.text.subtle,
+                                    borderRadius: RADII.md,
                                     px: 2.5,
                                     py: 1,
                                     '&:hover': {
-                                        bgcolor: viewMode === 'mobile' ? alpha('#DE3F5E', 0.15) : alpha('#000', 0.04),
+                                        bgcolor: viewMode === 'mobile' ? alpha(COLORS.brand.primary, 0.15) : alpha(COLORS.text.strong, 0.04),
                                     },
                                 }}
                                 title="Mobile View"
@@ -399,23 +617,22 @@ export default function AdminPreviewPanel({
                                 exit={{ opacity: 0, x: 20, scale: 0.9 }}
                                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                             >
-                                <Button
+                                <ActionButton
                                     variant="contained"
                                     onClick={handlePublish}
-                                    disabled={isPublishing || publishSuccess}
+                                    loading={isPublishing}
+                                    disabled={publishSuccess}
                                     startIcon={
-                                        isPublishing ? (
-                                            <CircularProgress size={16} color="inherit" />
-                                        ) : publishSuccess ? (
+                                        publishSuccess ? (
                                             <Check sx={{ fontSize: 18 }} />
                                         ) : (
                                             <Publish sx={{ fontSize: 18 }} />
                                         )
                                     }
                                     sx={{
-                                        bgcolor: publishSuccess ? '#10B981' : '#DE3F5E',
-                                        color: 'white',
-                                        borderRadius: '14px',
+                                        bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primary,
+                                        color: COLORS.text.inverse,
+                                        borderRadius: RADII.md,
                                         px: 2.5,
                                         py: 1,
                                         textTransform: 'none',
@@ -425,18 +642,18 @@ export default function AdminPreviewPanel({
                                             ? '0 4px 12px rgba(16, 185, 129, 0.3)'
                                             : '0 4px 12px rgba(222, 63, 94, 0.3)',
                                         '&:hover': {
-                                            bgcolor: publishSuccess ? '#059669' : '#c23450',
+                                            bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primaryHover,
                                         },
                                         '&.Mui-disabled': {
-                                            bgcolor: publishSuccess ? '#10B981' : '#DE3F5E',
-                                            color: 'white',
+                                            bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primary,
+                                            color: COLORS.text.inverse,
                                             opacity: 0.8,
                                         },
                                         whiteSpace: 'nowrap',
                                     }}
                                 >
-                                    {isPublishing ? 'Publishing...' : publishSuccess ? 'Published!' : 'Publish'}
-                                </Button>
+                                    {publishSuccess ? 'Published!' : 'Publish'}
+                                </ActionButton>
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -460,20 +677,20 @@ export default function AdminPreviewPanel({
                     animate={{
                         width: viewMode === 'desktop' ? '94%' : mobileWidth,
                         height: viewMode === 'desktop' ? desktopHeight : mobileHeight,
-                        borderRadius: viewMode === 'desktop' ? '12px' : '40px',
+                        borderRadius: viewMode === 'desktop' ? '12px' : 0,
                     }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        marginTop: viewMode === 'desktop' ? '-80px' : '-15px',
-                        backgroundColor: viewMode === 'desktop' ? 'white' : '#ebebeb',
+                        marginTop: viewMode === 'desktop' ? '-80px' : 0,
+                        backgroundColor: viewMode === 'desktop' ? COLORS.bg.white : 'transparent',
                         boxShadow: viewMode === 'desktop'
                             ? '0 20px 50px rgba(0, 0, 0, 0.15)'
-                            : '0 10px 40px rgba(0, 0, 0, 0.25)',
+                            : 'none',
                         border: viewMode === 'desktop'
                             ? '1px solid rgba(0, 0, 0, 0.08)'
-                            : '12px solid #ebebeb',
+                            : 'none',
                         position: 'relative',
                     }}
                 >
@@ -482,7 +699,7 @@ export default function AdminPreviewPanel({
                             <Box
                                 sx={{
                                     height: 32,
-                                    bgcolor: '#f1f1f1',
+                                    bgcolor: COLORS.border.faint,
                                     borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
                                     display: 'flex',
                                     alignItems: 'center',
@@ -491,9 +708,9 @@ export default function AdminPreviewPanel({
                                 }}
                             >
                                 <Box sx={{ display: 'flex', gap: 0.75 }}>
-                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#ff5f57' }} />
-                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#febc2e' }} />
-                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#28c840' }} />
+                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
                                 </Box>
                             </Box>
                             <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
@@ -514,49 +731,24 @@ export default function AdminPreviewPanel({
                             </Box>
                         </>
                     ) : (
-                        <>
-                            <Box
-                                sx={{
-                                    width: 100,
-                                    height: 20,
-                                    bgcolor: '#ebebeb',
-                                    borderRadius: '0 0 14px 14px',
-                                    mx: 'auto',
-                                    mt: 0,
-                                    border: '1px solid rgba(0,0,0,0.06)',
-                                    borderTop: 'none',
-                                    position: 'relative',
-                                    zIndex: 2,
-                                }}
-                            />
-                            <Box
-                                sx={{
-                                    flex: 1,
-                                    bgcolor: '#ebebeb',
-                                    borderRadius: '24px',
-                                    overflow: 'hidden',
-                                    mt: -2.2,
-                                    position: 'relative',
-                                    WebkitMaskImage: '-webkit-radial-gradient(white, black)',
-                                }}
-                            >
+                        <IPhoneMockup width="100%" sx={{ height: '100%' }}>
+                            <MobileBrowserShell url={isLive ? `phera.io/${weddingSlug}` : `phera.io/preview/${weddingSlug}`}>
                                 <iframe
                                     key={iframeSrc}
                                     ref={iframeRefLine}
                                     src={iframeSrc}
                                     onLoad={handleIframeLoad}
                                     style={{
-                                        width: '125%',
-                                        height: '125%',
+                                        width: '100%',
+                                        height: '100%',
                                         border: 'none',
-                                        backgroundColor: 'white',
-                                        transform: 'scale(0.8)',
-                                        transformOrigin: 'top left',
+                                        backgroundColor: COLORS.bg.white,
+                                        display: 'block',
                                     }}
                                     title="Wedding Preview - Mobile"
                                 />
-                            </Box>
-                        </>
+                            </MobileBrowserShell>
+                        </IPhoneMockup>
                     )}
                 </motion.div>
 
@@ -585,13 +777,13 @@ export default function AdminPreviewPanel({
                     }}
                     startIcon={<OpenInNew sx={{ fontSize: 20 }} />}
                     sx={{
-                        color: '#1a1a1a',
+                        color: COLORS.text.strong,
                         textTransform: 'none',
                         fontWeight: 600,
                         bgcolor: 'rgba(255, 255, 255, 0.85)',
                         backdropFilter: 'blur(8px)',
                         px: 2,
-                        borderRadius: '12px',
+                        borderRadius: RADII.md,
                         boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                         '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.95)' },
                         whiteSpace: 'nowrap',
@@ -600,15 +792,15 @@ export default function AdminPreviewPanel({
                 >
                     View Site
                 </Button>
-                <Menu
+                <PheraMenu
                     anchorEl={viewSiteAnchor}
                     open={Boolean(viewSiteAnchor)}
                     onClose={() => setViewSiteAnchor(null)}
                     anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
                     transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                    slotProps={{ paper: { sx: { borderRadius: '12px', mt: -1 } } }}
+                    slotProps={{ paper: { sx: { borderRadius: RADII.md, mt: -1 } } }}
                 >
-                    <MenuItem onClick={() => {
+                    <PheraMenuItem onClick={() => {
                         const url = sectionSlug === 'pins'
                             ? `${previewUrl}?view=pin_entry`
                             : `${previewUrl}/${sectionSlug}`;
@@ -616,16 +808,16 @@ export default function AdminPreviewPanel({
                         setViewSiteAnchor(null);
                     }}>
                         {sectionLabel}
-                    </MenuItem>
-                    <MenuItem onClick={() => { window.open(previewUrl, '_blank'); setViewSiteAnchor(null); }}>
+                    </PheraMenuItem>
+                    <PheraMenuItem onClick={() => { window.open(previewUrl, '_blank'); setViewSiteAnchor(null); }}>
                         Home
-                    </MenuItem>
-                </Menu>
+                    </PheraMenuItem>
+                </PheraMenu>
                 <Typography
                     variant="caption"
                     sx={{
-                        color: '#9a9a9a',
-                        fontSize: '0.75rem',
+                        color: COLORS.text.faint,
+                        fontSize: '0.875rem',
                         textAlign: 'center',
                         flexShrink: 1,
                         minWidth: 0,
@@ -638,13 +830,13 @@ export default function AdminPreviewPanel({
                     onClick={handleShareClick}
                     startIcon={<IosShare sx={{ fontSize: 20 }} />}
                     sx={{
-                        color: '#1a1a1a',
+                        color: COLORS.text.strong,
                         textTransform: 'none',
                         fontWeight: 600,
                         bgcolor: 'rgba(255, 255, 255, 0.85)',
                         backdropFilter: 'blur(8px)',
                         px: 2,
-                        borderRadius: '12px',
+                        borderRadius: RADII.md,
                         boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                         '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.95)' },
                         whiteSpace: 'nowrap',
@@ -656,37 +848,31 @@ export default function AdminPreviewPanel({
             </Box>
 
             {/* Share Modal */}
-            <Dialog
+            <PheraDialog
                 open={isShareModalOpen}
                 onClose={() => setIsShareModalOpen(false)}
                 maxWidth="sm"
                 fullWidth
-                PaperProps={{
-                    sx: {
-                        borderRadius: '24px',
-                        p: 1,
-                        bgcolor: 'white',
-                    }
-                }}
+                PaperProps={{ sx: { p: 1 } }}
             >
                 <DialogContent>
                     <IconButton
                         onClick={() => setIsShareModalOpen(false)}
-                        sx={{ position: 'absolute', right: 16, top: 16, color: '#666' }}
+                        sx={{ position: 'absolute', right: 16, top: 16, color: COLORS.text.subtle }}
                     >
                         <Close />
                     </IconButton>
 
                     {isLoadingModal ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                            <CircularProgress sx={{ color: '#DE3F5E' }} />
+                            <CircularProgress sx={{ color: COLORS.brand.primary }} />
                         </Box>
                     ) : (
                         <Stack spacing={4} sx={{ mt: 2, pb: 2 }}>
                             <Typography variant="h4" sx={{
                                 fontWeight: 700,
                                 textAlign: 'center',
-                                color: '#1a1a1a',
+                                color: COLORS.text.strong,
                                 mb: 1,
                                 fontSize: { xs: '1.75rem', md: '2.5rem' }
                             }}>
@@ -694,7 +880,7 @@ export default function AdminPreviewPanel({
                             </Typography>
 
                             <Box>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: '#1a1a1a' }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: COLORS.text.strong }}>
                                     Phera URL
                                 </Typography>
                                 <TextField
@@ -704,11 +890,11 @@ export default function AdminPreviewPanel({
                                     InputProps={{
                                         readOnly: true,
                                         sx: {
-                                            borderRadius: '12px',
-                                            bgcolor: '#f8f9fa',
+                                            borderRadius: RADII.md,
+                                            bgcolor: COLORS.bg.muted,
                                             '& fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
                                             '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
-                                            color: '#666'
+                                            color: COLORS.text.subtle
                                         }
                                     }}
                                 />
@@ -718,7 +904,7 @@ export default function AdminPreviewPanel({
                                         onClick={() => copyToClipboard(publicUrl, 'url')}
                                         sx={{
                                             textTransform: 'none',
-                                            color: '#DE3F5E',
+                                            color: COLORS.brand.primary,
                                             fontWeight: 600,
                                             p: 0,
                                             minWidth: 0,
@@ -733,7 +919,7 @@ export default function AdminPreviewPanel({
                                         target="_blank"
                                         sx={{
                                             textTransform: 'none',
-                                            color: '#DE3F5E',
+                                            color: COLORS.brand.primary,
                                             fontWeight: 600,
                                             p: 0,
                                             minWidth: 0,
@@ -746,7 +932,7 @@ export default function AdminPreviewPanel({
                             </Box>
 
                             <Box>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: '#1a1a1a' }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: COLORS.text.strong }}>
                                     Guest PINs
                                 </Typography>
                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
@@ -757,7 +943,7 @@ export default function AdminPreviewPanel({
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: 1,
-                                                bgcolor: '#f8f9fa',
+                                                bgcolor: COLORS.bg.muted,
                                                 border: '1px solid rgba(0,0,0,0.08)',
                                                 borderRadius: '100px',
                                                 pl: 2,
@@ -766,24 +952,24 @@ export default function AdminPreviewPanel({
                                             }}
                                         >
                                             <Stack spacing={0}>
-                                                <Typography variant="body2" sx={{ fontWeight: 700, color: '#1a1a1a', lineHeight: 1 }}>
+                                                <Typography variant="body2" sx={{ fontWeight: 700, color: COLORS.text.strong, lineHeight: 1 }}>
                                                     {pin.pin}
                                                 </Typography>
-                                                <Typography variant="caption" sx={{ color: '#666', fontSize: '10px' }}>
+                                                <Typography variant="caption" sx={{ color: COLORS.text.subtle, fontSize: '14px' }}>
                                                     {pin.type}
                                                 </Typography>
                                             </Stack>
                                             <IconButton
                                                 size="small"
                                                 onClick={() => copyToClipboard(pin.pin, `pin-${index}`)}
-                                                sx={{ color: copiedStates[`pin-${index}`] ? '#28c840' : '#DE3F5E' }}
+                                                sx={{ color: copiedStates[`pin-${index}`] ? COLORS.accent.success : COLORS.brand.primary }}
                                             >
                                                 {copiedStates[`pin-${index}`] ? <Check sx={{ fontSize: 16 }} /> : <ContentCopy sx={{ fontSize: 16 }} />}
                                             </IconButton>
                                         </Box>
                                     ))}
-                                    {(!settings?.pin_codes || (settings.pin_codes as any).length === 0) && (
-                                        <Typography variant="body2" sx={{ color: '#666', fontStyle: 'italic' }}>
+                                    {(!settings?.pin_codes || (settings.pin_codes as unknown as PinCode[]).length === 0) && (
+                                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontStyle: 'italic' }}>
                                             No PIN codes configured yet.
                                         </Typography>
                                     )}
@@ -791,52 +977,43 @@ export default function AdminPreviewPanel({
                             </Box>
 
                             <Box>
-                                <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a1a1a', mb: 3 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong, mb: 3 }}>
                                     Publish your site before sharing.
                                 </Typography>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                                     <Box>
-                                        <Typography variant="body2" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+                                        <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
                                             Publish your website
                                         </Typography>
-                                        <Typography variant="body2" sx={{ color: '#666', mt: 0.5, mr: 4 }}>
-                                            Keep your site unpublished while you're building it. Publish it when you're ready for guests to visit.
+                                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.5, mr: 4 }}>
+                                            Keep your site unpublished while you&apos;re building it. Publish it when you&apos;re ready for guests to visit.
                                         </Typography>
                                     </Box>
-                                    <Switch
+                                    <PheraSwitch
                                         checked={isPublished}
                                         onChange={(e) => setIsPublished(e.target.checked)}
                                         sx={{
-                                            '& .MuiSwitch-switchBase': { color: '#999' },
-                                            '& .MuiSwitch-track': { bgcolor: '#bbb' },
-                                            '& .MuiSwitch-switchBase.Mui-checked': { color: '#DE3F5E' },
-                                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#DE3F5E' },
                                         }}
                                     />
                                 </Box>
                                 <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-                                    <Button
-                                        variant="contained"
+                                    <PrimaryActionButton
                                         fullWidth
-                                        disabled={isSaving || (wedding?.status === 'live' && isPublished) || (wedding?.status === 'draft' && !isPublished)}
+                                        loading={isSaving}
+                                        disabled={(wedding?.status === 'live' && isPublished) || (wedding?.status === 'draft' && !isPublished)}
                                         onClick={handleSavePublish}
                                         sx={{
-                                            bgcolor: '#DE3F5E',
-                                            color: 'white',
                                             borderRadius: '100px',
                                             py: 2,
-                                            fontWeight: 700,
                                             fontSize: '1.1rem',
-                                            textTransform: 'none',
-                                            '&:hover': { bgcolor: '#c23450' },
-                                            '&.Mui-disabled': { bgcolor: '#f0f0f0', color: '#999' }
+                                            '&.Mui-disabled': { bgcolor: COLORS.border.faint, color: COLORS.text.faint }
                                         }}
                                     >
-                                        {isSaving ? <CircularProgress size={24} color="inherit" /> : 'Save'}
-                                    </Button>
+                                        Save
+                                    </PrimaryActionButton>
                                 </Box>
                                 {wedding && (
-                                    <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2, color: '#666' }}>
+                                    <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2, color: COLORS.text.subtle }}>
                                         Current Status: <strong>{wedding.status === 'live' ? 'Published' : 'Draft'}</strong>
                                     </Typography>
                                 )}
@@ -844,26 +1021,20 @@ export default function AdminPreviewPanel({
                         </Stack>
                     )}
                 </DialogContent>
-            </Dialog>
+            </PheraDialog>
 
             {/* Published Modal */}
-            <Dialog
+            <PheraDialog
                 open={showPublishedModal}
                 onClose={() => setShowPublishedModal(false)}
                 maxWidth="sm"
                 fullWidth
-                PaperProps={{
-                    sx: {
-                        borderRadius: '24px',
-                        p: 1,
-                        bgcolor: 'white',
-                    }
-                }}
+                PaperProps={{ sx: { p: 1 } }}
             >
                 <DialogContent>
                     <IconButton
                         onClick={() => setShowPublishedModal(false)}
-                        sx={{ position: 'absolute', right: 16, top: 16, color: '#666' }}
+                        sx={{ position: 'absolute', right: 16, top: 16, color: COLORS.text.subtle }}
                     >
                         <Close />
                     </IconButton>
@@ -871,12 +1042,12 @@ export default function AdminPreviewPanel({
                     <Stack spacing={3} sx={{ mt: 2, pb: 2, textAlign: 'center' }}>
                         <Typography variant="h4" sx={{
                             fontWeight: 700,
-                            color: '#1a1a1a',
+                            color: COLORS.text.strong,
                             fontSize: { xs: '1.75rem', md: '2.5rem' }
                         }}>
                             Your website is published!
                         </Typography>
-                        <Typography variant="body1" sx={{ color: '#4a4a4a' }}>
+                        <Typography variant="body1" sx={{ color: COLORS.text.muted }}>
                             Start sharing this with your friends and family — we&apos;ll collect your RSVPs.
                         </Typography>
                         <TextField
@@ -886,11 +1057,11 @@ export default function AdminPreviewPanel({
                             InputProps={{
                                 readOnly: true,
                                 sx: {
-                                    borderRadius: '12px',
-                                    bgcolor: '#f8f9fa',
+                                    borderRadius: RADII.md,
+                                    bgcolor: COLORS.bg.muted,
                                     '& fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
                                     '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.1)' },
-                                    color: '#666',
+                                    color: COLORS.text.subtle,
                                 }
                             }}
                         />
@@ -900,7 +1071,7 @@ export default function AdminPreviewPanel({
                                 onClick={() => copyToClipboard(liveUrl, 'published-url')}
                                 sx={{
                                     textTransform: 'none',
-                                    color: '#DE3F5E',
+                                    color: COLORS.brand.primary,
                                     fontWeight: 600,
                                     '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
                                 }}
@@ -913,7 +1084,7 @@ export default function AdminPreviewPanel({
                                 target="_blank"
                                 sx={{
                                     textTransform: 'none',
-                                    color: '#DE3F5E',
+                                    color: COLORS.brand.primary,
                                     fontWeight: 600,
                                     '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' }
                                 }}
@@ -923,7 +1094,7 @@ export default function AdminPreviewPanel({
                         </Stack>
                     </Stack>
                 </DialogContent>
-            </Dialog>
+            </PheraDialog>
         </Box>
     );
 }

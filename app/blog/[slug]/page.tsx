@@ -10,6 +10,7 @@ import MDXComponents from '@/components/blog/MDXComponents';
 import { getPostBySlug, getAllSlugs } from '@/lib/blog';
 import { notFound } from 'next/navigation';
 import AppFooter from '@/components/shared/AppFooter';
+import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -87,11 +88,11 @@ export default async function BlogPostPage({ params }: PageProps) {
             <Button
               startIcon={<ArrowBack />}
               sx={{
-                color: '#4a4a4a',
+                color: COLORS.text.muted,
                 textTransform: 'none',
                 mb: 3,
                 borderRadius: 1,
-                '&:hover': { color: '#DE3F5E', bgcolor: 'transparent' },
+                '&:hover': { color: COLORS.brand.primary, bgcolor: 'transparent' },
               }}
             >
               Back to blog
@@ -102,10 +103,10 @@ export default async function BlogPostPage({ params }: PageProps) {
           <Typography
             variant="h1"
             sx={{
-              fontFamily: 'var(--font-instrument-serif)',
+              fontFamily: FONTS.display,
               fontStyle: 'italic',
               fontSize: { xs: '2rem', md: '2.75rem' },
-              color: '#1a1a1a',
+              color: COLORS.text.strong,
               lineHeight: 1.2,
               mb: 2,
             }}
@@ -149,7 +150,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                   fontWeight: 600,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
-                  color: '#DE3F5E',
+                  color: COLORS.brand.primary,
                   bgcolor: '#FDE8EC',
                   px: 1,
                   py: 0.25,
@@ -211,10 +212,10 @@ export default async function BlogPostPage({ params }: PageProps) {
           >
             <Typography
               sx={{
-                fontFamily: 'var(--font-instrument-serif)',
+                fontFamily: FONTS.display,
                 fontStyle: 'italic',
                 fontSize: { xs: '1.5rem', md: '2rem' },
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
                 mb: 1.5,
               }}
             >
@@ -222,7 +223,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             </Typography>
             <Typography
               sx={{
-                color: '#4a4a4a',
+                color: COLORS.text.muted,
                 fontSize: '1rem',
                 mb: 3,
               }}
@@ -233,7 +234,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               <Button
                 variant="contained"
                 sx={{
-                  bgcolor: '#DE3F5E',
+                  bgcolor: COLORS.brand.primary,
                   color: '#fff',
                   textTransform: 'none',
                   borderRadius: 24,
@@ -241,7 +242,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                   py: 1.5,
                   fontSize: '1rem',
                   fontWeight: 500,
-                  '&:hover': { bgcolor: '#C8365A' },
+                  '&:hover': { bgcolor: COLORS.brand.primaryHover },
                 }}
               >
                 Get started for free

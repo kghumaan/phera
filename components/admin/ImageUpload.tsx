@@ -8,11 +8,12 @@ import {
   Stack,
   IconButton,
   CircularProgress,
-  Alert,
 } from '@mui/material';
 import { CloudUpload, Delete, Image as ImageIcon } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { uploadImage, validateImageFile, deleteImage } from '@/lib/utils/image-upload';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { ErrorAlert } from '@/components/shared/Alert';
 
 interface ImageUploadProps {
   value?: string | null;
@@ -107,13 +108,13 @@ export default function ImageUpload({
   return (
     <Stack spacing={2}>
       {label && (
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a1a1a' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
           {label}
         </Typography>
       )}
 
       {helperText && (
-        <Typography variant="caption" sx={{ color: '#6a6a6a' }}>
+        <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
           {helperText}
         </Typography>
       )}
@@ -219,9 +220,9 @@ export default function ImageUpload({
       />
 
       {error && (
-        <Alert severity="error" onClose={() => setError(null)}>
+        <ErrorAlert onClose={() => setError(null)}>
           {error}
-        </Alert>
+        </ErrorAlert>
       )}
 
       {/* Show upload button when no preview */}
@@ -233,14 +234,14 @@ export default function ImageUpload({
           disabled={uploading}
           fullWidth
           sx={{
-            borderColor: '#DE3F5E',
-            color: '#DE3F5E',
-            borderRadius: '12px',
+            borderColor: COLORS.brand.primary,
+            color: COLORS.brand.primary,
+            borderRadius: RADII.md,
             textTransform: 'none',
             fontWeight: 600,
             py: 1.5,
             '&:hover': {
-              borderColor: '#C8365A',
+              borderColor: COLORS.brand.primaryHover,
               bgcolor: 'rgba(222, 63, 94, 0.05)',
             },
           }}

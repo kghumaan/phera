@@ -4,6 +4,7 @@ import React, { useState, useRef, use } from 'react';
 import {
   Box,
   Button,
+  Chip,
   Container,
   Typography,
   Stack,
@@ -22,6 +23,7 @@ import {
 } from '@mui/icons-material';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import UpgradeModal from '@/components/admin/UpgradeModal';
+import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import Bubble from '@/components/admin/build-ai/Bubble';
 import TypingIndicator from '@/components/admin/build-ai/TypingIndicator';
 import ChatInput from '@/components/admin/build-ai/ChatInput';
@@ -29,6 +31,8 @@ import { useBuildAI } from '@/lib/build-ai/useBuildAI';
 import { mockMessages } from '@/lib/build-ai/question-flow';
 import { Message } from '@/lib/build-ai/types';
 import ContinueButton from '@/components/admin/ContinueButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PageHeading } from '@/components/shared/PageHeading';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -60,27 +64,22 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
     return (
       <Container maxWidth="xl">
         <Stack spacing={3}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-                Build with AI
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-                Answer a few questions and watch your wedding website come to life
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              startIcon={<AutoAwesome />}
-              onClick={() => setUpgradeModalOpen(true)}
-              sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3, py: 1.25, borderRadius: '16px', fontWeight: 600, textTransform: 'none', fontSize: '0.9rem', flexShrink: 0, '&:hover': { bgcolor: '#c73552' } }}
-            >
-              Upgrade to Pro
-            </Button>
-          </Box>
+          <PageHeading
+            title="Build with AI"
+            subtitle="Answer a few questions and watch your wedding website come to life"
+            actions={
+              <PrimaryActionButton
+                startIcon={<AutoAwesome />}
+                onClick={() => setUpgradeModalOpen(true)}
+                sx={{ flexShrink: 0 }}
+              >
+                Upgrade to Pro
+              </PrimaryActionButton>
+            }
+          />
 
           <Box sx={{ maxWidth: 640 }}>
-            <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.75, mb: 1.25 }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.75, mb: 1.25 }}>
               Building a wedding website shouldn't mean navigating form after form. <strong>Just have a conversation.</strong> Our AI walks you through every detail — venue, schedule, travel info, FAQs and more — one question at a time. You answer, we build. Your beautiful website takes shape in minutes, not hours.
             </Typography>
             <Stack spacing={0.6}>
@@ -91,8 +90,8 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
                 <><strong>Lightning fast</strong> — go from blank slate to a fully built website in one sitting</>,
               ] as React.ReactNode[]).map((content, i) => (
                 <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                  <Typography variant="body2" sx={{ color: '#DE3F5E', lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
-                  <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.65 }}>{content}</Typography>
+                  <Typography variant="body2" sx={{ color: COLORS.brand.primary, lineHeight: 1.65, flexShrink: 0, fontWeight: 700 }}>•</Typography>
+                  <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.65 }}>{content}</Typography>
                 </Box>
               ))}
             </Stack>
@@ -105,28 +104,27 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
                   {mockMessages.map(m => <Bubble key={m.id} message={m as Message} />)}
                 </Box>
                 <Box sx={{ px: 2, py: 1.5, borderTop: '1px solid rgba(0,0,0,0.07)', display: 'flex', gap: 1 }}>
-                  <Box sx={{ flex: 1, bgcolor: '#F8F8F8', borderRadius: '16px', px: 2, py: 1 }}>
-                    <Typography sx={{ fontSize: '0.875rem', color: '#bbb' }}>Type your answer...</Typography>
+                  <Box sx={{ flex: 1, bgcolor: COLORS.bg.subtle, borderRadius: RADII.lg, px: 2, py: 1 }}>
+                    <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint }}>Type your answer...</Typography>
                   </Box>
-                  <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: '#DE3F5E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <ArrowUpward sx={{ fontSize: 18, color: 'white' }} />
+                  <Box sx={{ width: 40, height: 40, borderRadius: '50%', bgcolor: COLORS.brand.primary, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ArrowUpward sx={{ fontSize: 18, color: COLORS.text.inverse }} />
                   </Box>
                 </Box>
               </Paper>
             </Box>
 
             <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, bgcolor: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(2px)' }}>
-              <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: 'white', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <LockOutlined sx={{ fontSize: 26, color: '#DE3F5E' }} />
+              <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: COLORS.bg.white, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <LockOutlined sx={{ fontSize: 26, color: COLORS.brand.primary }} />
               </Box>
-              <Button
-                variant="contained"
+              <PrimaryActionButton
                 startIcon={<AutoAwesome />}
                 onClick={() => setUpgradeModalOpen(true)}
-                sx={{ bgcolor: '#DE3F5E', color: 'white', px: 3.5, py: 1.5, borderRadius: '16px', fontWeight: 600, textTransform: 'none', fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)', '&:hover': { bgcolor: '#c73552' } }}
+                sx={{ px: 3.5, py: 1.5, borderRadius: RADII.lg, fontSize: '0.95rem', boxShadow: '0 4px 20px rgba(222,63,94,0.35)' }}
               >
                 Unlock AI Builder
-              </Button>
+              </PrimaryActionButton>
             </Box>
           </Box>
         </Stack>
@@ -141,8 +139,8 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
     return (
       <Box sx={{ height: 'calc(100vh - 100px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Stack alignItems="center" spacing={2}>
-          <AutoAwesome sx={{ fontSize: 48, color: '#DE3F5E', animation: 'pulse 1.5s infinite' }} />
-          <Typography sx={{ color: '#6a6a6a' }}>Loading your wedding...</Typography>
+          <AutoAwesome sx={{ fontSize: 48, color: COLORS.brand.primary, animation: 'pulse 1.5s infinite' }} />
+          <Typography sx={{ color: COLORS.text.subtle }}>Loading your wedding...</Typography>
         </Stack>
       </Box>
     );
@@ -152,46 +150,42 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
 
   return (
     <Container maxWidth="xl" sx={{ height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column', pb: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, pt: 1 }}>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>
-            Build with AI
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
-            Answer a few questions and watch your wedding website come to life
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Check />}
-          disabled
+      <Box sx={{ mb: 2, pt: 1 }}>
+      <PageHeading
+        title="Build with AI"
+        subtitle="Answer a few questions and watch your wedding website come to life"
+        actions={
+        <Chip
+          icon={<Check sx={{ fontSize: 18, color: 'white !important' }} />}
+          label="All Changes Saved"
           sx={{
-            bgcolor: '#10B981 !important',
-            color: 'white !important',
-            borderRadius: '12px',
-            px: 3,
-            py: 1.5,
-            textTransform: 'none',
+            bgcolor: COLORS.accent.success,
+            color: COLORS.text.inverse,
             fontWeight: 600,
-            opacity: '0.9 !important',
+            fontSize: '0.875rem',
+            px: 1.5,
+            py: 2.5,
+            height: 'auto',
+            borderRadius: RADII.md,
             boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)',
+            '& .MuiChip-label': { px: 1 },
           }}
-        >
-          All Changes Saved
-        </Button>
+        />
+        }
+      />
       </Box>
 
       <Box
         sx={{
           flex: 1,
-          borderRadius: '16px',
+          borderRadius: RADII.lg,
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
           minHeight: 0,
-          bgcolor: alpha('#DE3F5E', 0.02),
+          bgcolor: alpha(COLORS.brand.primary, 0.02),
           border: '2px solid',
-          borderColor: alpha('#000', 0.12),
+          borderColor: alpha(COLORS.text.strong, 0.12),
         }}
       >
         {/* Messages */}
@@ -203,21 +197,21 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
 
         {/* Go Back + Input area */}
         {completedSteps.length > 0 && currentQuestionId !== 'complete' && (
-          <Box sx={{ px: 3, pt: 1.5, pb: 0, bgcolor: 'white', borderTop: '1px solid', borderColor: alpha('#000', 0.06) }}>
+          <Box sx={{ px: 3, pt: 1.5, pb: 0, bgcolor: COLORS.bg.white, borderTop: '1px solid', borderColor: alpha(COLORS.text.strong, 0.06) }}>
             <Button
               ref={goBackAnchorRef}
               size="small"
               startIcon={<HistoryOutlined sx={{ fontSize: 16 }} />}
               onClick={() => setGoBackOpen(prev => !prev)}
               sx={{
-                color: '#888',
-                fontSize: '0.75rem',
+                color: COLORS.text.faint,
+                fontSize: '0.875rem',
                 fontWeight: 600,
                 textTransform: 'none',
                 px: 1.5,
                 py: 0.5,
-                borderRadius: '8px',
-                '&:hover': { bgcolor: alpha('#DE3F5E', 0.06), color: '#DE3F5E' },
+                borderRadius: RADII.sm,
+                '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.06), color: COLORS.brand.primary },
               }}
             >
               Go back to...
@@ -236,13 +230,13 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
                       <Paper
                         elevation={8}
                         sx={{
-                          borderRadius: '12px',
+                          borderRadius: RADII.md,
                           overflow: 'hidden',
                           maxHeight: 300,
                           overflowY: 'auto',
                           minWidth: 220,
                           border: '1px solid',
-                          borderColor: alpha('#000', 0.1),
+                          borderColor: alpha(COLORS.text.strong, 0.1),
                           mb: 1,
                         }}
                       >
@@ -257,13 +251,13 @@ export default function BuildAIPage({ params }: { params: Promise<{ weddingSlug:
                               px: 2,
                               py: 1.25,
                               cursor: 'pointer',
-                              fontSize: '0.85rem',
-                              color: '#333',
+                              fontSize: '0.875rem',
+                              color: COLORS.text.strong,
                               fontWeight: 500,
                               transition: 'all 0.1s',
-                              '&:hover': { bgcolor: alpha('#DE3F5E', 0.08), color: '#DE3F5E' },
+                              '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.08), color: COLORS.brand.primary },
                               borderBottom: '1px solid',
-                              borderColor: alpha('#000', 0.05),
+                              borderColor: alpha(COLORS.text.strong, 0.05),
                               '&:last-child': { borderBottom: 'none' },
                             }}
                           >

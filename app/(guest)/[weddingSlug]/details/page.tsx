@@ -24,6 +24,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { getTransportationSettings } from '@/lib/supabase/transportation-service';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Diamond decorative component
 const DiamondDecoration = () => (
@@ -34,7 +35,7 @@ const DiamondDecoration = () => (
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      color: '#D1B99F',
+      color: COLORS.cultural.champagne,
       my: { xs: 0.5, sm: 0 },
     }}
   >
@@ -113,7 +114,7 @@ const MenuItem = ({
           lineHeight: 1.5,
           letterSpacing: '5.56%',
           textTransform: 'uppercase',
-          color: '#141414',
+          color: COLORS.text.strong,
           textAlign: 'center',
         }}
       >
@@ -266,7 +267,7 @@ export default function DetailsPage() {
             zIndex: 9999,
           }}
         >
-          <CircularProgress size={40} sx={{ color: '#000' }} />
+          <CircularProgress size={40} sx={{ color: wedding?.primary_color || COLORS.text.strong }} />
         </Box>
       )}
 
@@ -314,7 +315,7 @@ export default function DetailsPage() {
               <IconButton
                 onClick={handleBack}
                 sx={{
-                  color: '#000',
+                  color: COLORS.text.strong,
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   backdropFilter: 'blur(10px)',
                   width: { xs: 40, lg: 44, xl: 48 },
@@ -337,10 +338,10 @@ export default function DetailsPage() {
                   sx={{
                     width: { xs: 32, lg: 36, xl: 40 },
                     height: { xs: 32, lg: 36, xl: 40 },
-                    backgroundColor: '#000',
-                    color: '#fff',
+                    backgroundColor: COLORS.text.strong,
+                    color: COLORS.text.inverse,
                     '&:hover': {
-                      backgroundColor: '#333',
+                      backgroundColor: COLORS.text.strong,
                       transform: 'scale(1.05)',
                     },
                     transition: 'all 0.2s ease',
@@ -393,7 +394,7 @@ export default function DetailsPage() {
                 <LoadingSpinner
                   message=""
                   size={40}
-                  color="#000"
+                  color={COLORS.text.strong}
                   minHeight="100px"
                 />
               ) : (

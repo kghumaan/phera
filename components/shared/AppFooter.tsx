@@ -4,10 +4,11 @@ import { Box, Container, Grid, Typography, Stack, alpha, IconButton } from '@mui
 import Link from 'next/link';
 import Image from 'next/image';
 import { Instagram, Email, WhatsApp } from '@mui/icons-material';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function AppFooter() {
     return (
-        <Box sx={{ bgcolor: '#F5F5F5', color: '#1a1a1a', py: 8, mt: 'auto' }}>
+        <Box sx={{ bgcolor: COLORS.bg.subtle, color: COLORS.text.strong, py: 8, mt: 'auto' }}>
             <Container maxWidth="lg">
                 <Grid container spacing={4}>
                     <Grid size={{ xs: 12, md: 4 } as any}>
@@ -23,12 +24,12 @@ export default function AppFooter() {
                                 filter: 'brightness(0)',
                             }}
                         />
-                        <Typography variant="body2" sx={{ mb: 2, color: '#4a4a4a' }}>
+                        <Typography variant="body2" sx={{ mb: 2, color: COLORS.text.muted }}>
                             Phera was built by a couple frustrated with the complexity of
                             planning a modern Indian destination wedding. We knew there had
                             to be a better way—so we built it.
                         </Typography>
-                        <Typography variant="body2" sx={{ color: '#4a4a4a' }}>
+                        <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
                             Making Indian weddings beautiful to plan, not just beautiful to
                             attend.
                         </Typography>
@@ -36,8 +37,7 @@ export default function AppFooter() {
                     <Grid size={{ xs: 6, md: 2 } as any}>
                         <Typography
                             variant="subtitleCaps"
-                            color="#1a1a1a"
-                            sx={{ fontWeight: 'bold', mb: 2 }}
+                            sx={{ color: COLORS.text.strong, fontWeight: 'bold', mb: 2 }}
                         >
                             Platform
                         </Typography>
@@ -56,8 +56,7 @@ export default function AppFooter() {
                     <Grid size={{ xs: 6, md: 2 } as any}>
                         <Typography
                             variant="subtitleCaps"
-                            color="#1a1a1a"
-                            sx={{ fontWeight: 'bold', mb: 2 }}
+                            sx={{ color: COLORS.text.strong, fontWeight: 'bold', mb: 2 }}
                         >
                             Company
                         </Typography>
@@ -82,8 +81,7 @@ export default function AppFooter() {
                     <Grid size={{ xs: 12, md: 4 } as any}>
                         <Typography
                             variant="subtitleCaps"
-                            color="#1a1a1a"
-                            sx={{ fontWeight: 'bold', mb: 2 }}
+                            sx={{ color: COLORS.text.strong, fontWeight: 'bold', mb: 2 }}
                         >
                             Connect
                         </Typography>
@@ -93,14 +91,14 @@ export default function AppFooter() {
                                 href="https://instagram.com/withphera"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                sx={{ color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.1), '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) } }}
+                                sx={{ color: COLORS.brand.primary, bgcolor: alpha(COLORS.brand.primary, 0.1), '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.2) } }}
                             >
                                 <Instagram />
                             </IconButton>
                             <IconButton
                                 component="a"
                                 href="mailto:contact@phera.io"
-                                sx={{ color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.1), '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) } }}
+                                sx={{ color: COLORS.brand.primary, bgcolor: alpha(COLORS.brand.primary, 0.1), '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.2) } }}
                             >
                                 <Email />
                             </IconButton>
@@ -109,7 +107,7 @@ export default function AppFooter() {
                                 href="https://wa.me/15558397813"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                sx={{ color: '#DE3F5E', bgcolor: alpha('#DE3F5E', 0.1), '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) } }}
+                                sx={{ color: COLORS.brand.primary, bgcolor: alpha(COLORS.brand.primary, 0.1), '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.2) } }}
                             >
                                 <WhatsApp />
                             </IconButton>
@@ -124,10 +122,10 @@ export default function AppFooter() {
                         textAlign: 'center',
                     }}
                 >
-                    <Typography variant="body2" sx={{ color: '#5a5a5a', fontWeight: 500 }}>
+                    <Typography variant="body2" sx={{ color: COLORS.text.muted, fontWeight: 500 }}>
                         © 2026 Phera Events. All rights reserved.
                     </Typography>
-                    <Typography variant="caption" sx={{ color: '#9a9a9a', display: 'block', mt: 0.5 }}>
+                    <Typography variant="caption" sx={{ color: COLORS.text.faint, display: 'block', mt: 0.5 }}>
                         Phera Events is owned and operated by Ghumaan Ventures, LLC.
                     </Typography>
                 </Box>

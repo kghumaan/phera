@@ -1,8 +1,6 @@
 'use client';
 
 import {
-  Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
@@ -16,11 +14,12 @@ import {
   ListItemIcon,
   ListItemText,
   CircularProgress,
-  Alert,
+  IconButton,
 } from '@mui/material';
 import { CheckCircle, Close as CloseIcon } from '@mui/icons-material';
+import { PheraDialog } from '@/components/shared/Dialog';
 import { useState, useEffect } from 'react';
-import { IconButton } from '@mui/material';
+import { SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 import { trackAgentModalOpen, trackWaitlistSignup, trackPreorderSignup } from '@/lib/utils/analytics';
 
 interface AgentModalProps {
@@ -170,15 +169,11 @@ export default function AgentModal({
       </Box>
 
       {error && (
-        <Alert severity="error" onClose={() => setError('')}>
-          {error}
-        </Alert>
+        <ErrorAlert onClose={() => setError('')}>{error}</ErrorAlert>
       )}
 
       {success && (
-        <Alert severity="success">
-          🎉 You're on the list! Check your email for confirmation.
-        </Alert>
+        <SuccessAlert>🎉 You're on the list! Check your email for confirmation.</SuccessAlert>
       )}
 
       <TextField
@@ -287,15 +282,11 @@ export default function AgentModal({
       </Box>
 
       {error && (
-        <Alert severity="error" onClose={() => setError('')}>
-          {error}
-        </Alert>
+        <ErrorAlert onClose={() => setError('')}>{error}</ErrorAlert>
       )}
 
       {success && (
-        <Alert severity="success">
-          🎉 Pre-order confirmed! Check your email for next steps.
-        </Alert>
+        <SuccessAlert>🎉 Pre-order confirmed! Check your email for next steps.</SuccessAlert>
       )}
 
       <TextField
@@ -513,24 +504,20 @@ export default function AgentModal({
   };
 
   return (
-    <Dialog
+    <PheraDialog
       open={open}
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: '24px',
-          bgcolor: 'white',
-        },
-      }}
     >
-      <DialogTitle
+      <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           color: '#1a1a1a',
+          px: 3,
+          pt: 3,
           pb: 1,
         }}
       >
@@ -548,7 +535,7 @@ export default function AgentModal({
         <IconButton onClick={onClose} sx={{ color: '#666' }}>
           <CloseIcon />
         </IconButton>
-      </DialogTitle>
+      </Box>
 
       <DialogContent sx={{ pt: 2 }}>
         {modalType === 'waitlist' && renderWaitlistContent()}
@@ -620,7 +607,7 @@ export default function AgentModal({
           </Button>
         )}
       </DialogActions>
-    </Dialog>
+    </PheraDialog>
   );
 }
 

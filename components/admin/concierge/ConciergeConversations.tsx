@@ -16,6 +16,7 @@ import {
 import { Search } from '@mui/icons-material';
 import { useState, useEffect, useCallback } from 'react';
 import ConciergeConversationDetail from './ConciergeConversationDetail';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface Message {
   id: string;
@@ -61,6 +62,10 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
 
   useEffect(() => {
     loadConversations();
+    // Poll every 15s so new guest messages show up without a manual refresh.
+    // Cheap (one GET of your own weddings' data) and stops when the tab unmounts.
+    const interval = setInterval(loadConversations, 15_000);
+    return () => clearInterval(interval);
   }, [loadConversations]);
 
   useEffect(() => {
@@ -102,7 +107,7 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-        <CircularProgress size={28} sx={{ color: '#DE3F5E' }} />
+        <CircularProgress size={28} sx={{ color: COLORS.brand.primary }} />
       </Box>
     );
   }
@@ -114,7 +119,7 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
         sx={{
           borderRadius: 1,
           border: '1px solid rgba(0,0,0,0.07)',
-          bgcolor: 'white',
+          bgcolor: COLORS.bg.white,
           p: 2.5,
           maxHeight: 600,
           overflow: 'auto',
@@ -131,7 +136,7 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
 
   return (
     <Stack spacing={2}>
-      <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+      <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
         See what your guests have been asking about and how the concierge has been helping them.
       </Typography>
       {/* Filters */}
@@ -142,18 +147,18 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           InputProps={{
-            startAdornment: <Search sx={{ color: '#9a9a9a', mr: 1, fontSize: 20 }} />,
+            startAdornment: <Search sx={{ color: COLORS.text.faint, mr: 1, fontSize: 20 }} />,
           }}
           sx={{
             flex: 1,
             minWidth: 200,
             '& .MuiOutlinedInput-root': {
-              bgcolor: 'white',
-              borderRadius: '10px',
-              fontSize: '0.85rem',
+              bgcolor: COLORS.bg.white,
+              borderRadius: RADII.sm,
+              fontSize: '0.875rem',
               '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
-              '&:hover fieldset': { borderColor: '#DE3F5E' },
-              '&.Mui-focused fieldset': { borderColor: '#DE3F5E' },
+              '&:hover fieldset': { borderColor: COLORS.brand.primary },
+              '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
             },
           }}
         />
@@ -170,13 +175,13 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
             },
             '& .MuiToggleButton-root': {
               textTransform: 'none',
-              fontSize: '0.8rem',
+              fontSize: '0.875rem',
               px: 2,
               borderRadius: '10px !important',
-              color: '#6a6a6a',
+              color: COLORS.text.subtle,
               '&.Mui-selected': {
                 bgcolor: '#DE3F5E10',
-                color: '#DE3F5E',
+                color: COLORS.brand.primary,
                 fontWeight: 600,
               },
             },
@@ -194,13 +199,13 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
         sx={{
           borderRadius: 1,
           border: '1px solid rgba(0,0,0,0.07)',
-          bgcolor: 'white',
+          bgcolor: COLORS.bg.white,
           overflow: 'hidden',
         }}
       >
         {filteredConversations.length === 0 ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
-            <Typography variant="body2" sx={{ color: '#9a9a9a' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.faint }}>
               {search ? 'No conversations match your search.' : 'No conversations yet.'}
             </Typography>
           </Box>
@@ -217,7 +222,7 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
                   gap: 1.5,
                   alignItems: 'center',
                   cursor: 'pointer',
-                  '&:hover': { bgcolor: '#FAFAFA' },
+                  '&:hover': { bgcolor: COLORS.bg.muted },
                   transition: 'background-color 0.15s',
                 }}
               >
@@ -226,8 +231,8 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
                     width: 40,
                     height: 40,
                     bgcolor: '#DE3F5E15',
-                    color: '#DE3F5E',
-                    fontSize: '0.8rem',
+                    color: COLORS.brand.primary,
+                    fontSize: '0.875rem',
                     fontWeight: 700,
                     flexShrink: 0,
                   }}
@@ -236,17 +241,17 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
                 </Avatar>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.25 }}>
-                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#1a1a1a' }}>
+                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>
                       {conv.guestName}
                     </Typography>
-                    <Typography variant="body4" sx={{ color: '#9a9a9a', flexShrink: 0, ml: 1 }}>
+                    <Typography variant="body4" sx={{ color: COLORS.text.faint, flexShrink: 0, ml: 1 }}>
                       {formatTimeAgo(conv.lastMessageAt)}
                     </Typography>
                   </Box>
                   <Typography
                     sx={{
-                      fontSize: '0.8rem',
-                      color: '#6a6a6a',
+                      fontSize: '0.875rem',
+                      color: COLORS.text.subtle,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
@@ -259,12 +264,12 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
                   label={conv.messageCount}
                   size="small"
                   sx={{
-                    fontSize: '0.7rem',
+                    fontSize: '0.875rem',
                     height: 22,
                     minWidth: 22,
                     flexShrink: 0,
-                    bgcolor: '#F3F3F3',
-                    color: '#6a6a6a',
+                    bgcolor: COLORS.bg.muted,
+                    color: COLORS.text.subtle,
                     fontWeight: 600,
                   }}
                 />

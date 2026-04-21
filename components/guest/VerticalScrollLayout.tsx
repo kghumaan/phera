@@ -45,6 +45,9 @@ import GuestList from '@/components/guest/GuestList';
 import StreamlineIcon, { StreamlineIconName } from '@/components/ui/StreamlineIcon';
 import EventDetailCarousel from './EventDetailCarousel';
 import { getFrameConfig } from '@/lib/constants/images';
+import { getCoupleFont } from '@/lib/constants/fonts';
+import { ActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Types
 interface WeddingData {
@@ -62,6 +65,7 @@ interface WeddingData {
   frame_image_url?: string | null;
   background_image?: string | null;
   registry_description?: string | null;
+  couple_name_font?: string | null;
 }
 
 interface VerticalScrollLayoutProps {
@@ -70,7 +74,7 @@ interface VerticalScrollLayoutProps {
   isBypassPin: boolean;
   hasRSVPed: boolean;
   rsvpResponse?: string;
-  user: any;
+  user: { id?: string; email?: string | null; avatar_color?: string | null } | null;
   CountdownTimer: React.ComponentType<{ targetDate: string }>;
   headerRef?: React.RefObject<HTMLDivElement>;
   initialSection?: string;
@@ -99,7 +103,7 @@ interface ScheduleDay {
 interface TravelCard {
   id: string;
   title: string;
-  content: any;
+  content: unknown;
   image_url: string;
   button_text?: string | null;
   button_action?: string | null;
@@ -248,7 +252,7 @@ export default function VerticalScrollLayout({
   const registryRef = useRef<HTMLDivElement>(null);
   const shopRef = useRef<HTMLDivElement>(null);
 
-  const primaryColor = wedding.primary_color || '#DE3F5E';
+  const primaryColor = wedding.primary_color || COLORS.brand.primary;
 
   // Fetch section data
   useEffect(() => {
@@ -292,7 +296,7 @@ export default function VerticalScrollLayout({
             day_name: day.day_name,
             events: day.events
               .filter(event => {
-                const linkedId = (event as any).linked_event_id;
+                const linkedId = (event as { linked_event_id?: string | null }).linked_event_id;
                 return !linkedId || !hiddenEventIds.includes(linkedId);
               })
               .map(event => ({
@@ -302,10 +306,10 @@ export default function VerticalScrollLayout({
                 icon: event.icon,
                 description: event.description,
                 location: event.location,
-                dress_code: (event as any).dress_code,
+                dress_code: (event as { dress_code?: string | null }).dress_code,
                 gradient_background: event.gradient_background,
                 is_major_event: event.is_major_event,
-                linked_event_id: (event as any).linked_event_id,
+                linked_event_id: (event as { linked_event_id?: string | null }).linked_event_id,
               })),
           }));
           setSchedule(mappedSchedule);
@@ -546,14 +550,14 @@ export default function VerticalScrollLayout({
   }, []);
 
   // Helper to render travel card content
-  const renderTravelContent = (content: any) => {
+  const renderTravelContent = (content: unknown) => {
     if (Array.isArray(content)) {
       return content.map((item, idx) => (
         <Typography
           key={idx}
           variant="body2"
           sx={{
-            color: '#474747',
+            color: COLORS.text.muted,
             // fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
             lineHeight: 1.7,
             mb: 2,
@@ -568,7 +572,7 @@ export default function VerticalScrollLayout({
         <Typography
           variant="body2"
           sx={{
-            color: '#474747',
+            color: COLORS.text.muted,
             // fontSize: { md: '0.85rem', lg: '0.9rem', xl: '0.95rem' },
             lineHeight: 1.7,
             whiteSpace: 'pre-line',
@@ -636,10 +640,10 @@ export default function VerticalScrollLayout({
               <Typography
                 variant="h2"
                 sx={{
-                  color: '#1a1a1a',
+                  color: COLORS.text.strong,
                   lineHeight: 1.2,
-                  fontFamily: 'var(--font-instrument-serif)',
-                  fontStyle: 'italic',
+                  fontFamily: getCoupleFont(wedding.couple_name_font).cssVar,
+                  fontStyle: getCoupleFont(wedding.couple_name_font).fontStyle || 'normal',
                 }}
               >
                 {coupleData.names}
@@ -650,7 +654,7 @@ export default function VerticalScrollLayout({
                 <Typography
                   variant="subtitleCaps"
                   sx={{
-                    color: '#000',
+                    color: COLORS.text.strong,
                     fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
                   }}
                 >
@@ -663,7 +667,7 @@ export default function VerticalScrollLayout({
                       border: '1px solid rgba(0, 0, 0, 0.25)',
                       width: { md: 32, lg: 35, xl: 38 },
                       height: { md: 32, lg: 35, xl: 38 },
-                      color: '#000',
+                      color: COLORS.text.strong,
                       '&:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.25)',
                         borderColor: 'rgba(0, 0, 0, 0.35)',
@@ -674,7 +678,7 @@ export default function VerticalScrollLayout({
                       window.open(googleCalUrl, '_blank');
                     }}
                   >
-                    <CalendarTodayOutlined sx={{ fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' }, color: '#000' }} />
+                    <CalendarTodayOutlined sx={{ fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' }, color: COLORS.text.strong }} />
                   </IconButton>
                   <IconButton
                     sx={{
@@ -682,7 +686,7 @@ export default function VerticalScrollLayout({
                       border: '1px solid rgba(0, 0, 0, 0.25)',
                       width: { md: 32, lg: 35, xl: 38 },
                       height: { md: 32, lg: 35, xl: 38 },
-                      color: '#000',
+                      color: COLORS.text.strong,
                       '&:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.25)',
                         borderColor: 'rgba(0, 0, 0, 0.35)',
@@ -705,7 +709,7 @@ export default function VerticalScrollLayout({
                       sx={{
                         width: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
                         height: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
-                        color: '#000',
+                        color: COLORS.text.strong,
                       }}
                     >
                       <path d="M12 2L12 16M12 2L8 6M12 2L16 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -731,13 +735,13 @@ export default function VerticalScrollLayout({
                   '&:hover': ((user && hasRSVPed) || isBypassPin) ? { opacity: 0.8 } : {},
                 }}
               >
-                <LocationOnOutlined sx={{ color: '#666', fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' } }} />
+                <LocationOnOutlined sx={{ color: COLORS.text.subtle, fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' } }} />
                 {((user && hasRSVPed) || isBypassPin) ? (
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <Typography
                       variant="body1"
                       sx={{
-                        color: '#000',
+                        color: COLORS.text.strong,
                         // fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
                         textDecoration: 'underline',
                       }}
@@ -752,7 +756,7 @@ export default function VerticalScrollLayout({
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#000',
+                      color: COLORS.text.strong,
                       // fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
                     }}
                   >
@@ -765,7 +769,7 @@ export default function VerticalScrollLayout({
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#333',
+                  color: COLORS.text.strong,
                   // fontSize: { md: '0.8rem', lg: '0.88rem', xl: '1rem' },
                   // lineHeight: 1.6,
                   maxWidth: { md: 480, lg: 540, xl: 650 },
@@ -783,37 +787,36 @@ export default function VerticalScrollLayout({
               {!isBypassPin && (!user || !hasRSVPed) && (
                 <Box sx={{ mt: 0, width: '100%', maxWidth: { md: 480, lg: 540, xl: 650 } }}>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ width: '100%' }}>
-                    <Button
-                      component={Link}
+                    <ActionButton
                       href={`/${weddingSlug}/rsvp`}
                       variant="contained"
                       size="large"
                       fullWidth
+                      spinnerColor={primaryColor}
                       sx={{
                         backgroundColor: primaryColor,
-                        color: 'white',
+                        color: COLORS.text.inverse,
                         py: 1.2,
-                        // fontSize: { md: '0.8rem', lg: '0.88rem' },
                         fontWeight: 600,
                         borderRadius: '32px',
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px',
                         boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
                         '&:hover': {
-                          backgroundColor: '#C8365A',
+                          backgroundColor: COLORS.brand.primaryHover,
                           boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
                         },
                       }}
                     >
                       RSVP
-                    </Button>
+                    </ActionButton>
                   </motion.div>
                   {coupleData.rsvpDeadline && coupleData.rsvpDeadline !== 'TBD' && (
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#777',
-                        fontSize: '0.85rem',
+                        color: COLORS.text.subtle,
+                        fontSize: '0.875rem',
                         textAlign: 'center',
                         lineHeight: 1.4,
                         mt: 1.5,
@@ -875,7 +878,7 @@ export default function VerticalScrollLayout({
                       <Typography
                         variant="h3"
                         sx={{
-                          color: '#000',
+                          color: COLORS.text.strong,
                           mb: 3,
                         }}
                       >
@@ -888,7 +891,7 @@ export default function VerticalScrollLayout({
                             <Typography
                               variant="subtitleCaps"
                               sx={{
-                                color: '#000',
+                                color: COLORS.text.strong,
                                 fontSize: { md: '0.88rem', lg: '1rem', xl: '1.12rem' },
                                 mb: 3,
                                 textAlign: 'left',
@@ -906,7 +909,7 @@ export default function VerticalScrollLayout({
                                   top: 10,
                                   bottom: 10,
                                   width: '1px',
-                                  backgroundColor: '#E5E5E5',
+                                  backgroundColor: COLORS.border.default,
                                   zIndex: 0,
                                 }}
                               />
@@ -927,7 +930,7 @@ export default function VerticalScrollLayout({
                                           width: isMajor ? 12 : 8,
                                           height: isMajor ? 12 : 8,
                                           borderRadius: '50%',
-                                          backgroundColor: isMajor ? '#111' : '#D1D1D1',
+                                          backgroundColor: isMajor ? COLORS.text.strong : COLORS.text.faint,
                                           zIndex: 2,
                                         }}
                                       />
@@ -956,7 +959,7 @@ export default function VerticalScrollLayout({
                                           <Typography
                                             variant={isMajor ? "h6" : "body1"}
                                             sx={{
-                                              color: '#141414',
+                                              color: COLORS.text.strong,
                                               lineHeight: 1.1,
                                               mb: 0.5,
                                             }}
@@ -969,7 +972,7 @@ export default function VerticalScrollLayout({
                                             <Typography
                                               variant="body3"
                                               sx={{
-                                                color: '#141414',
+                                                color: COLORS.text.strong,
                                                 fontWeight: 500,
                                                 mb: 0.5,
                                                 display: 'block',
@@ -980,8 +983,8 @@ export default function VerticalScrollLayout({
                                           )}
                                           {!isMajor && event.location && (
                                             <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.5 }}>
-                                              <StreamlineIcon name="map-pin" size={13} color="#888" />
-                                              <Typography variant="body3" sx={{ color: '#888', display: 'block' }}>
+                                              <StreamlineIcon name="map-pin" size={13} color={COLORS.text.subtle} />
+                                              <Typography variant="body3" sx={{ color: COLORS.text.faint, display: 'block' }}>
                                                 {event.location}
                                               </Typography>
                                             </Stack>
@@ -992,7 +995,7 @@ export default function VerticalScrollLayout({
                                             <Typography
                                               variant="body3"
                                               sx={{
-                                                color: '#333',
+                                                color: COLORS.text.strong,
                                                 lineHeight: 1.6,
                                                 mt: 1,
                                                 mb: 2,
@@ -1007,8 +1010,8 @@ export default function VerticalScrollLayout({
                                           {/* Major events: Time row */}
                                           {isMajor && event.time && (
                                             <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.5 }}>
-                                              <StreamlineIcon name="clock" size={14} color="#6a6a6a" />
-                                              <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                                              <StreamlineIcon name="clock" size={14} color={COLORS.text.subtle} />
+                                              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                                                 {event.time}
                                               </Typography>
                                             </Stack>
@@ -1019,16 +1022,16 @@ export default function VerticalScrollLayout({
                                             <Stack direction="row" spacing={2} flexWrap="wrap" alignItems="center" sx={{ mb: 1.5 }}>
                                               {event.location && (
                                                 <Stack direction="row" spacing={0.5} alignItems="center">
-                                                  <StreamlineIcon name="map-pin" size={14} color="#6a6a6a" />
-                                                  <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                                                  <StreamlineIcon name="map-pin" size={14} color={COLORS.text.subtle} />
+                                                  <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                                                     {event.location}
                                                   </Typography>
                                                 </Stack>
                                               )}
                                               {event.dress_code && (
                                                 <Stack direction="row" spacing={0.5} alignItems="center">
-                                                  <StreamlineIcon name="hanger" size={14} color="#6a6a6a" />
-                                                  <Typography variant="body2" sx={{ color: '#6a6a6a' }}>
+                                                  <StreamlineIcon name="hanger" size={14} color={COLORS.text.subtle} />
+                                                  <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                                                     {event.dress_code}
                                                   </Typography>
                                                 </Stack>
@@ -1101,7 +1104,7 @@ export default function VerticalScrollLayout({
                       <Typography
                         variant="h3"
                         sx={{
-                          color: '#000',
+                          color: COLORS.text.strong,
                           mb: 3,
                         }}
                       >
@@ -1146,13 +1149,13 @@ export default function VerticalScrollLayout({
                                   variant="h5"
                                   sx={{
                                     fontWeight: 600,
-                                    color: '#141414',
+                                    color: COLORS.text.strong,
                                     mb: 1.5,
                                   }}
                                 >
                                   {card.title}
                                 </Typography>
-                                <Box sx={{ fontSize: '0.9rem', lineHeight: 1.6, color: '#333' }}>
+                                <Box sx={{ fontSize: '0.9rem', lineHeight: 1.6, color: COLORS.text.strong }}>
                                   {renderTravelContent(card.content)}
                                 </Box>
                                 {card.button_text && card.button_action && (
@@ -1162,7 +1165,7 @@ export default function VerticalScrollLayout({
                                     sx={{
                                       mt: 2,
                                       bgcolor: primaryColor,
-                                      color: 'white',
+                                      color: COLORS.text.inverse,
                                       textTransform: 'none',
                                       borderRadius: '32px',
                                       px: 3,
@@ -1199,7 +1202,7 @@ export default function VerticalScrollLayout({
                       <Typography
                         variant="h3"
                         sx={{
-                          color: '#000',
+                          color: COLORS.text.strong,
                           mb: 3,
                         }}
                       >
@@ -1223,7 +1226,7 @@ export default function VerticalScrollLayout({
                               transition: 'all 0.3s ease',
                               '&:hover': {
                                 borderColor: primaryColor,
-                                backgroundColor: '#FEF9F2',
+                                backgroundColor: COLORS.bg.muted,
                               }
                             }}
                           >
@@ -1238,7 +1241,7 @@ export default function VerticalScrollLayout({
                               <Typography
                                 variant="subtitle1"
                                 sx={{
-                                  color: '#141414',
+                                  color: COLORS.text.strong,
                                   fontSize: { md: '0.95rem', lg: '1.05rem' },
                                 }}
                               >
@@ -1248,7 +1251,7 @@ export default function VerticalScrollLayout({
                             <AccordionDetails sx={{ px: 2.5, pt: 0, pb: 3 }}>
                               <Typography
                                 sx={{
-                                  color: '#333',
+                                  color: COLORS.text.strong,
                                   fontSize: '0.9rem',
                                   lineHeight: 1.7,
                                 }}
@@ -1275,7 +1278,7 @@ export default function VerticalScrollLayout({
                       <Typography
                         variant="h3"
                         sx={{
-                          color: '#000',
+                          color: COLORS.text.strong,
                           mb: 3,
                         }}
                       >
@@ -1285,7 +1288,7 @@ export default function VerticalScrollLayout({
                       <Typography
                          variant="body2"
                         sx={{
-                          color: '#666',
+                          color: COLORS.text.subtle,
                           // fontSize: { md: '0.85rem', lg: '0.9rem' },
                           lineHeight: 1.7,
                           mb: 3,
@@ -1303,7 +1306,7 @@ export default function VerticalScrollLayout({
                             fullWidth
                             sx={{
                               bgcolor: primaryColor,
-                              color: 'white',
+                              color: COLORS.text.inverse,
                               py: 1.5,
                               borderRadius: '32px',
                               fontSize: { md: '0.9rem', lg: '1rem' },
@@ -1339,7 +1342,7 @@ export default function VerticalScrollLayout({
                       <Typography
                         variant="h3"
                         sx={{
-                          color: '#000',
+                          color: COLORS.text.strong,
                           mb: 3,
                         }}
                       >
@@ -1359,7 +1362,7 @@ export default function VerticalScrollLayout({
                               cursor: shop.url ? 'pointer' : 'default',
                               transition: 'all 0.3s ease',
                               '&:hover': shop.url ? {
-                                backgroundColor: '#FEF9F2',
+                                backgroundColor: COLORS.bg.muted,
                                 borderColor: primaryColor,
                                 boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
                                 transform: 'translateY(-2px)',
@@ -1399,7 +1402,7 @@ export default function VerticalScrollLayout({
                                     variant="h6"
                                     sx={{
                                       fontWeight: 600,
-                                      color: '#141414',
+                                      color: COLORS.text.strong,
                                       fontSize: { md: '0.95rem', lg: '1.05rem' },
                                       mb: 0.25,
                                     }}
@@ -1409,8 +1412,8 @@ export default function VerticalScrollLayout({
                                   {shop.details && (
                                     <Typography
                                       sx={{
-                                        color: '#444',
-                                        fontSize: '0.85rem',
+                                        color: COLORS.text.muted,
+                                        fontSize: '0.875rem',
                                         lineHeight: 1.5,
                                       }}
                                     >
@@ -1433,7 +1436,7 @@ export default function VerticalScrollLayout({
                                     textTransform: 'none',
                                     px: 3,
                                     py: 0.75,
-                                    fontSize: '0.85rem',
+                                    fontSize: '0.875rem',
                                     fontWeight: 600,
                                     flexShrink: 0,
                                     alignSelf: { xs: 'stretch', sm: 'center' },
@@ -1463,7 +1466,7 @@ export default function VerticalScrollLayout({
                     sx={{
                       color: primaryColor,
                       borderColor: primaryColor,
-                      fontSize: '0.85rem',
+                      fontSize: '0.875rem',
                       textTransform: 'none',
                       borderRadius: '32px',
                       px: 3,
@@ -1483,14 +1486,14 @@ export default function VerticalScrollLayout({
                       variant="contained"
                       sx={{
                         bgcolor: primaryColor,
-                        color: 'white',
-                        fontSize: '0.85rem',
+                        color: COLORS.text.inverse,
+                        fontSize: '0.875rem',
                         textTransform: 'none',
                         borderRadius: '32px',
                         px: 3,
                         fontWeight: 600,
                         '&:hover': {
-                          bgcolor: '#C8365A',
+                          bgcolor: COLORS.brand.primaryHover,
                         },
                       }}
                     >
@@ -1508,11 +1511,10 @@ export default function VerticalScrollLayout({
           <EventDetailCarousel
             eventName={selectedEvent.name}
             slides={selectedEvent.carousel_slides}
-            textColor={selectedEvent.text_color || '#FFFFFF'}
+            textColor={selectedEvent.text_color || COLORS.bg.white}
             gradientBackground={selectedEvent.gradient_background || null}
             onClose={handleCloseEventCarousel}
             primaryColor={primaryColor}
-            weddingBackground={wedding.background_image || undefined}
           />
         ) : (
           <Box
@@ -1582,33 +1584,38 @@ export default function VerticalScrollLayout({
 
       </Box>
 
-      {/* Fixed Menu Button — top right, always visible regardless of scroll */}
+      {/* Fixed Menu Button — aligned with the AppHeader user avatar:
+          - Avatar sits inside AppHeader Container at pt { xs: 2, md: 4 } and
+            is centered in a row whose height equals the logo (40px xs, 48px md).
+          - Avatar is 32px xs / 45px md on the right edge (Container px 2/4).
+          - Match: same top + same height, positioned just left of the avatar
+            with an 8px gap. */}
       <Box
         onClick={() => setNavOpen(true)}
         sx={{
           position: 'fixed',
-          right: 24,
-          top: 18,
+          right: { xs: '56px', md: '85px' },   // avatar width (32/45) + 8 gap + container px (16/32)
+          top: { xs: '20px', md: '33.5px' },   // header pt + (row - avatar)/2
+          height: { xs: 32, md: 45 },
           zIndex: 50,
           display: 'flex',
           alignItems: 'center',
           gap: 0.75,
-          px: 2,
-          py: 1,
+          px: { xs: 1.5, md: 2 },
           borderRadius: '100px',
-          backgroundColor: '#1a1a1a',
-          color: 'white',
+          backgroundColor: COLORS.text.strong,
+          color: COLORS.text.inverse,
           cursor: 'pointer',
           boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
           userSelect: 'none',
           '&:hover': {
-            backgroundColor: '#000',
+            backgroundColor: COLORS.text.strong,
             boxShadow: '0 6px 20px rgba(0,0,0,0.35)',
           },
         }}
       >
-        <MenuIcon sx={{ fontSize: 20, color: 'white' }} />
-        <Typography variant="subtitleCaps" sx={{ fontSize: '0.8rem', color: 'white', letterSpacing: '0.03em' }}>
+        <MenuIcon sx={{ fontSize: { xs: 18, md: 20 }, color: COLORS.text.inverse }} />
+        <Typography variant="subtitleCaps" sx={{ fontSize: { xs: '0.7rem', md: '0.8rem' }, color: COLORS.text.inverse, letterSpacing: '0.03em' }}>
           Menu
         </Typography>
       </Box>
@@ -1647,7 +1654,7 @@ export default function VerticalScrollLayout({
                 zIndex: 70,
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: '#FAF6F1',
+                backgroundColor: COLORS.bg.muted,
                 backgroundImage: 'url(/images/backgrounds/pearl.webp)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
@@ -1658,7 +1665,7 @@ export default function VerticalScrollLayout({
                 <IconButton
                   onClick={() => setNavOpen(false)}
                   sx={{
-                    color: '#1a1a1a',
+                    color: COLORS.text.strong,
                     '&:hover': { backgroundColor: 'rgba(0,0,0,0.06)' },
                   }}
                 >
@@ -1766,7 +1773,7 @@ const NavItem = ({ label, onClick }: { label: string; onClick: () => void }) => 
         sx={{
           letterSpacing: '0.12em',
           textTransform: 'uppercase',
-          color: '#141414',
+          color: COLORS.text.strong,
           textAlign: 'center',
         }}
       >
@@ -1780,7 +1787,7 @@ const NavItem = ({ label, onClick }: { label: string; onClick: () => void }) => 
 const DiamondSeparator = () => (
   <Box
     sx={{
-      color: '#D1B99F',
+      color: COLORS.text.faint,
       display: 'flex',
       justifyContent: 'center',
       my: 0.25,

@@ -12,7 +12,6 @@ import {
   TextField,
   Checkbox,
   FormControlLabel,
-  Alert,
   CircularProgress,
   useTheme,
   useMediaQuery,
@@ -32,6 +31,8 @@ import {
   THAILAND_CHECKLIST 
 } from '@/lib/supabase/travel-service';
 import type { GuestFlight, GuestChecklistItem } from '@/lib/supabase/types';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 
 interface FlightFormData {
   airline: string;
@@ -67,7 +68,7 @@ export default function TravelDetailsPage() {
   const router = useRouter();
   const { user, hasRSVPed, rsvpResponse, isLoading: authLoading } = useAuth();
   const { wedding } = useWedding();
-  const primaryColor = wedding?.primary_color || '#DE3F5E';
+  const primaryColor = wedding?.primary_color || COLORS.brand.primary;
 
   const [flightData, setFlightData] = useState<FlightFormData>(initialFlightData);
   const [checklistItems, setChecklistItems] = useState<Record<string, boolean>>({});
@@ -224,7 +225,7 @@ export default function TravelDetailsPage() {
               onClick={() => router.push(`/${weddingSlug}/rsvp`)}
               sx={{ 
                 bgcolor: primaryColor,
-                '&:hover': { bgcolor: '#C8365A' },
+                '&:hover': { bgcolor: COLORS.brand.primaryHover },
                 borderRadius: 2,
               }}
             >
@@ -284,7 +285,7 @@ export default function TravelDetailsPage() {
                 <IconButton
                   onClick={handleBack}
                   sx={{
-                    color: '#000',
+                    color: COLORS.text.strong,
                     backgroundColor: 'rgba(255, 255, 255, 0.8)',
                     '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.9)' },
                   }}
@@ -354,7 +355,7 @@ export default function TravelDetailsPage() {
                       placeholder="e.g. Thai Airways"
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
-                        '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
+                        '& .MuiInputLabel-root': { color: COLORS.text.subtle, '&.Mui-focused': { color: COLORS.brand.primary } },
                         '& .MuiOutlinedInput-root': {
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                           '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
@@ -369,7 +370,7 @@ export default function TravelDetailsPage() {
                       placeholder="e.g. TG123"
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
-                        '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
+                        '& .MuiInputLabel-root': { color: COLORS.text.subtle, '&.Mui-focused': { color: COLORS.brand.primary } },
                         '& .MuiOutlinedInput-root': {
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                           '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
@@ -388,7 +389,7 @@ export default function TravelDetailsPage() {
                       placeholder="e.g. LAX"
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
-                        '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
+                        '& .MuiInputLabel-root': { color: COLORS.text.subtle, '&.Mui-focused': { color: COLORS.brand.primary } },
                         '& .MuiOutlinedInput-root': {
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                           '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
@@ -403,7 +404,7 @@ export default function TravelDetailsPage() {
                       placeholder="e.g. BKK"
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
-                        '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
+                        '& .MuiInputLabel-root': { color: COLORS.text.subtle, '&.Mui-focused': { color: COLORS.brand.primary } },
                         '& .MuiOutlinedInput-root': {
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                           '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
@@ -424,7 +425,7 @@ export default function TravelDetailsPage() {
                       inputProps={{ min: '2025-12-01', max: '2026-01-10' }}
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
-                        '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
+                        '& .MuiInputLabel-root': { color: COLORS.text.subtle, '&.Mui-focused': { color: COLORS.brand.primary } },
                         '& .MuiOutlinedInput-root': {
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                           '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
@@ -440,7 +441,7 @@ export default function TravelDetailsPage() {
                       InputLabelProps={{ shrink: true }}
                       sx={{ 
                         '& .MuiInputBase-root': { color: '#141414' },
-                        '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
+                        '& .MuiInputLabel-root': { color: COLORS.text.subtle, '&.Mui-focused': { color: COLORS.brand.primary } },
                         '& .MuiOutlinedInput-root': {
                           '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                           '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
@@ -480,12 +481,12 @@ export default function TravelDetailsPage() {
                     helperText="This is your preferred time. We'll confirm the closest available shuttle slot."
                     sx={{ 
                       '& .MuiInputBase-root': { color: '#141414' },
-                      '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
+                      '& .MuiInputLabel-root': { color: COLORS.text.subtle, '&.Mui-focused': { color: COLORS.brand.primary } },
                       '& .MuiOutlinedInput-root': {
                         '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                         '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
                       },
-                      '& .MuiFormHelperText-root': { color: '#666' },
+                      '& .MuiFormHelperText-root': { color: COLORS.text.subtle },
                     }}
                   />
 
@@ -499,7 +500,7 @@ export default function TravelDetailsPage() {
                     placeholder="e.g. Traveling with luggage, need wheelchair access, etc."
                     sx={{ 
                       '& .MuiInputBase-root': { color: '#141414' },
-                      '& .MuiInputLabel-root': { color: '#666', '&.Mui-focused': { color: '#DE3F5E' } },
+                      '& .MuiInputLabel-root': { color: COLORS.text.subtle, '&.Mui-focused': { color: COLORS.brand.primary } },
                       '& .MuiOutlinedInput-root': {
                         '& fieldset': { borderColor: 'rgba(0,0,0,0.23)' },
                         '&:hover fieldset': { borderColor: 'rgba(0,0,0,0.4)' },
@@ -517,26 +518,28 @@ export default function TravelDetailsPage() {
                 fullWidth
                 sx={{
                   bgcolor: primaryColor,
-                  color: 'white',
+                  color: COLORS.text.inverse,
                   py: 1.5,
                   borderRadius: 2,
                   fontWeight: 600,
                   textTransform: 'uppercase',
-                  '&:hover': { bgcolor: '#C8365A' },
-                  '&:disabled': { bgcolor: '#ccc' },
+                  '&:hover': { bgcolor: COLORS.brand.primaryHover },
+                  '&:disabled': { bgcolor: COLORS.border.default },
                 }}
               >
                 {isSaving ? 'Saving...' : 'Save Travel Details'}
               </Button>
 
               {saveMessage && (
-                <Alert 
-                  severity={saveMessage.type} 
-                  sx={{ borderRadius: 2 }}
-                  onClose={() => setSaveMessage(null)}
-                >
-                  {saveMessage.text}
-                </Alert>
+                saveMessage.type === 'success' ? (
+                  <SuccessAlert onClose={() => setSaveMessage(null)}>
+                    {saveMessage.text}
+                  </SuccessAlert>
+                ) : (
+                  <ErrorAlert onClose={() => setSaveMessage(null)}>
+                    {saveMessage.text}
+                  </ErrorAlert>
+                )
               )}
 
               {/* Checklist Card - Only for "yes" RSVPs */}

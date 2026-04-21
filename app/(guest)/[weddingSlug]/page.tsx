@@ -9,10 +9,9 @@ import {
   useMediaQuery,
   Stack,
   IconButton,
-  Menu,
-  MenuItem,
   CircularProgress,
 } from '@mui/material';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -34,8 +33,12 @@ import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
 import { useParams, useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useWedding } from '@/lib/contexts/WeddingContext';
+import type { Wedding } from '@/lib/supabase/wedding-service';
 import { format, parseISO } from 'date-fns';
 import { getFrameConfig } from '@/lib/constants/images';
+import { getCoupleFont } from '@/lib/constants/fonts';
+import { ActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const formatDeadline = (d: string) => { try { return format(parseISO(d), 'MMMM d, yyyy'); } catch { return d; } };
 
@@ -100,7 +103,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
   return (
     <Box
       sx={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.bg.white,
         borderRadius: 8, // 64px from Figma converted to MUI scale
         px: { xs: 4, sm: 4.5, md: 4, lg: 5.2, xl: 6.4 },
         py: { xs: 1.5, sm: 1.75, md: 1.6, lg: 2, xl: 2.4 },
@@ -128,7 +131,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               variant="h4"
               sx={{
                 fontWeight: 400, // Regular weight like in Figma
-                color: '#000000',
+                color: COLORS.text.strong,
                 // Smoother font size progression to prevent overflow on small desktop
                 fontSize: {
                   xs: '1.5rem',   // 360px+ (mobile)
@@ -146,7 +149,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
             <Typography
               variant="caption"
               sx={{
-                color: '#000000',
+                color: COLORS.text.strong,
                 fontWeight: 400,
                 // Smoother label size progression
                 fontSize: {
@@ -279,6 +282,8 @@ export default function HomePage() {
   }, [weddingSlug, setCurrentWeddingSlug]);
 
   // Use data from context if available, otherwise fallback to config
+  const coupleNameFontId = (wedding as { couple_name_font?: string | null } | null)?.couple_name_font || null;
+
   const coupleData = {
     names: wedding?.couple_name || WEDDING_CONFIG.coupleNames,
     date: wedding?.wedding_date_display || WEDDING_CONFIG.weddingDateDisplay,
@@ -662,7 +667,7 @@ export default function HomePage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#f5f5f5',
+          backgroundColor: COLORS.bg.subtle,
         }}
       >
         <LoadingSpinner />
@@ -679,21 +684,33 @@ export default function HomePage() {
   // Desktop layout component
   // --- Layout Components ---
 
+  interface CoupleData {
+    names: string;
+    date: string;
+    weddingDate: string;
+    venue: string;
+    venueLocation: string;
+    flag: string;
+    rsvpDeadline?: string | null;
+    coupleImage: string;
+    frameImage: string | null;
+    coupleImages: string[];
+  }
   interface LayoutProps {
     isNavigating: boolean;
-    coupleData: any;
+    coupleData: CoupleData;
     isPageLoading: boolean;
-    user: any;
+    user: { id?: string; email?: string | null } | null;
     hasRSVPed: boolean;
     isPinVerified: boolean;
     isBypassPin: boolean;
     weddingId: string;
     weddingSlug: string;
-    wedding: any;
+    wedding: Wedding | null;
     refreshAuth: () => void;
     setIsPinVerified: (v: boolean) => void;
     setIsNavigating: (v: boolean) => void;
-    router: any;
+    router: { push: (path: string) => void; replace: (path: string) => void };
     isMobile: boolean;
   }
 
@@ -799,15 +816,15 @@ export default function HomePage() {
             style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}
           >
             <Stack spacing={3.2} alignItems="flex-start" textAlign="left" sx={{ width: '100%', maxWidth: { md: 400, lg: 480, xl: 560 } }}>
-              {/* Names - Large italic serif */}
+              {/* Names - Large serif */}
               <Typography
                 variant="h2"
                 sx={{
                   fontSize: { md: '2.8rem', lg: '3.6rem', xl: '4.4rem' },
-                  color: '#000',
+                  color: COLORS.text.strong,
                   lineHeight: 1.2,
-                  fontFamily: 'var(--font-instrument-serif)',
-                  fontStyle: 'italic',
+                  fontFamily: getCoupleFont(coupleNameFontId).cssVar,
+                  fontStyle: getCoupleFont(coupleNameFontId).fontStyle || 'normal',
                 }}
               >
                 {coupleData.names}
@@ -819,7 +836,7 @@ export default function HomePage() {
                   <Typography
                     variant="subtitleCaps"
                     sx={{
-                      color: '#000',
+                      color: COLORS.text.strong,
                       fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' },
                     }}
                   >
@@ -833,7 +850,7 @@ export default function HomePage() {
                       border: '1px solid rgba(0, 0, 0, 0.25)',
                       width: { md: 38, lg: 45, xl: 51 },
                       height: { md: 38, lg: 45, xl: 51 },
-                      color: '#000',
+                      color: COLORS.text.strong,
                       '&:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.25)',
                         borderColor: 'rgba(0, 0, 0, 0.35)',
@@ -850,7 +867,7 @@ export default function HomePage() {
                       window.open(googleCalUrl, '_blank');
                     }}
                   >
-                    <CalendarTodayOutlined sx={{ fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' }, color: '#000' }} />
+                    <CalendarTodayOutlined sx={{ fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' }, color: COLORS.text.strong }} />
                   </IconButton>
                   <IconButton
                     sx={{
@@ -858,7 +875,7 @@ export default function HomePage() {
                       border: '1px solid rgba(0, 0, 0, 0.25)',
                       width: { md: 38, lg: 45, xl: 51 },
                       height: { md: 38, lg: 45, xl: 51 },
-                      color: '#000',
+                      color: COLORS.text.strong,
                       '&:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.25)',
                         borderColor: 'rgba(0, 0, 0, 0.35)',
@@ -882,7 +899,7 @@ export default function HomePage() {
                       sx={{
                         width: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' },
                         height: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' },
-                        color: '#000',
+                        color: COLORS.text.strong,
                       }}
                     >
                       <path d="M12 2L12 16M12 2L8 6M12 2L16 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -908,13 +925,13 @@ export default function HomePage() {
                   '&:hover': ((user && hasRSVPed) || isBypassPin) ? { opacity: 0.8 } : {},
                 }}
               >
-                <LocationOnOutlined sx={{ color: '#666', fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' } }} />
+                <LocationOnOutlined sx={{ color: COLORS.text.subtle, fontSize: { md: '1.2rem', lg: '1.4rem', xl: '1.6rem' } }} />
                 {((user && hasRSVPed) || isBypassPin) ? (
                   <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#000',
+                        color: COLORS.text.strong,
                         fontSize: { md: '1rem', lg: '1.2rem', xl: '1.4rem' },
                         textDecoration: 'underline',
                       }}
@@ -929,7 +946,7 @@ export default function HomePage() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#000',
+                      color: COLORS.text.strong,
                       fontSize: { md: '1.25rem', lg: '1.5rem', xl: '1.75rem' },
                     }}
                   >
@@ -942,7 +959,7 @@ export default function HomePage() {
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#333',
+                  color: COLORS.text.strong,
                   fontSize: { md: '1rem', lg: '1.2rem', xl: '1.4rem' },
                   lineHeight: 1.6,
                   maxWidth: { md: 440, lg: 520, xl: 600 },
@@ -971,8 +988,8 @@ export default function HomePage() {
                       size="large"
                       fullWidth
                       sx={{
-                        backgroundColor: wedding?.primary_color || '#DE3F5E',
-                        color: 'white',
+                        backgroundColor: wedding?.primary_color || COLORS.brand.primary,
+                        color: COLORS.text.inverse,
                         py: 1.6,
                         fontSize: { md: '1rem', lg: '1.2rem' },
                         fontWeight: 600,
@@ -981,7 +998,7 @@ export default function HomePage() {
                         letterSpacing: '0.5px',
                         boxShadow: '0 4px 16px rgba(222, 63, 94, 0.3)',
                         '&:hover': {
-                          backgroundColor: '#C8365A',
+                          backgroundColor: COLORS.brand.primaryHover,
                           boxShadow: '0 6px 20px rgba(222, 63, 94, 0.4)',
                         },
                       }}
@@ -994,7 +1011,7 @@ export default function HomePage() {
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#777',
+                        color: COLORS.text.subtle,
                         fontSize: '0.9rem',
                         textAlign: 'center',
                         lineHeight: 1.4,
@@ -1016,7 +1033,7 @@ export default function HomePage() {
                     transition={{ duration: 0.6 }}
                     viewport={{ once: true, margin: '-100px' }}
                   >
-                    <GuestList weddingId={weddingId} primaryColor={wedding?.primary_color || undefined} />
+                    <GuestList weddingId={weddingId} primaryColor={wedding?.primary_color || undefined} hideCommentInput={!!(wedding?.hidden_rsvp_steps?.includes('Comment') || wedding?.hidden_rsvp_steps?.includes('Music Request & Comment'))} />
                   </motion.div>
                 </Box>
               )}
@@ -1106,31 +1123,28 @@ export default function HomePage() {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 style={{ width: '100%' }}
               >
-                <Button
-                  onClick={() => {
-                    setIsNavigating(true);
-                    router.push(`/${weddingSlug}/details`);
-                  }}
+                <ActionButton
+                  href={`/${weddingSlug}/details`}
                   variant="contained"
                   size="large"
                   fullWidth
-                  disabled={isNavigating}
+                  spinnerColor={wedding?.primary_color || COLORS.brand.primary}
                   sx={{
-                    backgroundColor: wedding?.primary_color || '#DE3F5E',
-                    color: 'white',
+                    backgroundColor: wedding?.primary_color || COLORS.brand.primary,
+                    color: COLORS.text.inverse,
                     py: { md: 1.6, lg: 1.8, xl: 2 },
                     fontSize: { md: '0.9rem', lg: '1rem', xl: '1.1rem' },
                     fontWeight: 700,
-                    borderRadius: '16px',
+                    borderRadius: RADII.lg,
                     textTransform: 'uppercase',
                     letterSpacing: '6.25%',
                     '&:hover': {
-                      backgroundColor: '#C8365A',
+                      backgroundColor: COLORS.brand.primaryHover,
                     },
                   }}
                 >
-                  {isNavigating ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'View Details'}
-                </Button>
+                  View Details
+                </ActionButton>
               </motion.div>
             </Box>
           )}
@@ -1249,7 +1263,7 @@ export default function HomePage() {
               <Typography
                 variant="body2"
                 sx={{
-                  color: '#000',
+                  color: COLORS.text.strong,
                   fontSize: { xs: '1rem', sm: '1.125rem' },
                   letterSpacing: '0.5px',
                 }}
@@ -1262,10 +1276,10 @@ export default function HomePage() {
                 variant="h2"
                 sx={{
                   fontSize: { xs: '2.5rem', sm: '3rem' },
-                  color: '#000',
+                  color: COLORS.text.strong,
                   lineHeight: 1.2,
-                  fontFamily: 'var(--font-instrument-serif)',
-                  fontStyle: 'italic',
+                  fontFamily: getCoupleFont(coupleNameFontId).cssVar,
+                  fontStyle: getCoupleFont(coupleNameFontId).fontStyle || 'normal',
                 }}
               >
                 {coupleData.names}
@@ -1294,7 +1308,7 @@ export default function HomePage() {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#000',
+                      color: COLORS.text.strong,
                       fontSize: { xs: '1.1rem', sm: '1.2rem' },
                       textDecoration: 'underline',
                     }}
@@ -1321,7 +1335,7 @@ export default function HomePage() {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: '#333',
+                    color: COLORS.text.strong,
                     fontSize: { xs: '0.95rem', sm: '1rem' },
                     lineHeight: 1.6,
                     textAlign: 'center',
@@ -1407,8 +1421,9 @@ export default function HomePage() {
               welcome_text: wedding.welcome_text || undefined,
               primary_color: wedding.primary_color || undefined,
               couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
-              registry_description: (wedding as any).registry_description || undefined,
+              registry_description: (wedding as { registry_description?: string | null }).registry_description || undefined,
               frame_image_url: wedding.frame_image_url,
+              couple_name_font: (wedding as { couple_name_font?: string | null }).couple_name_font || undefined,
             }}
             weddingSlug={weddingSlug}
             isBypassPin={isBypassPin}
@@ -1440,17 +1455,17 @@ export default function HomePage() {
       {renderLayout()}
 
       {/* Shared Modals and Menus */}
-      <Menu
+      <PheraMenu
         anchorEl={userMenuAnchor}
         open={Boolean(userMenuAnchor)}
         onClose={() => setUserMenuAnchor(null)}
         PaperProps={{ sx: { mt: 1, minWidth: 150, borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.15)' } }}
       >
-        <MenuItem onClick={handleSignOut}>
+        <PheraMenuItem onClick={handleSignOut}>
           <LogoutIcon sx={{ mr: 1, fontSize: '1.1rem' }} />
           Sign Out
-        </MenuItem>
-      </Menu>
+        </PheraMenuItem>
+      </PheraMenu>
 
       <LoginModal open={loginDialogOpen} onClose={() => setLoginDialogOpen(false)} />
 
@@ -1462,33 +1477,33 @@ export default function HomePage() {
               {(!user || !hasRSVPed) ? (
                 <>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ width: '100%' }}>
-                    <Button
-                      component={Link}
+                    <ActionButton
                       href={`/${weddingSlug}/rsvp`}
                       variant="contained"
                       fullWidth
-                      sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', py: 2, borderRadius: '32px' }}
+                      spinnerColor={wedding?.primary_color || COLORS.brand.primary}
+                      sx={{ bgcolor: wedding?.primary_color || COLORS.brand.primary, color: COLORS.text.inverse, py: 2, borderRadius: '80px' }}
                     >
                       RSVP
-                    </Button>
+                    </ActionButton>
                   </motion.div>
                   {coupleData.rsvpDeadline && coupleData.rsvpDeadline !== 'TBD' && (
-                    <Typography variant="body2" color="#777">
+                    <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                       Please RSVP by {formatDeadline(coupleData.rsvpDeadline)}
                     </Typography>
                   )}
                 </>
               ) : (
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} style={{ width: '100%' }}>
-                  <Button
-                    onClick={() => { setIsNavigating(true); router.push(`/${weddingSlug}/details`); }}
+                  <ActionButton
+                    href={`/${weddingSlug}/details`}
                     variant="contained"
                     fullWidth
-                    disabled={isNavigating}
-                    sx={{ bgcolor: wedding?.primary_color || '#DE3F5E', py: 1.5, borderRadius: '16px' }}
+                    spinnerColor={wedding?.primary_color || COLORS.brand.primary}
+                    sx={{ bgcolor: wedding?.primary_color || COLORS.brand.primary, color: COLORS.text.inverse, py: 1.5, borderRadius: '80px' }}
                   >
-                    {isNavigating ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'View Details'}
-                  </Button>
+                    View Details
+                  </ActionButton>
                 </motion.div>
               )}
             </Stack>

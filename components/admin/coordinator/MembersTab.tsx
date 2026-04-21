@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Typography, Stack, Chip, CircularProgress, alpha } from '@mui/material';
+import { Box, Typography, Stack, CircularProgress, alpha, Select, MenuItem } from '@mui/material';
 import { AdminPanelSettings, Person, Storefront } from '@mui/icons-material';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface Member {
   id: string;
@@ -15,12 +16,10 @@ interface Member {
 }
 
 const ROLE_CONFIG: Record<string, { color: string; icon: React.ReactNode; label: string }> = {
-  vendor: { color: '#9C27B0', icon: <Storefront sx={{ fontSize: 12 }} />, label: 'Vendor' },
-  admin: { color: '#2196F3', icon: <AdminPanelSettings sx={{ fontSize: 12 }} />, label: 'Admin' },
-  member: { color: '#9E9E9E', icon: <Person sx={{ fontSize: 12 }} />, label: 'Member' },
+  vendor: { color: COLORS.side.both, icon: <Storefront sx={{ fontSize: 14 }} />, label: 'Vendor' },
+  admin: { color: COLORS.accent.info, icon: <AdminPanelSettings sx={{ fontSize: 14 }} />, label: 'Admin' },
+  member: { color: COLORS.text.faint, icon: <Person sx={{ fontSize: 14 }} />, label: 'Member' },
 };
-
-const ROLE_CYCLE = ['member', 'vendor', 'admin'];
 
 interface MembersTabProps {
   conversationId: string;
@@ -49,11 +48,10 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
     loadMembers();
   }, [loadMembers]);
 
-  const handleCycleRole = async (member: Member) => {
-    const currentIdx = ROLE_CYCLE.indexOf(member.role);
-    const nextRole = ROLE_CYCLE[(currentIdx + 1) % ROLE_CYCLE.length];
+  const handleRoleChange = async (member: Member, nextRole: string) => {
+    if (nextRole === member.role) return;
+    const previousRole = member.role;
 
-    // Optimistic update
     setMembers((prev) =>
       prev.map((m) => (m.id === member.id ? { ...m, role: nextRole } : m))
     );
@@ -65,21 +63,21 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
         body: JSON.stringify({ memberId: member.id, role: nextRole }),
       });
       if (!res.ok) {
-        throw new Error('Failed');
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || 'Failed');
       }
-    } catch {
-      // Revert
+    } catch (err: any) {
       setMembers((prev) =>
-        prev.map((m) => (m.id === member.id ? { ...m, role: member.role } : m))
+        prev.map((m) => (m.id === member.id ? { ...m, role: previousRole } : m))
       );
-      showStatus('error', 'Failed to update role');
+      showStatus('error', err?.message || 'Failed to update role');
     }
   };
 
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress size={24} sx={{ color: '#DE3F5E' }} />
+        <CircularProgress size={24} sx={{ color: COLORS.brand.primary }} />
       </Box>
     );
   }
@@ -87,7 +85,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
   if (members.length === 0) {
     return (
       <Box sx={{ py: 4, textAlign: 'center' }}>
-        <Typography variant="body2" sx={{ color: '#888', fontSize: '0.85rem' }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.faint, fontSize: '0.875rem' }}>
           No members found for this conversation.
         </Typography>
       </Box>
@@ -111,7 +109,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
               px: 1.5,
               py: 1.25,
               borderRadius: 1,
-              '&:hover': { bgcolor: alpha('#000', 0.02) },
+              '&:hover': { bgcolor: alpha(COLORS.text.strong, 0.02) },
             }}
           >
             {/* Avatar circle */}
@@ -126,7 +124,7 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 700,
-                fontSize: '0.85rem',
+                fontSize: '0.875rem',
                 flexShrink: 0,
               }}
             >
@@ -137,9 +135,9 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography
                 sx={{
-                  fontSize: '0.85rem',
+                  fontSize: '0.875rem',
                   fontWeight: 600,
-                  color: '#1a1a1a',
+                  color: COLORS.text.strong,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -149,37 +147,57 @@ export default function MembersTab({ conversationId, weddingId }: MembersTabProp
                 {member.is_whatsapp_admin && (
                   <Typography
                     component="span"
-                    sx={{ fontSize: '0.7rem', color: '#999', ml: 0.5, fontWeight: 400 }}
+                    sx={{ fontSize: '0.875rem', color: COLORS.text.faint, ml: 0.5, fontWeight: 400 }}
                   >
                     (WA admin)
                   </Typography>
                 )}
               </Typography>
               {member.name && (
-                <Typography variant="caption" sx={{ fontSize: '0.75rem', color: '#6a6a6a' }}>
+                <Typography variant="caption" sx={{ fontSize: '0.875rem', color: COLORS.text.subtle }}>
                   {member.phone}
                 </Typography>
               )}
             </Box>
 
-            {/* Role badge — click to cycle */}
-            <Chip
-              icon={config.icon as React.ReactElement}
-              label={config.label}
+            {/* Role select — dropdown, no race-condition cycling */}
+            <Select
+              value={member.role}
+              onChange={(e) => handleRoleChange(member, e.target.value as string)}
               size="small"
-              onClick={() => handleCycleRole(member)}
               sx={{
-                fontSize: '0.7rem',
-                height: 24,
-                borderRadius: '6px',
-                bgcolor: alpha(config.color, 0.1),
-                color: config.color,
+                minWidth: 120,
+                height: 32,
+                fontSize: '0.875rem',
                 fontWeight: 600,
-                cursor: 'pointer',
-                '& .MuiChip-icon': { color: config.color },
-                '&:hover': { bgcolor: alpha(config.color, 0.18) },
+                bgcolor: alpha(config.color, 0.08),
+                color: config.color,
+                borderRadius: RADII.sm,
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: alpha(config.color, 0.25) },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: alpha(config.color, 0.5) },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: config.color },
+                '& .MuiSelect-select': { py: 0.5, pl: 1.25, display: 'flex', alignItems: 'center', gap: 0.75 },
+                '& .MuiSvgIcon-root': { color: config.color },
               }}
-            />
+              renderValue={(value) => {
+                const cfg = ROLE_CONFIG[value as string] || ROLE_CONFIG.member;
+                return (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    {cfg.icon}
+                    <span>{cfg.label}</span>
+                  </Box>
+                );
+              }}
+            >
+              {Object.entries(ROLE_CONFIG).map(([value, cfg]) => (
+                <MenuItem key={value} value={value} sx={{ fontSize: '0.875rem', gap: 0.75 }}>
+                  <Box component="span" sx={{ color: cfg.color, display: 'flex', alignItems: 'center' }}>
+                    {cfg.icon}
+                  </Box>
+                  {cfg.label}
+                </MenuItem>
+              ))}
+            </Select>
           </Box>
         );
       })}

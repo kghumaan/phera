@@ -314,6 +314,12 @@ export class WeddingService {
   }
 
   async createEvent(event: TablesInsert<'wedding_events'>): Promise<WeddingEvent | null> {
+    const invalid = validateEventPayload(event);
+    if (invalid) {
+      console.error('Error creating event:', invalid);
+      return null;
+    }
+
     const { data, error } = await this.supabase
       .from('wedding_events')
       .insert([event])
@@ -329,6 +335,12 @@ export class WeddingService {
   }
 
   async updateEvent(id: string, updates: TablesUpdate<'wedding_events'>): Promise<WeddingEvent | null> {
+    const invalid = validateEventPayload(updates, { partial: true });
+    if (invalid) {
+      console.error('Error updating event:', invalid);
+      return null;
+    }
+
     const { data, error } = await this.supabase
       .from('wedding_events')
       .update(updates)
@@ -1011,6 +1023,11 @@ export class WeddingService {
     // Note: We can't directly get emails from auth.users, so admins will need to be matched via user_id
     if (admins) {
       for (const admin of admins) {
+        // Skip any admin row that points to the wedding owner — they're already
+        // rendered as the "Owner" entry at the top. Happens when the owner
+        // accepts their own invite or legacy data double-counts them.
+        if (admin.user_id && admin.user_id === wedding.created_by) continue;
+
         // If the current user is one of the admins, we can show their email
         if (currentUser && admin.user_id === currentUser.id) {
           teamMembers.push({
@@ -1660,6 +1677,33 @@ export class WeddingService {
 
     if (error) throw error;
   }
+}
+
+/**
+ * Validates a wedding_events payload before write. Blocks empty / whitespace
+ * name and date so downstream features (AI concierge weekday inference,
+ * guest-facing schedule rendering) never have to cope with orphan rows. On
+ * `partial: true` we only check fields that were actually provided, so
+ * partial updates of unrelated fields aren't blocked.
+ */
+function validateEventPayload(
+  payload: Record<string, any>,
+  opts: { partial?: boolean } = {},
+): string | null {
+  const partial = !!opts.partial;
+  const nameProvided = 'name' in payload;
+  const dateProvided = 'date' in payload;
+
+  const nameEmpty = typeof payload.name === 'string' && payload.name.trim() === '';
+  const dateEmpty = typeof payload.date === 'string' && payload.date.trim() === '';
+
+  if ((!partial || nameProvided) && (nameEmpty || (!partial && !payload.name))) {
+    return 'Event name is required.';
+  }
+  if ((!partial || dateProvided) && (dateEmpty || (!partial && !payload.date))) {
+    return 'Event date is required.';
+  }
+  return null;
 }
 
 // Export a singleton instance

@@ -1,0 +1,56 @@
+Name,Email,Phone,Side,Tag
+Priya Sharma,priya.sharma@gmail.com,+919876543210,Bride,Priya's Family
+Rohan Sharma,rohan.sharma@gmail.com,+919876543211,Bride,Priya's Family
+Neha Sharma,neha.sharma@gmail.com,+919876543212,Bride,Priya's Family
+Anjali Sharma,anjali.sharma@outlook.com,+919876543213,Bride,Priya's Family
+Ravi Sharma,ravi.sharma@yahoo.com,+919876543214,Bride,Priya's Family
+Arjun Mehta,arjun.mehta@gmail.com,+14155551001,Groom,Arjun's Family
+Kavita Mehta,kavita.mehta@gmail.com,+14155551002,Groom,Arjun's Family
+Sanjay Mehta,sanjay.mehta@outlook.com,+14155551003,Groom,Arjun's Family
+Rhea Mehta,rhea.mehta@yahoo.com,+14155551004,Groom,Arjun's Family
+Vikram Mehta,vikram.mehta@gmail.com,+14155551005,Groom,Arjun's Family
+Aisha Kapoor,aisha.kapoor@gmail.com,+447911123001,Bride,Priya's Friends
+Dev Kapoor,dev.kapoor@gmail.com,+447911123002,Bride,Priya's Friends
+Nikhil Rao,nikhil.rao@gmail.com,+14085551001,Bride,Priya's US Friends
+Sneha Rao,sneha.rao@gmail.com,+14085551002,Bride,Priya's US Friends
+Pooja Iyer,pooja.iyer@gmail.com,+14085551003,Bride,Priya's US Friends
+Karthik Iyer,karthik.iyer@outlook.com,+14085551004,Bride,Priya's US Friends
+Meera Das,meera.das@gmail.com,+442071837001,Bride,Priya's UK Friends
+Rajeev Das,rajeev.das@gmail.com,+442071837002,Bride,Priya's UK Friends
+Tanya Singh,tanya.singh@gmail.com,+919876543220,Bride,College Friends
+Aman Singh,aman.singh@gmail.com,+919876543221,Bride,College Friends
+Ishaan Khanna,ishaan.khanna@gmail.com,+919876543222,Bride,College Friends
+Simran Bhatt,simran.bhatt@gmail.com,+919876543223,Bride,College Friends
+Aditya Verma,aditya.verma@gmail.com,+14155551010,Groom,Arjun's Friends
+Rahul Verma,rahul.verma@gmail.com,+14155551011,Groom,Arjun's Friends
+Siddharth Joshi,sid.joshi@gmail.com,+14155551012,Groom,Arjun's Friends
+Ayesha Joshi,ayesha.joshi@gmail.com,+14155551013,Groom,Arjun's Friends
+Kabir Gupta,kabir.gupta@gmail.com,+14155551014,Groom,Arjun's Friends
+Tara Malik,tara.malik@gmail.com,+14155551015,Groom,Work Friends
+Zoya Malik,zoya.malik@gmail.com,+14155551016,Groom,Work Friends
+Neel Shah,neel.shah@gmail.com,+14155551017,Groom,Work Friends
+Riya Shah,riya.shah@gmail.com,+14155551018,Groom,Work Friends
+Ananya Bose,ananya.bose@gmail.com,+61412345001,Groom,Arjun's AU Friends
+Arjun Bose,arjun.bose@gmail.com,+61412345002,Groom,Arjun's AU Friends
+Nisha Pillai,nisha.pillai@gmail.com,+971501234001,Bride,Priya's UAE Friends
+Raj Pillai,raj.pillai@gmail.com,+971501234002,Bride,Priya's UAE Friends
+Shruti Menon,shruti.menon@gmail.com,+919876543230,Bride,Cousins
+Rohan Menon,rohan.menon@gmail.com,+919876543231,Bride,Cousins
+Varun Chopra,varun.chopra@gmail.com,+14155551020,Groom,Cousins
+Divya Chopra,divya.chopra@gmail.com,+14155551021,Groom,Cousins
+Sarah Johnson,sarah.j@gmail.com,+14155551030,Both,Shared Friends
+Michael Chen,michael.chen@gmail.com,+14155551031,Both,Shared Friends
+Emma Williams,emma.w@gmail.com,+14155551032,Both,Shared Friends
+David Kim,david.kim@gmail.com,+14155551033,Both,Shared Friends
+Lena Park,lena.park@gmail.com,+14155551034,Both,Shared Friends
+Grace Liu,grace.liu@gmail.com,+14155551035,Both,Shared Friends
+Lata Krishnan,lata.krishnan@gmail.com,,Bride,Family Elders
+P.K. Sharma,,+919876543240,Bride,Family Elders
+Sunita Devi,,+919876543241,Bride,Family Elders
+Baldev Mehta,baldev.mehta@gmail.com,,Groom,Family Elders
+Maya Mehta,maya.mehta@gmail.com,,Groom,Family Elders
+Priya Sharma,priya.sharma@gmail.com,+919876549999,Bride,Duplicate test
+Different Name,arjun.mehta@gmail.com,+15555559999,Groom,Duplicate test
+Another Person,different@example.com,+14155551001,Bride,Duplicate test
+Entry With Bad Email,not-an-email,+919876543299,Bride,Error test
+Entry With Bad Phone,bad-phone@example.com,123,Groom,Error test

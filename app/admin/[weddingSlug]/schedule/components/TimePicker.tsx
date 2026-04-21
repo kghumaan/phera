@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Box, Typography, Stack, Popover, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 // Generate time slots in 15-min intervals, starting at 6 AM
 function generateTimeSlots(): string[] {
@@ -103,9 +104,9 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
         ref={anchorRef}
         onClick={handleOpenStart}
         sx={{
-          bgcolor: 'white',
+          bgcolor: COLORS.bg.white,
           border: '1px solid #BCBCBC',
-          borderRadius: '8px',
+          borderRadius: RADII.sm,
           height: 48,
           px: 1.5,
           display: 'flex',
@@ -113,7 +114,7 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
           gap: 1,
           cursor: 'pointer',
           position: 'relative',
-          '&:hover': { borderColor: '#999' },
+          '&:hover': { borderColor: COLORS.text.faint },
           flex: 1,
         }}
       >
@@ -123,7 +124,7 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
         <Typography
           sx={{
             fontSize: '1rem',
-            color: hasValue ? '#1a1a1a' : '#BCBCBC',
+            color: hasValue ? COLORS.text.strong : COLORS.text.faint,
             flexShrink: 0,
           }}
         >
@@ -133,14 +134,14 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
         {/* End time area */}
         {endTime ? (
           <>
-            <Typography sx={{ color: '#6a6a6a', fontSize: '0.875rem' }}>-</Typography>
+            <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem' }}>-</Typography>
             <Typography
               onClick={(e) => { e.stopPropagation(); handleOpenEnd(); }}
               sx={{
                 fontSize: '1rem',
-                color: '#1a1a1a',
+                color: COLORS.text.strong,
                 cursor: 'pointer',
-                '&:hover': { color: '#DE3F5E' },
+                '&:hover': { color: COLORS.brand.primary },
               }}
             >
               {endTime}
@@ -148,7 +149,7 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
             <IconButton
               size="small"
               onClick={(e) => { e.stopPropagation(); handleRemoveEndTime(); }}
-              sx={{ p: 0.25, color: '#999', ml: 'auto' }}
+              sx={{ p: 0.25, color: COLORS.text.faint, ml: 'auto' }}
             >
               <Close sx={{ fontSize: 16 }} />
             </IconButton>
@@ -157,11 +158,11 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
           <Typography
             onClick={(e) => { e.stopPropagation(); handleAddEndTime(); setOpen(true); }}
             sx={{
-              fontSize: '0.8rem',
-              color: '#BCBCBC',
+              fontSize: '0.875rem',
+              color: COLORS.text.faint,
               cursor: 'pointer',
               ml: 'auto',
-              '&:hover': { color: '#DE3F5E' },
+              '&:hover': { color: COLORS.brand.primary },
             }}
           >
             + end
@@ -174,11 +175,11 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
             position: 'absolute',
             top: -9,
             left: 10,
-            bgcolor: 'white',
+            bgcolor: COLORS.bg.white,
             px: 0.5,
             lineHeight: 1,
           }}>
-            <Typography sx={{ fontSize: '0.75rem', color: '#524344', lineHeight: 1 }}>
+            <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.muted, lineHeight: 1 }}>
               {label}
             </Typography>
           </Box>
@@ -193,12 +194,12 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         slotProps={{
           paper: {
-            sx: { borderRadius: '12px', mt: 0.5, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', bgcolor: 'white' },
+            sx: { borderRadius: RADII.md, mt: 0.5, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', bgcolor: COLORS.bg.white },
           },
         }}
       >
         <Box sx={{ p: 1.5, width: 200 }}>
-          <Typography variant="caption" sx={{ color: '#6a6a6a', fontWeight: 600, mb: 1, display: 'block' }}>
+          <Typography variant="caption" sx={{ color: COLORS.text.subtle, fontWeight: 600, mb: 1, display: 'block' }}>
             {pickingEnd ? 'Select end time' : 'Select start time'}
           </Typography>
           <Box ref={listRef} sx={{ maxHeight: 240, overflowY: 'auto' }}>
@@ -215,7 +216,7 @@ export default function TimePicker({ label, value, onChange }: TimePickerProps) 
                   cursor: 'pointer',
                   bgcolor: slot === activeTime ? 'rgba(222,63,94,0.08)' : 'transparent',
                   fontWeight: slot === activeTime ? 600 : 400,
-                  color: slot === activeTime ? '#DE3F5E' : '#1a1a1a',
+                  color: slot === activeTime ? COLORS.brand.primary : COLORS.text.strong,
                   fontSize: '0.9rem',
                   '&:hover': { bgcolor: 'rgba(222,63,94,0.06)' },
                 }}
