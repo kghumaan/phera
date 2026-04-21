@@ -2105,6 +2105,8 @@ export type Database = {
       }
       wedding_rooms: {
         Row: {
+          assigned_guest_ids: string[]
+          bed_type: string | null
           capacity: number | null
           created_at: string
           floor: string | null
@@ -2117,6 +2119,8 @@ export type Database = {
           wedding_id: string
         }
         Insert: {
+          assigned_guest_ids?: string[]
+          bed_type?: string | null
           capacity?: number | null
           created_at?: string
           floor?: string | null
@@ -2129,6 +2133,8 @@ export type Database = {
           wedding_id: string
         }
         Update: {
+          assigned_guest_ids?: string[]
+          bed_type?: string | null
           capacity?: number | null
           created_at?: string
           floor?: string | null
