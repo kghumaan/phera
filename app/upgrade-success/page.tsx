@@ -18,14 +18,19 @@ function UpgradeSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const sessionId = searchParams.get('session_id');
-  const returnPath = searchParams.get('return_path');
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [tier, setTier] = useState<string>('pro');
 
+  // After a successful checkout we always send the user to /admin — that page
+  // routes them to their own wedding overview (or onboarding if they don't
+  // have one yet). Ignore any ?return_path; the old behavior of dropping them
+  // back on the landing page after a Pro purchase was bad UX.
+  const POST_UPGRADE_DEST = '/admin';
+
   useEffect(() => {
     if (!sessionId) {
-      router.replace(returnPath || '/');
+      router.replace(POST_UPGRADE_DEST);
       return;
     }
 
@@ -42,20 +47,20 @@ function UpgradeSuccessContent() {
           if (data.tier) setTier(data.tier);
           setStatus('success');
           setTimeout(() => {
-            router.replace(returnPath || '/admin');
+            router.replace(POST_UPGRADE_DEST);
           }, 2500);
         } else {
           console.error('Upgrade error:', data.error);
           setStatus('error');
           setTimeout(() => {
-            router.replace(returnPath || '/admin');
+            router.replace(POST_UPGRADE_DEST);
           }, 3000);
         }
       } catch (err) {
         console.error('Error verifying upgrade:', err);
         setStatus('error');
         setTimeout(() => {
-          router.replace(returnPath || '/admin');
+          router.replace(POST_UPGRADE_DEST);
         }, 3000);
       }
     };

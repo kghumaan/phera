@@ -68,19 +68,28 @@ function OnboardingLayoutContent({
     return null;
   }, [pathname]);
 
+  // Intentionally track only authUser?.id in deps below, NOT the full authUser
+  // object. Supabase fires INITIAL_SESSION + SIGNED_IN in quick succession on
+  // first load and each one creates a new User object ref. Depending on the
+  // object would flip isLoadingWedding on every ref change, unmount/remount
+  // {children}, and reload each admin page a few seconds after opening it.
+  // Same user = same id; id is the only thing we actually care about here.
+  const authUserId = authUser?.id;
+
   useEffect(() => {
     // Wait for auth to finish loading before doing anything
     if (isLoadingAuth) return;
 
-    const fetchWeddingAndSettings = async () => {
-      setIsLoadingWedding(true);
+    let cancelled = false;
 
+    const fetchWeddingAndSettings = async () => {
       // For demo routes, ensure the user is signed in as the demo user.
       // If not, redirect to /demo to trigger auto-login.
       // Check Supabase session directly to avoid race condition where
       // AuthContext hasn't received the onAuthStateChange event yet.
       if (weddingSlug.startsWith('demo') && !authUser) {
         const { data: { session } } = await supabase.auth.getSession();
+        if (cancelled) return;
         if (!session) {
           router.replace('/demo');
           return;
@@ -102,6 +111,7 @@ function OnboardingLayoutContent({
         : Promise.resolve(null);
 
       const [weddingData, settings] = await Promise.all([weddingPromise, settingsPromise]);
+      if (cancelled) return;
 
       if (weddingData) {
         setWedding(weddingData);
@@ -117,6 +127,7 @@ function OnboardingLayoutContent({
               .eq('wedding_id', weddingData.id)
               .eq('user_id', authUser.id)
               .single();
+            if (cancelled) return;
             setAdminRole((adminEntry?.role as 'admin' | 'viewer') || null);
           }
         }
@@ -125,10 +136,19 @@ function OnboardingLayoutContent({
         setIsPlanner(true);
       }
 
+      // Only flip isLoadingWedding off once. Subsequent refetches (auth-state
+      // refresh, tab re-focus, etc.) must NOT re-show the spinner — doing so
+      // unmounts the page {children}, which triggers child-level effects to
+      // re-run and forms to reload.
       setIsLoadingWedding(false);
     };
     fetchWeddingAndSettings();
-  }, [weddingSlug, router, authUser, isLoadingAuth]);
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weddingSlug, router, authUserId, isLoadingAuth]);
 
   if (!isLoadingWedding && !wedding) {
     notFound();
