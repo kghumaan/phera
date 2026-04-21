@@ -20,6 +20,8 @@ interface TourStep {
   sidebarCutout?: boolean; // cut out entire sidebar instead of single element
   tooltipPosition?: 'right' | 'below-target' | 'left-of-target';
   extraTargets?: string[]; // additional data-tour targets to union into the spotlight
+  /** Force the tooltip to pin to the top of the viewport on mobile. */
+  mobileTopPin?: boolean;
 }
 
 const TOUR_STEPS: TourStep[] = [
@@ -83,6 +85,7 @@ const TOUR_STEPS: TourStep[] = [
     target: 'tour-collaborators',
     title: 'Collaborators',
     description: "Invite your partner, family members, or planner to help. Add them as admins so they can contribute, edit details, and manage things alongside you.",
+    mobileTopPin: true,
   },
   {
     target: 'tour-cta',
@@ -301,12 +304,16 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
 
   const handleNext = () => {
     if (currentStep < TOUR_STEPS.length - 1) {
+      // Clear the old rect so the new step's tooltip doesn't flash at the
+      // previous step's position while we wait for measureTarget to resolve.
+      setTargetRect(null);
       setCurrentStep(currentStep + 1);
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
+      setTargetRect(null);
       setCurrentStep(currentStep - 1);
     }
   };
@@ -337,6 +344,18 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
       const tooltipH = 280; // approximate; used to pick a side with room
       const topSafe = 84; // AdminTopNav + small gap
       const bottomSafe = 16;
+
+      // Per-step override (e.g. Collaborators sits low in the sidebar on
+      // mobile and the auto-placed tooltip ends up outside the visible
+      // drawer area).
+      if (step.mobileTopPin) {
+        return {
+          top: topSafe,
+          left: `calc(50vw - ${tooltipW / 2}px)`,
+          width: tooltipW,
+        };
+      }
+
       const spaceBelow = window.innerHeight - (targetRect.top + targetRect.height) - bottomSafe;
       const spaceAbove = targetRect.top - topSafe;
 
@@ -459,17 +478,20 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
         />
       )}
 
-      {/* Tooltip */}
+      {/* Tooltip — hold opacity at 0 until the spotlight target has been
+          measured so the card doesn't flash at the centered fallback on
+          every step change. */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
           initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={{ opacity: (targetRect || step.noSpotlight) ? 1 : 0, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.2 }}
           style={{
             position: 'fixed',
             zIndex: 9999,
+            pointerEvents: (targetRect || step.noSpotlight) ? 'auto' : 'none',
             ...getTooltipPosition(),
           }}
         >
@@ -563,13 +585,12 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
             {step.noSpotlight ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, alignItems: 'center', mt: 2 }}>
                 <Button
-                  component={Link}
-                  href="/auth/login"
+                  onClick={endTour}
                   variant="contained"
                   size="large"
                   sx={{
                     bgcolor: COLORS.brand.primary,
-                    color: 'white',
+                    color: COLORS.text.inverse,
                     px: 5,
                     py: 1.5,
                     borderRadius: '32px',
@@ -579,10 +600,11 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                     '&:hover': { bgcolor: COLORS.brand.primaryHover },
                   }}
                 >
-                  Start Planning Free
+                  Continue Exploring
                 </Button>
                 <Button
-                  onClick={endTour}
+                  component={Link}
+                  href="/auth/login"
                   variant="text"
                   sx={{
                     color: COLORS.text.faint,
@@ -591,7 +613,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                     '&:hover': { color: COLORS.text.subtle, bgcolor: 'transparent' },
                   }}
                 >
-                  Continue exploring
+                  Start Planning Free
                 </Button>
               </Box>
             ) : (
