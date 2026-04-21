@@ -315,7 +315,10 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
           sx={{
             position: 'sticky',
             top: 0,
-            height: '100vh',
+            // `100svh` tracks the *visible* viewport on mobile (excludes the URL bar),
+            // so the centered hero actually sits in the middle of the screen instead
+            // of drifting lower as the browser chrome eats into the layout.
+            height: { xs: '100svh', md: '100vh' },
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -743,48 +746,24 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
                 )}
                 {(item.featureImage || item.customComponent) && item.frameType === 'mobile' && (
                   <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-                    <Box
-                      sx={{
-                        width: '220px',
-                        height: item.customComponent ? '400px' : 'auto',
-                        borderRadius: '28px',
-                        overflow: 'hidden',
-                        boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
-                        bgcolor: COLORS.text.strong,
-                        border: '8px solid #1a1a1a',
-                        position: 'relative',
-                      }}
+                    <IPhoneMockup
+                      width={{ xs: '220px', sm: '240px', md: '260px' }}
+                      sx={{ height: item.customComponent ? 'auto' : undefined }}
                     >
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          width: '70px',
-                          height: '18px',
-                          bgcolor: COLORS.text.strong,
-                          borderBottomLeftRadius: '10px',
-                          borderBottomRightRadius: '10px',
-                          zIndex: 20,
-                        }}
-                      />
-                      <Box sx={{ borderRadius: RADII.xl, overflow: 'hidden', lineHeight: 0, height: '100%' }}>
-                        {item.customComponent ? (
-                          item.customComponent
-                        ) : (
-                          <Image
-                            src={item.featureImage!}
-                            alt={item.title}
-                            width={726}
-                            height={1566}
-                            quality={85}
-                            sizes="220px"
-                            style={{ width: '100%', height: 'auto', display: 'block' }}
-                          />
-                        )}
-                      </Box>
-                    </Box>
+                      {item.customComponent ? (
+                        item.customComponent
+                      ) : (
+                        <Image
+                          src={item.featureImage!}
+                          alt={item.title}
+                          width={726}
+                          height={1566}
+                          quality={85}
+                          sizes="260px"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        />
+                      )}
+                    </IPhoneMockup>
                   </Box>
                 )}
 
@@ -1112,7 +1091,9 @@ function LandingPageContent() {
         {/* --- HERO SECTION --- */}
         <Box
           sx={{
-            minHeight: '100vh',
+            // Use the small-viewport unit on mobile so the hero doesn't overshoot the
+            // visible area thanks to Chrome's top/bottom bars; desktop keeps `100vh`.
+            minHeight: { xs: '100svh', md: '100vh' },
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -322,7 +322,8 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
           sx={{
             position: 'sticky',
             top: 0,
-            height: '100vh',
+            // Small-viewport unit on mobile tracks Chrome's visible area; desktop keeps 100vh
+            height: { xs: '100svh', md: '100vh' },
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',

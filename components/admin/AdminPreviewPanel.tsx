@@ -5,7 +5,7 @@ import { Box, IconButton, alpha, Typography, Button, DialogContent, Stack, TextF
 import { PheraDialog } from '@/components/shared/Dialog';
 import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { ActionButton, PrimaryActionButton } from './ActionButton';
-import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check, Publish } from '@mui/icons-material';
+import { DesktopWindows, PhoneAndroid, OpenInNew, IosShare, ContentCopy, Close, Check, Publish, ArrowBack } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { weddingService, Wedding, WeddingSettings } from '@/lib/supabase/wedding-service';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
@@ -43,6 +43,12 @@ interface AdminPreviewPanelProps {
      * Used for the inline mobile preview in the admin layout.
      */
     compact?: boolean;
+    /**
+     * When provided in compact mode, renders a back button in the top bar
+     * that calls this handler — lets the preview own its full toolbar so
+     * the parent overlay doesn't need a separate header row.
+     */
+    onClose?: () => void;
 }
 
 interface PinCode {
@@ -61,6 +67,7 @@ export default function AdminPreviewPanel({
     websiteLayout,
     isLive = false,
     compact = false,
+    onClose,
 }: AdminPreviewPanelProps) {
     const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('mobile');
     const iframeRefLine = useRef<HTMLIFrameElement>(null);
@@ -342,19 +349,69 @@ export default function AdminPreviewPanel({
                     overflow: 'hidden',
                 }}
             >
-                {showPublishButton && (
-                    <Box
+                {/* Single top action bar: back / publish / open / share.
+                    Consolidated so the iframe gets the maximum vertical space. */}
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        px: 1,
+                        py: 0.75,
+                        bgcolor: COLORS.bg.white,
+                        borderBottom: `1px solid ${COLORS.border.faint}`,
+                        flexShrink: 0,
+                    }}
+                >
+                    {onClose && (
+                        <IconButton
+                            size="small"
+                            onClick={onClose}
+                            aria-label="Close preview"
+                            sx={{ color: COLORS.text.strong, mr: 0.5 }}
+                        >
+                            <ArrowBack />
+                        </IconButton>
+                    )}
+                    <Typography variant="body1" sx={{ fontWeight: 600, color: COLORS.text.strong, flexShrink: 0 }}>
+                        Preview
+                    </Typography>
+                    <Box sx={{ flex: 1 }} />
+                    <Button
+                        variant="text"
+                        onClick={() => window.open(previewUrl, '_blank')}
                         sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'flex-end',
-                            px: 1.5,
-                            py: 1,
-                            bgcolor: COLORS.bg.white,
-                            borderBottom: `1px solid ${COLORS.border.faint}`,
-                            flexShrink: 0,
+                            color: COLORS.text.strong,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            fontSize: TEXT.sm,
+                            minWidth: 0,
+                            px: 1,
+                            minHeight: 32,
+                            borderRadius: RADII.md,
                         }}
+                        aria-label="Open in new tab"
                     >
+                        <OpenInNew sx={{ fontSize: 18 }} />
+                    </Button>
+                    <Button
+                        variant="text"
+                        onClick={handleShareClick}
+                        sx={{
+                            color: COLORS.text.strong,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            fontSize: TEXT.sm,
+                            minWidth: 0,
+                            px: 1,
+                            minHeight: 32,
+                            borderRadius: RADII.md,
+                        }}
+                        aria-label="Share"
+                    >
+                        <IosShare sx={{ fontSize: 18 }} />
+                    </Button>
+                    {showPublishButton && (
                         <ActionButton
                             variant="contained"
                             onClick={handlePublish}
@@ -367,6 +424,7 @@ export default function AdminPreviewPanel({
                                 borderRadius: RADII.md,
                                 px: 1.5,
                                 py: 0.5,
+                                ml: 0.5,
                                 textTransform: 'none',
                                 fontWeight: 600,
                                 fontSize: TEXT.sm,
@@ -383,8 +441,8 @@ export default function AdminPreviewPanel({
                         >
                             {publishSuccess ? 'Published' : 'Publish'}
                         </ActionButton>
-                    </Box>
-                )}
+                    )}
+                </Box>
                 <Box
                     sx={{
                         flex: 1,
@@ -407,52 +465,6 @@ export default function AdminPreviewPanel({
                         }}
                         title="Wedding Preview"
                     />
-                </Box>
-                <Box
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 1,
-                        px: 1.5,
-                        py: 1,
-                        bgcolor: COLORS.bg.white,
-                        borderTop: `1px solid ${COLORS.border.faint}`,
-                        flexShrink: 0,
-                    }}
-                >
-                    <Button
-                        variant="text"
-                        onClick={() => window.open(previewUrl, '_blank')}
-                        startIcon={<OpenInNew sx={{ fontSize: 18 }} />}
-                        sx={{
-                            color: COLORS.text.strong,
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            fontSize: TEXT.sm,
-                            px: 1,
-                            minHeight: 32,
-                            borderRadius: RADII.md,
-                        }}
-                    >
-                        Open
-                    </Button>
-                    <Button
-                        variant="text"
-                        onClick={handleShareClick}
-                        startIcon={<IosShare sx={{ fontSize: 18 }} />}
-                        sx={{
-                            color: COLORS.text.strong,
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            fontSize: TEXT.sm,
-                            px: 1,
-                            minHeight: 32,
-                            borderRadius: RADII.md,
-                        }}
-                    >
-                        Share
-                    </Button>
                 </Box>
 
                 {/* Share Modal — reused from full mode */}

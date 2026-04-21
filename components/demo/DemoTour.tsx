@@ -205,6 +205,20 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
     }
   }, []);
 
+  // On mobile, the sidebar is a temporary drawer. Most tour steps point at a
+  // sidebar item — those elements live in the DOM (keepMounted) but sit
+  // translated off-screen when the drawer is closed, so the spotlight lands
+  // outside the viewport. Ask the admin layout to open/close the drawer based
+  // on whether the current step actually targets a sidebar element.
+  useEffect(() => {
+    if (!isActive || !step || !isMobile) return;
+    const targetEl = document.querySelector(`[data-tour="${step.target}"]`);
+    const isInSidebar = !!targetEl?.closest('.MuiDrawer-paper');
+    window.dispatchEvent(new CustomEvent(
+      isInSidebar ? 'phera:open-mobile-sidebar' : 'phera:close-mobile-sidebar'
+    ));
+  }, [currentStep, isActive, step, isMobile]);
+
   // Handle step changes: navigation, sidebar expansion
   useEffect(() => {
     if (!isActive || !step) return;
@@ -235,8 +249,10 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
       };
     }
 
-    // No group expansion needed, measure right away
-    const timer = setTimeout(measureTarget, 150);
+    // No group expansion needed, measure right away.
+    // Delay slightly longer on mobile to let the sidebar drawer transition in
+    // (MUI default ~225ms) before we compute the spotlight rect.
+    const timer = setTimeout(measureTarget, isMobile ? 300 : 150);
 
     observerRef.current?.disconnect();
     observerRef.current = new ResizeObserver(measureTarget);

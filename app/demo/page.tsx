@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { Box, CircularProgress, Typography } from '@mui/material';
+import { COLORS } from '@/lib/theme/tokens';
 
 const DEMO_EMAIL = 'demo@phera.io';
 const DEMO_SLUG_KEY = 'demo-wedding-slug';
@@ -105,7 +106,8 @@ export default function DemoPage() {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        // Mobile browsers' URL bar eats into 100vh; svh tracks the *visible* viewport.
+        minHeight: { xs: '100svh', md: '100vh' },
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -115,13 +117,13 @@ export default function DemoPage() {
       }}
     >
       {error ? (
-        <Typography sx={{ color: '#DE3F5E', fontSize: '1.1rem', fontWeight: 500 }}>
+        <Typography sx={{ color: COLORS.brand.primary, fontSize: '1.1rem', fontWeight: 500 }}>
           {error}
         </Typography>
       ) : (
         <>
-          <CircularProgress sx={{ color: '#DE3F5E' }} />
-          <Typography sx={{ color: '#4a4a4a', fontSize: '1.1rem' }}>
+          <CircularProgress sx={{ color: COLORS.brand.primary }} />
+          <Typography sx={{ color: COLORS.text.muted, fontSize: '1.1rem' }}>
             Loading demo...
           </Typography>
         </>

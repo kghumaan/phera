@@ -1,7 +1,7 @@
 'use client';
 
-import { Box, CircularProgress, Backdrop, Collapse, IconButton, Typography } from '@mui/material';
-import { ExpandMore, ArrowBack } from '@mui/icons-material';
+import { Box, CircularProgress, Backdrop, IconButton, Typography } from '@mui/material';
+import { ExpandMore } from '@mui/icons-material';
 import OnboardingSidebar, { groups } from '@/components/admin/OnboardingSidebar';
 import AdminTopNav from '@/components/admin/AdminTopNav';
 import AdminPreviewPanel from '@/components/admin/AdminPreviewPanel';
@@ -140,6 +140,20 @@ function OnboardingLayoutContent({
     setMobileOpen(false); // Close sidebar on mobile when navigating
     setMobilePreviewOpen(false); // Collapse preview when switching pages
   }, [pathname]);
+
+  // DemoTour asks us to open/close the mobile drawer so its spotlight can
+  // actually land on sidebar items (they're keepMounted but translated
+  // off-screen when the drawer is closed).
+  useEffect(() => {
+    const openHandler = () => setMobileOpen(true);
+    const closeHandler = () => setMobileOpen(false);
+    window.addEventListener('phera:open-mobile-sidebar', openHandler);
+    window.addEventListener('phera:close-mobile-sidebar', closeHandler);
+    return () => {
+      window.removeEventListener('phera:open-mobile-sidebar', openHandler);
+      window.removeEventListener('phera:close-mobile-sidebar', closeHandler);
+    };
+  }, []);
 
   const handleStatusChange = async (newStatus: 'draft' | 'live') => {
     if (wedding) {
@@ -352,54 +366,29 @@ function OnboardingLayoutContent({
         return (
           <Box
             sx={{
-              display: { xs: 'flex', lg: 'none' },
+              display: { xs: 'block', lg: 'none' },
               position: 'fixed',
               inset: 0,
               zIndex: (theme) => theme.zIndex.modal + 10,
               bgcolor: COLORS.bg.white,
-              flexDirection: 'column',
             }}
           >
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                px: 1.5,
-                py: 1,
-                borderBottom: `1px solid ${COLORS.border.faint}`,
-                flexShrink: 0,
+            <AdminPreviewPanel
+              compact
+              onClose={() => setMobilePreviewOpen(false)}
+              weddingSlug={wedding?.slug || weddingSlug}
+              weddingId={wedding?.id}
+              hasUnpublishedChanges={wedding?.has_unpublished_changes ?? true}
+              lastPublishedAt={wedding?.last_published_at ?? null}
+              currentAdminPath={currentAdminPath}
+              websiteLayout={wedding?.website_layout}
+              isLive={wedding?.status === 'live'}
+              onPublished={() => {
+                if (wedding) {
+                  setWedding({ ...wedding, has_unpublished_changes: false, last_published_at: new Date().toISOString(), status: 'live' });
+                }
               }}
-            >
-              <IconButton
-                size="small"
-                onClick={() => setMobilePreviewOpen(false)}
-                sx={{ color: COLORS.text.strong }}
-                aria-label="Close preview"
-              >
-                <ArrowBack />
-              </IconButton>
-              <Typography variant="body1" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
-                Preview
-              </Typography>
-            </Box>
-            <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-              <AdminPreviewPanel
-                compact
-                weddingSlug={wedding?.slug || weddingSlug}
-                weddingId={wedding?.id}
-                hasUnpublishedChanges={wedding?.has_unpublished_changes ?? true}
-                lastPublishedAt={wedding?.last_published_at ?? null}
-                currentAdminPath={currentAdminPath}
-                websiteLayout={wedding?.website_layout}
-                isLive={wedding?.status === 'live'}
-                onPublished={() => {
-                  if (wedding) {
-                    setWedding({ ...wedding, has_unpublished_changes: false, last_published_at: new Date().toISOString(), status: 'live' });
-                  }
-                }}
-              />
-            </Box>
+            />
           </Box>
         );
       })()}
