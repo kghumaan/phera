@@ -241,9 +241,9 @@ function OnboardingLayoutContent({
                 // Mobile-only: tighten typography one notch so the admin dashboard
                 // reads like a compact tool, not a marketing page. Desktop unchanged.
                 '@media (max-width: 899px)': {
-                  '& .MuiTypography-h4': { fontSize: '1.5rem' },
-                  '& .MuiTypography-h5': { fontSize: '1.15rem' },
-                  '& .MuiTypography-h6': { fontSize: '1rem' },
+                  '& .MuiTypography-h4': { fontSize: '1.75rem' },
+                  '& .MuiTypography-h5': { fontSize: '1.35rem' },
+                  '& .MuiTypography-h6': { fontSize: '1.15rem' },
                   '& .MuiTypography-subtitle1': { fontSize: '0.95rem' },
                   '& .MuiTypography-subtitle2': { fontSize: '0.875rem' },
                   '& .MuiTypography-body1': { fontSize: '0.875rem' },

@@ -87,12 +87,14 @@ function QuickLinks({
 
     let cancelled = false;
     (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- tables not all in generated supabase types
+      const sb = supabase as any;
       const [guestsRes, roomsRes, vehiclesRes, vendorsRes, settingsRes] = await Promise.all([
-        (supabase as any).from('guests').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingSlug),
-        (supabase as any).from('wedding_rooms').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingId),
-        (supabase as any).from('transportation_vehicles').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingId),
-        (supabase as any).from('vendors').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingId),
-        (supabase as any).from('wedding_settings').select('concierge_enabled').eq('wedding_id', weddingId).maybeSingle(),
+        sb.from('guests').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingSlug),
+        sb.from('wedding_rooms').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingId),
+        sb.from('transportation_vehicles').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingId),
+        sb.from('vendors').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingId),
+        sb.from('wedding_settings').select('concierge_enabled').eq('wedding_id', weddingId).maybeSingle(),
       ]);
 
       if (cancelled) return;
@@ -489,8 +491,8 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
 
         {/* Wedding Details & RSVP Summary */}
         {weddingData && (
-          <PheraCard variant="muted" sx={{ p: 4 }}>
-            <Typography variant="subtitleCaps" sx={{ mb: 3, color: COLORS.text.strong, display: 'block' }}>
+          <PheraCard variant="muted" sx={{ p: { xs: 2.5, md: 4 } }}>
+            <Typography variant="subtitleCaps" sx={{ mb: { xs: 2, md: 3 }, color: COLORS.text.strong, display: 'block' }}>
               Wedding Summary
             </Typography>
             <Grid container spacing={3}>

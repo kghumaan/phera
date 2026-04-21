@@ -315,12 +315,17 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
     }
 
     if (isMobile) {
+      // Pin the tooltip to the viewport's horizontal center using `left`
+      // arithmetic rather than a CSS `transform` — framer-motion owns the
+      // `transform` property during the enter/exit animation and would
+      // clobber any `translateX(-50%)` we set here, pushing the card off to
+      // the right.
+      const horizontalPad = 16;
+      const tooltipW = Math.min(TOOLTIP_WIDTH, window.innerWidth - horizontalPad * 2);
       return {
         top: Math.min(targetRect.top + targetRect.height + 16, window.innerHeight - 260),
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: TOOLTIP_WIDTH,
-        maxWidth: 'calc(100vw - 32px)',
+        left: `calc(50vw - ${tooltipW / 2}px)`,
+        width: tooltipW,
       };
     }
 
