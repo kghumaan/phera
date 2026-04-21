@@ -113,12 +113,13 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
 
   useEffect(() => {
     (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests join fields not captured by generated supabase types
       const { data } = await (supabase as any)
         .from('guests')
         .select('id, name, wedding_side, logistics_data')
         .eq('wedding_id', weddingSlug)
         .order('created_at', { ascending: true });
-      const guestList: GuestLite[] = (data ?? []).map((g: any) => ({
+      const guestList: GuestLite[] = (data ?? []).map((g: { id: string; name: string; wedding_side: string | null; logistics_data: Record<string, unknown> | null }) => ({
         id: g.id,
         name: g.name,
         wedding_side: g.wedding_side,
@@ -180,7 +181,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
           } else {
             failed.push(file.name);
           }
-        } catch (err: any) {
+        } catch {
           failed.push(file.name);
         }
       }
@@ -283,8 +284,8 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
       setAssignStatus(`Placed ${data.assignedCount} of ${data.totalGuests} guests into ${data.roomsUpdated} rooms.`);
       await loadRooms();
       setTimeout(() => setAssignStatus(null), 4500);
-    } catch (err: any) {
-      setAssignError(err?.message || 'Auto-assign failed');
+    } catch (err) {
+      setAssignError(err instanceof Error ? err.message : 'Auto-assign failed');
     } finally {
       setAssigning(false);
     }
@@ -316,6 +317,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
     setAddGuestAnchor(null);
     setAddGuestRoomId(null);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_rooms table not captured by generated supabase types
     const { error } = await (supabase as any)
       .from('wedding_rooms')
       .update({ assigned_guest_ids: newAssigned, capacity: newCapacity })
@@ -421,7 +423,15 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
     return (
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'stretch', sm: 'flex-start' },
+              justifyContent: 'space-between',
+              gap: 2,
+            }}
+          >
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
                 Room Assignments
@@ -432,14 +442,14 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
             </Box>
             <PrimaryActionButton
               onClick={() => setUpgradeModalOpen(true)}
-              sx={{ px: 3, py: 1, whiteSpace: 'nowrap' }}
+              sx={{ px: 3, py: 1, whiteSpace: 'nowrap', width: { xs: '100%', sm: 'auto' } }}
             >
               Upgrade to Pro
             </PrimaryActionButton>
           </Box>
 
           <Typography variant="body2" sx={{ color: COLORS.text.subtle, lineHeight: 1.8, maxWidth: 680 }}>
-            Assign your guests to hotel rooms by uploading a floorplan or a room list. We parse the document, extract every room, and let you drag-and-drop guests into place. Share a live view with family members so everyone knows who's where.
+            Assign your guests to hotel rooms by uploading a floorplan or a room list. We parse the document, extract every room, and let you drag-and-drop guests into place. Share a live view with family members so everyone knows who&apos;s where.
           </Typography>
 
           <Box sx={{ position: 'relative', borderRadius: RADII.md, overflow: 'hidden' }}>
@@ -486,7 +496,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                   Drop a floorplan or room list
                 </Typography>
                 <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-                  PDF, PNG, JPG, CSV, or XLSX — we'll extract every room for you.
+                  PDF, PNG, JPG, CSV, or XLSX — we&apos;ll extract every room for you.
                 </Typography>
               </Paper>
             </Box>
@@ -751,7 +761,7 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
               <Box
                 sx={{
                   display: 'grid',
-                  gridTemplateColumns: { xs: 'repeat(auto-fill, minmax(220px, 1fr))', md: 'repeat(auto-fill, minmax(240px, 1fr))' },
+                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fill, minmax(220px, 1fr))', md: 'repeat(auto-fill, minmax(240px, 1fr))' },
                   gap: 2,
                 }}
               >

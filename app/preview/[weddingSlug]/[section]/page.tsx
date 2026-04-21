@@ -93,7 +93,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
               variant="h4"
               sx={{
                 fontWeight: 400,
-                color: '#000000',
+                color: COLORS.text.strong,
                 fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem', lg: '2.25rem', xl: '2.75rem' },
                 lineHeight: 1.2,
               }}
@@ -103,7 +103,7 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
             <Typography
               variant="caption"
               sx={{
-                color: '#000000',
+                color: COLORS.text.strong,
                 fontWeight: 400,
                 fontSize: { xs: '0.75rem', sm: '0.75rem', lg: '0.85rem', xl: '0.9rem' },
                 lineHeight: 1.4,
@@ -145,7 +145,7 @@ function SectionPreviewContent({ section }: { section: string }) {
 
   if (isLoading) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ minHeight: { xs: '100svh', md: '100vh' }, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <LoadingSpinner message="" />
       </Box>
     );
@@ -153,8 +153,8 @@ function SectionPreviewContent({ section }: { section: string }) {
 
   if (error || !wedding) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography>Wedding not found or you don't have access</Typography>
+      <Box sx={{ minHeight: { xs: '100svh', md: '100vh' }, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography>Wedding not found or you don&apos;t have access</Typography>
       </Box>
     );
   }
@@ -276,7 +276,7 @@ function SectionPreviewContent({ section }: { section: string }) {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 36, height: 36, borderRadius: '50%', backgroundColor: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 600, fontSize: '0.8rem' }}>
+            <Box sx={{ width: 36, height: 36, borderRadius: '50%', backgroundColor: COLORS.side.both, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.text.inverse, fontWeight: 600, fontSize: '0.875rem' }}>
               KG
             </Box>
           </Box>
@@ -294,7 +294,7 @@ function SectionPreviewContent({ section }: { section: string }) {
           venue_flag: wedding.venue_flag || '',
           rsvp_deadline: wedding.rsvp_deadline,
           welcome_text: wedding.welcome_text || undefined,
-          registry_description: (wedding as any).registry_description || undefined,
+          registry_description: (wedding as { registry_description?: string | null }).registry_description || undefined,
           primary_color: wedding.primary_color || undefined,
           couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
         }}

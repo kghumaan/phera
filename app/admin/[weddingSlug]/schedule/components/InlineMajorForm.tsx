@@ -118,7 +118,7 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
       {/* Form content */}
       <Stack spacing={2} sx={{ flex: 1 }}>
         {/* Row 1: Event Name + Time */}
-        <Stack direction="row" spacing={1.5}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
           <TextField
             label="Event Name *"
             size="small"
@@ -145,7 +145,7 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
         />
 
         {/* Row 3: Location + Dress Code */}
-        <Stack direction="row" spacing={1.5}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
           <TextField
             label="Location *"
             size="small"
@@ -169,7 +169,12 @@ export default function InlineMajorForm({ onSave, onCancel, onToast, onMoreDetai
         </Stack>
 
         {/* Row 4: Color picker + Buttons */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={{ xs: 2, sm: 0 }}
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          justifyContent="space-between"
+        >
           {/* Color swatches */}
           <Stack direction="row" spacing={1} alignItems="center">
             {COLOR_PALETTE.map((c) => (

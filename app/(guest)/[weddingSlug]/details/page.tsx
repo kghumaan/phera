@@ -35,7 +35,7 @@ const DiamondDecoration = () => (
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      color: '#D1B99F',
+      color: COLORS.cultural.champagne,
       my: { xs: 0.5, sm: 0 },
     }}
   >
@@ -114,7 +114,7 @@ const MenuItem = ({
           lineHeight: 1.5,
           letterSpacing: '5.56%',
           textTransform: 'uppercase',
-          color: '#141414',
+          color: COLORS.text.strong,
           textAlign: 'center',
         }}
       >
@@ -267,7 +267,7 @@ export default function DetailsPage() {
             zIndex: 9999,
           }}
         >
-          <CircularProgress size={40} sx={{ color: COLORS.text.strong }} />
+          <CircularProgress size={40} sx={{ color: wedding?.primary_color || COLORS.text.strong }} />
         </Box>
       )}
 
@@ -394,7 +394,7 @@ export default function DetailsPage() {
                 <LoadingSpinner
                   message=""
                   size={40}
-                  color="#000"
+                  color={COLORS.text.strong}
                   minHeight="100px"
                 />
               ) : (

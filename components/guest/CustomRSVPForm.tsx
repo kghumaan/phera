@@ -1125,8 +1125,8 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   display: 'flex',
                   flexDirection: 'column',
                   mt: 0,
-                  minHeight: isMobile ? '180px' : { md: 600, lg: 650 },
-                  maxHeight: isMobile ? 'calc(85svh)' : { md: '80vh', lg: '85vh' },
+                  minHeight: isMobile ? 'calc(100svh - 32px)' : { md: 600, lg: 650 },
+                  maxHeight: isMobile ? 'calc(100svh - 32px)' : { md: '80vh', lg: '85vh' },
                   overflow: 'hidden',
                   position: 'relative',
                 }}
@@ -1359,6 +1359,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                       variant="contained"
                       size="large"
                       fullWidth
+                      spinnerColor={themeColor}
                       sx={{
                         backgroundColor: themeColor,
                         color: COLORS.text.inverse,
@@ -1642,6 +1643,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                         },
                       }}
                       MenuProps={{
+                        sx: { zIndex: 1500 }, // Above the mobile form's z-index (1400)
                         PaperProps: {
                           sx: {
                             backgroundColor: COLORS.bg.white,
@@ -1717,7 +1719,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                 alignItems: 'flex-start',
                 gap: 1.5,
                 p: 2,
-                borderRadius: 2,
+                borderRadius: 1,
                 border: `1px solid ${errors.consentGiven ? COLORS.accent.danger : 'rgba(0, 0, 0, 0.12)'}`,
                 bgcolor: formData.consentGiven ? `${themeColor}10` : 'transparent',
                 cursor: 'pointer',
@@ -1880,6 +1882,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
                   fullWidth
                   onClick={handleEmailPasswordAuth}
                   loading={isAuthenticating}
+                  spinnerColor={themeColor}
                   sx={{
                     bgcolor: themeColor,
                     color: COLORS.text.inverse,
@@ -2900,6 +2903,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
               onClick={handleSubmit}
               variant="contained"
               loading={isSubmitting}
+              spinnerColor={themeColor}
               sx={{
                 flex: 1,
                 height: { xs: 44, sm: 48, md: 56 },
@@ -2925,6 +2929,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
             <ActionButton
               onClick={handleNext}
               variant="contained"
+              spinnerColor={themeColor}
               sx={{
                 flex: 1,
                 height: { xs: 44, sm: 48, md: 56 },
@@ -2963,7 +2968,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
           <Button onClick={handleCancelExit} variant="outlined" sx={{ color: COLORS.text.strong, borderColor: COLORS.text.strong, '&:hover': { borderColor: COLORS.text.strong, background: COLORS.text.strong } }}>
             Cancel
           </Button>
-          <ActionButton onClick={handleConfirmExit} variant="contained" sx={{ color: COLORS.text.inverse, background: themeColor, '&:hover': { background: COLORS.brand.primaryHover } }}>
+          <ActionButton onClick={handleConfirmExit} variant="contained" spinnerColor={themeColor} sx={{ color: COLORS.text.inverse, background: themeColor, '&:hover': { background: COLORS.brand.primaryHover } }}>
             Leave
           </ActionButton>
         </DialogActions>

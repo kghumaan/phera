@@ -420,7 +420,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
           s === 'Music Request & Comment' ? ['Music Request', 'Comment'] : [s]
         );
         setHiddenFixedSteps(new Set(normalized));
-        const msgs = (wedding as any).rsvp_confirmation_messages;
+        const msgs = (wedding as { rsvp_confirmation_messages?: Record<string, { heading?: string; body?: string }> | null }).rsvp_confirmation_messages;
         if (msgs) {
           setConfirmationMessages({
             yes: { heading: msgs.yes?.heading || '', body: msgs.yes?.body || '' },
@@ -696,7 +696,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
     }
   };
 
-  const handleQuestionChange = (index: number, field: keyof CustomQuestion, value: any) => {
+  const handleQuestionChange = (index: number, field: keyof CustomQuestion, value: string | string[] | boolean) => {
     setDialogQuestions(prev => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
@@ -745,7 +745,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
 
   return (
     <Box sx={{ maxWidth: 1000 }}>
-      <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
+      <Stack spacing={4}>
         <PageHeading
           title="RSVP Form"
           subtitle="Customize the steps in your guest RSVP flow. Drag custom steps to reorder them. Click any step to preview it."

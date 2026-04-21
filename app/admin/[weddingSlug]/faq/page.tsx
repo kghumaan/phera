@@ -63,7 +63,7 @@ const FAQ_TEMPLATES = [
   { question: 'What if I have dietary restrictions?', answer: 'Please mention any dietary restrictions or allergies when you RSVP, and we will do our best to accommodate them.' },
 ];
 
-function SortableFaqRow({ faq, onEdit, onDelete, isViewOnly }: { faq: any; onEdit: () => void; onDelete: () => void; isViewOnly: boolean }) {
+function SortableFaqRow({ faq, onEdit, onDelete, isViewOnly }: { faq: FaqRow; onEdit: () => void; onDelete: () => void; isViewOnly: boolean }) {
   const {
     attributes,
     listeners,
@@ -143,12 +143,24 @@ interface FaqDraft {
   order_index: number;
 }
 
+interface FaqRow {
+  id: string;
+  wedding_id: string | null;
+  question: string;
+  answer: string;
+  button_text?: string | null;
+  button_link?: string | null;
+  order_index: number;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
 export default function FAQPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isViewOnly } = useAdminRole();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
-  const [faqs, setFaqs] = useState<any[]>([]);
+  const [faqs, setFaqs] = useState<FaqRow[]>([]);
   const { showStatus } = useAutoSaveStatus();
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
@@ -218,7 +230,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
     channel.close();
   }, [weddingId]);
 
-  const startEditing = (faq: any) => {
+  const startEditing = (faq: FaqRow) => {
     if (isViewOnly) return;
     setEditingId(faq.id);
     setDraft({
@@ -398,7 +410,7 @@ export default function FAQPage({ params }: { params: Promise<{ weddingSlug: str
 
           {/* Add buttons at bottom (like schedule) */}
           {!isViewOnly && !isAddingNew && (
-            <Stack direction="row" spacing={1.5}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
               <Box
                 onClick={startNew}
                 sx={{

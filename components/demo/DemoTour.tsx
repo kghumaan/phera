@@ -12,12 +12,16 @@ interface TourStep {
   target: string;
   title: string;
   description: string;
+  /** Extra sentence rendered only on mobile, below the main description. */
+  mobileNote?: string;
   noSpotlight?: boolean;
   navigateTo?: string;
   expandGroup?: string; // group id (e.g. 'website', 'guest-responses')
   sidebarCutout?: boolean; // cut out entire sidebar instead of single element
   tooltipPosition?: 'right' | 'below-target' | 'left-of-target';
   extraTargets?: string[]; // additional data-tour targets to union into the spotlight
+  /** Force the tooltip to pin to the top of the viewport on mobile. */
+  mobileTopPin?: boolean;
 }
 
 const TOUR_STEPS: TourStep[] = [
@@ -25,6 +29,7 @@ const TOUR_STEPS: TourStep[] = [
     target: 'tour-overview',
     title: 'Welcome to Phera',
     description: 'This is your wedding command center. Everything you need to plan, coordinate, and run your celebration lives here.',
+    mobileNote: 'For the full experience we recommend viewing Phera on a desktop.',
   },
   {
     target: 'tour-wedding-website',
@@ -80,6 +85,7 @@ const TOUR_STEPS: TourStep[] = [
     target: 'tour-collaborators',
     title: 'Collaborators',
     description: "Invite your partner, family members, or planner to help. Add them as admins so they can contribute, edit details, and manage things alongside you.",
+    mobileTopPin: true,
   },
   {
     target: 'tour-cta',
@@ -205,6 +211,29 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
     }
   }, []);
 
+  // On mobile, the sidebar is a temporary drawer. Most tour steps point at a
+  // sidebar item — those elements live in the DOM (keepMounted) but sit
+  // translated off-screen when the drawer is closed, so the spotlight lands
+  // outside the viewport. Ask the admin layout to open/close the drawer based
+  // on whether the current step actually targets a sidebar element.
+  //
+  // The effect depends on `pathname` so it re-fires after every navigation
+  // (step 2 navigates to /details), and the 60ms delay lets the layout's own
+  // `[pathname]` effect (which blanket-closes the drawer) run first. Without
+  // that, the drawer would flash open and immediately close again as the
+  // layout's close wins the race.
+  useEffect(() => {
+    if (!isActive || !step || !isMobile) return;
+    const t = setTimeout(() => {
+      const targetEl = document.querySelector(`[data-tour="${step.target}"]`);
+      const isInSidebar = !!targetEl?.closest('.MuiDrawer-paper');
+      window.dispatchEvent(new CustomEvent(
+        isInSidebar ? 'phera:open-mobile-sidebar' : 'phera:close-mobile-sidebar'
+      ));
+    }, 60);
+    return () => clearTimeout(t);
+  }, [currentStep, isActive, step, isMobile, pathname]);
+
   // Handle step changes: navigation, sidebar expansion
   useEffect(() => {
     if (!isActive || !step) return;
@@ -235,8 +264,10 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
       };
     }
 
-    // No group expansion needed, measure right away
-    const timer = setTimeout(measureTarget, 150);
+    // No group expansion needed, measure right away.
+    // Delay slightly longer on mobile to let the sidebar drawer transition in
+    // (MUI default ~225ms) before we compute the spotlight rect.
+    const timer = setTimeout(measureTarget, isMobile ? 300 : 150);
 
     observerRef.current?.disconnect();
     observerRef.current = new ResizeObserver(measureTarget);
@@ -273,12 +304,16 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
 
   const handleNext = () => {
     if (currentStep < TOUR_STEPS.length - 1) {
+      // Clear the old rect so the new step's tooltip doesn't flash at the
+      // previous step's position while we wait for measureTarget to resolve.
+      setTargetRect(null);
       setCurrentStep(currentStep + 1);
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
+      setTargetRect(null);
       setCurrentStep(currentStep - 1);
     }
   };
@@ -299,12 +334,56 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
     }
 
     if (isMobile) {
+      // Pin the tooltip to the viewport's horizontal center using `left`
+      // arithmetic rather than a CSS `transform` — framer-motion owns the
+      // `transform` property during the enter/exit animation and would
+      // clobber any `translateX(-50%)` we set here, pushing the card off to
+      // the right.
+      const horizontalPad = 16;
+      const tooltipW = Math.min(TOOLTIP_WIDTH, window.innerWidth - horizontalPad * 2);
+      const tooltipH = 280; // approximate; used to pick a side with room
+      const topSafe = 84; // AdminTopNav + small gap
+      const bottomSafe = 16;
+
+      // Per-step override (e.g. Collaborators sits low in the sidebar on
+      // mobile and the auto-placed tooltip ends up outside the visible
+      // drawer area). We anchor slightly above the generic topSafe so the
+      // tooltip clears the item it's meant to be pointing at.
+      if (step.mobileTopPin) {
+        return {
+          top: 56,
+          left: `calc(50vw - ${tooltipW / 2}px)`,
+          width: tooltipW,
+        };
+      }
+
+      const spaceBelow = window.innerHeight - (targetRect.top + targetRect.height) - bottomSafe;
+      const spaceAbove = targetRect.top - topSafe;
+
+      // Prefer placing the tooltip below the target. If the target sits low
+      // in the viewport (e.g. "Event Access" at the bottom of an expanded
+      // group) and the below-target position would overflow, flip to above
+      // the target instead — that keeps the spotlighted row visible and the
+      // tooltip from overlapping it. Fall back to pinning near the top when
+      // neither side has enough room.
+      if (spaceBelow >= tooltipH) {
+        return {
+          top: targetRect.top + targetRect.height + 16,
+          left: `calc(50vw - ${tooltipW / 2}px)`,
+          width: tooltipW,
+        };
+      }
+      if (spaceAbove >= tooltipH) {
+        return {
+          top: targetRect.top - tooltipH - 16,
+          left: `calc(50vw - ${tooltipW / 2}px)`,
+          width: tooltipW,
+        };
+      }
       return {
-        top: Math.min(targetRect.top + targetRect.height + 16, window.innerHeight - 260),
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: TOOLTIP_WIDTH,
-        maxWidth: 'calc(100vw - 32px)',
+        top: topSafe,
+        left: `calc(50vw - ${tooltipW / 2}px)`,
+        width: tooltipW,
       };
     }
 
@@ -400,17 +479,20 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
         />
       )}
 
-      {/* Tooltip */}
+      {/* Tooltip — hold opacity at 0 until the spotlight target has been
+          measured so the card doesn't flash at the centered fallback on
+          every step change. */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
           initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={{ opacity: (targetRect || step.noSpotlight) ? 1 : 0, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.2 }}
           style={{
             position: 'fixed',
             zIndex: 9999,
+            pointerEvents: (targetRect || step.noSpotlight) ? 'auto' : 'none',
             ...getTooltipPosition(),
           }}
         >
@@ -477,7 +559,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                   fontSize: '0.875rem',
                   color: COLORS.text.subtle,
                   lineHeight: 1.6,
-                  mb: 2.5,
+                  mb: step.mobileNote && isMobile ? 1.25 : 2.5,
                   textAlign: step.noSpotlight ? 'center' : undefined,
                 }}
               >
@@ -485,17 +567,31 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
               </Typography>
             )}
 
+            {/* Mobile-only note, e.g. recommending desktop on the welcome step */}
+            {step.mobileNote && isMobile && (
+              <Typography
+                sx={{
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  color: COLORS.brand.primary,
+                  lineHeight: 1.5,
+                  mb: 2.5,
+                }}
+              >
+                {step.mobileNote}
+              </Typography>
+            )}
+
             {/* CTA step */}
             {step.noSpotlight ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, alignItems: 'center', mt: 2 }}>
                 <Button
-                  component={Link}
-                  href="/auth/login"
+                  onClick={endTour}
                   variant="contained"
                   size="large"
                   sx={{
                     bgcolor: COLORS.brand.primary,
-                    color: 'white',
+                    color: COLORS.text.inverse,
                     px: 5,
                     py: 1.5,
                     borderRadius: '32px',
@@ -505,10 +601,11 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                     '&:hover': { bgcolor: COLORS.brand.primaryHover },
                   }}
                 >
-                  Start Planning Free
+                  Continue Exploring
                 </Button>
                 <Button
-                  onClick={endTour}
+                  component={Link}
+                  href="/auth/login"
                   variant="text"
                   sx={{
                     color: COLORS.text.faint,
@@ -517,7 +614,7 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
                     '&:hover': { color: COLORS.text.subtle, bgcolor: 'transparent' },
                   }}
                 >
-                  Continue exploring
+                  Start Planning Free
                 </Button>
               </Box>
             ) : (

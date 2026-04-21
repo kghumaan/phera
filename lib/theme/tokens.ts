@@ -57,6 +57,7 @@ export const COLORS = {
   },
   cultural: {
     gold: '#D4AF37',
+    champagne: '#D1B99F',   // warm beige accent for decorative dividers
     maroon: '#800020',
     saffron: '#FF9933',
     coral: '#FF6B6B',

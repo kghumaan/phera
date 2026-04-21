@@ -41,7 +41,7 @@ const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 const AdminDateInput = forwardRef<HTMLInputElement, { value?: string; onClick?: () => void; placeholder?: string; label?: string; error?: boolean }>(
   ({ value, onClick, placeholder, label, error }, ref) => (
     <TextField
-      ref={ref as any}
+      ref={ref as React.Ref<HTMLInputElement>}
       value={value}
       onClick={onClick}
       placeholder={placeholder}
@@ -52,11 +52,11 @@ const AdminDateInput = forwardRef<HTMLInputElement, { value?: string; onClick?: 
       sx={{
         ...textFieldSx,
         '& .MuiOutlinedInput-root': {
-          ...(textFieldSx as any)['& .MuiOutlinedInput-root'],
+          ...(textFieldSx as unknown as Record<string, Record<string, unknown>>)['& .MuiOutlinedInput-root'],
           cursor: 'pointer',
           '& input': {
             cursor: 'pointer',
-            ...((textFieldSx as any)['& .MuiOutlinedInput-root'] as any)?.['& input'],
+            ...((textFieldSx as unknown as Record<string, Record<string, Record<string, unknown>>>)['& .MuiOutlinedInput-root'])?.['& input'],
           },
         },
       }}
@@ -234,14 +234,20 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
         boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         width: '100%', // Full width
       }}>
-        <Stack direction="row" spacing={2.5} justifyContent="center" alignItems="center">
+        <Stack
+          direction="row"
+          spacing={{ xs: 1, sm: 2.5 }}
+          justifyContent="center"
+          alignItems="center"
+          sx={{ flexWrap: 'wrap' }}
+        >
           {timeUnits.map((unit) => (
-            <Stack key={unit.label} alignItems="center" spacing={0.5} sx={{ minWidth: 60 }}>
+            <Stack key={unit.label} alignItems="center" spacing={0.5} sx={{ minWidth: { xs: 48, sm: 60 } }}>
               <Typography sx={{
                 fontWeight: 700,
                 color: COLORS.text.strong,
-                fontSize: 64,
-                lineHeight: 1
+                fontSize: { xs: 36, sm: 64 },
+                lineHeight: 1,
               }}>
                 {unit.value}
               </Typography>
@@ -250,7 +256,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
                 fontSize: 14,
                 textAlign: 'center',
                 opacity: 0.7,
-                textTransform: 'lowercase'
+                textTransform: 'lowercase',
               }}>
                 {unit.label}
               </Typography>
@@ -352,7 +358,7 @@ export default function DetailsPage({ params }: { params: Promise<{ weddingSlug:
     }
   };
 
-  const handleChange = (field: keyof DetailsFormData, value: any) => {
+  const handleChange = (field: keyof DetailsFormData, value: string) => {
     if (isViewOnly) return;
     let finalValue = value;
 

@@ -126,6 +126,7 @@ export default function TravelDetailPanel({
                 window.open(ctaUrl, '_blank', 'noopener,noreferrer');
               }}
               variant="contained"
+              spinnerColor={primaryColor}
               sx={{
                 bgcolor: primaryColor,
                 color: COLORS.text.inverse,

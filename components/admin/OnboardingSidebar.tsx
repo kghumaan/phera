@@ -179,15 +179,17 @@ export default function OnboardingSidebar({
     // Check child tables for content (only Wedding Website sections)
     const checks = [
       { key: 'schedule', query: supabase.from('wedding_schedule').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- travel_sections not in generated supabase types
       { key: 'travel', query: supabase.from('travel_sections' as any).select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
       { key: 'faq', query: supabase.from('wedding_faqs').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
       { key: 'registry', query: supabase.from('wedding_registry').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
       { key: 'shopping', query: supabase.from('wedding_shops').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests select shape not captured by generated types
       { key: 'pins', query: (supabase as any).from('guests').select('id', { count: 'exact', head: true }).eq('wedding_id', slug) },
     ];
 
     Promise.all(checks.map(c => c.query)).then(results => {
-      results.forEach((res: any, i) => {
+      results.forEach((res: { count: number | null }, i) => {
         completion[checks[i].key] = (res.count ?? 0) > 0;
       });
       setSectionComplete(completion);
@@ -289,7 +291,12 @@ export default function OnboardingSidebar({
 
   const handleItemClick = (item: SidebarItem, collapseAll = false, groupId?: string) => {
     if (!checkGuard()) return;
-    onNavigating?.(true);
+    // Intentionally NOT calling onNavigating(true): Next.js App Router
+    // preserves this layout across sibling route transitions and the new
+    // page hydrates in a few tens of ms, so triggering the Backdrop spinner
+    // here just flashes a full-page blur + spinner over the content for no
+    // reason. Keep the prop in case we want to re-introduce a slow-route
+    // loading state later.
     router.push(`/admin/${weddingSlug}${item.path}`);
 
     if (collapseAll) {
@@ -556,7 +563,13 @@ export default function OnboardingSidebar({
             '& .MuiDrawer-paper': {
               width: 220,
               boxSizing: 'border-box',
-              bgcolor: COLORS.bg.white, // Solid white
+              bgcolor: COLORS.bg.white,
+              // Start below the fixed AdminTopNav so the top items aren't hidden behind it
+              top: { xs: 48, md: 56 },
+              height: { xs: 'calc(100% - 48px)', md: 'calc(100% - 56px)' },
+            },
+            '& .MuiBackdrop-root': {
+              top: { xs: 48, md: 56 },
             },
           }}
         >
@@ -586,7 +599,7 @@ export default function OnboardingSidebar({
   );
 }
 
-function Stack(props: any) {
+function Stack(props: React.ComponentProps<typeof Box>) {
   return <Box sx={{ display: 'flex', ...props.sx }} {...props} />;
 }
 

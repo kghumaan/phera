@@ -340,7 +340,7 @@ export default function MoreDetailsModal({
     const loadEventData = async () => {
       setLoading(true);
       try {
-        let eventId = scheduleItem.linked_event_id;
+        const eventId = scheduleItem.linked_event_id;
 
         const defaultSlides = buildDefaultSlides(scheduleItem.name);
 
@@ -408,6 +408,7 @@ export default function MoreDetailsModal({
     setGlobalSaveStatus('saving');
     try {
       await weddingService.updateEvent(linkedEventId, {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- carousel_slides JSON shape not in generated types
         carousel_slides: slides as any,
         gradient_background: gradientBackground,
         text_color: fontColor,
@@ -479,11 +480,28 @@ export default function MoreDetailsModal({
       }}
     >
       {/* Header — event name left, Save and Close + X right */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', overflow: 'hidden', p: '20px' }}>
-        <Typography sx={{ fontWeight: 600, fontSize: '24px', color: COLORS.text.strong }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: { xs: 1.5, sm: 4 },
+          p: { xs: '12px 16px', md: '20px' },
+        }}
+      >
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: { xs: '18px', md: '24px' },
+            color: COLORS.text.strong,
+            minWidth: 0,
+            flex: { xs: '1 1 100%', sm: '0 1 auto' },
+          }}
+        >
           {scheduleItem.name}
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 4 } }}>
           <Button
             variant="outlined"
             onClick={handleSave}
@@ -494,7 +512,7 @@ export default function MoreDetailsModal({
               borderRadius: RADII.sm,
               textTransform: 'none',
               fontWeight: 600,
-              fontSize: '16px',
+              fontSize: { xs: '14px', md: '16px' },
               px: 2,
               py: 1,
               '&:hover': { borderColor: COLORS.brand.primaryHover, bgcolor: 'rgba(222,63,94,0.04)' },
@@ -791,7 +809,7 @@ function BackgroundPicker({
 
         <Box sx={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(5, 1fr)',
+          gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(5, 1fr)' },
           gap: '12px',
         }}>
           {BACKGROUNDS.map((bg) => {
@@ -1223,7 +1241,7 @@ function OutfitSlideFields({
         <Typography sx={{ ...subtitleCapsSx, mb: 1.5 }}>
           {slide.section1_header || 'Women'}
         </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
           {s1.map((item, i) => (
             <TextField
               key={`s1-${i}`}
@@ -1244,7 +1262,7 @@ function OutfitSlideFields({
         <Typography sx={{ ...subtitleCapsSx, mb: 1.5 }}>
           {slide.section2_header || 'Men'}
         </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5 }}>
           {s2.map((item, i) => (
             <TextField
               key={`s2-${i}`}

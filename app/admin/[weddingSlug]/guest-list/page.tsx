@@ -38,7 +38,7 @@ interface Guest {
   email: string | null;
   phone: string | null;
   wedding_side: SideValue;
-  logistics_data: any;
+  logistics_data: { tag?: string } & Record<string, unknown> | null;
   initials: string | null;
   avatar_color: string | null;
   created_at: string;
@@ -74,6 +74,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     const wedding = await weddingService.getWeddingBySlug(weddingSlug);
     if (wedding) setWeddingId(wedding.id);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests row fields here aren't captured by generated supabase types
     const { data, error } = await (supabase as any)
       .from('guests')
       .select('id, name, email, phone, wedding_side, logistics_data, initials, avatar_color, created_at')
@@ -149,7 +150,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     }
 
     // Build the update payload scoped to this field only
-    const updates: Record<string, any> = {};
+    const updates: Record<string, unknown> = {};
     const optimistic: Partial<Guest> = {};
 
     if (field === 'name') {
@@ -182,6 +183,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
       optimistic.logistics_data = nextLogistics;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests.update() field shape isn't captured by generated supabase types
     const { error } = await (supabase as any).from('guests').update(updates).eq('id', editing.guestId);
 
     if (error) {
@@ -196,6 +198,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
 
   const removeGuest = async (id: string) => {
     if (!confirm('Remove this guest?')) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests.delete() isn't captured by generated supabase types
     const { error } = await (supabase as any).from('guests').delete().eq('id', id);
     if (error) {
       console.error('guest delete error:', error);
@@ -220,7 +223,17 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ mb: 3, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}>
+      <Box
+        sx={{
+          mb: 3,
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'stretch', sm: 'flex-start' },
+          justifyContent: 'space-between',
+          gap: 2,
+          flexWrap: 'wrap',
+        }}
+      >
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong }}>
             Guest List
@@ -232,7 +245,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
         <PrimaryActionButton
           startIcon={<Upload />}
           onClick={() => setImportOpen(true)}
-          sx={{ px: 2.5, py: 1 }}
+          sx={{ px: 2.5, py: 1, width: { xs: '100%', sm: 'auto' }, flexShrink: 0 }}
         >
           Import Guests
         </PrimaryActionButton>
@@ -307,7 +320,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
             </SecondaryActionButton>
           </Box>
         ) : (
-          <TableContainer>
+          <TableContainer sx={{ overflowX: 'auto', maxWidth: '100%' }}>
             <Table size="small" sx={{ tableLayout: 'fixed', minWidth: 960 }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: COLORS.bg.muted }}>

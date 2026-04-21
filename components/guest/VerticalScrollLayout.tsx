@@ -65,6 +65,7 @@ interface WeddingData {
   frame_image_url?: string | null;
   background_image?: string | null;
   registry_description?: string | null;
+  couple_name_font?: string | null;
 }
 
 interface VerticalScrollLayoutProps {
@@ -73,7 +74,7 @@ interface VerticalScrollLayoutProps {
   isBypassPin: boolean;
   hasRSVPed: boolean;
   rsvpResponse?: string;
-  user: any;
+  user: { id?: string; email?: string | null; avatar_color?: string | null } | null;
   CountdownTimer: React.ComponentType<{ targetDate: string }>;
   headerRef?: React.RefObject<HTMLDivElement>;
   initialSection?: string;
@@ -102,7 +103,7 @@ interface ScheduleDay {
 interface TravelCard {
   id: string;
   title: string;
-  content: any;
+  content: unknown;
   image_url: string;
   button_text?: string | null;
   button_action?: string | null;
@@ -295,7 +296,7 @@ export default function VerticalScrollLayout({
             day_name: day.day_name,
             events: day.events
               .filter(event => {
-                const linkedId = (event as any).linked_event_id;
+                const linkedId = (event as { linked_event_id?: string | null }).linked_event_id;
                 return !linkedId || !hiddenEventIds.includes(linkedId);
               })
               .map(event => ({
@@ -305,10 +306,10 @@ export default function VerticalScrollLayout({
                 icon: event.icon,
                 description: event.description,
                 location: event.location,
-                dress_code: (event as any).dress_code,
+                dress_code: (event as { dress_code?: string | null }).dress_code,
                 gradient_background: event.gradient_background,
                 is_major_event: event.is_major_event,
-                linked_event_id: (event as any).linked_event_id,
+                linked_event_id: (event as { linked_event_id?: string | null }).linked_event_id,
               })),
           }));
           setSchedule(mappedSchedule);
@@ -549,7 +550,7 @@ export default function VerticalScrollLayout({
   }, []);
 
   // Helper to render travel card content
-  const renderTravelContent = (content: any) => {
+  const renderTravelContent = (content: unknown) => {
     if (Array.isArray(content)) {
       return content.map((item, idx) => (
         <Typography
@@ -641,8 +642,8 @@ export default function VerticalScrollLayout({
                 sx={{
                   color: COLORS.text.strong,
                   lineHeight: 1.2,
-                  fontFamily: getCoupleFont((wedding as any).couple_name_font).cssVar,
-                  fontStyle: getCoupleFont((wedding as any).couple_name_font).fontStyle || 'normal',
+                  fontFamily: getCoupleFont(wedding.couple_name_font).cssVar,
+                  fontStyle: getCoupleFont(wedding.couple_name_font).fontStyle || 'normal',
                 }}
               >
                 {coupleData.names}
@@ -791,6 +792,7 @@ export default function VerticalScrollLayout({
                       variant="contained"
                       size="large"
                       fullWidth
+                      spinnerColor={primaryColor}
                       sx={{
                         backgroundColor: primaryColor,
                         color: COLORS.text.inverse,

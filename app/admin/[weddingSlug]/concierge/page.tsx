@@ -14,6 +14,7 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material';
 import React, { useState, use, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { WhatsApp, LockOutlined, CheckCircleOutline, PhoneAndroid, ContentCopy, AutoAwesome, Bolt, Schedule, Campaign } from '@mui/icons-material';
@@ -101,10 +102,17 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
     } catch {}
   };
 
+  // Demo weddings skip the enablement gate entirely — the point of the demo
+  // is to show what a live Concierge looks like, not to ask the visitor to
+  // click "Enable". The dashboard below falls back to mocked chats/stats
+  // when there's no real data yet.
+  const isDemo = weddingSlug.startsWith('demo');
+
   // Load wedding ID + concierge_enabled flag for pro users.
   useEffect(() => {
     if (!isPro) return;
     (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- weddings table is not in generated supabase types
       const { data: wedding } = await (supabase as any)
         .from('weddings')
         .select('id')
@@ -112,6 +120,12 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         .single();
       if (!wedding) return;
       setWeddingId(wedding.id);
+      if (isDemo) {
+        // Skip the DB read and force-enable for demo.
+        setConciergeEnabled(true);
+        return;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_settings table is not in generated supabase types
       const { data: settings } = await (supabase as any)
         .from('wedding_settings')
         .select('concierge_enabled')
@@ -119,12 +133,13 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         .maybeSingle();
       setConciergeEnabled(!!settings?.concierge_enabled);
     })();
-  }, [isPro, weddingSlug]);
+  }, [isPro, weddingSlug, isDemo]);
 
   const handleEnableConcierge = async () => {
     if (isViewOnly || !weddingId || enabling) return;
     setEnabling(true);
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_settings table is not in generated supabase types
       const { data: existing } = await (supabase as any)
         .from('wedding_settings')
         .select('id')
@@ -132,11 +147,13 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         .maybeSingle();
 
       if (existing) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_settings table is not in generated supabase types
         await (supabase as any)
           .from('wedding_settings')
           .update({ concierge_enabled: true, concierge_enabled_at: new Date().toISOString() })
           .eq('wedding_id', weddingId);
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_settings table is not in generated supabase types
         await (supabase as any)
           .from('wedding_settings')
           .insert({
@@ -308,7 +325,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
     }
 
     // Not enabled → marketing intro page with Enable CTA.
-    const features: Array<{ icon: React.ComponentType<{ sx?: any }>; title: string; body: string }> = [
+    const features: Array<{ icon: React.ComponentType<{ sx?: SxProps<Theme> }>; title: string; body: string }> = [
       {
         icon: AutoAwesome,
         title: 'Answers on autopilot',
@@ -474,7 +491,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         {/* Description */}
         <Box sx={{ maxWidth: 640 }}>
           <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.75, mb: 1.25 }}>
-            Leading up to your wedding, guests will have a lot of questions — and most of them are ones you've already answered on your website. <strong>Guest Concierge is your defense layer</strong>: a 24/7 WhatsApp assistant that handles it all, so you don't have to.
+            Leading up to your wedding, guests will have a lot of questions — and most of them are ones you&apos;ve already answered on your website. <strong>Guest Concierge is your defense layer</strong>: a 24/7 WhatsApp assistant that handles it all, so you don&apos;t have to.
           </Typography>
           <Stack spacing={0.6} sx={{ pl: 0 }}>
             {([
@@ -511,10 +528,10 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
             </Box>
 
             {/* Two-column layout */}
-            <Box sx={{ display: 'flex', gap: 2.5, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2.5 }}>
 
               {/* Guest chat list */}
-              <PheraCard variant="default" sx={{ flex: 1.4, overflow: 'hidden' }}>
+              <PheraCard variant="default" sx={{ flex: { xs: 'none', md: 1.4 }, width: { xs: '100%', md: 'auto' }, overflow: 'hidden' }}>
                 <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${COLORS.border.faint}` }}>
                   <Typography variant="subtitle2" sx={{ color: COLORS.text.strong }}>Recent Guest Inquiries</Typography>
                 </Box>
@@ -545,7 +562,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
               </PheraCard>
 
               {/* Notification toggles */}
-              <PheraCard variant="default" sx={{ flex: 1, alignSelf: 'flex-start' }}>
+              <PheraCard variant="default" sx={{ flex: { xs: 'none', md: 1 }, width: { xs: '100%', md: 'auto' }, alignSelf: { md: 'flex-start' } }}>
                 <Box sx={{ px: 2.5, py: 2, borderBottom: `1px solid ${COLORS.border.faint}` }}>
                   <Typography variant="subtitle2" sx={{ color: COLORS.text.strong }}>Guest Notifications</Typography>
                 </Box>

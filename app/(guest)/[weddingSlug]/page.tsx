@@ -33,6 +33,7 @@ import { WEDDING_CONFIG } from '@/lib/constants/wedding-config';
 import { useParams, useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useWedding } from '@/lib/contexts/WeddingContext';
+import type { Wedding } from '@/lib/supabase/wedding-service';
 import { format, parseISO } from 'date-fns';
 import { getFrameConfig } from '@/lib/constants/images';
 import { getCoupleFont } from '@/lib/constants/fonts';
@@ -281,7 +282,7 @@ export default function HomePage() {
   }, [weddingSlug, setCurrentWeddingSlug]);
 
   // Use data from context if available, otherwise fallback to config
-  const coupleNameFontId = (wedding as any)?.couple_name_font || null;
+  const coupleNameFontId = (wedding as { couple_name_font?: string | null } | null)?.couple_name_font || null;
 
   const coupleData = {
     names: wedding?.couple_name || WEDDING_CONFIG.coupleNames,
@@ -683,21 +684,33 @@ export default function HomePage() {
   // Desktop layout component
   // --- Layout Components ---
 
+  interface CoupleData {
+    names: string;
+    date: string;
+    weddingDate: string;
+    venue: string;
+    venueLocation: string;
+    flag: string;
+    rsvpDeadline?: string | null;
+    coupleImage: string;
+    frameImage: string | null;
+    coupleImages: string[];
+  }
   interface LayoutProps {
     isNavigating: boolean;
-    coupleData: any;
+    coupleData: CoupleData;
     isPageLoading: boolean;
-    user: any;
+    user: { id?: string; email?: string | null } | null;
     hasRSVPed: boolean;
     isPinVerified: boolean;
     isBypassPin: boolean;
     weddingId: string;
     weddingSlug: string;
-    wedding: any;
+    wedding: Wedding | null;
     refreshAuth: () => void;
     setIsPinVerified: (v: boolean) => void;
     setIsNavigating: (v: boolean) => void;
-    router: any;
+    router: { push: (path: string) => void; replace: (path: string) => void };
     isMobile: boolean;
   }
 
@@ -998,7 +1011,7 @@ export default function HomePage() {
                     <Typography
                       variant="body2"
                       sx={{
-                        color: '#777',
+                        color: COLORS.text.subtle,
                         fontSize: '0.9rem',
                         textAlign: 'center',
                         lineHeight: 1.4,
@@ -1115,6 +1128,7 @@ export default function HomePage() {
                   variant="contained"
                   size="large"
                   fullWidth
+                  spinnerColor={wedding?.primary_color || COLORS.brand.primary}
                   sx={{
                     backgroundColor: wedding?.primary_color || COLORS.brand.primary,
                     color: COLORS.text.inverse,
@@ -1407,10 +1421,10 @@ export default function HomePage() {
               welcome_text: wedding.welcome_text || undefined,
               primary_color: wedding.primary_color || undefined,
               couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
-              registry_description: (wedding as any).registry_description || undefined,
+              registry_description: (wedding as { registry_description?: string | null }).registry_description || undefined,
               frame_image_url: wedding.frame_image_url,
-              couple_name_font: (wedding as any).couple_name_font || undefined,
-            } as any}
+              couple_name_font: (wedding as { couple_name_font?: string | null }).couple_name_font || undefined,
+            }}
             weddingSlug={weddingSlug}
             isBypassPin={isBypassPin}
             hasRSVPed={hasRSVPed}
@@ -1467,13 +1481,14 @@ export default function HomePage() {
                       href={`/${weddingSlug}/rsvp`}
                       variant="contained"
                       fullWidth
+                      spinnerColor={wedding?.primary_color || COLORS.brand.primary}
                       sx={{ bgcolor: wedding?.primary_color || COLORS.brand.primary, color: COLORS.text.inverse, py: 2, borderRadius: '80px' }}
                     >
                       RSVP
                     </ActionButton>
                   </motion.div>
                   {coupleData.rsvpDeadline && coupleData.rsvpDeadline !== 'TBD' && (
-                    <Typography variant="body2" color="#777">
+                    <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
                       Please RSVP by {formatDeadline(coupleData.rsvpDeadline)}
                     </Typography>
                   )}
@@ -1484,6 +1499,7 @@ export default function HomePage() {
                     href={`/${weddingSlug}/details`}
                     variant="contained"
                     fullWidth
+                    spinnerColor={wedding?.primary_color || COLORS.brand.primary}
                     sx={{ bgcolor: wedding?.primary_color || COLORS.brand.primary, color: COLORS.text.inverse, py: 1.5, borderRadius: '80px' }}
                   >
                     View Details

@@ -156,7 +156,7 @@ function TaskCard({
   onEdit: (id: string) => void;
   isEditing: boolean;
   editDraft: { title: string; description: string; tags: string[] } | null;
-  onEditChange: (field: string, value: any) => void;
+  onEditChange: (field: string, value: string | string[]) => void;
   onEditSave: () => void;
   onEditCancel: () => void;
   availableTags: string[];
@@ -344,7 +344,7 @@ function KanbanColumn({
   onEdit: (id: string) => void;
   editingId: string | null;
   editDraft: { title: string; description: string; tags: string[] } | null;
-  onEditChange: (field: string, value: any) => void;
+  onEditChange: (field: string, value: string | string[]) => void;
   onEditSave: () => void;
   onEditCancel: () => void;
   availableTags: string[];
@@ -440,7 +440,17 @@ const mockTasks: Task[] = [
 
 function MockBoard() {
   return (
-    <Box sx={{ display: 'flex', gap: 2.5 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 2.5,
+        overflowX: { xs: 'auto', md: 'visible' },
+        pb: { xs: 1, md: 0 },
+        mx: { xs: -2, md: 0 },
+        px: { xs: 2, md: 0 },
+        '& > *': { minWidth: { xs: 280, md: 0 }, flex: { xs: '0 0 auto', md: 1 } },
+      }}
+    >
       {COLUMNS.map(col => {
         const tasks = mockTasks.filter(t => t.column === col.id);
         return (
@@ -604,7 +614,7 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
     setEditDraft({ title: task.title, description: task.description || '', tags: task.tags || [] });
   }, [tasks, isViewOnly]);
 
-  const handleEditChange = useCallback((field: string, value: any) => {
+  const handleEditChange = useCallback((field: string, value: string | string[]) => {
     setEditDraft(prev => prev ? { ...prev, [field]: value } : null);
   }, []);
 
@@ -684,7 +694,24 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
         />
 
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
-          <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'flex-start' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2.5,
+              alignItems: 'flex-start',
+              // On mobile, make the board horizontally scrollable with a
+              // readable per-column minimum width rather than squishing 4
+              // columns into a phone-wide viewport.
+              overflowX: { xs: 'auto', md: 'visible' },
+              pb: { xs: 1, md: 0 },
+              mx: { xs: -2, md: 0 },
+              px: { xs: 2, md: 0 },
+              '& > *': {
+                minWidth: { xs: 280, md: 0 },
+                flex: { xs: '0 0 auto', md: 1 },
+              },
+            }}
+          >
             {COLUMNS.map(col => (
               <KanbanColumn
                 key={col.id}

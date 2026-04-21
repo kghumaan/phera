@@ -92,7 +92,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [coupleNamePreview, setCoupleNamePreview] = useState<string>('Simran & Arjun');
   const [coupleImages, setCoupleImages] = useState<(string | null)[]>(Array(6).fill(null));
 
-  const [initialDesignData, setInitialDesignData] = useState<any>(null);
+  const [initialDesignData, setInitialDesignData] = useState<Record<string, unknown> | null>(null);
   const [isDirty, setIsDirty] = useState(false);
 
   // Auto-save hook
@@ -124,9 +124,11 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
       pin_entry_primary_color: mainPrimaryColor,
       website_layout: websiteLayout,
       frame_image_url: frameImageUrl,
+      // `couple_name_font` / `couple_images` aren't in the generated types yet.
       couple_name_font: coupleNameFont,
       couple_images: coupleImages.filter(img => img),
       couple_image_url: (coupleImages.filter(img => img)[0] as string) || null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- field union not in generated supabase types
     } as any);
     if (!result) throw new Error('Save failed');
 
@@ -303,7 +305,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
           (rawLayout === 'infinite_scroll' || rawLayout === 'vertical_scroll') ? 'vertical_scroll' : 'multi_page';
         setWebsiteLayout(normalizedLayout);
         setFrameImageUrl(wedding.frame_image_url || null);
-        setCoupleNameFont((wedding as any).couple_name_font || DEFAULT_COUPLE_FONT_ID);
+        setCoupleNameFont((wedding as { couple_name_font?: string | null }).couple_name_font || DEFAULT_COUPLE_FONT_ID);
         setCoupleNamePreview(wedding.couple_name || 'Simran & Arjun');
 
         // Load couple images
@@ -323,7 +325,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
           primary_color: wedding.primary_color || COLORS.brand.primary,
           website_layout: normalizedLayout,
           frame_image_url: wedding.frame_image_url || null,
-          couple_name_font: (wedding as any).couple_name_font || DEFAULT_COUPLE_FONT_ID,
+          couple_name_font: (wedding as { couple_name_font?: string | null }).couple_name_font || DEFAULT_COUPLE_FONT_ID,
           couple_images: loadedCoupleImages.filter(img => img),
         });
       }
@@ -353,9 +355,13 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
           title="Look & Feel"
           subtitle="Customize the colors, backgrounds, and overall design of your wedding website"
           actions={
-            <Button variant="outlined" onClick={() => setCustomModalOpen(true)} sx={SECONDARY_BUTTON_SX}>
-              Want something custom?
-            </Button>
+            // On mobile this duplicate button crowds out the subtitle; the same
+            // CTA is rendered in the bottom action row below, so hide it here.
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              <Button variant="outlined" onClick={() => setCustomModalOpen(true)} sx={SECONDARY_BUTTON_SX}>
+                Want something custom?
+              </Button>
+            </Box>
           }
         />
 
@@ -920,11 +926,25 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
           onClose={() => setUpgradeModalOpen(false)}
         />
       </Stack >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4, mb: 2 }}>
-        <Button variant="outlined" onClick={() => setCustomModalOpen(true)} sx={SECONDARY_BUTTON_SX}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          gap: 2,
+          mt: 4,
+          mb: 2,
+        }}
+      >
+        <Button
+          variant="outlined"
+          onClick={() => setCustomModalOpen(true)}
+          sx={{ ...SECONDARY_BUTTON_SX, width: { xs: '100%', sm: 'auto' } }}
+        >
           Want something custom?
         </Button>
-        <Box sx={{ '& > .MuiBox-root': { mt: 0, mb: 0 } }}>
+        <Box sx={{ '& > .MuiBox-root': { mt: 0, mb: 0 }, width: { xs: '100%', sm: 'auto' } }}>
           <ContinueButton weddingSlug={weddingSlug} currentSection="design" weddingId={weddingId} />
         </Box>
       </Box>
