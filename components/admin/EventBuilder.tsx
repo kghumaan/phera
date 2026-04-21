@@ -141,7 +141,7 @@ export default function EventBuilder() {
     setEvents(events.filter(e => e.id !== eventId));
   };
 
-  const handleTemplateSelect = (template: any) => {
+  const handleTemplateSelect = (template: { name: string; type: string; color: string; icon: string; description: string }) => {
     setFormData({
       ...formData,
       name: template.name,
@@ -379,7 +379,7 @@ export default function EventBuilder() {
               </Select>
             </FormControl>
 
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
               <TextField
                 label="Date"
                 type="date"

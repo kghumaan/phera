@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, CircularProgress, Backdrop, Collapse, IconButton, Typography } from '@mui/material';
-import { ExpandMore } from '@mui/icons-material';
+import { ExpandMore, ArrowBack } from '@mui/icons-material';
 import OnboardingSidebar, { groups } from '@/components/admin/OnboardingSidebar';
 import AdminTopNav from '@/components/admin/AdminTopNav';
 import AdminPreviewPanel from '@/components/admin/AdminPreviewPanel';
@@ -219,11 +219,25 @@ function OnboardingLayoutContent({
                 },
                 bgcolor: COLORS.bg.white,
                 p: { xs: 2, md: 4 },
-                pt: { xs: `calc(${TOP_NAV_HEIGHT.xs} + 24px)`, md: `calc(${TOP_NAV_HEIGHT.md} + 32px)` }, // Shift internal content down to clear fixed Top Nav + extra spacing
+                pt: { xs: `calc(${TOP_NAV_HEIGHT.xs} + 8px)`, md: `calc(${TOP_NAV_HEIGHT.md} + 32px)` },
                 height: '100%',
-                overflowY: 'auto', // Scrollable form area
+                overflowY: 'auto',
                 position: 'relative',
                 borderRight: '1px solid rgba(0, 0, 0, 0.04)',
+                // Mobile-only: tighten typography one notch so the admin dashboard
+                // reads like a compact tool, not a marketing page. Desktop unchanged.
+                '@media (max-width: 899px)': {
+                  '& .MuiTypography-h4': { fontSize: '1.5rem' },
+                  '& .MuiTypography-h5': { fontSize: '1.15rem' },
+                  '& .MuiTypography-h6': { fontSize: '1rem' },
+                  '& .MuiTypography-subtitle1': { fontSize: '0.95rem' },
+                  '& .MuiTypography-subtitle2': { fontSize: '0.875rem' },
+                  '& .MuiTypography-body1': { fontSize: '0.875rem' },
+                  '& .MuiTypography-body2': { fontSize: '0.875rem' },
+                  '& .MuiButton-root': { fontSize: '0.875rem' },
+                  '& .MuiInputBase-input': { fontSize: '0.9375rem' },
+                  '& .MuiInputLabel-root': { fontSize: '0.9375rem' },
+                },
               }}
             >
               {isLoadingPlan || isLoadingWedding ? (
@@ -232,16 +246,16 @@ function OnboardingLayoutContent({
                 </Box>
               ) : (
                 <>
-                  {/* Mobile / Tablet Collapsible Preview — only on wedding-website pages */}
+                  {/* Mobile preview trigger — opens a full-screen overlay (no inline iframe) */}
                   {(() => {
                     const currentGroup = groups.find(group =>
                       group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'))
                     );
                     if (currentGroup?.id !== 'wedding-website') return null;
                     return (
-                      <Box sx={{ display: { xs: 'block', lg: 'none' }, mb: 3 }}>
+                      <Box sx={{ display: { xs: 'block', lg: 'none' }, mb: 2 }}>
                         <Box
-                          onClick={() => setMobilePreviewOpen((o) => !o)}
+                          onClick={() => setMobilePreviewOpen(true)}
                           sx={{
                             display: 'flex',
                             alignItems: 'center',
@@ -257,38 +271,12 @@ function OnboardingLayoutContent({
                           }}
                         >
                           <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
-                            {mobilePreviewOpen ? 'Hide preview' : 'Show preview'}
+                            Show preview
                           </Typography>
-                          <IconButton
-                            size="small"
-                            sx={{
-                              color: COLORS.text.subtle,
-                              transform: mobilePreviewOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                              transition: 'transform 0.2s ease',
-                            }}
-                          >
-                            <ExpandMore />
+                          <IconButton size="small" sx={{ color: COLORS.text.subtle }}>
+                            <ExpandMore sx={{ transform: 'rotate(-90deg)' }} />
                           </IconButton>
                         </Box>
-                        <Collapse in={mobilePreviewOpen} unmountOnExit>
-                          <Box sx={{ mt: 1.5 }}>
-                            <AdminPreviewPanel
-                              compact
-                              weddingSlug={wedding?.slug || weddingSlug}
-                              weddingId={wedding?.id}
-                              hasUnpublishedChanges={wedding?.has_unpublished_changes ?? true}
-                              lastPublishedAt={wedding?.last_published_at ?? null}
-                              currentAdminPath={currentAdminPath}
-                              websiteLayout={wedding?.website_layout}
-                              isLive={wedding?.status === 'live'}
-                              onPublished={() => {
-                                if (wedding) {
-                                  setWedding({ ...wedding, has_unpublished_changes: false, last_published_at: new Date().toISOString(), status: 'live' });
-                                }
-                              }}
-                            />
-                          </Box>
-                        </Collapse>
                       </Box>
                     );
                   })()}
@@ -353,6 +341,68 @@ function OnboardingLayoutContent({
           </Box>
         </Box>
       </OptimizedBackground>
+
+      {/* Mobile preview overlay — full-screen, only mounts while open so the
+          iframe doesn't live-refresh in the background */}
+      {mobilePreviewOpen && (() => {
+        const currentGroup = groups.find(group =>
+          group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'))
+        );
+        if (currentGroup?.id !== 'wedding-website') return null;
+        return (
+          <Box
+            sx={{
+              display: { xs: 'flex', lg: 'none' },
+              position: 'fixed',
+              inset: 0,
+              zIndex: (theme) => theme.zIndex.modal + 10,
+              bgcolor: COLORS.bg.white,
+              flexDirection: 'column',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                px: 1.5,
+                py: 1,
+                borderBottom: `1px solid ${COLORS.border.faint}`,
+                flexShrink: 0,
+              }}
+            >
+              <IconButton
+                size="small"
+                onClick={() => setMobilePreviewOpen(false)}
+                sx={{ color: COLORS.text.strong }}
+                aria-label="Close preview"
+              >
+                <ArrowBack />
+              </IconButton>
+              <Typography variant="body1" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
+                Preview
+              </Typography>
+            </Box>
+            <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+              <AdminPreviewPanel
+                compact
+                weddingSlug={wedding?.slug || weddingSlug}
+                weddingId={wedding?.id}
+                hasUnpublishedChanges={wedding?.has_unpublished_changes ?? true}
+                lastPublishedAt={wedding?.last_published_at ?? null}
+                currentAdminPath={currentAdminPath}
+                websiteLayout={wedding?.website_layout}
+                isLive={wedding?.status === 'live'}
+                onPublished={() => {
+                  if (wedding) {
+                    setWedding({ ...wedding, has_unpublished_changes: false, last_published_at: new Date().toISOString(), status: 'live' });
+                  }
+                }}
+              />
+            </Box>
+          </Box>
+        );
+      })()}
 
       {/* Demo tour overlay */}
       {showTour && <DemoTour weddingSlug={weddingSlug} />}

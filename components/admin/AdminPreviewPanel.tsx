@@ -335,31 +335,26 @@ export default function AdminPreviewPanel({
                 data-tour="tour-preview"
                 sx={{
                     width: '100%',
+                    height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 1,
                     bgcolor: COLORS.bg.subtle,
-                    borderRadius: RADII.md,
-                    border: `1px solid ${COLORS.border.faint}`,
                     overflow: 'hidden',
                 }}
             >
-                <Box
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 1,
-                        px: 1.5,
-                        py: 1,
-                        bgcolor: COLORS.bg.white,
-                        borderBottom: `1px solid ${COLORS.border.faint}`,
-                    }}
-                >
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
-                        Live Preview
-                    </Typography>
-                    {showPublishButton && (
+                {showPublishButton && (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
+                            px: 1.5,
+                            py: 1,
+                            bgcolor: COLORS.bg.white,
+                            borderBottom: `1px solid ${COLORS.border.faint}`,
+                            flexShrink: 0,
+                        }}
+                    >
                         <ActionButton
                             variant="contained"
                             onClick={handlePublish}
@@ -388,12 +383,13 @@ export default function AdminPreviewPanel({
                         >
                             {publishSuccess ? 'Published' : 'Publish'}
                         </ActionButton>
-                    )}
-                </Box>
+                    </Box>
+                )}
                 <Box
                     sx={{
+                        flex: 1,
+                        minHeight: 0,
                         width: '100%',
-                        height: { xs: '60vh', sm: '65vh' },
                         bgcolor: COLORS.bg.white,
                     }}
                 >
@@ -422,6 +418,7 @@ export default function AdminPreviewPanel({
                         py: 1,
                         bgcolor: COLORS.bg.white,
                         borderTop: `1px solid ${COLORS.border.faint}`,
+                        flexShrink: 0,
                     }}
                 >
                     <Button

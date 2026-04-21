@@ -59,8 +59,9 @@ export default function InlineMinorForm({ onSave, onCancel, initialData, isSavin
       borderRadius: RADII.md,
       px: 1.5, py: 2,
       display: 'flex',
+      flexDirection: { xs: 'column', sm: 'row' },
       gap: 2,
-      alignItems: 'center',
+      alignItems: { xs: 'stretch', sm: 'center' },
       position: 'relative',
       opacity: isSaving ? 0.6 : 1,
       pointerEvents: isSaving ? 'none' : 'auto',
@@ -82,7 +83,7 @@ export default function InlineMinorForm({ onSave, onCancel, initialData, isSavin
           onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); if (e.key === 'Escape') onCancel(); }}
           sx={fieldSx}
         />
-        <Stack direction="row" spacing={1.5}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
           <TimePicker
             label="Time *"
             value={time}
@@ -107,6 +108,7 @@ export default function InlineMinorForm({ onSave, onCancel, initialData, isSavin
         sx={{
           color: canSubmit ? COLORS.brand.primary : COLORS.border.default,
           flexShrink: 0,
+          alignSelf: { xs: 'flex-end', sm: 'center' },
         }}
       >
         <CheckCircle sx={{ fontSize: 28 }} />
