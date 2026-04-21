@@ -347,10 +347,11 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
 
       // Per-step override (e.g. Collaborators sits low in the sidebar on
       // mobile and the auto-placed tooltip ends up outside the visible
-      // drawer area).
+      // drawer area). We anchor slightly above the generic topSafe so the
+      // tooltip clears the item it's meant to be pointing at.
       if (step.mobileTopPin) {
         return {
-          top: topSafe,
+          top: 56,
           left: `calc(50vw - ${tooltipW / 2}px)`,
           width: tooltipW,
         };

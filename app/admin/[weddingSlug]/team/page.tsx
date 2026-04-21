@@ -239,20 +239,21 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
       } else {
         showStatus('error', 'Failed to send invite. Please check console for details.');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error sending invite:', err);
       let errorMessage = 'Failed to send invite';
-      
+      const e = err as { message?: string; error?: { message?: string } } | null;
+
       // Check for specific error messages
-      if (err?.message) {
-        errorMessage = err.message;
-      } else if (err?.error?.message) {
-        errorMessage = err.error.message;
+      if (e?.message) {
+        errorMessage = e.message;
+      } else if (e?.error?.message) {
+        errorMessage = e.error.message;
       } else if (typeof err === 'string') {
         errorMessage = err;
-      } else if (err?.originalError) {
+      } else if ((err as { originalError?: unknown })?.originalError) {
         // Check the original error from the service
-        const origErr = err.originalError;
+        const origErr = (err as { originalError?: { message?: string; code?: string } }).originalError;
         if (origErr?.message) {
           errorMessage = origErr.message;
         } else if (origErr?.code === '42P01') {
@@ -386,7 +387,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
 
   return (
     <Box sx={{ maxWidth: 1000 }}>
-      <Stack spacing={3} sx={{ pt: { xs: 6, lg: 0 } }}>
+      <Stack spacing={3}>
         <PageHeading
           title="Collaborators"
           subtitle="Manage who can access and edit your wedding website"
@@ -401,7 +402,7 @@ export default function TeamPage({ params }: { params: Promise<{ weddingSlug: st
                   Invite a collaborator
                 </Typography>
                 <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-                  Add your partner or wedding planner. They'll get access when they sign up or log in with this email.
+                  Add your partner or wedding planner. They&apos;ll get access when they sign up or log in with this email.
                 </Typography>
               </Box>
 

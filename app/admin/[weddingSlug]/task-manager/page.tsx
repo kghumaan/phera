@@ -446,7 +446,9 @@ function MockBoard() {
         gap: 2.5,
         overflowX: { xs: 'auto', md: 'visible' },
         pb: { xs: 1, md: 0 },
-        '& > *': { minWidth: { xs: 220, md: 0 } },
+        mx: { xs: -2, md: 0 },
+        px: { xs: 2, md: 0 },
+        '& > *': { minWidth: { xs: 280, md: 0 }, flex: { xs: '0 0 auto', md: 1 } },
       }}
     >
       {COLUMNS.map(col => {
@@ -697,10 +699,16 @@ export default function TaskManagerPage({ params }: { params: Promise<{ weddingS
               display: 'flex',
               gap: 2.5,
               alignItems: 'flex-start',
+              // On mobile, make the board horizontally scrollable with a
+              // readable per-column minimum width rather than squishing 4
+              // columns into a phone-wide viewport.
               overflowX: { xs: 'auto', md: 'visible' },
               pb: { xs: 1, md: 0 },
+              mx: { xs: -2, md: 0 },
+              px: { xs: 2, md: 0 },
               '& > *': {
-                minWidth: { xs: 260, md: 0 },
+                minWidth: { xs: 280, md: 0 },
+                flex: { xs: '0 0 auto', md: 1 },
               },
             }}
           >

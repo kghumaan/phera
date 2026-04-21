@@ -118,15 +118,34 @@ export default function SupportPage({ params }: { params: Promise<{ weddingSlug:
                 placeholder="Tell us what you ran into, or what you'd love to see added."
               />
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, pt: 1 }}>
+              {/* On mobile: stack button + "typical response" text so the
+                  button gets full width and the caption sits below it,
+                  centered. Desktop keeps them on the same row. */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  alignItems: { xs: 'stretch', sm: 'center' },
+                  gap: { xs: 1, sm: 2 },
+                  pt: 1,
+                }}
+              >
                 <PrimaryActionButton
                   type="submit"
                   startIcon={loading ? <CircularProgress size={16} sx={{ color: COLORS.bg.white }} /> : <Send />}
                   disabled={loading || !form.name || !form.email || !form.message}
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
                 >
                   {loading ? 'Sending…' : 'Send message'}
                 </PrimaryActionButton>
-                <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: COLORS.text.subtle,
+                    textAlign: { xs: 'center', sm: 'left' },
+                    width: { xs: '100%', sm: 'auto' },
+                  }}
+                >
                   Typical response: within a business day.
                 </Typography>
               </Box>

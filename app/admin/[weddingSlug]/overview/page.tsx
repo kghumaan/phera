@@ -483,7 +483,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
 
   return (
     <Box sx={{ maxWidth: 1000 }}>
-      <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
+      <Stack spacing={4}>
         <PageHeading
           title="Wedding Overview"
           subtitle="Your wedding website status and quick info"

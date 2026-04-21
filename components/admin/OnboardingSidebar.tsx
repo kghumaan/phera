@@ -291,7 +291,12 @@ export default function OnboardingSidebar({
 
   const handleItemClick = (item: SidebarItem, collapseAll = false, groupId?: string) => {
     if (!checkGuard()) return;
-    onNavigating?.(true);
+    // Intentionally NOT calling onNavigating(true): Next.js App Router
+    // preserves this layout across sibling route transitions and the new
+    // page hydrates in a few tens of ms, so triggering the Backdrop spinner
+    // here just flashes a full-page blur + spinner over the content for no
+    // reason. Keep the prop in case we want to re-introduce a slow-route
+    // loading state later.
     router.push(`/admin/${weddingSlug}${item.path}`);
 
     if (collapseAll) {

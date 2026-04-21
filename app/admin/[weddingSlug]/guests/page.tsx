@@ -338,7 +338,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Stack spacing={4} sx={{ pt: { xs: 6, lg: 0 } }}>
+      <Stack spacing={4}>
         <PageHeading
           title="RSVPs"
           subtitle="Track RSVPs, dietary restrictions, and guest preferences"

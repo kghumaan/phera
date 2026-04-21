@@ -102,6 +102,12 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
     } catch {}
   };
 
+  // Demo weddings skip the enablement gate entirely — the point of the demo
+  // is to show what a live Concierge looks like, not to ask the visitor to
+  // click "Enable". The dashboard below falls back to mocked chats/stats
+  // when there's no real data yet.
+  const isDemo = weddingSlug.startsWith('demo');
+
   // Load wedding ID + concierge_enabled flag for pro users.
   useEffect(() => {
     if (!isPro) return;
@@ -114,6 +120,11 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         .single();
       if (!wedding) return;
       setWeddingId(wedding.id);
+      if (isDemo) {
+        // Skip the DB read and force-enable for demo.
+        setConciergeEnabled(true);
+        return;
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- wedding_settings table is not in generated supabase types
       const { data: settings } = await (supabase as any)
         .from('wedding_settings')
@@ -122,7 +133,7 @@ export default function ConciergePage({ params }: { params: Promise<{ weddingSlu
         .maybeSingle();
       setConciergeEnabled(!!settings?.concierge_enabled);
     })();
-  }, [isPro, weddingSlug]);
+  }, [isPro, weddingSlug, isDemo]);
 
   const handleEnableConcierge = async () => {
     if (isViewOnly || !weddingId || enabling) return;

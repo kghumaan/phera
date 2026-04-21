@@ -350,7 +350,9 @@ export default function AdminPreviewPanel({
                 }}
             >
                 {/* Single top action bar: back / publish / open / share.
-                    Consolidated so the iframe gets the maximum vertical space. */}
+                    Consolidated so the iframe gets the maximum vertical space.
+                    `alignItems: 'stretch'` + matching heights keeps the icon
+                    buttons vertically aligned with the Publish action button. */}
                 <Box
                     sx={{
                         display: 'flex',
@@ -377,40 +379,32 @@ export default function AdminPreviewPanel({
                         Preview
                     </Typography>
                     <Box sx={{ flex: 1 }} />
-                    <Button
-                        variant="text"
+                    <IconButton
+                        size="small"
                         onClick={() => window.open(previewUrl, '_blank')}
+                        aria-label="Open in new tab"
                         sx={{
                             color: COLORS.text.strong,
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            fontSize: TEXT.sm,
-                            minWidth: 0,
-                            px: 1,
-                            minHeight: 32,
+                            width: 32,
+                            height: 32,
                             borderRadius: RADII.md,
                         }}
-                        aria-label="Open in new tab"
                     >
                         <OpenInNew sx={{ fontSize: 18 }} />
-                    </Button>
-                    <Button
-                        variant="text"
+                    </IconButton>
+                    <IconButton
+                        size="small"
                         onClick={handleShareClick}
+                        aria-label="Share"
                         sx={{
                             color: COLORS.text.strong,
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            fontSize: TEXT.sm,
-                            minWidth: 0,
-                            px: 1,
-                            minHeight: 32,
+                            width: 32,
+                            height: 32,
                             borderRadius: RADII.md,
                         }}
-                        aria-label="Share"
                     >
                         <IosShare sx={{ fontSize: 18 }} />
-                    </Button>
+                    </IconButton>
                     {showPublishButton && (
                         <ActionButton
                             variant="contained"
