@@ -2,8 +2,32 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import type { PheraDatabase } from '@/lib/supabase/types';
+import { OPS_COOKIE_NAME } from '@/lib/ops/constants';
+import { verifyOpsSession } from '@/lib/ops/auth';
 
 export async function middleware(request: NextRequest) {
+  // Gate /ops/* and /api/ops/* before touching Supabase — PIN-only internal route.
+  const opsPath = request.nextUrl.pathname;
+  if (opsPath.startsWith('/ops') || opsPath.startsWith('/api/ops')) {
+    const isEnter = opsPath === '/ops/enter' || opsPath.startsWith('/ops/enter/');
+    const isVerifyEndpoint = opsPath === '/api/ops/verify-pin';
+    const session = request.cookies.get(OPS_COOKIE_NAME)?.value;
+    const valid = await verifyOpsSession(session);
+
+    if (isVerifyEndpoint) return NextResponse.next();
+
+    if (!isEnter && !valid) {
+      if (opsPath.startsWith('/api/ops')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      return NextResponse.redirect(new URL('/ops/enter', request.url));
+    }
+    if (isEnter && valid) {
+      return NextResponse.redirect(new URL('/ops', request.url));
+    }
+    return NextResponse.next();
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -18,7 +42,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
+        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({
             request,
@@ -102,7 +126,7 @@ export async function middleware(request: NextRequest) {
           .eq('slug', weddingSlug)
           .single();
 
-        const wedding = weddingData as any;
+        const wedding = weddingData as { id: string; created_by: string } | null;
 
         if (wedding && user && wedding.created_by !== user.id) {
           // Check if user is an admin
