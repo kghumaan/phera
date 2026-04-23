@@ -297,6 +297,9 @@ function SectionPreviewContent({ section }: { section: string }) {
           registry_description: (wedding as { registry_description?: string | null }).registry_description || undefined,
           primary_color: wedding.primary_color || undefined,
           couple_images: Array.isArray(wedding.couple_images) ? wedding.couple_images as string[] : undefined,
+          couple_name_font: (wedding as { couple_name_font?: string | null }).couple_name_font || undefined,
+          frame_image_url: wedding.frame_image_url ?? null,
+          background_image: wedding.background_image ?? null,
         }}
         weddingSlug={wedding.slug}
         isBypassPin={true}

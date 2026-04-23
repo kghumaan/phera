@@ -232,3 +232,4 @@ Format error reports as:
 | `PIVOT-PLAN.md` | Full strategic context — why we're pivoting, target market, pricing, competitive landscape, positioning, phased rollout. |
 | `CLAUDE-CODE-GENESIS-PROMPT.md` | Genesis prompt and ralph-loop phase commands. |
 | `database-schema.sql` | Original pre-pivot schema (guests, rsvps, comments, RLS policies, indexes). New pivot tables/columns are applied directly, not in this file yet. |
+| `marketing/dm-templates.md` | Outreach DM templates for founder-led IG/X DMs — planner, vendor, DIY bride variants, plus targeting + tone rules. Reuse the structure when drafting new outreach. |

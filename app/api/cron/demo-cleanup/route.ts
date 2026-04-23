@@ -5,7 +5,8 @@ import { cleanupExpiredDemoWeddings } from '@/lib/demo/clone-demo-wedding';
  * GET /api/cron/demo-cleanup
  *
  * Purges demo weddings older than DEMO_MAX_AGE_MS (2h).
- * Scheduled hourly via vercel.json.
+ * Scheduled daily at 04:00 UTC via vercel.json (Vercel Hobby plan caps crons at once/day).
+ * On-demand cleanup in /api/demo/clone also runs whenever a new demo is created.
  * Protected by CRON_SECRET in production.
  *
  * Exists because the on-demand cleanup in /api/demo/clone only fires when
