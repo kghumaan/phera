@@ -159,10 +159,39 @@ export default function DemoTour({ weddingSlug }: DemoTourProps) {
       return;
     }
 
-    // Resolve all targets (primary + extras) to DOM rects
-    const resolve = (sel: string) =>
-      document.querySelector(`[data-tour="${sel}"]`) ||
-      document.querySelector(`[data-tour-group="${sel.replace('tour-', '').replace('-group', '')}"]`);
+    // Resolve all targets (primary + extras) to DOM rects.
+    //
+    // NOTE: A logical target (e.g. "tour-preview") may have MULTIPLE DOM
+    // elements tagged with the same `data-tour` attribute — the mobile
+    // "Show preview" trigger and the desktop preview panel are both
+    // `data-tour="tour-preview"` for example. The non-current one is
+    // hidden via `display: none` on an ancestor (MUI responsive sx), but
+    // still lives in the DOM. `querySelector` returns the first match
+    // regardless of visibility, so on desktop we were measuring the
+    // display:none mobile trigger → zero-size rect → invisible spotlight.
+    //
+    // Pick the first visible element instead (getClientRects returns an
+    // empty list when the element or an ancestor has display:none, so a
+    // non-zero width OR height is a reliable "actually rendered" signal).
+    const isVisible = (el: Element) => {
+      const r = el.getBoundingClientRect();
+      return r.width > 0 || r.height > 0;
+    };
+
+    const resolve = (sel: string): Element | null => {
+      const attrMatches = Array.from(
+        document.querySelectorAll(`[data-tour="${sel}"]`),
+      );
+      const visible = attrMatches.find(isVisible);
+      if (visible) return visible;
+      if (attrMatches[0]) return attrMatches[0];
+      // Fallback: group-level marker used for sidebar group highlights.
+      const groupKey = sel.replace('tour-', '').replace('-group', '');
+      const groupMatches = Array.from(
+        document.querySelectorAll(`[data-tour-group="${groupKey}"]`),
+      );
+      return groupMatches.find(isVisible) || groupMatches[0] || null;
+    };
 
     const rects: DOMRect[] = [];
     const primaryEl = resolve(step.target);
