@@ -9,6 +9,7 @@ import { WeddingProvider, useWedding } from '@/lib/contexts/WeddingContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import VerticalScrollLayout from '@/components/guest/VerticalScrollLayout';
+import PinEntry from '@/components/guest/PinEntry';
 import Image from 'next/image';
 import FAQPage from '@/app/(guest)/[weddingSlug]/faq/page';
 import SchedulePage from '@/app/(guest)/[weddingSlug]/schedule/page';
@@ -143,6 +144,26 @@ function SectionPreviewContent({ section }: { section: string }) {
     }
   }, []);
 
+  // Listen for SET_PREVIEW_MODE postMessage from admin panel
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'SET_PREVIEW_MODE') {
+        setPreviewView(event.data.mode);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Read ?view= query param for standalone "View Site" link
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const viewParam = new URLSearchParams(window.location.search).get('view');
+    if (viewParam === 'pin_entry' || viewParam === 'no_rsvp' || viewParam === 'rsvp_submitted') {
+      setPreviewView(viewParam);
+    }
+  }, []);
+
   if (isLoading) {
     return (
       <Box sx={{ minHeight: { xs: '100svh', md: '100vh' }, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -162,18 +183,6 @@ function SectionPreviewContent({ section }: { section: string }) {
   // Determine layout mode: multi-page renders standalone section components,
   // vertical scroll renders the full VerticalScrollLayout and scrolls to section
   const isVerticalScroll = !isMobile && (wedding.website_layout === 'infinite_scroll' || wedding.website_layout === 'vertical_scroll');
-
-  if (!isVerticalScroll) {
-    const SectionComponent: Record<string, React.ComponentType> = {
-      faq: FAQPage,
-      schedule: SchedulePage,
-      travel: TravelPage,
-      registry: RegistryPage,
-      shopping: WhereToShopPage,
-    };
-    const Component = SectionComponent[section];
-    if (Component) return <Box sx={{ pt: isMobile ? 2 : 0 }}><Component /></Box>;
-  }
 
   const ViewSwitcher = isInIframe ? null : (
     <>
@@ -241,6 +250,35 @@ function SectionPreviewContent({ section }: { section: string }) {
     </>
   );
 
+  // Pin entry view — same behavior as the main preview page
+  if (previewView === 'pin_entry') {
+    return (
+      <>
+        {ViewSwitcher}
+        <PinEntry weddingSlug={wedding.slug} onPinVerified={() => { }} isPreview={true} />
+      </>
+    );
+  }
+
+  if (!isVerticalScroll) {
+    const SectionComponent: Record<string, React.ComponentType> = {
+      faq: FAQPage,
+      schedule: SchedulePage,
+      travel: TravelPage,
+      registry: RegistryPage,
+      shopping: WhereToShopPage,
+    };
+    const Component = SectionComponent[section];
+    if (Component) {
+      return (
+        <Box sx={{ pt: isMobile ? 2 : 0 }}>
+          {ViewSwitcher}
+          <Component />
+        </Box>
+      );
+    }
+  }
+
   return (
     <OptimizedBackground
       src={wedding.background_image || undefined}
@@ -302,7 +340,7 @@ function SectionPreviewContent({ section }: { section: string }) {
           background_image: wedding.background_image ?? null,
         }}
         weddingSlug={wedding.slug}
-        isBypassPin={true}
+        isBypassPin={previewView === 'rsvp_submitted'}
         hasRSVPed={previewView === 'rsvp_submitted'}
         user={previewView === 'no_rsvp' ? null : { id: 'preview-user' }}
         CountdownTimer={CountdownTimer}

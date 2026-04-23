@@ -87,7 +87,7 @@ export const SlideContent = ({
             <Typography
               variant="subtitle2"
               sx={{
-                fontSize: { xs: 14, md: 16 },
+                fontSize: { xs: 14, md: 14 },
                 lineHeight: 1.5,
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
@@ -106,7 +106,7 @@ export const SlideContent = ({
                   key={idx}
                   variant="h3"
                   sx={{
-                    fontSize: { xs: 24, md: 32, lg: 36 },
+                    fontSize: { xs: 24, md: 24, lg: 28 },
                     lineHeight: 1.3,
                     textTransform: 'capitalize',
                     color: textColor,
@@ -126,7 +126,7 @@ export const SlideContent = ({
             <Typography
               variant="subtitle2"
               sx={{
-                fontSize: { xs: 14, md: 16 },
+                fontSize: { xs: 14, md: 14 },
                 lineHeight: 1.5,
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
@@ -145,7 +145,7 @@ export const SlideContent = ({
                   key={idx}
                   variant="h3"
                   sx={{
-                    fontSize: { xs: 24, md: 32, lg: 36 },
+                    fontSize: { xs: 24, md: 24, lg: 28 },
                     lineHeight: 1.3,
                     textTransform: 'capitalize',
                     color: textColor,
@@ -171,7 +171,7 @@ export const SlideContent = ({
           <Typography
             variant="subtitleCaps"
             sx={{
-              fontSize: { xs: 14, md: 16 },
+              fontSize: { xs: 14, md: 14 },
               lineHeight: 1.5,
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
@@ -191,7 +191,7 @@ export const SlideContent = ({
             sx={{
               fontFamily: FONTS.display,
               fontWeight: 400,
-              fontSize: { xs: 36, md: 48, lg: 56 },
+              fontSize: { xs: 36, md: 36, lg: 44 },
               lineHeight: 1.2,
               color: textColor,
               textAlign: 'center',
@@ -207,7 +207,7 @@ export const SlideContent = ({
           <Typography
             variant="body1"
             sx={{
-              fontSize: { xs: 16, md: 20, lg: 22 },
+              fontSize: { xs: 16, md: 16, lg: 18 },
               lineHeight: 1.6,
               color: textColor,
               textAlign: 'center',
@@ -229,7 +229,7 @@ export const SlideContent = ({
         <Typography
           variant="subtitle2"
           sx={{
-            fontSize: { xs: 14, md: 16 },
+            fontSize: { xs: 14, md: 14 },
             lineHeight: 1.5,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
@@ -248,7 +248,7 @@ export const SlideContent = ({
           sx={{
             fontFamily: FONTS.display,
             fontWeight: 400,
-            fontSize: { xs: 32, md: 40, lg: 48 },
+            fontSize: { xs: 32, md: 30, lg: 36 },
             lineHeight: 1.3,
             textTransform: 'capitalize',
             color: textColor,
@@ -265,7 +265,7 @@ export const SlideContent = ({
           variant="body1"
           sx={{
             fontWeight: 300,
-            fontSize: { xs: 14, md: 16 },
+            fontSize: { xs: 14, md: 14 },
             lineHeight: 1.6,
             color: textColor,
             textAlign: 'center',

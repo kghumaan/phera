@@ -1,18 +1,9 @@
 'use client';
 
 import { Box, Typography, Stack } from '@mui/material';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
+import { useDroppable } from '@dnd-kit/core';
 import {
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { ScheduleItem } from '@/lib/supabase/wedding-service';
@@ -35,12 +26,11 @@ interface DayCardProps {
   activeForm: ActiveForm | null;
   savingForm?: boolean;
   onSetActiveForm: (form: ActiveForm | null) => void;
-  onSaveItem: (dayId: string, data: any) => void;
+  onSaveItem: (dayId: string, data: Partial<ScheduleItem>) => void;
   onEditItem: (item: ScheduleItem) => void;
   onDeleteItem: (id: string) => void;
-  onDragEnd: (event: DragEndEvent, dayId: string) => void;
   onToast?: (message: string) => void;
-  onMoreDetails?: (item: ScheduleItem | { dayId: string; formData: any }) => void;
+  onMoreDetails?: (item: ScheduleItem | { dayId: string; formData: Partial<ScheduleItem> }) => void;
   isViewOnly?: boolean;
 }
 
@@ -54,17 +44,11 @@ export default function DayCard({
   onSaveItem,
   onEditItem,
   onDeleteItem,
-  onDragEnd,
   onToast,
   onMoreDetails,
   isViewOnly,
 }: DayCardProps) {
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({ id: dayId });
 
   // Format: "SUNDAY, OCTOBER 12"
   let formattedDate = date;
@@ -88,7 +72,17 @@ export default function DayCard({
   const isSavingThisDay = !!(savingForm && activeForm?.dayId === dayId);
 
   return (
-    <Box sx={{ bgcolor: COLORS.bg.muted, borderRadius: RADII.lg, p: 2.5 }}>
+    <Box
+      ref={setDroppableRef}
+      sx={{
+        bgcolor: COLORS.bg.muted,
+        borderRadius: RADII.lg,
+        p: 2.5,
+        outline: isOver ? `2px dashed ${COLORS.brand.primary}` : 'none',
+        outlineOffset: -4,
+        transition: 'outline-color 120ms',
+      }}
+    >
       {/* Day Header */}
       <Typography sx={{
         fontWeight: 600,
@@ -104,17 +98,12 @@ export default function DayCard({
       <Stack spacing={2}>
         {/* Existing events with drag-and-drop */}
         {events.length > 0 && (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={(e) => onDragEnd(e, dayId)}
+          <SortableContext
+            items={events.map(e => e.id)}
+            strategy={verticalListSortingStrategy}
           >
-            <SortableContext
-              items={events.map(e => e.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <Stack spacing={1.5}>
-                {events.map((item) => {
+            <Stack spacing={1.5}>
+              {events.map((item) => {
                   // If editing this item inline, show the form instead
                   if (isEditingItem && activeForm?.editingItemId === item.id) {
                     const editType = item.is_major_event ? 'major' : 'minor';
@@ -163,10 +152,9 @@ export default function DayCard({
                       isViewOnly={isViewOnly}
                     />
                   );
-                })}
-              </Stack>
-            </SortableContext>
-          </DndContext>
+              })}
+            </Stack>
+          </SortableContext>
         )}
 
         {/* Inline add forms */}

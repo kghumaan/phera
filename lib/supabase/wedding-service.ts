@@ -1,5 +1,5 @@
 import { supabase, TypedSupabaseClient } from './client';
-import { Tables, TablesInsert, TablesUpdate } from './types';
+import { Tables, TablesInsert, TablesUpdate, Json } from './types';
 
 // Types for wedding data
 export type Wedding = Tables<'weddings'>;
@@ -151,7 +151,7 @@ export class WeddingService {
       .select('wedding_id')
       .eq('user_id', userId);
 
-    const adminWeddingIds = (adminEntries || []).map((e: any) => e.wedding_id);
+    const adminWeddingIds = (adminEntries || []).map((e: { wedding_id: string }) => e.wedding_id);
 
     // Fetch weddings created by user OR where they are an admin
     const { data, error } = await this.supabase
@@ -501,15 +501,18 @@ export class WeddingService {
     return true;
   }
 
-  async reorderScheduleItems(items: { id: string; order_index: number }[]): Promise<boolean> {
+  async reorderScheduleItems(
+    items: { id: string; order_index: number; schedule_id?: string }[]
+  ): Promise<boolean> {
     try {
-      // Use individual updates to reorder items
-      const updates = items.map(item =>
-        this.supabase
+      const updates = items.map(item => {
+        const patch: { order_index: number; schedule_id?: string } = { order_index: item.order_index };
+        if (item.schedule_id !== undefined) patch.schedule_id = item.schedule_id;
+        return this.supabase
           .from('schedule_items')
-          .update({ order_index: item.order_index })
-          .eq('id', item.id)
-      );
+          .update(patch)
+          .eq('id', item.id);
+      });
 
       const results = await Promise.all(updates);
       const hasError = results.some(r => r.error);
@@ -591,6 +594,7 @@ export class WeddingService {
   // Travel Sections (new structured travel system)
   async getTravelSections(weddingId: string): Promise<TravelSection[]> {
     const { data, error } = await this.supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- travel_sections not yet in generated supabase types
       .from('travel_sections' as any)
       .select('*')
       .eq('wedding_id', weddingId)
@@ -606,6 +610,7 @@ export class WeddingService {
 
   async createTravelSection(section: TravelSectionInsert): Promise<TravelSection | null> {
     const { data, error } = await this.supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- travel_sections not yet in generated supabase types
       .from('travel_sections' as any)
       .insert([section])
       .select()
@@ -621,6 +626,7 @@ export class WeddingService {
 
   async updateTravelSection(id: string, updates: TravelSectionUpdate): Promise<TravelSection | null> {
     const { data, error } = await this.supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- travel_sections not yet in generated supabase types
       .from('travel_sections' as any)
       .update(updates)
       .eq('id', id)
@@ -637,6 +643,7 @@ export class WeddingService {
 
   async deleteTravelSection(id: string): Promise<boolean> {
     const { error } = await this.supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- travel_sections not yet in generated supabase types
       .from('travel_sections' as any)
       .delete()
       .eq('id', id);
@@ -654,7 +661,8 @@ export class WeddingService {
       await Promise.all(
         items.map(item =>
           this.supabase
-            .from('travel_sections' as any)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- travel_sections not yet in generated supabase types
+      .from('travel_sections' as any)
             .update({ order_index: item.order_index })
             .eq('id', item.id)
         )
@@ -1095,34 +1103,35 @@ export class WeddingService {
         // Check if it's a table not found error
         if (error?.code === '42P01' || error?.message?.includes('does not exist')) {
           const enhancedError = new Error('The wedding_invites table does not exist. Please run the migration first.');
-          (enhancedError as any).originalError = error;
+          (enhancedError as Error & { originalError?: unknown }).originalError = error;
           throw enhancedError;
         }
 
         // Check if it's an RLS policy error
         if (error?.code === '42501' || error?.message?.includes('permission denied') || error?.message?.includes('policy')) {
           const enhancedError = new Error('Permission denied. You may not have permission to invite team members for this wedding.');
-          (enhancedError as any).originalError = error;
+          (enhancedError as Error & { originalError?: unknown }).originalError = error;
           throw enhancedError;
         }
 
         // Create a more descriptive error
         const errorMessage = error?.message || error?.code || 'Unknown database error';
         const enhancedError = new Error(`Failed to create invite: ${errorMessage}`);
-        (enhancedError as any).originalError = error;
+        (enhancedError as Error & { originalError?: unknown }).originalError = error;
         throw enhancedError;
       }
 
       return data as WeddingInvite;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errObj = err as { message?: string };
       // If it's already our enhanced error, re-throw it
-      if (err.message && err.message !== 'Unknown database error') {
+      if (errObj.message && errObj.message !== 'Unknown database error') {
         throw err;
       }
 
       // Otherwise, wrap it
       console.error('Unexpected error in createWeddingInvite:', err);
-      throw new Error(`Failed to create invite: ${err?.message || 'Unknown error'}`);
+      throw new Error(`Failed to create invite: ${errObj.message || 'Unknown error'}`);
     }
   }
 
@@ -1326,7 +1335,7 @@ export class WeddingService {
           outfit_ideas_men: event.outfit_ideas_men,
           ritual_name: event.ritual_name,
           ritual_description: event.ritual_description,
-          carousel_slides: event.carousel_slides as any,
+          carousel_slides: event.carousel_slides as unknown as Json,
           gradient_background: event.gradient_background,
           text_color: event.text_color,
           order_index: event.order_index,
@@ -1442,7 +1451,7 @@ export class WeddingService {
 
   // Task management
   async getTasks(weddingId: string): Promise<Task[]> {
-    const { data, error } = await (this.supabase as any)
+    const { data, error } = await this.supabase
       .from('wedding_tasks')
       .select('*')
       .eq('wedding_id', weddingId)
@@ -1456,7 +1465,7 @@ export class WeddingService {
   }
 
   async createTask(task: Partial<Task>): Promise<Task | null> {
-    const { data, error } = await (this.supabase as any)
+    const { data, error } = await this.supabase
       .from('wedding_tasks')
       .insert([task])
       .select()
@@ -1469,7 +1478,7 @@ export class WeddingService {
   }
 
   async updateTask(id: string, updates: Partial<Task>): Promise<Task | null> {
-    const { data, error } = await (this.supabase as any)
+    const { data, error } = await this.supabase
       .from('wedding_tasks')
       .update(updates)
       .eq('id', id)
@@ -1483,7 +1492,7 @@ export class WeddingService {
   }
 
   async deleteTask(id: string): Promise<boolean> {
-    const { error } = await (this.supabase as any)
+    const { error } = await this.supabase
       .from('wedding_tasks')
       .delete()
       .eq('id', id);
@@ -1541,7 +1550,7 @@ export class WeddingService {
 
   // Planner Profiles
   async createPlannerProfile({ userId, companyName, location }: { userId: string; companyName: string; location: string }): Promise<boolean> {
-    const { error } = await (this.supabase as any)
+    const { error } = await this.supabase
       .from('planner_profiles')
       .upsert([{
         user_id: userId,
@@ -1557,7 +1566,7 @@ export class WeddingService {
   }
 
   async getPlannerProfile(userId: string): Promise<{ company_name: string; location: string } | null> {
-    const { data, error } = await (this.supabase as any)
+    const { data, error } = await this.supabase
       .from('planner_profiles')
       .select('company_name, location')
       .eq('user_id', userId)
@@ -1605,7 +1614,7 @@ export class WeddingService {
       const { error } = await this.supabase
         .from('weddings')
         .update({
-          published_snapshot: snapshot as any,
+          published_snapshot: snapshot as unknown as Json,
           has_unpublished_changes: false,
           last_published_at: new Date().toISOString(),
           status: 'live',
@@ -1663,7 +1672,7 @@ export class WeddingService {
   async updateRsvpConfirmationMessages(weddingSlug: string, messages: Record<string, { heading: string; body: string }>) {
     const { error } = await supabase
       .from('weddings')
-      .update({ rsvp_confirmation_messages: messages } as any)
+      .update({ rsvp_confirmation_messages: messages as unknown as Json })
       .eq('slug', weddingSlug);
 
     if (error) throw error;
@@ -1687,7 +1696,7 @@ export class WeddingService {
  * partial updates of unrelated fields aren't blocked.
  */
 function validateEventPayload(
-  payload: Record<string, any>,
+  payload: Record<string, unknown>,
   opts: { partial?: boolean } = {},
 ): string | null {
   const partial = !!opts.partial;

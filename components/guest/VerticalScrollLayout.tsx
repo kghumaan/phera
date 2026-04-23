@@ -26,7 +26,6 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { format, parseISO } from 'date-fns';
 import TravelSectionsDisplay, { TravelSectionData } from './TravelSectionsDisplay';
-import TravelDetailPanel from './TravelDetailPanel';
 
 function parseScheduleDate(dateStr: string): Date {
   try {
@@ -199,7 +198,7 @@ const ScrollBasedCarousel = ({
 const CompactGuestList = ({ weddingId, weddingSlug, primaryColor }: { weddingId: string; weddingSlug?: string; primaryColor?: string }) => {
   return (
     <Box sx={{ width: '100%' }}>
-      <GuestList weddingId={weddingId} weddingSlug={weddingSlug} compact initialTab={1} primaryColor={primaryColor} />
+      <GuestList weddingId={weddingId} weddingSlug={weddingSlug} compact initialTab={0} primaryColor={primaryColor} />
     </Box>
   );
 };
@@ -230,8 +229,6 @@ export default function VerticalScrollLayout({
 
   // Travel sections (new system)
   const [travelSections, setTravelSections] = useState<TravelSectionData[]>([]);
-  const [detailPanelSection, setDetailPanelSection] = useState<TravelSectionData | null>(null);
-  const [detailPanelOpen, setDetailPanelOpen] = useState(false);
 
   // Event detail carousel state
   const [selectedEvent, setSelectedEvent] = useState<WeddingEvent | null>(null);
@@ -935,11 +932,21 @@ export default function VerticalScrollLayout({
                                         }}
                                       />
 
+                                      {(() => {
+                                        const linkedForCard = isMajor ? findLinkedEvent(event.linked_event_id, event.name) : null;
+                                        const cardHasSlides = !!(linkedForCard && linkedForCard.carousel_slides && linkedForCard.carousel_slides.length > 0);
+                                        const cardClickable = isMajor && cardHasSlides;
+                                        const barColor = (event.gradient_background && event.gradient_background.startsWith('#'))
+                                          ? event.gradient_background
+                                          : primaryColor;
+                                        return (
                                       <Paper
                                         elevation={isMajor ? 4 : 0}
+                                        onClick={cardClickable ? () => handleLearnMoreClick(event) : undefined}
                                         sx={{
                                           flex: 1,
                                           p: isMajor ? 3 : 0,
+                                          pl: isMajor ? 4 : 0,
                                           mb: isMajor ? 2 : 0,
                                           backgroundColor: isMajor ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
                                           backgroundImage: bgUrl ? `linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.75)), url(${bgUrl})` : 'none',
@@ -951,21 +958,88 @@ export default function VerticalScrollLayout({
                                           overflow: 'hidden',
                                           boxShadow: isMajor ? '0 8px 30px rgba(0,0,0,0.08)' : 'none',
                                           transition: 'transform 0.3s ease',
+                                          cursor: cardClickable ? 'pointer' : 'default',
                                           '&:hover': isMajor ? { transform: 'scale(1.01)' } : {},
                                         }}
                                       >
-                                        <Box sx={{ position: 'relative', zIndex: 1 }}>
-                                          {/* Title */}
-                                          <Typography
-                                            variant={isMajor ? "h6" : "body1"}
+                                        {/* Left color bar (major events only) */}
+                                        {isMajor && (
+                                          <Box
                                             sx={{
-                                              color: COLORS.text.strong,
-                                              lineHeight: 1.1,
-                                              mb: 0.5,
+                                              position: 'absolute',
+                                              left: 0,
+                                              top: 0,
+                                              bottom: 0,
+                                              width: 8,
+                                              bgcolor: barColor,
+                                              zIndex: 2,
                                             }}
-                                          >
-                                            {event.name}
-                                          </Typography>
+                                          />
+                                        )}
+                                        <Box sx={{ position: 'relative', zIndex: 1 }}>
+                                          {/* Title row — major: title left + time right; minor: title only */}
+                                          {isMajor ? (
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 2, mb: 0.5 }}>
+                                              <Typography
+                                                variant="h6"
+                                                sx={{
+                                                  color: COLORS.text.strong,
+                                                  lineHeight: 1.1,
+                                                  flex: 1,
+                                                  minWidth: 0,
+                                                }}
+                                              >
+                                                {event.name}
+                                              </Typography>
+                                              {event.time && (
+                                                <Box sx={{ flexShrink: 0, textAlign: 'right', minWidth: 90 }}>
+                                                  {event.time.includes('-') ? (
+                                                    event.time.split('-').map((part: string, i: number) => (
+                                                      <Typography
+                                                        key={i}
+                                                        variant="body2"
+                                                        sx={{
+                                                          color: COLORS.text.strong,
+                                                          fontWeight: 600,
+                                                          letterSpacing: '0.07em',
+                                                          textTransform: 'uppercase',
+                                                          fontVariantNumeric: 'tabular-nums',
+                                                          lineHeight: 1.3,
+                                                        }}
+                                                      >
+                                                        {part.trim()}
+                                                      </Typography>
+                                                    ))
+                                                  ) : (
+                                                    <Typography
+                                                      variant="body2"
+                                                      sx={{
+                                                        color: COLORS.text.strong,
+                                                        fontWeight: 600,
+                                                        letterSpacing: '0.07em',
+                                                        textTransform: 'uppercase',
+                                                        fontVariantNumeric: 'tabular-nums',
+                                                        lineHeight: 1.3,
+                                                      }}
+                                                    >
+                                                      {event.time}
+                                                    </Typography>
+                                                  )}
+                                                </Box>
+                                              )}
+                                            </Box>
+                                          ) : (
+                                            <Typography
+                                              variant="body1"
+                                              sx={{
+                                                color: COLORS.text.strong,
+                                                lineHeight: 1.1,
+                                                mb: 0.5,
+                                              }}
+                                            >
+                                              {event.name}
+                                            </Typography>
+                                          )}
 
                                           {/* Minor events: time + location under title */}
                                           {!isMajor && event.time && (
@@ -1007,19 +1081,9 @@ export default function VerticalScrollLayout({
                                             </Typography>
                                           )}
 
-                                          {/* Major events: Time row */}
-                                          {isMajor && event.time && (
-                                            <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 0.5 }}>
-                                              <StreamlineIcon name="clock" size={14} color={COLORS.text.subtle} />
-                                              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-                                                {event.time}
-                                              </Typography>
-                                            </Stack>
-                                          )}
-
                                           {/* Major events: Location + Dress Code row */}
                                           {isMajor && (event.location || event.dress_code) && (
-                                            <Stack direction="row" spacing={2} flexWrap="wrap" alignItems="center" sx={{ mb: 1.5 }}>
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', columnGap: 2, rowGap: 0.5, alignItems: 'center', mb: 1.5 }}>
                                               {event.location && (
                                                 <Stack direction="row" spacing={0.5} alignItems="center">
                                                   <StreamlineIcon name="map-pin" size={14} color={COLORS.text.subtle} />
@@ -1036,7 +1100,7 @@ export default function VerticalScrollLayout({
                                                   </Typography>
                                                 </Stack>
                                               )}
-                                            </Stack>
+                                            </Box>
                                           )}
 
                                           {/* Major events: More Details */}
@@ -1080,6 +1144,8 @@ export default function VerticalScrollLayout({
                                           })()}
                                         </Box>
                                       </Paper>
+                                        );
+                                      })()}
                                     </Box>
                                   );
                                 })}
@@ -1115,10 +1181,6 @@ export default function VerticalScrollLayout({
                         <TravelSectionsDisplay
                           sections={travelSections}
                           primaryColor={primaryColor}
-                          onViewDetails={(section) => {
-                            setDetailPanelSection(section);
-                            setDetailPanelOpen(true);
-                          }}
                         />
                       ) : (
                         <Stack spacing={3}>
@@ -1357,7 +1419,7 @@ export default function VerticalScrollLayout({
                             sx={{
                               p: 2,
                               backgroundColor: 'rgba(254, 249, 242, 0.8)',
-                              borderRadius: 2,
+                              borderRadius: RADII.lg,
                               border: '1px solid rgba(0,0,0,0.08)',
                               cursor: shop.url ? 'pointer' : 'default',
                               transition: 'all 0.3s ease',
@@ -1737,17 +1799,6 @@ export default function VerticalScrollLayout({
           </>
         )}
       </AnimatePresence>
-
-      {/* Travel Detail Panel */}
-      <TravelDetailPanel
-        section={detailPanelSection}
-        open={detailPanelOpen}
-        onClose={() => {
-          setDetailPanelOpen(false);
-          setDetailPanelSection(null);
-        }}
-        primaryColor={primaryColor}
-      />
     </Box>
   );
 }

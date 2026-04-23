@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- bulk table cloning: generated supabase types don't cover every runtime row shape, and dynamic table name arguments require `as any` casts that make per-line disables noisy. */
 import { createClient } from '@supabase/supabase-js';
 import { PheraDatabase } from '@/lib/supabase/types';
 import { seedDemoMockData } from './seed-demo-mock-data';
@@ -6,6 +7,385 @@ import { generateGuestAvatar, generateFallbackColor } from '@/lib/utils/avatar-g
 const TEMPLATE_SLUG = 'demo-template';
 const DEMO_SLUG_PREFIX = 'demo-';
 const DEMO_MAX_AGE_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+// ---------------------------------------------------------------------------
+// Standard demo schedule + events. Every demo clone renders this exact
+// 3-day layout — edit here to change all future demos.
+//
+//   Day 1: Check In (minor) → Welcome Lunch & Haldi (major) → Sangeet (major)
+//   Day 2: Breakfast (minor) → Wedding Ceremony (major) → High Tea (minor) → Reception (major)
+//   Day 3: Breakfast (minor) → Checkout (minor)
+//
+// Event content (dress codes, carousel slides, ritual descriptions) is
+// derived from the template's original Haldi / Mehendi+Sangeet / Varmala /
+// Reception rows; Sangeet strips the mehendi portion per product spec.
+// ---------------------------------------------------------------------------
+
+function resolveBaseDate(weddingDate: string | null | undefined): string {
+  // weddings.wedding_date comes back as ISO timestamp or plain date.
+  // Fall back to a fixed date so this never crashes on a malformed value.
+  if (!weddingDate) return '2026-12-11';
+  const d = new Date(weddingDate);
+  if (isNaN(d.getTime())) return '2026-12-11';
+  return d.toISOString().slice(0, 10);
+}
+
+function addDaysISO(baseISO: string, days: number): string {
+  const [y, m, d] = baseISO.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + days);
+  return dt.toISOString().slice(0, 10);
+}
+
+type StandardEvent = {
+  slug: string;
+  name: string;
+  day_offset: number;
+  time: string;
+  dress_code: string;
+  dress_code_description: string;
+  dress_code_icon: string | null;
+  gradient_background: string;
+  text_color: string;
+  ritual_name: string;
+  ritual_description: string;
+  outfit_example_url: string | null;
+  outfit_ideas_men: unknown;
+  outfit_ideas_women: unknown;
+  carousel_slides: unknown;
+  carousel_images: unknown;
+  order_index: number;
+};
+
+const STANDARD_EVENTS: readonly StandardEvent[] = [
+  // Day 1 — Welcome Lunch & Haldi
+  {
+    slug: 'welcome-lunch-haldi',
+    name: 'Welcome Lunch & Haldi',
+    day_offset: 0,
+    time: '12:30 PM',
+    dress_code: 'Yellow & White Casuals',
+    dress_code_description:
+      'Wear yellow or white — you will get turmeric on you! Light kurtas, cotton suits, or casual Indian wear. Leave your fancy outfits for later.',
+    dress_code_icon: null,
+    gradient_background: '#FA9A00',
+    text_color: '#141414',
+    ritual_name: 'Haldi',
+    ritual_description:
+      'The Haldi ceremony involves applying a paste of turmeric, sandalwood, and rosewater to the bride and groom. Turmeric is believed to purify, bless, and bring a natural glow. It often turns into a joyful, playful celebration!',
+    outfit_example_url: null,
+    outfit_ideas_men: [],
+    outfit_ideas_women: [],
+    carousel_slides: [
+      {
+        type: 'three_lines',
+        body_text:
+          'Embrace the Haldi spirit! Wear cheerful yellows or clean whites. Since turmeric stains are expected, opt for comfortable and casual cotton kurtas, breezy suits, or relaxed summer wear.',
+        top_label: 'WELCOME & HALDI',
+        main_heading: 'Sunshine Bright',
+      },
+      { src: '/images/collage/Dress Codes-5-Haldi Women.png', type: 'image' },
+      {
+        type: 'two_sections',
+        section1_items: ['Yellow Cotton Suits', 'Simple Lehengas', 'White Chikankari'],
+        section2_items: ['Yellow Kurtas', 'White Linen Shirts', 'Comfortable Trousers'],
+        section1_header: 'Women',
+        section2_header: 'Men',
+      },
+      { src: '/images/collage/Dress Codes-4-Haldi Men.png', type: 'image' },
+      {
+        type: 'three_lines',
+        body_text:
+          "A playful and blessful ceremony where families apply a vibrant mixture of turmeric, sandalwood, and rosewater to the couple. Known for its glow-enhancing properties, it's a beautiful, messy, and laugh-filled start to the festivities.",
+        top_label: 'The Ceremony',
+        main_heading: 'What is Haldi?',
+      },
+    ],
+    carousel_images: [],
+    order_index: 0,
+  },
+  // Day 1 — Sangeet (derived from Mehendi & Sangeet, mehendi portion stripped)
+  {
+    slug: 'sangeet',
+    name: 'Sangeet',
+    day_offset: 0,
+    time: '6:00 PM',
+    dress_code: 'Colorful Indian Attire',
+    dress_code_description:
+      'Vibrant lehengas, sherwanis, or kurtas in bold colors. Think jewel tones, mirror work, and festive prints. This is the most playful dress code of the wedding!',
+    dress_code_icon: null,
+    gradient_background: 'GradientReception.webp',
+    text_color: '#FFFFFF',
+    ritual_name: 'Sangeet',
+    ritual_description:
+      'The Sangeet is a musical evening where both families come together to celebrate with choreographed performances, music, and dance.',
+    outfit_example_url: null,
+    outfit_ideas_men: [],
+    outfit_ideas_women: [],
+    carousel_slides: [
+      {
+        type: 'three_lines',
+        body_text:
+          'Dress to impress—think sharp suits, elegant gowns, or chic lehengas and sherwanis in jewel tones and standout embellishments.',
+        top_label: 'SANGEET',
+        main_heading: 'Cocktail Glam',
+      },
+      { src: '/images/collage/Dress Codes-9-Reception Women.png', type: 'image' },
+      {
+        type: 'two_sections',
+        section1_items: ['Evening Gowns', 'Embellished Sarees', 'Fusion Co-ord Sets', 'Cocktail Lehengas'],
+        section2_items: ['Tuxedos & Dinner Suits', 'Tailored Sherwanis', 'Patterned Nehru Jackets', ''],
+        section1_header: 'Women',
+        section2_header: 'Men',
+      },
+      { src: '/images/collage/Dress Codes-10-Reception Men.png', type: 'image' },
+      {
+        type: 'three_lines',
+        body_text:
+          'An evening of choreographed dances, heartfelt toasts, and live music — both families come together to celebrate the couple in true festive style.',
+        top_label: 'The Celebration',
+        main_heading: 'What is a Sangeet?',
+      },
+      { src: '/images/collage/Dress Codes-17-Reception 1.png', type: 'image' },
+    ],
+    carousel_images: [],
+    order_index: 1,
+  },
+  // Day 2 — Wedding Ceremony (Varmala-derived, rebranded generically)
+  {
+    slug: 'wedding-ceremony',
+    name: 'Wedding Ceremony',
+    day_offset: 1,
+    time: '11:00 AM',
+    dress_code: 'Formal Indian / Cocktail',
+    dress_code_description:
+      'Men: sherwanis, bandhgalas, or suits. Women: sarees, lehengas, or cocktail gowns. Rich fabrics and elegant silhouettes — this is the grand ceremony.',
+    dress_code_icon: null,
+    gradient_background: '#941C28',
+    text_color: '#141414',
+    ritual_name: 'Wedding Ceremony',
+    ritual_description:
+      'The main ceremony where the couple exchange vows and garlands, binding two families together in tradition, ritual, and celebration.',
+    outfit_example_url: null,
+    outfit_ideas_men: [],
+    outfit_ideas_women: [],
+    carousel_slides: [
+      {
+        type: 'three_lines',
+        body_text:
+          'The main event calls for your absolute best. Think timeless elegance—rich silks, sophisticated sherwanis, and stunning sarees or cocktail gowns. The ambiance is royal and grand.',
+        top_label: 'WEDDING CEREMONY',
+        main_heading: 'Royal Elegance',
+      },
+      { src: '/images/collage/Dress Codes-1-Wedding Women.png', type: 'image' },
+      {
+        type: 'two_sections',
+        section1_items: ['Traditional Lehengas', 'Banarasi Sarees', 'Elegant Gowns'],
+        section2_items: ['Structured Sherwanis', 'Jodhpuri Suits', 'Classic Bandhgalas'],
+        section1_header: 'Women',
+        section2_header: 'Men',
+      },
+      { src: '/images/collage/Dress Codes-2-Wedding Men.png', type: 'image' },
+      {
+        type: 'three_lines',
+        body_text:
+          'A breathtaking ceremony where the couple exchange vows and floral garlands under the open sky — the coming together of two souls and two families.',
+        top_label: 'The Tradition',
+        main_heading: 'What is the Wedding Ceremony?',
+      },
+    ],
+    carousel_images: [],
+    order_index: 2,
+  },
+  // Day 2 — Reception
+  {
+    slug: 'reception',
+    name: 'The Reception',
+    day_offset: 1,
+    time: '7:00 PM',
+    dress_code: 'Black Tie / Glamorous',
+    dress_code_description:
+      'This is the grand finale — go all out! Floor-length gowns, tuxedos, designer lehengas, or sharp suits. Think red carpet glamour.',
+    dress_code_icon: null,
+    gradient_background: '#004550',
+    text_color: '#141414',
+    ritual_name: 'Reception',
+    ritual_description:
+      "The Reception is a grand celebration where the newlyweds are formally introduced as a married couple to all guests. It features dinner, toasts, the couple's first dance, and an open dance floor to close out the wedding festivities.",
+    outfit_example_url: null,
+    outfit_ideas_men: [],
+    outfit_ideas_women: [],
+    carousel_slides: [
+      {
+        type: 'three_lines',
+        body_text:
+          'The absolute grand finale! Pull out all the stops for an evening of sophistication. Think red-carpet readiness: stunning floor-length gowns, sharp tuxedos, and opulent fabrics.',
+        top_label: 'THE RECEPTION',
+        main_heading: 'Black Tie Glamour',
+      },
+      { src: '/images/collage/Dress Codes-9-Reception Women.png', type: 'image' },
+      {
+        type: 'two_sections',
+        section1_items: ['Floor-length Gowns', 'Designer Lehengas', 'Chic Sequins'],
+        section2_items: ['Tuxedos', 'Dark Tailored Suits', 'Bowties & Ties'],
+        section1_header: 'Women',
+        section2_header: 'Men',
+      },
+      { src: '/images/collage/Dress Codes-10-Reception Men.png', type: 'image' },
+      {
+        type: 'three_lines',
+        body_text:
+          "A lavish celebration marking the newlyweds' first official appearance as a married couple. Expect heartfelt toasts, spectacular dinners, and an unforgettable open dance floor to dance the night away.",
+        top_label: 'The Celebration',
+        main_heading: 'The Final Bow',
+      },
+    ],
+    carousel_images: [],
+    order_index: 3,
+  },
+];
+
+type StandardScheduleItem = {
+  name: string;
+  time: string;
+  location: string | null;
+  description: string | null;
+  dress_code: string | null;
+  gradient_background: string | null;
+  is_major_event: boolean;
+  linked_event_slug: string | null;
+  order_index: number;
+};
+
+type StandardScheduleDay = {
+  day_order: number;
+  day_name: string;
+  day_offset: number;
+  items: StandardScheduleItem[];
+};
+
+const STANDARD_SCHEDULE: readonly StandardScheduleDay[] = [
+  {
+    day_order: 0,
+    day_name: 'Friday',
+    day_offset: 0,
+    items: [
+      {
+        name: 'Check In',
+        time: '11:00 AM',
+        location: 'Hotel Lobby',
+        description: null,
+        dress_code: null,
+        gradient_background: null,
+        is_major_event: false,
+        linked_event_slug: null,
+        order_index: 0,
+      },
+      {
+        name: 'Welcome Lunch & Haldi',
+        time: '12:30 PM',
+        location: 'Riverside Terrace',
+        description: 'Turmeric ceremony, blessings & brunch',
+        dress_code: 'Yellow & White Casuals',
+        gradient_background: '#FA9A00',
+        is_major_event: true,
+        linked_event_slug: 'welcome-lunch-haldi',
+        order_index: 1,
+      },
+      {
+        name: 'Sangeet',
+        time: '6:00 PM',
+        location: 'Grand Sala',
+        description: 'Music, dance performances & dinner',
+        dress_code: 'Colorful Indian Attire',
+        gradient_background: '#941C28',
+        is_major_event: true,
+        linked_event_slug: 'sangeet',
+        order_index: 2,
+      },
+    ],
+  },
+  {
+    day_order: 1,
+    day_name: 'Saturday',
+    day_offset: 1,
+    items: [
+      {
+        name: 'Breakfast',
+        time: '8:30 AM',
+        location: 'The Market',
+        description: null,
+        dress_code: null,
+        gradient_background: null,
+        is_major_event: false,
+        linked_event_slug: null,
+        order_index: 0,
+      },
+      {
+        name: 'Wedding Ceremony',
+        time: '11:00 AM',
+        location: 'Chao Phraya Lawn',
+        description: 'Vows, garland exchange & blessings',
+        dress_code: 'Formal Indian / Cocktail',
+        gradient_background: '#941C28',
+        is_major_event: true,
+        linked_event_slug: 'wedding-ceremony',
+        order_index: 1,
+      },
+      {
+        name: 'High Tea',
+        time: '4:00 PM',
+        location: 'Kasara Executive Lounge',
+        description: null,
+        dress_code: null,
+        gradient_background: null,
+        is_major_event: false,
+        linked_event_slug: null,
+        order_index: 2,
+      },
+      {
+        name: 'The Reception',
+        time: '7:00 PM',
+        location: 'Mewar Terrace',
+        description: 'Grand finale — dinner, toasts, first dance & party',
+        dress_code: 'Black Tie / Glamorous',
+        gradient_background: '#004550',
+        is_major_event: true,
+        linked_event_slug: 'reception',
+        order_index: 3,
+      },
+    ],
+  },
+  {
+    day_order: 2,
+    day_name: 'Sunday',
+    day_offset: 2,
+    items: [
+      {
+        name: 'Breakfast',
+        time: '9:00 AM',
+        location: 'The Market',
+        description: null,
+        dress_code: null,
+        gradient_background: null,
+        is_major_event: false,
+        linked_event_slug: null,
+        order_index: 0,
+      },
+      {
+        name: 'Checkout',
+        time: '11:00 AM',
+        location: 'Hotel Lobby',
+        description: null,
+        dress_code: null,
+        gradient_background: null,
+        is_major_event: false,
+        linked_event_slug: null,
+        order_index: 1,
+      },
+    ],
+  },
+];
 
 function getServiceClient() {
   return createClient<PheraDatabase>(
@@ -87,24 +467,22 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
 
   // 4. Read everything from the template in parallel.
   // All of these SELECTs are independent — no reason to do them serially.
+  // NOTE: we no longer read wedding_events or wedding_schedule from the template —
+  // all demo clones get the hardcoded STANDARD_EVENTS / STANDARD_SCHEDULE below.
   const [
-    { data: templateEvents },
-    { data: templateSchedule },
     { data: templateGuests },
     { data: templateChat },
     { data: templateRsvps },
     { data: templateOutreachEvents },
     { data: templateIssues },
   ] = await Promise.all([
-    supabase.from('wedding_events').select('*').eq('wedding_id', template.id).order('order_index', { ascending: true }),
-    supabase.from('wedding_schedule').select('*').eq('wedding_id', template.id).order('order_index', { ascending: true }),
     (supabase as any).from('guests').select('*').eq('wedding_id', TEMPLATE_SLUG),
     (supabase as any).from('whatsapp_chat_history').select('*').eq('wedding_id', template.id).order('created_at', { ascending: true }),
     (supabase as any).from('rsvps').select('*').eq('wedding_id', TEMPLATE_SLUG),
     (supabase as any).from('outreach_events').select('*').eq('wedding_id', TEMPLATE_SLUG),
     (supabase as any).from('coordination_issues').select('*').eq('wedding_id', TEMPLATE_SLUG),
   ]);
-  t = lap(`parallel reads (events=${templateEvents?.length ?? 0}, schedule=${templateSchedule?.length ?? 0}, guests=${templateGuests?.length ?? 0}, chat=${templateChat?.length ?? 0}, rsvps=${templateRsvps?.length ?? 0}, outreach=${templateOutreachEvents?.length ?? 0}, issues=${templateIssues?.length ?? 0})`, t);
+  t = lap(`parallel reads (guests=${templateGuests?.length ?? 0}, chat=${templateChat?.length ?? 0}, rsvps=${templateRsvps?.length ?? 0}, outreach=${templateOutreachEvents?.length ?? 0}, issues=${templateIssues?.length ?? 0})`, t);
 
   // Kick off simple clones immediately — they don't depend on anything else.
   const simpleClones: Promise<void>[] = [
@@ -122,31 +500,33 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
     cloneSimpleTable(supabase, 'vendors', template.id, newWeddingId),
   ];
 
-  // 5. Primary inserts in parallel: events, schedule days, guests, plus
-  // a dependent fetch for schedule_items (needs schedule IDs we already have).
-  const eventsInsertPromise = templateEvents?.length
-    ? supabase
-        .from('wedding_events')
-        .insert(
-          templateEvents.map(({ id, wedding_id, created_at, ...rest }) => ({
-            ...rest,
-            wedding_id: newWeddingId,
-          })) as any
-        )
-        .select('id, order_index')
-    : Promise.resolve({ data: null as any });
+  // 5. Primary inserts in parallel: events, schedule days, guests.
+  // Events + schedule use the hardcoded STANDARD_* constants so every demo
+  // shows the same 3-day layout regardless of template state.
+  const baseDateStr = resolveBaseDate(template.wedding_date);
 
-  const scheduleInsertPromise = templateSchedule?.length
-    ? supabase
-        .from('wedding_schedule')
-        .insert(
-          templateSchedule.map(({ id, wedding_id, created_at, ...rest }) => ({
-            ...rest,
-            wedding_id: newWeddingId,
-          })) as any
-        )
-        .select('id, order_index')
-    : Promise.resolve({ data: null as any });
+  const eventsInsertPromise = supabase
+    .from('wedding_events')
+    .insert(
+      STANDARD_EVENTS.map((ev) => ({
+        ...ev,
+        date: addDaysISO(baseDateStr, ev.day_offset),
+        wedding_id: newWeddingId,
+      })).map(({ day_offset: _o, ...rest }) => rest) as any
+    )
+    .select('id, slug');
+
+  const scheduleInsertPromise = supabase
+    .from('wedding_schedule')
+    .insert(
+      STANDARD_SCHEDULE.map((day) => ({
+        wedding_id: newWeddingId,
+        date: addDaysISO(baseDateStr, day.day_offset),
+        day_name: day.day_name,
+        order_index: day.day_order,
+      })) as any
+    )
+    .select('id, order_index');
 
   const guestsInsertPromise = templateGuests?.length
     ? (supabase as any)
@@ -175,43 +555,31 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
         .select('id, name')
     : Promise.resolve({ data: null as any });
 
-  // Fetch schedule_items in parallel with the inserts — we only need the
-  // template's schedule IDs, which we already have from the read round.
-  const scheduleItemsFetchPromise = templateSchedule?.length
-    ? supabase
-        .from('schedule_items')
-        .select('*')
-        .in('schedule_id', templateSchedule.map(s => s.id))
-        .order('order_index', { ascending: true })
-    : Promise.resolve({ data: null as any });
-
   const [
     { data: newEvents },
     { data: newSchedules },
     { data: newGuests },
-    { data: templateItems },
   ] = await Promise.all([
     eventsInsertPromise,
     scheduleInsertPromise,
     guestsInsertPromise,
-    scheduleItemsFetchPromise,
   ]);
-  t = lap('primary inserts (events + schedule + guests) + schedule_items fetch', t);
+  t = lap('primary inserts (standard events + schedule + guests)', t);
 
   // 6. Build ID maps from the results.
-  const eventIdMapping: Record<string, string> = {};
-  if (templateEvents && newEvents) {
-    for (let i = 0; i < templateEvents.length; i++) {
-      const match = newEvents.find((e: any) => e.order_index === templateEvents[i].order_index);
-      if (match) eventIdMapping[templateEvents[i].id] = match.id;
+  // eventSlugToId: slug -> new wedding_events.id (used by schedule_items.linked_event_id)
+  const eventSlugToId: Record<string, string> = {};
+  if (newEvents) {
+    for (const ev of newEvents as any[]) {
+      if (ev.slug) eventSlugToId[ev.slug] = ev.id;
     }
   }
 
-  const scheduleIdMapping: Record<string, string> = {};
-  if (templateSchedule && newSchedules) {
-    for (let i = 0; i < templateSchedule.length; i++) {
-      const match = newSchedules.find((s: any) => s.order_index === templateSchedule[i].order_index);
-      if (match) scheduleIdMapping[templateSchedule[i].id] = match.id;
+  // scheduleDayOrderToId: day_order -> new wedding_schedule.id
+  const scheduleDayOrderToId: Record<number, string> = {};
+  if (newSchedules) {
+    for (const sc of newSchedules as any[]) {
+      scheduleDayOrderToId[sc.order_index] = sc.id;
     }
   }
 
@@ -227,21 +595,25 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
   // 7. Dependent inserts in parallel: schedule_items, chat_history, rsvps.
   const dependentInserts: Promise<any>[] = [];
 
-  if (templateItems?.length) {
-    const itemsToInsert = templateItems
-      .filter((item: any) => scheduleIdMapping[item.schedule_id!])
-      .map((item: any) => {
-        const { id, schedule_id, created_at, ...rest } = item;
-        const eventId = item.linked_event_id;
-        return {
-          ...rest,
-          schedule_id: scheduleIdMapping[schedule_id!],
-          linked_event_id: eventId ? (eventIdMapping[eventId] || null) : null,
-        };
-      });
-    if (itemsToInsert.length) {
-      dependentInserts.push((supabase as any).from('schedule_items').insert(itemsToInsert as any));
-    }
+  // schedule_items built from STANDARD_SCHEDULE, linked to newly inserted days + events.
+  const itemsToInsert = STANDARD_SCHEDULE.flatMap((day) => {
+    const scheduleId = scheduleDayOrderToId[day.day_order];
+    if (!scheduleId) return [];
+    return day.items.map((item) => ({
+      schedule_id: scheduleId,
+      name: item.name,
+      time: item.time,
+      location: item.location ?? null,
+      description: item.description ?? null,
+      dress_code: item.dress_code ?? null,
+      gradient_background: item.gradient_background ?? null,
+      is_major_event: item.is_major_event,
+      linked_event_id: item.linked_event_slug ? eventSlugToId[item.linked_event_slug] ?? null : null,
+      order_index: item.order_index,
+    }));
+  });
+  if (itemsToInsert.length) {
+    dependentInserts.push((supabase as any).from('schedule_items').insert(itemsToInsert as any));
   }
 
   if (Object.keys(guestIdMapping).length > 0) {
@@ -312,6 +684,12 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
   } as any).then(() => {});
   simpleClones.push(adminInsert as Promise<void>);
 
+  // Seed a handful of guest comments (some with GIFs) so the Activity tab
+  // has content on both mobile and desktop in the demo. Maps onto cloned
+  // guests picked deterministically from guestIdMapping.
+  const commentsSeed = seedDemoComments(supabase, newSlug, guestIdMapping);
+  simpleClones.push(commentsSeed);
+
   // Kick off transportation now that guestIdMapping is ready. Runs in
   // parallel with the other background work.
   const transportationPromise = cloneTransportationData(supabase, template.id, newWeddingId, guestIdMapping);
@@ -349,6 +727,85 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
   console.log(`[demo-clone] TOTAL: ${Date.now() - t0}ms`);
 
   return newSlug;
+}
+
+// Prewritten demo comments. Some include Giphy GIFs; hosts rendered via
+// next/image are whitelisted in next.config.ts (media*.giphy.com).
+const DEMO_COMMENTS: Array<{
+  message: string;
+  gif_id?: string;
+  gif_url?: string;
+  gif_preview_url?: string;
+  gif_title?: string;
+}> = [
+  { message: "Can't wait to celebrate you two! 💃" },
+  {
+    message: 'Counting down the days!',
+    gif_id: 'l0HlNaQ6gWfllcjDO',
+    gif_url: 'https://media.giphy.com/media/l0HlNaQ6gWfllcjDO/giphy.gif',
+    gif_preview_url: 'https://media.giphy.com/media/l0HlNaQ6gWfllcjDO/giphy-preview.gif',
+    gif_title: 'bollywood dance',
+  },
+  { message: 'Flights booked — see you there!' },
+  { message: 'So happy for you both ❤️' },
+  {
+    message: 'Ready for the sangeet!',
+    gif_id: 'xT9IgG50Fb7Mi0prBC',
+    gif_url: 'https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif',
+    gif_preview_url: 'https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy-preview.gif',
+    gif_title: 'celebration',
+  },
+  { message: 'Priya, you are going to be a stunning bride 😍' },
+  { message: 'Mazaa aa jayega! Already practicing my dance moves.' },
+  {
+    message: 'Woohoo!',
+    gif_id: '3o7aD2saalBwwftBIY',
+    gif_url: 'https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif',
+    gif_preview_url: 'https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy-preview.gif',
+    gif_title: 'excited',
+  },
+  { message: "Finally! Been waiting for this day forever 🎉" },
+  { message: 'Bringing the whole squad from London ✈️' },
+  { message: 'Congrats you two! Send all the dance playlists' },
+  { message: 'Arjun bhai, treat toh banti hai!' },
+];
+
+async function seedDemoComments(
+  supabase: ReturnType<typeof getServiceClient>,
+  weddingSlug: string,
+  guestIdMapping: Record<string, string>,
+): Promise<void> {
+  const guestIds = Object.values(guestIdMapping);
+  if (guestIds.length === 0) return;
+
+  // Deterministic pick: shuffle guestIds via slug hash so repeated clones
+  // of the same slug produce the same set, but different slugs get different
+  // guests attached to the canned messages.
+  const salt = weddingSlug.split('').reduce((h, c) => ((h * 33) ^ c.charCodeAt(0)) >>> 0, 5381);
+  const ordered = [...guestIds].sort((a, b) => {
+    const ah = (a.charCodeAt(0) + salt) >>> 0;
+    const bh = (b.charCodeAt(0) + salt) >>> 0;
+    return ah - bh;
+  });
+
+  const pairCount = Math.min(DEMO_COMMENTS.length, ordered.length);
+  const now = Date.now();
+  const rows = DEMO_COMMENTS.slice(0, pairCount).map((c, i) => ({
+    guest_id: ordered[i],
+    wedding_id: weddingSlug,
+    message: c.message,
+    gif_id: c.gif_id ?? null,
+    gif_url: c.gif_url ?? null,
+    gif_preview_url: c.gif_preview_url ?? null,
+    gif_title: c.gif_title ?? null,
+    // Spread created_at so the list has a natural-looking order.
+    created_at: new Date(now - i * 37 * 60 * 1000).toISOString(),
+  }));
+
+  const { error } = await (supabase as any).from('comments').insert(rows);
+  if (error) {
+    console.error('[demo-clone] seedDemoComments failed:', error.message);
+  }
 }
 
 async function cloneSimpleTable(

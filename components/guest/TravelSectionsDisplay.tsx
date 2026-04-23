@@ -1,15 +1,18 @@
 'use client';
 
-import { Box, Typography, Stack, Button, Divider } from '@mui/material';
+import { Box, Typography, Stack, Button, Divider, Collapse } from '@mui/material';
 import {
   Flight,
   StickyNote2,
   Home,
   Luggage,
+  ExpandMore,
 } from '@mui/icons-material';
 import Image from 'next/image';
+import { useState, useMemo } from 'react';
 import type { SvgIconComponent } from '@mui/icons-material';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { ActionButton } from '@/components/admin/ActionButton';
 
 export interface TravelSectionData {
   id: string;
@@ -36,28 +39,23 @@ const ICON_MAP: Record<string, SvgIconComponent> = {
 interface TravelSectionsDisplayProps {
   sections: TravelSectionData[];
   primaryColor?: string;
-  onViewDetails?: (section: TravelSectionData) => void;
 }
 
 export default function TravelSectionsDisplay({
   sections,
   primaryColor = COLORS.brand.primary,
-  onViewDetails,
 }: TravelSectionsDisplayProps) {
   const visibleSections = sections.filter(s => {
     if (s.visible === false) return false;
-    // Only show sections that have some content filled out
     const hasContent = !!(s.content || s.more_details || (s.type === 'hotel' && (s.address || s.phone)));
     return hasContent;
   });
 
-  // Extract header image from the travel-type section
   const travelSection = sections.find(s => s.type === 'travel');
   const headerImageUrl = travelSection?.image_url || null;
 
   return (
     <Stack spacing={4}>
-      {/* Header image — standalone, not tied to any section card */}
       {headerImageUrl && (
         <Box
           sx={{
@@ -83,7 +81,6 @@ export default function TravelSectionsDisplay({
           <TextSection
             section={section}
             primaryColor={primaryColor}
-            onViewDetails={onViewDetails}
           />
           {index < visibleSections.length - 1 && (
             <Divider sx={{ mt: 4, borderColor: 'rgba(0,0,0,0.06)' }} />
@@ -97,14 +94,27 @@ export default function TravelSectionsDisplay({
 function TextSection({
   section,
   primaryColor,
-  onViewDetails,
 }: {
   section: TravelSectionData;
   primaryColor: string;
-  onViewDetails?: (section: TravelSectionData) => void;
 }) {
   const Icon = ICON_MAP[section.type];
   const hasDetails = !!section.more_details;
+  const [expanded, setExpanded] = useState(false);
+
+  const { bodyHtml, ctaText, ctaUrl } = useMemo(() => {
+    if (!section.more_details) return { bodyHtml: '', ctaText: '', ctaUrl: '' };
+    const ctaRegex = /<div class="phera-cta" data-text="([^"]*)" data-url="([^"]*)"><\/div>/;
+    const match = section.more_details.match(ctaRegex);
+    if (match) {
+      return {
+        bodyHtml: section.more_details.replace(ctaRegex, '').trim(),
+        ctaText: match[1].replace(/&quot;/g, '"'),
+        ctaUrl: match[2].replace(/&quot;/g, '"'),
+      };
+    }
+    return { bodyHtml: section.more_details, ctaText: '', ctaUrl: '' };
+  }, [section.more_details]);
 
   return (
     <Box sx={{ textAlign: 'center' }}>
@@ -158,27 +168,94 @@ function TextSection({
         </Typography>
       )}
 
-      {hasDetails && onViewDetails && (
-        <Button
-          onClick={() => onViewDetails(section)}
-          variant="outlined"
-          sx={{
-            mt: 2,
-            color: primaryColor,
-            borderColor: primaryColor,
-            textTransform: 'none',
-            borderRadius: '32px',
-            px: 3,
-            fontWeight: 600,
-            fontSize: '0.875rem',
-            '&:hover': {
+      {hasDetails && (
+        <>
+          <Button
+            onClick={() => setExpanded(e => !e)}
+            variant="outlined"
+            endIcon={
+              <ExpandMore
+                sx={{
+                  transition: 'transform 0.25s ease',
+                  transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              />
+            }
+            sx={{
+              mt: 2,
+              color: primaryColor,
               borderColor: primaryColor,
-              bgcolor: `${primaryColor}10`,
-            },
-          }}
-        >
-          View Details
-        </Button>
+              textTransform: 'none',
+              borderRadius: '32px',
+              px: 3,
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              '&:hover': {
+                borderColor: primaryColor,
+                bgcolor: `${primaryColor}10`,
+              },
+            }}
+          >
+            {expanded ? 'Hide Details' : 'View Details'}
+          </Button>
+
+          <Collapse in={expanded} timeout="auto" unmountOnExit>
+            <Box
+              sx={{
+                mt: 2.5,
+                p: { xs: 2, sm: 2.5 },
+                borderRadius: RADII.md,
+                bgcolor: 'rgba(0,0,0,0.02)',
+                border: '1px solid rgba(0,0,0,0.06)',
+                textAlign: 'left',
+              }}
+            >
+              {bodyHtml && (
+                <Box
+                  sx={{
+                    '& p': { margin: '0 0 12px 0', color: COLORS.text.strong, lineHeight: 1.7, fontSize: '0.925rem' },
+                    '& p:last-child': { marginBottom: 0 },
+                    '& ul, & ol': { paddingLeft: '20px', margin: '0 0 12px 0' },
+                    '& ul': { listStyleType: 'disc' },
+                    '& ol': { listStyleType: 'decimal' },
+                    '& li': { color: COLORS.text.strong, lineHeight: 1.7, fontSize: '0.925rem', mb: 0.5, display: 'list-item' },
+                    '& li p': { margin: 0 },
+                    '& h3, & h4': { color: COLORS.text.strong, fontWeight: 600, fontSize: '1rem', mt: 1.5, mb: 0.5 },
+                    '& h3:first-of-type, & h4:first-of-type': { mt: 0 },
+                    '& a': { color: primaryColor, textDecoration: 'underline' },
+                    '& strong': { fontWeight: 600, color: COLORS.text.strong },
+                  }}
+                  dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                />
+              )}
+
+              {ctaText && ctaUrl && (
+                <Box sx={{ textAlign: 'center', mt: 2 }}>
+                  <ActionButton
+                    onClick={() => {
+                      window.open(ctaUrl, '_blank', 'noopener,noreferrer');
+                    }}
+                    variant="contained"
+                    spinnerColor={primaryColor}
+                    sx={{
+                      bgcolor: primaryColor,
+                      color: COLORS.text.inverse,
+                      borderRadius: '32px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      px: 4,
+                      py: 1,
+                      fontSize: '0.9rem',
+                      '&:hover': { bgcolor: primaryColor, opacity: 0.9 },
+                    }}
+                  >
+                    {ctaText}
+                  </ActionButton>
+                </Box>
+              )}
+            </Box>
+          </Collapse>
+        </>
       )}
     </Box>
   );

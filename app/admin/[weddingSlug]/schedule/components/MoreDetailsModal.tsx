@@ -634,11 +634,11 @@ export default function MoreDetailsModal({
               p: '24px',
               position: 'relative',
             }}>
-              {/* Phone frame with click zones */}
+              {/* Phone frame with click zones — locked to live carousel aspect (380:750) */}
               <Card
                 sx={{
                   width: 333,
-                  height: 600,
+                  aspectRatio: '380 / 750',
                   borderRadius: RADII.lg,
                   boxShadow: 'none',
                   border: '3px solid white',
@@ -722,18 +722,6 @@ export default function MoreDetailsModal({
               {/* Diamond indicators */}
               {slides.length > 0 && (
                 <DiamondIndicators total={slides.length} current={previewSlideIndex} activeColor="#DE3F5E" />
-              )}
-
-              {/* CTA preview — matches what guests see on the schedule card */}
-              {slides.length > 0 && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem', fontWeight: 700, textDecoration: 'underline' }}>
-                    More Details
-                  </Typography>
-                  <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>
-                    {'>'}
-                  </Typography>
-                </Box>
               )}
             </Box>
           </Box>

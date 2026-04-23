@@ -139,7 +139,7 @@ export default function RegistryPage() {
                   lineHeight: 1.5,
                   letterSpacing: '5.56%',
                   textTransform: 'uppercase',
-                  color: '#141414',
+                  color: COLORS.text.strong,
                 }}
               >
                 Registry
@@ -244,19 +244,22 @@ export default function RegistryPage() {
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 3,
-                        padding: { xs: 4, md: 5 },
+                        justifyContent: 'space-between',
+                        gap: 2,
+                        padding: { xs: 2.5, md: 3 },
                         backgroundColor: COLORS.bg.white,
                       }}
                     >
-                      {/* Registry Name with Emoji */}
+                      {/* Registry Name */}
                       <Typography
-                        variant="h4"
                         sx={{
                           fontWeight: 600,
-                          lineHeight: 1,
-                          color: '#141414',
+                          fontSize: { xs: '1rem', md: '1.125rem' },
+                          lineHeight: 1.3,
+                          color: COLORS.text.strong,
+                          textAlign: 'left',
+                          flex: 1,
+                          minWidth: 0,
                         }}
                       >
                         {item.fund_name}
@@ -264,8 +267,8 @@ export default function RegistryPage() {
 
                       <ChevronRight
                         sx={{
-                          color: '#141414',
-                          fontSize: { xs: 40, md: 48 },
+                          color: COLORS.text.strong,
+                          fontSize: { xs: 24, md: 28 },
                           flexShrink: 0,
                         }}
                       />
@@ -282,39 +285,24 @@ export default function RegistryPage() {
       <PheraDialog
         open={confirmDialogOpen}
         onClose={() => setConfirmDialogOpen(false)}
-        PaperProps={{ sx: { p: 2 } }}
+        maxWidth="xs"
+        fullWidth
       >
-        <PheraDialogTitle
-          onClose={() => setConfirmDialogOpen(false)}
-          sx={{ justifyContent: 'center', pt: 3 }}
-        >
+        <PheraDialogTitle onClose={() => setConfirmDialogOpen(false)}>
           Leaving Site
         </PheraDialogTitle>
         <DialogContent>
           <Stack spacing={2} alignItems="center" sx={{ py: 2 }}>
             <OpenInNew sx={{ fontSize: 48, color: wedding?.primary_color || COLORS.brand.primary }} />
-            <Typography
-              sx={{
-                fontSize: 16,
-                color: COLORS.text.muted,
-                textAlign: 'center',
-              }}
-            >
-              You're about to be redirected to an external registry site:
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle, textAlign: 'center' }}>
+              You&apos;re about to be redirected to an external registry site:
             </Typography>
-            <Typography
-              sx={{
-                fontSize: 18,
-                fontWeight: 600,
-                color: '#141414',
-                textAlign: 'center',
-              }}
-            >
+            <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, textAlign: 'center' }}>
               {selectedRegistry?.fund_name}
             </Typography>
           </Stack>
         </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 2 }}>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
           <Button
             onClick={() => setConfirmDialogOpen(false)}
             sx={{
@@ -323,9 +311,7 @@ export default function RegistryPage() {
               textTransform: 'none',
               fontWeight: 600,
               px: 3,
-              '&:hover': {
-                bgcolor: 'rgba(0, 0, 0, 0.05)',
-              },
+              '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.05)' },
             }}
           >
             Cancel
@@ -340,9 +326,7 @@ export default function RegistryPage() {
               textTransform: 'none',
               fontWeight: 600,
               px: 3,
-              '&:hover': {
-                bgcolor: COLORS.brand.primaryHover,
-              },
+              '&:hover': { bgcolor: COLORS.brand.primaryHover },
             }}
           >
             Continue

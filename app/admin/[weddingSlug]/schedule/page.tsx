@@ -2,9 +2,19 @@
 
 import { Box, Typography, Stack } from '@mui/material';
 import { useState, useEffect, use, useCallback, useRef } from 'react';
-import { DragEndEvent } from '@dnd-kit/core';
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
+  KeyboardSensor,
+  PointerSensor,
+  closestCorners,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
-import { arrayMove } from '@dnd-kit/sortable';
+import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { weddingService, ScheduleItem } from '@/lib/supabase/wedding-service';
 import { parseISO, eachDayOfInterval, format } from 'date-fns';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
@@ -216,7 +226,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     localStorage.setItem(EXAMPLES_DISMISSED_KEY, 'true');
   };
 
-  const handleSaveItem = async (dayId: string, formData: any) => {
+  const handleSaveItem = async (dayId: string, formData: Partial<ScheduleItem>) => {
     if (isViewOnly || !weddingId) return;
 
     setSavingForm(true);
@@ -279,7 +289,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     });
   };
 
-  const handleMoreDetails = useCallback(async (itemOrNew: ScheduleItem | { dayId: string; formData: any }) => {
+  const handleMoreDetails = useCallback(async (itemOrNew: ScheduleItem | { dayId: string; formData: Partial<ScheduleItem> }) => {
     if (isViewOnly || !weddingId) return;
 
     // Check if this is an existing schedule item (has 'id' field)
@@ -288,7 +298,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       setMoreDetailsItem(itemOrNew as ScheduleItem);
     } else {
       // New item from inline form — auto-save then open modal
-      const { dayId, formData } = itemOrNew as { dayId: string; formData: any };
+      const { dayId, formData } = itemOrNew as { dayId: string; formData: Partial<ScheduleItem> };
       if (!formData || !formData.name) {
         return;
       }
@@ -318,27 +328,115 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     }
   }, [isViewOnly, weddingId, showStatus, scheduleData, loadData, syncPreview]);
 
-  const handleDragEnd = async (event: DragEndEvent, dayId: string) => {
+  // ── Drag & drop (cross-day) ──────────────────────────────────────────────
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+  const sourceDayRef = useRef<string | null>(null);
+
+  const findDay = useCallback(
+    (data: DayWithItems[], id: string): DayWithItems | undefined =>
+      data.find(d => d.id === id || d.events.some(e => e.id === id)),
+    [],
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    if (isViewOnly) return;
+    const id = String(event.active.id);
+    const day = scheduleData.find(d => d.events.some(e => e.id === id));
+    sourceDayRef.current = day?.id ?? null;
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
     if (isViewOnly) return;
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    if (!over) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    if (activeId === overId) return;
 
-    const day = scheduleData.find(d => d.id === dayId);
-    if (!day) return;
+    setScheduleData(prev => {
+      const activeDay = prev.find(d => d.events.some(e => e.id === activeId));
+      if (!activeDay) return prev;
+      const overDay = findDay(prev, overId);
+      if (!overDay || activeDay.id === overDay.id) return prev;
 
-    const oldIndex = day.events.findIndex(item => item.id === active.id);
-    const newIndex = day.events.findIndex(item => item.id === over.id);
-    const newEvents = arrayMove(day.events, oldIndex, newIndex);
+      const activeItem = activeDay.events.find(e => e.id === activeId);
+      if (!activeItem) return prev;
 
-    // Optimistic update
-    setScheduleData(prev => prev.map(d =>
-      d.id === dayId ? { ...d, events: newEvents } : d
-    ));
+      const sourceEvents = activeDay.events.filter(e => e.id !== activeId);
+      const overIsDay = overDay.id === overId;
+      let insertAt = overDay.events.length;
+      if (!overIsDay) {
+        const idx = overDay.events.findIndex(e => e.id === overId);
+        if (idx !== -1) insertAt = idx;
+      }
+      const targetEvents = [...overDay.events];
+      targetEvents.splice(insertAt, 0, { ...activeItem, schedule_id: overDay.id });
+
+      return prev.map(d => {
+        if (d.id === activeDay.id) return { ...d, events: sourceEvents };
+        if (d.id === overDay.id) return { ...d, events: targetEvents };
+        return d;
+      });
+    });
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const source = sourceDayRef.current;
+    sourceDayRef.current = null;
+    if (isViewOnly) return;
+    const { active, over } = event;
+    if (!over) return;
+
+    const activeId = String(active.id);
+    const overId = String(over.id);
+
+    const nextStateRef: { value: DayWithItems[] } = { value: [] };
+    setScheduleData(prev => {
+      const currentDay = prev.find(d => d.events.some(e => e.id === activeId));
+      if (!currentDay) { nextStateRef.value = prev; return prev; }
+
+      // Final reorder within current day when dropping on another item in same day
+      if (currentDay.events.some(e => e.id === overId) && activeId !== overId) {
+        const oldIdx = currentDay.events.findIndex(e => e.id === activeId);
+        const newIdx = currentDay.events.findIndex(e => e.id === overId);
+        const next = prev.map(d => d.id === currentDay.id
+          ? { ...d, events: arrayMove(d.events, oldIdx, newIdx) }
+          : d
+        );
+        nextStateRef.value = next;
+        return next;
+      }
+      nextStateRef.value = prev;
+      return prev;
+    });
+
+    const nextState = nextStateRef.value;
+    const targetDay = nextState.find(d => d.events.some(e => e.id === activeId));
+    if (!targetDay) return;
+
+    const crossDay = source !== null && source !== targetDay.id;
+    const updates: { id: string; order_index: number; schedule_id?: string }[] = [];
+
+    targetDay.events.forEach((item, idx) => {
+      updates.push({
+        id: item.id,
+        order_index: idx,
+        schedule_id: targetDay.id,
+      });
+    });
+
+    if (crossDay) {
+      const sourceDay = nextState.find(d => d.id === source);
+      sourceDay?.events.forEach((item, idx) => {
+        updates.push({ id: item.id, order_index: idx });
+      });
+    }
 
     try {
-      await weddingService.reorderScheduleItems(
-        newEvents.map((item, index) => ({ id: item.id, order_index: index }))
-      );
+      await weddingService.reorderScheduleItems(updates);
       if (weddingId) await syncPreview(weddingId);
     } catch (err) {
       console.error('Error reordering:', err);
@@ -402,26 +500,33 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
         {showExamples && <ExamplesSection onDismiss={handleDismissExamples} />}
 
         {/* Day Cards */}
-        <Stack spacing={3}>
-          {scheduleData.map((day) => (
-            <DayCard
-              key={day.id}
-              dayId={day.id}
-              date={day.date}
-              events={day.events}
-              activeForm={activeForm}
-              savingForm={savingForm}
-              onSetActiveForm={setActiveForm}
-              onSaveItem={handleSaveItem}
-              onEditItem={handleEditItem}
-              onDeleteItem={handleDeleteItem}
-              onDragEnd={handleDragEnd}
-              onToast={() => {}}
-              onMoreDetails={handleMoreDetails}
-              isViewOnly={isViewOnly}
-            />
-          ))}
-        </Stack>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <Stack spacing={3}>
+            {scheduleData.map((day) => (
+              <DayCard
+                key={day.id}
+                dayId={day.id}
+                date={day.date}
+                events={day.events}
+                activeForm={activeForm}
+                savingForm={savingForm}
+                onSetActiveForm={setActiveForm}
+                onSaveItem={handleSaveItem}
+                onEditItem={handleEditItem}
+                onDeleteItem={handleDeleteItem}
+                onToast={() => {}}
+                onMoreDetails={handleMoreDetails}
+                isViewOnly={isViewOnly}
+              />
+            ))}
+          </Stack>
+        </DndContext>
       </Stack>
 
       <ConfirmDialog

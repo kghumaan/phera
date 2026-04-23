@@ -6,20 +6,19 @@ import {
   Typography,
   IconButton,
   Stack,
-  Modal,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowBack, Close } from '@mui/icons-material';
+import { ArrowBack } from '@mui/icons-material';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import { useState, useEffect } from 'react';
-import { weddingService } from '@/lib/supabase/wedding-service';
+import { weddingService, type WeddingTravelCard } from '@/lib/supabase/wedding-service';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import AppHeader from '@/components/shared/AppHeader';
 import TravelSectionsDisplay, { TravelSectionData } from '@/components/guest/TravelSectionsDisplay';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS } from '@/lib/theme/tokens';
 
 export default function TravelPage() {
   const params = useParams();
@@ -33,10 +32,6 @@ export default function TravelPage() {
   const [sections, setSections] = useState<TravelSectionData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Detail modal state
-  const [detailSection, setDetailSection] = useState<TravelSectionData | null>(null);
-  const [detailOpen, setDetailOpen] = useState(false);
-
   useEffect(() => {
     const fetchData = async () => {
       if (!wedding?.id) return;
@@ -48,14 +43,14 @@ export default function TravelPage() {
           // Fall back to legacy travel cards — convert to section-like format
           const cards = await weddingService.getTravelCards(wedding.id);
           if (cards.length > 0) {
-            const converted: TravelSectionData[] = cards.map((card: any, i: number) => ({
+            const converted: TravelSectionData[] = cards.map((card: WeddingTravelCard) => ({
               id: card.id,
               type: 'travel' as const,
               title: card.title,
               subtitle: null,
               content: Array.isArray(card.content)
-                ? card.content.map((p: any) => typeof p === 'string' ? p : p?.p ?? '').join('\n\n')
-                : card.content,
+                ? (card.content as Array<string | { p?: string }>).map((p) => typeof p === 'string' ? p : p?.p ?? '').join('\n\n')
+                : (card.content as string),
               image_url: card.image_url,
               icon: null,
               more_details: null,
@@ -106,7 +101,6 @@ export default function TravelPage() {
           minHeight: '100svh',
         }}
       >
-        {/* Desktop Header */}
         {!isMobile && (
           <Box
             sx={{
@@ -126,7 +120,6 @@ export default function TravelPage() {
           </Box>
         )}
 
-        {/* Mobile Header */}
         {isMobile && (
           <Box
             sx={{
@@ -159,7 +152,7 @@ export default function TravelPage() {
                     fontWeight: 400,
                     fontSize: 18,
                     textTransform: 'uppercase',
-                    color: '#141414',
+                    color: COLORS.text.strong,
                     letterSpacing: 1,
                   }}
                 >
@@ -171,7 +164,6 @@ export default function TravelPage() {
           </Box>
         )}
 
-        {/* Content */}
         <Box
           sx={{
             flex: 1,
@@ -189,10 +181,6 @@ export default function TravelPage() {
               <TravelSectionsDisplay
                 sections={sections}
                 primaryColor={primaryColor}
-                onViewDetails={(section) => {
-                  setDetailSection(section);
-                  setDetailOpen(true);
-                }}
               />
             ) : (
               <Box sx={{ textAlign: 'center', py: 8 }}>
@@ -204,101 +192,6 @@ export default function TravelPage() {
           </Container>
         </Box>
       </Box>
-
-      {/* Detail Modal */}
-      <Modal
-        open={detailOpen}
-        onClose={() => {
-          setDetailOpen(false);
-          setDetailSection(null);
-        }}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          p: 2,
-        }}
-      >
-        <Box
-          sx={{
-            bgcolor: COLORS.bg.white,
-            borderRadius: RADII.lg,
-            maxHeight: '80vh',
-            width: '100%',
-            maxWidth: 500,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          {detailSection && (
-            <>
-              {/* Header */}
-              <Box
-                sx={{
-                  p: 2.5,
-                  borderBottom: '1px solid rgba(0,0,0,0.08)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
-                    {detailSection.title}
-                  </Typography>
-                </Box>
-                <IconButton
-                  onClick={() => {
-                    setDetailOpen(false);
-                    setDetailSection(null);
-                  }}
-                  size="small"
-                  sx={{ color: COLORS.text.subtle }}
-                >
-                  <Close />
-                </IconButton>
-              </Box>
-
-              {/* Body */}
-              <Box sx={{ flex: 1, overflow: 'auto', p: 2.5 }}>
-                {detailSection.type === 'hotel' && (detailSection.address || detailSection.phone) && (
-                  <Box sx={{ mb: 2, pb: 2, borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-                    {detailSection.address && (
-                      <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 0.5 }}>
-                        {detailSection.address}
-                      </Typography>
-                    )}
-                    {detailSection.phone && (
-                      <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
-                        {detailSection.phone}
-                      </Typography>
-                    )}
-                    {detailSection.price_level && (
-                      <Typography variant="body2" sx={{ color: primaryColor, mt: 0.5 }}>
-                        {'$'.repeat(detailSection.price_level)}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-
-                {detailSection.more_details && (
-                  <Box
-                    sx={{
-                      '& p': { margin: '0 0 12px 0', color: COLORS.text.strong, lineHeight: 1.7, fontSize: '0.925rem' },
-                      '& ul': { paddingLeft: '20px', margin: '0 0 12px 0' },
-                      '& li': { color: COLORS.text.strong, lineHeight: 1.7, fontSize: '0.925rem', mb: 0.5 },
-                      '& a': { color: primaryColor, textDecoration: 'underline' },
-                      '& strong': { fontWeight: 600 },
-                    }}
-                    dangerouslySetInnerHTML={{ __html: detailSection.more_details }}
-                  />
-                )}
-              </Box>
-            </>
-          )}
-        </Box>
-      </Modal>
     </OptimizedBackground>
   );
 }

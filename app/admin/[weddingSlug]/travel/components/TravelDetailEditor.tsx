@@ -19,6 +19,7 @@ import {
   Link as LinkIcon,
   SmartButton,
   Delete,
+  AutoAwesome,
 } from '@mui/icons-material';
 import { useState, useCallback, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -62,6 +63,8 @@ export default function TravelDetailEditor({
   onSave,
 }: TravelDetailEditorProps) {
   const [saving, setSaving] = useState(false);
+  const [polishing, setPolishing] = useState(false);
+  const [polishError, setPolishError] = useState<string | null>(null);
 
   // Parse CTA from initial content
   const parsed = parseCta(initialContent || '');
@@ -139,6 +142,38 @@ export default function TravelDetailEditor({
     setLinkUrl('');
   }, [editor]);
 
+  const handlePolish = useCallback(async () => {
+    if (!editor) return;
+    const html = editor.getHTML();
+    const plain = editor.getText().trim();
+    if (!plain) {
+      setPolishError('Add some text first, then polish.');
+      return;
+    }
+    setPolishError(null);
+    setPolishing(true);
+    try {
+      const res = await fetch('/api/travel/polish-details', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setPolishError(err?.error || 'Failed to polish');
+        return;
+      }
+      const { html: polished } = await res.json();
+      if (polished && typeof polished === 'string') {
+        editor.commands.setContent(polished, { emitUpdate: true });
+      }
+    } catch {
+      setPolishError('Failed to polish');
+    } finally {
+      setPolishing(false);
+    }
+  }, [editor]);
+
   if (!editor) return null;
 
   return (
@@ -160,6 +195,7 @@ export default function TravelDetailEditor({
           <Box
             sx={{
               display: 'flex',
+              alignItems: 'center',
               gap: 0.5,
               borderBottom: '1px solid rgba(0,0,0,0.1)',
               pb: 1,
@@ -195,6 +231,26 @@ export default function TravelDetailEditor({
             >
               <LinkIcon fontSize="small" />
             </IconButton>
+
+            <Box sx={{ flex: 1 }} />
+            <Button
+              size="small"
+              onClick={handlePolish}
+              disabled={polishing}
+              startIcon={<AutoAwesome sx={{ fontSize: 16 }} />}
+              sx={{
+                color: COLORS.brand.primary,
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.8rem',
+                borderRadius: RADII.sm,
+                px: 1.5,
+                '&:hover': { bgcolor: 'rgba(222,63,94,0.08)' },
+                '&.Mui-disabled': { color: COLORS.text.subtle },
+              }}
+            >
+              {polishing ? 'Polishing…' : 'Polish with AI'}
+            </Button>
 
             {/* Link URL popover */}
             <Popover
@@ -283,6 +339,12 @@ export default function TravelDetailEditor({
           >
             <EditorContent editor={editor} />
           </Box>
+
+          {polishError && (
+            <Typography variant="caption" sx={{ color: COLORS.accent.danger, mt: 0.5 }}>
+              {polishError}
+            </Typography>
+          )}
 
           {/* CTA Button section */}
           <Box sx={{ pt: 1 }}>

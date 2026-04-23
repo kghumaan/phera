@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { ArrowBack, ChevronLeft, ChevronRight } from '@mui/icons-material';
+import { ArrowBack } from '@mui/icons-material';
 import StreamlineIcon from '@/components/ui/StreamlineIcon';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
@@ -55,7 +55,7 @@ function getBarColor(gradientBackground: string | null | undefined): string {
 }
 
 const timeTypographySx = {
-  color: '#141414',
+  color: COLORS.text.strong,
   fontWeight: 600,
   letterSpacing: '0.07em',
   textTransform: 'uppercase' as const,
@@ -73,13 +73,19 @@ const MajorEventRow = ({
   onMoreDetails?: () => void;
 }) => {
   const barColor = getBarColor(event.gradient_background);
+  const clickable = !!(event.linked_event_id && onMoreDetails);
 
   return (
     <Box
+      onClick={clickable ? onMoreDetails : undefined}
       sx={{
         display: 'flex',
         gap: 2,
         alignItems: 'stretch',
+        cursor: clickable ? 'pointer' : 'default',
+        borderRadius: RADII.md,
+        transition: 'background-color 120ms ease',
+        '&:hover': clickable ? { bgcolor: 'rgba(0,0,0,0.03)' } : {},
       }}
     >
       {/* Color bar */}
@@ -92,7 +98,7 @@ const MajorEventRow = ({
           <Typography
             sx={{
               fontWeight: 600,
-              color: '#141414',
+              color: COLORS.text.strong,
               fontSize: '1.1rem',
               lineHeight: 1.3,
               flex: 1,
@@ -133,10 +139,10 @@ const MajorEventRow = ({
 
         {/* Location + Dress Code row */}
         {(event.location || event.dress_code) && (
-          <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: event.linked_event_id ? 1.5 : 0 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', columnGap: 2, rowGap: 0.5, mb: event.linked_event_id ? 1.5 : 0 }}>
             {event.location && (
               <Stack direction="row" spacing={0.5} alignItems="center">
-                <StreamlineIcon name="map-pin" size={14} color="#6a6a6a" />
+                <StreamlineIcon name="map-pin" size={14} color={COLORS.text.subtle} />
                 <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem' }}>
                   {event.location}
                 </Typography>
@@ -144,25 +150,20 @@ const MajorEventRow = ({
             )}
             {event.dress_code && (
               <Stack direction="row" spacing={0.5} alignItems="center">
-                <StreamlineIcon name="hanger" size={14} color="#6a6a6a" />
+                <StreamlineIcon name="hanger" size={14} color={COLORS.text.subtle} />
                 <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem' }}>
                   {event.dress_code}
                 </Typography>
               </Stack>
             )}
-          </Stack>
+          </Box>
         )}
 
         {event.linked_event_id && onMoreDetails && (
-          <Box
-            onClick={onMoreDetails}
-            sx={{ cursor: 'pointer', display: 'inline-block' }}
-          >
-            <Typography sx={{ color: COLORS.brand.primary, fontSize: '0.875rem' }}>
-              <Box component="span" sx={{ fontWeight: 700, textDecoration: 'underline' }}>More Details</Box>
-              {' >'}
-            </Typography>
-          </Box>
+          <Typography sx={{ color: COLORS.brand.primary, fontSize: '0.875rem', display: 'inline-block' }}>
+            <Box component="span" sx={{ fontWeight: 700, textDecoration: 'underline' }}>More Details</Box>
+            {' >'}
+          </Typography>
         )}
       </Box>
     </Box>
@@ -189,7 +190,7 @@ const MinorEventRow = ({
       <Typography
         variant="h6"
         sx={{
-          color: '#141414',
+          color: COLORS.text.strong,
           lineHeight: 1.3,
         }}
       >
@@ -197,7 +198,7 @@ const MinorEventRow = ({
       </Typography>
       {event.location && (
         <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }}>
-          <StreamlineIcon name="map-pin" size={14} color="#858585" />
+          <StreamlineIcon name="map-pin" size={14} color={COLORS.text.subtle} />
           <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
             {event.location}
           </Typography>
@@ -270,7 +271,7 @@ const DayCard = ({
           <Typography
             variant="subtitleCaps"
             sx={{
-              color: '#141414',
+              color: COLORS.text.strong,
               fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
               mb: 0,
             }}
@@ -386,119 +387,102 @@ const CarouselOverlay = ({
           <ArrowBack />
         </IconButton>
 
-        {/* Event name header */}
-        <Typography
-          variant="h6"
-          sx={{
-            position: 'relative',
-            zIndex: 10,
-            fontSize: 14,
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            color: COLORS.text.inverse,
-            mb: 3,
-            textAlign: 'center',
+        {/* Carousel card — tap left/right halves or swipe to navigate */}
+        <motion.div
+          key={currentSlide}
+          drag={totalSlides > 1 ? 'x' : false}
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.3}
+          onDragEnd={(_, info) => {
+            const SWIPE_THRESHOLD = 50;
+            if (info.offset.x < -SWIPE_THRESHOLD && currentSlide < totalSlides - 1) {
+              setCurrentSlide(currentSlide + 1);
+            } else if (info.offset.x > SWIPE_THRESHOLD && currentSlide > 0) {
+              setCurrentSlide(currentSlide - 1);
+            }
           }}
-        >
-          {event.name}
-        </Typography>
-
-        {/* Carousel card */}
-        <Card
-          sx={{
+          style={{
             position: 'relative',
             zIndex: 10,
             width: '90%',
             maxWidth: 380,
-            height: '65vh',
-            maxHeight: 650,
-            backgroundColor: 'transparent',
-            borderRadius: RADII.dialog,
-            boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.16)',
-            border: '2px solid rgba(255, 255, 255, 0.3)',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundImage: gradientBackground
-              ? `url(/images/backgrounds/${gradientBackground})`
-              : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
+            touchAction: 'pan-y',
           }}
         >
-          <CardContent
+          <Card
             sx={{
-              p: slides[currentSlide]?.type === 'image' ? 0 : { xs: 3, md: 4 },
-              '&:last-child': { pb: slides[currentSlide]?.type === 'image' ? 0 : undefined },
-              flexGrow: 1,
+              position: 'relative',
+              width: '100%',
+              aspectRatio: '380 / 750',
+              backgroundColor: 'transparent',
+              borderRadius: RADII.dialog,
+              boxShadow: '0px 0px 32px 0px rgba(0, 0, 0, 0.16)',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+              overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              textAlign: 'center',
-              position: 'relative',
-              zIndex: 1,
-              height: '100%',
+              backgroundImage: gradientBackground
+                ? `url(/images/backgrounds/${gradientBackground})`
+                : 'none',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
             }}
           >
-            <SlideContent
-              slide={slides[currentSlide]}
-              textColor={textColor}
-              gradientBackground={gradientBackground}
-              isGradientSlide={currentSlide % 2 === 0}
-            />
-          </CardContent>
-        </Card>
+            <CardContent
+              sx={{
+                p: slides[currentSlide]?.type === 'image' ? 0 : { xs: 3, md: 4 },
+                '&:last-child': { pb: slides[currentSlide]?.type === 'image' ? 0 : undefined },
+                flexGrow: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                textAlign: 'center',
+                position: 'relative',
+                zIndex: 1,
+                height: '100%',
+              }}
+            >
+              <SlideContent
+                slide={slides[currentSlide]}
+                textColor={textColor}
+                gradientBackground={gradientBackground}
+                isGradientSlide={currentSlide % 2 === 0}
+              />
+            </CardContent>
 
-        {/* Navigation arrows */}
-        <Box
-          sx={{
-            position: 'relative',
-            zIndex: 10,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: 3,
-            mt: 3,
-          }}
-        >
-          <IconButton
-            onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
-            disabled={currentSlide === 0}
-            sx={{
-              width: 48,
-              height: 48,
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              color: COLORS.text.strong,
-              '&:hover': { backgroundColor: COLORS.bg.white },
-              '&:disabled': {
-                backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                color: 'rgba(0, 0, 0, 0.3)',
-              },
-            }}
-          >
-            <ChevronLeft sx={{ fontSize: 28 }} />
-          </IconButton>
-
-          <IconButton
-            onClick={() => setCurrentSlide(Math.min(totalSlides - 1, currentSlide + 1))}
-            disabled={currentSlide === totalSlides - 1}
-            sx={{
-              width: 48,
-              height: 48,
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-              color: COLORS.text.strong,
-              '&:hover': { backgroundColor: COLORS.bg.white },
-              '&:disabled': {
-                backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                color: 'rgba(0, 0, 0, 0.3)',
-              },
-            }}
-          >
-            <ChevronRight sx={{ fontSize: 28 }} />
-          </IconButton>
-        </Box>
+            {/* Tap zones — left 40% = prev, right 40% = next */}
+            {totalSlides > 1 && (
+              <>
+                <Box
+                  onClick={() => currentSlide > 0 && setCurrentSlide(currentSlide - 1)}
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '40%',
+                    height: '100%',
+                    cursor: currentSlide > 0 ? 'pointer' : 'default',
+                    zIndex: 5,
+                  }}
+                />
+                <Box
+                  onClick={() => currentSlide < totalSlides - 1 && setCurrentSlide(currentSlide + 1)}
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    width: '40%',
+                    height: '100%',
+                    cursor: currentSlide < totalSlides - 1 ? 'pointer' : 'default',
+                    zIndex: 5,
+                  }}
+                />
+              </>
+            )}
+          </Card>
+        </motion.div>
 
         {/* Diamond indicators */}
         {totalSlides > 1 && (
@@ -595,7 +579,7 @@ export default function SchedulePage() {
                   lineHeight: 1.5,
                   letterSpacing: '5.56%',
                   textTransform: 'uppercase',
-                  color: '#141414',
+                  color: COLORS.text.strong,
                 }}
               >
                 SCHEDULE & EVENTS
