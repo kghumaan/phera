@@ -175,6 +175,10 @@ const eslintConfig = [
       "app/blog/**/*.{ts,tsx}",
       "components/landing/**/*.{ts,tsx}",
       "components/shared/FinalCTA.tsx",
+      // Internal observability dashboard — dark theme, scoped to /ops/* only.
+      // PIN-gated, not user-facing, intentionally off the light design system.
+      "app/ops/**/*.{ts,tsx}",
+      "lib/ops/**/*.{ts,tsx}",
     ],
     rules: {
       "no-restricted-syntax": "off",
