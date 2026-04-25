@@ -15,16 +15,11 @@ import { Box, Stack, Typography, Collapse, IconButton } from '@mui/material';
 import { ExpandMore, Send } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
 import { PheraCard } from '@/components/shared/Card';
-import { PheraChip } from '@/components/shared/Chip';
 import { PheraTextField } from '@/components/shared/TextField';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 import { SectionHeading } from '@/components/shared/PageHeading';
 import { COLORS, RADII } from '@/lib/theme/tokens';
-import {
-  CATEGORY_LABELS,
-  renderTemplate,
-  type InviteTemplate,
-} from '@/lib/invites/templates';
+import { renderTemplate, type InviteTemplate } from '@/lib/invites/templates';
 import { WhatsAppPreview } from './WhatsAppPreview';
 import {
   AudiencePicker,
@@ -103,10 +98,12 @@ export function TemplateCard({
         transition: 'border-color 0.15s',
       }}
     >
-      {/* Header — title/description over the preview, always visible + clickable. */}
+      {/* Header — title/description over the preview, always visible + clickable.
+          Icon top-aligned with the title so multi-line descriptions don't drift
+          the icon off-axis. Category badge removed. */}
       <Stack
         direction="row"
-        alignItems="center"
+        alignItems="flex-start"
         spacing={1.5}
         onClick={onToggle}
         sx={{
@@ -131,16 +128,9 @@ export function TemplateCard({
           <Icon />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.25 }}>
-            <Typography variant="subtitle1" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
-              {template.title}
-            </Typography>
-            <PheraChip
-              tone="neutral"
-              label={CATEGORY_LABELS[template.category]}
-              size="small"
-            />
-          </Stack>
+          <Typography variant="subtitle1" sx={{ color: COLORS.text.strong, fontWeight: 600, mb: 0.25 }}>
+            {template.title}
+          </Typography>
           <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
             {template.description}
           </Typography>

@@ -52,21 +52,21 @@ export const INVITE_TEMPLATES: InviteTemplate[] = [
   {
     id: 'save_the_date',
     title: 'Save the Date',
-    description: 'First-touch announcement. Build anticipation before the formal RSVP ask.',
+    description: 'First-touch announcement. Build anticipation before the formal shaadi card.',
     category: 'announce',
     icon: CardGiftcard,
     body:
-`Hi {{guest_first_name}} 💫
+`Namaste {{guest_first_name}} 🪷
 
-{{couple_names}} are tying the knot on {{wedding_date}} in {{wedding_city}}.
+We are thrilled to share that {{couple_names}} are getting married on {{wedding_date}} in {{wedding_city}}.
 
-Save the date — formal invite + RSVP details to follow soon!
+Please save the dates for our mehendi, sangeet, and wedding ceremonies. Formal shaadi card and full schedule to follow soon!
 
-Can't wait to celebrate with you.`,
+We can't imagine celebrating without you.`,
     variables: [
       { key: 'guest_first_name', label: 'Guest first name', perGuest: true },
       { key: 'couple_names', label: 'Couple names', placeholder: 'Priya & Rahul' },
-      { key: 'wedding_date', label: 'Wedding date', placeholder: 'Feb 14, 2026' },
+      { key: 'wedding_date', label: 'Wedding dates', placeholder: 'Feb 14–16, 2026' },
       { key: 'wedding_city', label: 'City', placeholder: 'Jaipur' },
     ],
     nextStatus: 'save_the_date_sent',
@@ -74,22 +74,22 @@ Can't wait to celebrate with you.`,
   {
     id: 'rsvp_request',
     title: 'RSVP Request',
-    description: 'Formal ask — attach the RSVP link for one-tap response.',
+    description: 'Formal ask — share the RSVP link so guests can respond per ceremony.',
     category: 'rsvp',
     icon: EventAvailable,
     body:
-`Hi {{guest_first_name}}!
+`Namaste {{guest_first_name}}!
 
-{{couple_names}} would love to have you at their wedding on {{wedding_date}}.
+{{couple_names}} would be honoured to have you and your family join the wedding celebrations from {{wedding_date}}.
 
-Please RSVP here: {{rsvp_link}}
+Please RSVP for each ceremony here: {{rsvp_link}}
 
-Let us know by {{rsvp_deadline}}. Any questions, just reply here 💌`,
+Kindly respond by {{rsvp_deadline}}. For any questions, simply reply to this message 💌`,
     variables: [
       { key: 'guest_first_name', label: 'Guest first name', perGuest: true },
       { key: 'rsvp_link', label: 'RSVP link', perGuest: true },
       { key: 'couple_names', label: 'Couple names', placeholder: 'Priya & Rahul' },
-      { key: 'wedding_date', label: 'Wedding date', placeholder: 'Feb 14, 2026' },
+      { key: 'wedding_date', label: 'Wedding dates', placeholder: 'Feb 14–16, 2026' },
       { key: 'rsvp_deadline', label: 'RSVP deadline', placeholder: 'Jan 15, 2026' },
     ],
     nextStatus: 'rsvp_requested',
@@ -101,35 +101,35 @@ Let us know by {{rsvp_deadline}}. Any questions, just reply here 💌`,
     category: 'rsvp',
     icon: Notifications,
     body:
-`Hi {{guest_first_name}}! Just a quick reminder 🙂
+`Namaste {{guest_first_name}}! A small reminder 🙏
 
-{{couple_names}} are still hoping to hear from you about {{wedding_date}}.
+{{couple_names}} are still hoping to hear from you for the wedding celebrations from {{wedding_date}}.
 
-Tap to RSVP: {{rsvp_link}}
+Please RSVP here: {{rsvp_link}}
 
-Even a "maybe" helps us plan. Thanks!`,
+Even a "maybe" helps us plan rooms and meals. Dhanyavaad!`,
     variables: [
       { key: 'guest_first_name', label: 'Guest first name', perGuest: true },
       { key: 'rsvp_link', label: 'RSVP link', perGuest: true },
       { key: 'couple_names', label: 'Couple names', placeholder: 'Priya & Rahul' },
-      { key: 'wedding_date', label: 'Wedding date', placeholder: 'Feb 14, 2026' },
+      { key: 'wedding_date', label: 'Wedding dates', placeholder: 'Feb 14–16, 2026' },
     ],
     nextStatus: 'rsvp_requested',
   },
   {
     id: 'travel_collect',
     title: 'Travel & Stay Info',
-    description: 'Collect flight + hotel details so you can arrange pickup + rooms.',
+    description: 'Collect flight + hotel details so you can arrange airport pickup and rooms.',
     category: 'logistics',
     icon: Flight,
     body:
-`Hi {{guest_first_name}}!
+`Namaste {{guest_first_name}}!
 
-To help coordinate airport pickup + hotel stay for {{couple_names}}'s wedding, please share your travel plans here:
+To help coordinate airport pickup, hotel rooms, and shuttle service for {{couple_names}}'s wedding, please share your travel plans here:
 
 {{travel_link}}
 
-Takes ~2 minutes. Thank you 🙏`,
+Takes about 2 minutes. Dhanyavaad 🙏`,
     variables: [
       { key: 'guest_first_name', label: 'Guest first name', perGuest: true },
       { key: 'travel_link', label: 'Travel form link', perGuest: true },
@@ -139,39 +139,39 @@ Takes ~2 minutes. Thank you 🙏`,
   },
   {
     id: 'event_reminder',
-    title: 'Event Reminder',
-    description: 'Day-before or hours-before heads-up with venue + timing.',
+    title: 'Ceremony Reminder',
+    description: 'Day-before or hours-before heads-up for a specific function.',
     category: 'reminder',
     icon: Mail,
     body:
-`Hi {{guest_first_name}}!
+`Namaste {{guest_first_name}}!
 
 Quick reminder — {{event_name}} is {{event_when}} at {{venue}}.
 
 Dress code: {{dress_code}}
-Anything urgent, reply here.
+For anything urgent, please reply here.
 
 See you there 💃🕺`,
     variables: [
       { key: 'guest_first_name', label: 'Guest first name', perGuest: true },
-      { key: 'event_name', label: 'Event name', placeholder: 'Sangeet' },
-      { key: 'event_when', label: 'Event time', placeholder: 'tomorrow at 7 PM' },
+      { key: 'event_name', label: 'Ceremony', placeholder: 'Sangeet' },
+      { key: 'event_when', label: 'When', placeholder: 'tomorrow at 7 PM' },
       { key: 'venue', label: 'Venue', placeholder: 'Rambagh Palace' },
       { key: 'dress_code', label: 'Dress code', placeholder: 'Indian festive' },
     ],
   },
   {
     id: 'thank_you',
-    title: 'Thank You',
+    title: 'Dhanyavaad',
     description: 'Post-wedding thanks. Optional — couples love this one.',
     category: 'followup',
     icon: FavoriteBorder,
     body:
-`Hi {{guest_first_name}} ❤️
+`Namaste {{guest_first_name}} ❤️
 
-Thank you for celebrating with {{couple_names}}. It meant the world to have you there.
+Thank you for blessing {{couple_names}} with your presence. Your love and aashirwaad meant the world.
 
-Photos coming soon — keep an eye out!`,
+Photos and videos from the ceremonies will follow soon — keep an eye out!`,
     variables: [
       { key: 'guest_first_name', label: 'Guest first name', perGuest: true },
       { key: 'couple_names', label: 'Couple names', placeholder: 'Priya & Rahul' },

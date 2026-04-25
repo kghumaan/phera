@@ -221,31 +221,50 @@ export default function InvitesPage({ params }: { params: Promise<{ weddingSlug:
 
       <Box sx={{ mt: 3 }}>
         <SectionHeading title="Templates" />
-        {/* CSS Grid auto-fit: fits as many columns as the container allows,
-            given a min card width that comfortably fits the WhatsApp preview
-            (max 360px) plus the card's surrounding padding/margins. Cards wrap
-            to the next row like word-wrap. */}
+        {/* Responsive grid. Each tile capped to a comfortable width so the
+            preview + composer sit at a consistent size regardless of
+            container width. */}
         <Box
           sx={{
             mt: 1.5,
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, minmax(0, 400px))',
+              md: 'repeat(3, minmax(0, 400px))',
+            },
             gap: 1.5,
             alignItems: 'stretch',
+            justifyContent: 'start',
           }}
         >
           {groupedTemplates.flatMap((g) =>
-            g.items.map((t) => (
-              <TemplateCard
-                key={t.id}
-                template={t}
-                expanded={expandedId === t.id}
-                onToggle={() => toggleExpanded(t.id)}
-                guests={guests}
-                defaultVars={defaultVars}
-                onSubmit={handleCardSubmit}
-              />
-            )),
+            g.items.map((t) => {
+              const isOpen = expandedId === t.id;
+              // Expanded card spans the full row — preview + composer get
+              // breathing room instead of getting squashed into a single
+              // narrow column.
+              return (
+                <Box
+                  key={t.id}
+                  sx={{
+                    gridColumn: isOpen ? '1 / -1' : 'auto',
+                    display: 'flex',
+                  }}
+                >
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <TemplateCard
+                      template={t}
+                      expanded={isOpen}
+                      onToggle={() => toggleExpanded(t.id)}
+                      guests={guests}
+                      defaultVars={defaultVars}
+                      onSubmit={handleCardSubmit}
+                    />
+                  </Box>
+                </Box>
+              );
+            }),
           )}
         </Box>
       </Box>
