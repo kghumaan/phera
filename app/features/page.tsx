@@ -157,18 +157,18 @@ const pricingTiers = [
     highlight: true,
   },
   {
-    name: 'PHERA PREMIUM',
+    name: 'PHERA WHITE GLOVE',
     price: '$599',
     priceSuffix: '',
-    description: '200+ guests',
+    description: 'Let us handle it for you',
     features: [
       'Everything in Base',
-      'Reverse-destination cultural guides',
-      'Priority escalation support',
-      'On-call standby for urgent matters',
-      'Dedicated human coordinator hours',
+      'Dedicated coordinator assigned to your wedding',
+      'We personally call guests to collect every detail',
+      'Done-for-you guest logistics — you don’t lift a finger',
+      'Priority escalation & on-call support throughout',
     ],
-    buttonText: 'Get Started',
+    buttonText: 'Talk to Us',
     highlight: false,
   },
 ];
@@ -184,7 +184,7 @@ const faqs = [
   },
   {
     q: 'What do I actually pay for?',
-    a: "One flat fee per wedding — no subscriptions. Every tier includes the wedding website, RSVP collection, travel coordination, and a 24/7 WhatsApp Concierge. Premium adds the Vendor Coordinator Agent; Grand adds dedicated human coordinator hours.",
+    a: "One flat fee per wedding — no subscriptions. Every tier includes the wedding website, RSVP collection, travel coordination, and a 24/7 WhatsApp Concierge. Base adds the Vendor Coordinator Agent; White Glove gives you a dedicated coordinator who personally calls your guests and handles the logistics for you.",
   },
   {
     q: 'Can guests access this without an app?',
