@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -39,6 +39,7 @@ import {
   PhoneIphone,
   Android,
   ExpandMore,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import {
   Accordion,
@@ -51,6 +52,8 @@ import { ErrorAlert, InfoAlert } from '@/components/shared/Alert';
 import { PheraChip } from '@/components/shared/Chip';
 import { PheraDialog } from '@/components/shared/Dialog';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { getTagColor } from '@/lib/utils/tag-color';
+import { TagPicker } from './TagPicker';
 import {
   parseCsv,
   parseXlsx,
@@ -68,6 +71,10 @@ interface GuestImportWizardProps {
   weddingId: string;
   weddingSlug: string;
   onImportComplete?: (count: number) => void;
+  /** 0 = Upload file, 1 = Add manually. Defaults to 0. */
+  initialTab?: number;
+  /** Tags already in use across the wedding — powers the tag-picker suggestions. */
+  existingTags?: string[];
 }
 
 interface ImportResult {
@@ -118,8 +125,10 @@ export default function GuestImportWizard({
   weddingId,
   weddingSlug,
   onImportComplete,
+  initialTab = 0,
+  existingTags = [],
 }: GuestImportWizardProps) {
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(initialTab);
   const [step, setStep] = useState<Step>('select');
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<ParsedRow[]>([]);
@@ -128,15 +137,23 @@ export default function GuestImportWizard({
   const [result, setResult] = useState<ImportResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
-  const [manualGuests, setManualGuests] = useState<Array<{ name: string; email: string; phone: string; country_code: string; wedding_side: string; tag: string }>>([]);
-  const [manualForm, setManualForm] = useState({ name: '', email: '', phone: '', country_code: '+1', wedding_side: '', tag: '' });
+  const [manualGuests, setManualGuests] = useState<
+    Array<{ name: string; email: string; phone: string; country_code: string; tags: string[]; plus_one_name: string; plus_one_phone: string; party_size: number }>
+  >([]);
+  const [manualForm, setManualForm] = useState<{ name: string; email: string; phone: string; country_code: string; tags: string[]; plus_one_name: string; plus_one_phone: string; party_size: number }>(
+    { name: '', email: '', phone: '', country_code: '+1', tags: [], plus_one_name: '', plus_one_phone: '', party_size: 1 },
+  );
+  // Tag picker popover state (shared with guest-list per-row picker UX).
+  const [tagDraft, setTagDraft] = useState('');
+  const [tagPickerOpen, setTagPickerOpen] = useState(false);
+  const tagAddBtnRef = useRef<HTMLButtonElement | null>(null);
   const [exportHelpOpen, setExportHelpOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ─── Reset ───────────────────────────────────────────────────
 
-  const resetState = () => {
-    setTab(0);
+  const resetState = useCallback(() => {
+    setTab(initialTab);
     setStep('select');
     setHeaders([]);
     setRows([]);
@@ -146,8 +163,17 @@ export default function GuestImportWizard({
     setDragOver(false);
     setParseError(null);
     setManualGuests([]);
-    setManualForm({ name: '', email: '', phone: '', country_code: '+1', wedding_side: '', tag: '' });
-  };
+    setManualForm({ name: '', email: '', phone: '', country_code: '+1', tags: [], plus_one_name: '', plus_one_phone: '', party_size: 1 });
+    setTagDraft('');
+    setTagPickerOpen(false);
+  }, [initialTab]);
+
+  // Sync local `tab` with `initialTab` whenever the dialog is (re)opened or the
+  // caller asks for a different tab. Without this, consecutive opens from
+  // different buttons would stick on the last tab the user left.
+  useEffect(() => {
+    if (open) setTab(initialTab);
+  }, [open, initialTab]);
 
   const handleClose = () => {
     resetState();
@@ -180,8 +206,9 @@ export default function GuestImportWizard({
       } else {
         setParseError('Unsupported file type. Use .csv, .xlsx, .xls, or .vcf');
       }
-    } catch (err: any) {
-      setParseError(err.message || 'Failed to parse file');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to parse file';
+      setParseError(msg);
     }
   }, []);
 
@@ -202,12 +229,46 @@ export default function GuestImportWizard({
 
   const handleAddManual = () => {
     if (!manualForm.name.trim()) return;
-    setManualGuests((prev) => [...prev, { ...manualForm }]);
-    setManualForm({ ...manualForm, name: '', email: '', phone: '', tag: '' });
+    setManualGuests((prev) => [...prev, { ...manualForm, tags: [...manualForm.tags] }]);
+    setManualForm({ ...manualForm, name: '', email: '', phone: '', tags: [], plus_one_name: '', plus_one_phone: '', party_size: 1 });
+    setTagDraft('');
+    setTagPickerOpen(false);
   };
 
   const handleRemoveManual = (index: number) => {
     setManualGuests((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const stageManualTag = (tag: string) => {
+    const t = tag.trim();
+    if (!t) return;
+    setManualForm((prev) =>
+      prev.tags.includes(t) ? prev : { ...prev, tags: [...prev.tags, t] },
+    );
+  };
+
+  const unstageManualTag = (tag: string) => {
+    setManualForm((prev) => ({ ...prev, tags: prev.tags.filter((t) => t !== tag) }));
+  };
+
+  // ─── Template download ───────────────────────────────────────
+  // Generate a sample .csv with our expected schema + 2 pre-filled rows so
+  // couples can open the template and see exactly what columns to fill.
+  const handleDownloadTemplate = () => {
+    const csv = [
+      'Name,Email,Phone,Plus One,Plus One Phone,Party Size,Tags',
+      'Priya Sharma,priya@example.com,+1 415 555 0100,,,1,"bride-side,family"',
+      'Arjun Mehta,arjun@example.com,+1 415 555 0200,Aisha Mehta,+1 415 555 0199,2,"groom-side,family"',
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'phera-guest-list-template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   // ─── Build Guest Array ───────────────────────────────────────
@@ -228,10 +289,20 @@ export default function GuestImportWizard({
           name: g.name,
           email: g.email || undefined,
           phone: g.phone ? `${g.country_code}${g.phone}` : undefined,
-          wedding_side: g.wedding_side || undefined,
-          group: g.tag || undefined,
+          tags: g.tags.length > 0 ? g.tags : undefined,
+          plus_one_name: g.plus_one_name.trim() || undefined,
+          plus_one_phone: g.plus_one_phone.trim() || undefined,
+          party_size: g.party_size > 0 ? g.party_size : undefined,
         }))
-      : buildGuestsFromMapping();
+      : buildGuestsFromMapping().map((r) => {
+          // CSV path: coerce party_size from string → number so the API
+          // accepts it. Other fields are strings already.
+          const parsedSize = typeof r.party_size === 'string' ? parseInt(r.party_size, 10) : NaN;
+          return {
+            ...r,
+            party_size: Number.isFinite(parsedSize) && parsedSize > 0 ? parsedSize : undefined,
+          };
+        });
 
     try {
       const res = await fetch('/api/guests/import', {
@@ -249,8 +320,9 @@ export default function GuestImportWizard({
       });
       setStep('done');
       onImportComplete?.(data.imported);
-    } catch (err: any) {
-      setResult({ imported: 0, duplicates: 0, errors: [{ row: -1, reason: err.message }] });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Import failed';
+      setResult({ imported: 0, duplicates: 0, errors: [{ row: -1, reason: msg }] });
       setStep('done');
     } finally {
       setImporting(false);
@@ -331,57 +403,102 @@ export default function GuestImportWizard({
                   />
                 </Box>
 
-                {/* Format guide */}
-                <Paper elevation={0} sx={{ mt: 2.5, p: 2, bgcolor: COLORS.bg.muted, border: '1px solid rgba(0,0,0,0.07)', borderRadius: RADII.md }}>
-                  <Typography sx={{ fontSize: 14, fontWeight: 600, color: COLORS.text.strong, mb: 1 }}>
-                    How to format your file
-                  </Typography>
-                  <Typography sx={{ fontSize: 14, color: COLORS.text.muted, mb: 1.5, lineHeight: 1.7 }}>
-                    Upload any schema — we'll match columns automatically. Names are required. Email and phone unlock RSVPs, WhatsApp, and concierge, so include them when you can. Works best with headers like below.
+                {/* Guidelines — mirrors Zola-style import flow: template link,
+                    bullet checklist, and a sample row. Keeps our exact schema. */}
+                <Box sx={{ mt: 2.5 }}>
+                  <Typography
+                    variant="body1"
+                    sx={{ color: COLORS.text.strong, lineHeight: 1.6, mb: 1.5 }}
+                  >
+                    <Box
+                      component="button"
+                      type="button"
+                      onClick={handleDownloadTemplate}
+                      sx={{
+                        background: 'none',
+                        border: 'none',
+                        p: 0,
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                        color: COLORS.text.strong,
+                        textDecoration: 'underline',
+                        textUnderlineOffset: 2,
+                        font: 'inherit',
+                        '&:hover': { color: COLORS.brand.primary },
+                      }}
+                    >
+                      Use our template
+                    </Box>
+                    <Box component="span" sx={{ color: COLORS.text.muted }}>
+                      , or follow the guidelines below to adapt an existing spreadsheet.
+                    </Box>
                   </Typography>
 
-                  {/* Example table */}
-                  <TableContainer sx={{ borderRadius: RADII.sm, border: '1px solid rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-                    <Table size="small">
+                  <Stack spacing={1.25} sx={{ mb: 2 }}>
+                    {[
+                      'Enter column headers (e.g. Name, Email, Phone, Plus One, Plus One Phone, Party Size, Tags) in the first row.',
+                      'One guest per row. Include email and/or phone so they can RSVP and get WhatsApp updates. Plus One Phone is optional but useful for direct follow-up.',
+                      'Tags: separate multiple tags in a single cell with commas (e.g. bride-side, family) — they’ll import as distinct pills.',
+                      'Party Size is optional. Leave blank or set to 1 for a single guest; bump it to 2+ to track expected attendees per household.',
+                      'Save your spreadsheet as a .csv, .xlsx, or .vcf file.',
+                    ].map((line, i) => (
+                      <Stack key={i} direction="row" spacing={1.25} alignItems="flex-start">
+                        <CheckCircle
+                          sx={{
+                            fontSize: 20,
+                            color: COLORS.brand.primary,
+                            mt: '1px',
+                            flexShrink: 0,
+                          }}
+                        />
+                        <Typography
+                          variant="body2"
+                          sx={{ color: COLORS.text.strong, lineHeight: 1.55 }}
+                        >
+                          {line}
+                        </Typography>
+                      </Stack>
+                    ))}
+                  </Stack>
+
+                  {/* Example row — single guest showing the schema. */}
+                  <TableContainer
+                    sx={{
+                      borderRadius: RADII.sm,
+                      border: `1px solid ${COLORS.border.light}`,
+                      overflow: 'hidden',
+                      bgcolor: COLORS.bg.white,
+                    }}
+                  >
+                    <Table size="small" sx={{ bgcolor: COLORS.bg.white }}>
                       <TableHead>
-                        <TableRow sx={{ bgcolor: COLORS.bg.white }}>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.75 }}>Name</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.75 }}>Email</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.75 }}>Phone</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.75 }}>Side</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.75 }}>Tag</TableCell>
+                        <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>
+                            Name
+                            <Box component="span" sx={{ color: COLORS.brand.primary, ml: 0.5 }}>*</Box>
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Email</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Phone</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Plus One</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Plus One Phone</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Party Size</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Tags</TableCell>
                         </TableRow>
                       </TableHead>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Priya Sharma</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>priya@email.com</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>+919876543210</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Bride</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Priya's Friends</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Arjun Mehta</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>arjun@email.com</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>+14155551234</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Groom</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Arjun's Family</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Neha Patel</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>neha@email.com</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>+14085559876</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Bride</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.5 }}>Priya's US Friends</TableCell>
+                      <TableBody sx={{ bgcolor: COLORS.bg.white }}>
+                        <TableRow sx={{ bgcolor: COLORS.bg.white }}>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>Arjun Mehta</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>arjun@example.com</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>+1 415 555 0200</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>Aisha Mehta</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>+1 415 555 0199</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>2</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>groom-side, family</TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>
                   </TableContainer>
-
-                  <Typography sx={{ fontSize: 14, color: COLORS.text.subtle, mt: 1 }}>
-                    Side and tag are optional.
-                  </Typography>
-                </Paper>
+                </Box>
 
                 {/* Export from phone — sibling info card, collapsed by default */}
                 <Paper elevation={0} sx={{ mt: 2, p: 2, bgcolor: COLORS.bg.muted, border: '1px solid rgba(0,0,0,0.07)', borderRadius: RADII.md }}>
@@ -479,7 +596,12 @@ export default function GuestImportWizard({
                       onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
                       fullWidth
                       required
-                      sx={ENHANCED_TEXT_FIELD_SX}
+                      sx={{
+                        ...ENHANCED_TEXT_FIELD_SX,
+                        // Brand-pink asterisk instead of the default MUI red
+                        // (CLAUDE.md: no red; required markers use brand pink).
+                        '& .MuiFormLabel-asterisk': { color: COLORS.brand.primary },
+                      }}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
                     />
                     <TextField
@@ -520,30 +642,129 @@ export default function GuestImportWizard({
                     />
                   </Stack>
 
-                  {/* Row 3: Side | Tag (equal width) */}
+                  {/* Row 3: Plus One name | Plus One Phone | Party Size */}
                   <Stack direction="row" spacing={1}>
-                    <FormControl sx={{ ...ENHANCED_FORM_CONTROL_SX, flex: 1 }}>
-                      <InputLabel>Side (optional)</InputLabel>
-                      <Select
-                        label="Side (optional)"
-                        value={manualForm.wedding_side}
-                        onChange={(e) => setManualForm({ ...manualForm, wedding_side: e.target.value })}
-                      >
-                        <MenuItem value="">—</MenuItem>
-                        <MenuItem value="bride">Bride</MenuItem>
-                        <MenuItem value="groom">Groom</MenuItem>
-                        <MenuItem value="both">Both</MenuItem>
-                      </Select>
-                    </FormControl>
                     <TextField
-                      label="Tag (optional)"
-                      placeholder="e.g. Priya's Friends"
-                      value={manualForm.tag}
-                      onChange={(e) => setManualForm({ ...manualForm, tag: e.target.value })}
+                      label="Plus One"
+                      placeholder="e.g. Aisha Patel"
+                      value={manualForm.plus_one_name}
+                      onChange={(e) => setManualForm({ ...manualForm, plus_one_name: e.target.value })}
+                      sx={{ ...ENHANCED_TEXT_FIELD_SX, flex: 2 }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
+                    />
+                    <TextField
+                      label="Plus One Phone"
+                      placeholder="+1 415 555 0199"
+                      value={manualForm.plus_one_phone}
+                      onChange={(e) => setManualForm({ ...manualForm, plus_one_phone: e.target.value })}
+                      sx={{ ...ENHANCED_TEXT_FIELD_SX, flex: 2 }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
+                    />
+                    <TextField
+                      label="Party Size"
+                      type="number"
+                      inputProps={{ min: 1, max: 20 }}
+                      value={manualForm.party_size}
+                      onChange={(e) => {
+                        const n = parseInt(e.target.value, 10);
+                        setManualForm({ ...manualForm, party_size: Number.isFinite(n) && n > 0 ? n : 1 });
+                      }}
                       sx={{ ...ENHANCED_TEXT_FIELD_SX, flex: 1 }}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
                     />
                   </Stack>
+
+                  {/* Row 4: Tags — multi-select with suggestion popover that
+                      mirrors the per-row tag picker on the guest list. */}
+                  <Box>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: COLORS.text.muted, fontWeight: 500, mb: 0.75 }}
+                    >
+                      Tags
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        gap: 0.75,
+                        p: 1,
+                        border: `1px solid ${COLORS.border.default}`,
+                        borderRadius: RADII.md,
+                        bgcolor: COLORS.bg.white,
+                        minHeight: 44,
+                      }}
+                    >
+                      {manualForm.tags.map((t) => {
+                        const c = getTagColor(t);
+                        return (
+                          <Chip
+                            key={t}
+                            label={t}
+                            size="small"
+                            onDelete={() => unstageManualTag(t)}
+                            deleteIcon={<Close sx={{ fontSize: 14 }} />}
+                            sx={{
+                              height: 28,
+                              fontSize: '0.875rem',
+                              fontWeight: 600,
+                              bgcolor: c.bg,
+                              color: c.fg,
+                              border: `1px solid ${c.border}`,
+                              '& .MuiChip-deleteIcon': {
+                                color: c.fg,
+                                opacity: 0.6,
+                                '&:hover': { opacity: 1, color: c.fg },
+                              },
+                            }}
+                          />
+                        );
+                      })}
+                      <Button
+                        ref={tagAddBtnRef}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTagPickerOpen((o) => !o);
+                        }}
+                        endIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                        sx={{
+                          height: 28,
+                          px: 1.25,
+                          py: 0,
+                          textTransform: 'none',
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          borderRadius: RADII.pill,
+                          border: `1px dashed ${tagPickerOpen ? COLORS.brand.primary : COLORS.border.default}`,
+                          color: tagPickerOpen ? COLORS.brand.primary : COLORS.text.muted,
+                          ...(tagPickerOpen && { borderStyle: 'solid', bgcolor: COLORS.brand.primarySubtle }),
+                          '&:hover': {
+                            borderColor: COLORS.brand.primary,
+                            color: COLORS.brand.primary,
+                            borderStyle: 'solid',
+                            bgcolor: COLORS.brand.primarySubtle,
+                          },
+                          '& .MuiButton-endIcon': { ml: 0.5 },
+                        }}
+                      >
+                        {manualForm.tags.length ? 'Add another' : 'Add tag'}
+                      </Button>
+                    </Box>
+                    <TagPicker
+                      open={tagPickerOpen}
+                      anchorEl={tagAddBtnRef.current}
+                      draft={tagDraft}
+                      onSetDraft={setTagDraft}
+                      existingTags={existingTags}
+                      currentTags={manualForm.tags}
+                      onAdd={stageManualTag}
+                      onClose={() => {
+                        setTagPickerOpen(false);
+                        setTagDraft('');
+                      }}
+                    />
+                  </Box>
 
                   {/* Button row: Cancel | Add — right-aligned */}
                   <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ pt: 1 }}>
@@ -572,27 +793,55 @@ export default function GuestImportWizard({
 
                 {/* Added guests table */}
                 {manualGuests.length > 0 && (
-                  <Paper elevation={0} sx={{ mt: 2, border: '1px solid rgba(0,0,0,0.07)', borderRadius: RADII.md, overflow: 'hidden' }}>
-                    <TableContainer sx={{ maxHeight: 220 }}>
-                      <Table size="small">
+                  <Paper elevation={0} sx={{ mt: 2, border: '1px solid rgba(0,0,0,0.07)', borderRadius: RADII.md, overflow: 'hidden', bgcolor: COLORS.bg.white }}>
+                    <TableContainer sx={{ maxHeight: 220, bgcolor: COLORS.bg.white }}>
+                      <Table size="small" sx={{ bgcolor: COLORS.bg.white }}>
                         <TableHead>
                           <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
                             <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>Name</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>No.</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>Plus One</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>Plus One Phone</TableCell>
                             <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>Email</TableCell>
                             <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>Phone</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>Side</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>Tag</TableCell>
+                            <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14 }}>Tags</TableCell>
                             <TableCell sx={{ width: 40 }} />
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {manualGuests.map((g, i) => (
-                            <TableRow key={i}>
+                            <TableRow key={i} sx={{ bgcolor: COLORS.bg.white, '&:hover': { bgcolor: COLORS.bg.muted } }}>
                               <TableCell sx={{ color: COLORS.text.strong, fontSize: 14 }}>{g.name}</TableCell>
+                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.party_size || 1}</TableCell>
+                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.plus_one_name || '—'}</TableCell>
+                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.plus_one_phone || '—'}</TableCell>
                               <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.email || '—'}</TableCell>
                               <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.phone ? `${g.country_code}${g.phone}` : '—'}</TableCell>
-                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.wedding_side || '—'}</TableCell>
-                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.tag || '—'}</TableCell>
+                              <TableCell>
+                                {g.tags.length > 0 ? (
+                                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                    {g.tags.map((t) => {
+                                      const c = getTagColor(t);
+                                      return (
+                                        <Chip
+                                          key={t}
+                                          label={t}
+                                          size="small"
+                                          sx={{
+                                            fontSize: '0.875rem',
+                                            fontWeight: 600,
+                                            bgcolor: c.bg,
+                                            color: c.fg,
+                                            border: `1px solid ${c.border}`,
+                                          }}
+                                        />
+                                      );
+                                    })}
+                                  </Box>
+                                ) : (
+                                  <Typography sx={{ color: COLORS.text.faint, fontSize: 14 }}>—</Typography>
+                                )}
+                              </TableCell>
                               <TableCell>
                                 <IconButton size="small" onClick={() => handleRemoveManual(i)}>
                                   <Close sx={{ fontSize: 14, color: COLORS.text.faint }} />

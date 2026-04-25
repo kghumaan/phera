@@ -96,6 +96,15 @@ export const AUTO_MAP: Record<string, string> = {
   side: 'wedding_side', 'wedding side': 'wedding_side', wedding_side: 'wedding_side',
   tag: 'group', tags: 'group', label: 'group', category: 'group',
   group: 'group', family: 'group', 'group name': 'group', 'family name': 'group', team: 'group',
+  // Plus-one + party-size columns.
+  'plus one': 'plus_one_name', plus_one: 'plus_one_name', plusone: 'plus_one_name', 'plus one name': 'plus_one_name',
+  'plus 1': 'plus_one_name', 'plus+1': 'plus_one_name', '+1': 'plus_one_name', '+1 name': 'plus_one_name',
+  'companion': 'plus_one_name', 'guest plus one': 'plus_one_name',
+  'plus one phone': 'plus_one_phone', 'plus_one_phone': 'plus_one_phone', 'plus 1 phone': 'plus_one_phone',
+  '+1 phone': 'plus_one_phone', 'companion phone': 'plus_one_phone',
+  'party size': 'party_size', party_size: 'party_size', 'partysize': 'party_size',
+  'headcount': 'party_size', 'head count': 'party_size', 'party count': 'party_size',
+  'number of guests': 'party_size', 'no': 'party_size', 'no.': 'party_size', 'count': 'party_size',
 };
 
 // Fuzzy match: exact hit first, then substring heuristics.
@@ -127,6 +136,20 @@ function matchField(rawHeader: string): string | null {
 
   // Side
   if (squashed.includes('side')) return 'wedding_side';
+
+  // Plus-one fields (check BEFORE generic tag/group so "plus one name" doesn't
+  // land on group).
+  if (squashed.includes('plusonephone') || squashed.includes('plus1phone') || squashed.includes('companionphone')) {
+    return 'plus_one_phone';
+  }
+  if (squashed.includes('plusone') || squashed.includes('plus1') || squashed === 'companion' || squashed === '+1') {
+    return 'plus_one_name';
+  }
+
+  // Party size / headcount
+  if (/(partysize|headcount|partycount|numberofguests)/.test(squashed) || squashed === 'count') {
+    return 'party_size';
+  }
 
   // Tag / group
   if (/(tag|group|category|label|team)/.test(squashed)) return 'group';

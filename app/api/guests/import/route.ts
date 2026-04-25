@@ -13,8 +13,28 @@ interface GuestInput {
   phone?: string;
   country_code?: string;
   wedding_side?: 'bride' | 'groom' | 'both';
+  /** Legacy single-tag field — still accepted for CSV imports. May contain
+   *  commas/semicolons for multi-tag cells; they'll be split server-side. */
   group?: string;
+  /** Preferred multi-tag field — used by the manual-add form. */
+  tags?: string[];
+  /** Name the couple plans to invite as a plus one (pre-RSVP planning). */
+  plus_one_name?: string;
+  /** Optional direct phone for the plus one (for RSVP follow-up). */
+  plus_one_phone?: string;
+  /** Expected attendees for this invite (primary + companions). */
+  party_size?: number;
   notes?: string;
+}
+
+/** Split a cell like "family, bride-side" into ["family", "bride-side"].
+ *  Accepts comma, semicolon, or pipe as separators so CSV exports from
+ *  different tools all parse cleanly. */
+function splitTagCell(raw: string): string[] {
+  return raw
+    .split(/[,;|]/)
+    .map((t) => t.trim())
+    .filter(Boolean);
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -63,13 +83,13 @@ export async function POST(request: NextRequest) {
       .eq('wedding_id', wedding_id);
 
     const existingEmails = new Set(
-      (existing || []).map((g: any) => g.email?.toLowerCase()).filter(Boolean),
+      (existing || []).map((g: { email: string | null }) => g.email?.toLowerCase()).filter(Boolean),
     );
     const existingPhones = new Set(
-      (existing || []).map((g: any) => g.phone?.replace(/[^\d+]/g, '')).filter(Boolean),
+      (existing || []).map((g: { phone: string | null }) => g.phone?.replace(/[^\d+]/g, '')).filter(Boolean),
     );
 
-    const toInsert: any[] = [];
+    const toInsert: Record<string, unknown>[] = [];
     const duplicates: number[] = [];
     const errors: Array<{ row: number; reason: string }> = [];
 
@@ -121,12 +141,41 @@ export async function POST(request: NextRequest) {
       const sideRaw = (g.wedding_side || '').toString().trim().toLowerCase();
       const weddingSide = (['bride', 'groom', 'both'] as const).find((s) => s === sideRaw) || null;
 
+      // Normalize tags. Prefer explicit `tags` array; fall back to legacy
+      // `group` (single string) for CSV imports. Either path is split on
+      // comma / semicolon / pipe so a single cell with "family, bride-side"
+      // imports as distinct tags.
+      const rawTagList = Array.isArray(g.tags)
+        ? g.tags.flatMap((t) => (typeof t === 'string' ? splitTagCell(t) : []))
+        : g.group && g.group.trim()
+          ? splitTagCell(g.group)
+          : [];
+      const uniqueTags = Array.from(new Set(rawTagList));
+
+      const plusOneName = g.plus_one_name && g.plus_one_name.trim() ? g.plus_one_name.trim() : null;
+      const plusOnePhone = g.plus_one_phone && g.plus_one_phone.trim() ? g.plus_one_phone.trim() : null;
+      const partySize = typeof g.party_size === 'number' && g.party_size > 0
+        ? Math.floor(g.party_size)
+        : null;
+
+      // Build logistics_data only if at least one field is set.
+      const logisticsFields: Record<string, unknown> = {};
+      if (uniqueTags.length > 0) {
+        logisticsFields.tags = uniqueTags;
+        logisticsFields.tag = uniqueTags[0]; // mirror primary into legacy `tag`
+      }
+      if (plusOneName) logisticsFields.plus_one_name = plusOneName;
+      if (plusOnePhone) logisticsFields.plus_one_phone = plusOnePhone;
+      if (partySize !== null) logisticsFields.party_size = partySize;
+      const logistics_data = Object.keys(logisticsFields).length > 0 ? logisticsFields : null;
+
       toInsert.push({
         name,
         email: email || `imported-${Date.now()}-${i}@phera.io`,
         phone,
         wedding_id,
         wedding_side: weddingSide,
+        ...(logistics_data && { logistics_data }),
         avatar_color: generateFallbackColor(name),
         auth_method: 'imported',
       });
@@ -148,7 +197,7 @@ export async function POST(request: NextRequest) {
         errors.push({ row: -1, reason: `Batch insert failed: ${error.message}` });
       } else {
         imported += (data || []).length;
-        importedIds.push(...(data || []).map((r: any) => r.id));
+        importedIds.push(...(data || []).map((r: { id: string }) => r.id));
       }
     }
 
@@ -159,8 +208,9 @@ export async function POST(request: NextRequest) {
       total_submitted: guests.length,
       imported_ids: importedIds,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[guests/import] Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
