@@ -151,19 +151,19 @@ const pricingTiers = [
     highlight: true,
   },
   {
-    name: 'PHERA PREMIUM',
+    name: 'PHERA WHITE GLOVE',
     price: '$599',
     priceSuffix: '',
-    description: '200+ guests',
+    description: 'Let us handle it for you',
     features: [
       'Everything in Base',
-      'Priority escalation support',
-      'On-call standby for urgent matters',
-      'Dedicated human coordinator hours',
-      'White-glove onboarding',
-      'Custom outreach sequences',
+      'Dedicated coordinator assigned to your wedding',
+      'We personally call guests to collect every detail',
+      'Done-for-you guest logistics — you don’t lift a finger',
+      'Priority escalation & on-call support throughout',
+      'White-glove onboarding & guest list setup',
     ],
-    buttonText: 'Get Started',
+    buttonText: 'Talk to Us',
     highlight: false,
   },
 ];
@@ -203,7 +203,7 @@ const faqs = [
   },
   {
     q: 'Do I still need a day-of coordinator?',
-    a: 'Phera handles pre-wedding coordination — the weeks and months of guest logistics leading up to your big day. Premium includes dedicated human coordinator hours and on-call standby for urgent matters. For most couples, pairing Premium with a local day-of coordinator is the sweet spot.',
+    a: 'Phera handles pre-wedding coordination — the weeks and months of guest logistics leading up to your big day. White Glove gives you a dedicated coordinator who personally calls your guests, gathers their details, and handles the chasing for you. For most couples, pairing White Glove with a local day-of coordinator is the sweet spot.',
   },
   {
     q: "Is my guests' data safe?",
@@ -1885,7 +1885,7 @@ function LandingPageContent() {
                         },
                       };
                       const label = tier.buttonText;
-                      if (tier.name === 'PHERA BASE' || tier.name === 'PHERA PREMIUM') {
+                      if (tier.name === 'PHERA BASE' || tier.name === 'PHERA WHITE GLOVE') {
                         return (
                           <Button
                             fullWidth
