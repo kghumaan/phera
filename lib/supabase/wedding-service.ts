@@ -1729,11 +1729,16 @@ export class WeddingService {
     return true;
   }
 
-  async listGuestEventAccess(weddingId: string): Promise<Array<{ guest_id: string; event_id: string; invited: boolean }>> {
+  // `weddingSlug` is the TEXT slug (e.g. "priya-rahul-2026"), NOT the wedding
+  // UUID. The `wedding_id` column on guest_event_access is TEXT and the RLS
+  // policy resolves admin access via `is_wedding_owner_or_admin_by_slug`, so
+  // storing UUID here would silently break both reads and writes.
+
+  async listGuestEventAccess(weddingSlug: string): Promise<Array<{ guest_id: string; event_id: string; invited: boolean }>> {
     const { data, error } = await this.supabase
       .from('guest_event_access')
       .select('guest_id, event_id, invited')
-      .eq('wedding_id', weddingId);
+      .eq('wedding_id', weddingSlug);
     if (error) {
       console.error('Error fetching guest_event_access:', error);
       return [];
@@ -1742,7 +1747,7 @@ export class WeddingService {
   }
 
   async setGuestEventInvited(
-    weddingId: string,
+    weddingSlug: string,
     guestId: string,
     eventId: string,
     invited: boolean,
@@ -1759,7 +1764,7 @@ export class WeddingService {
     }
     const { error } = await this.supabase
       .from('guest_event_access')
-      .upsert([{ guest_id: guestId, event_id: eventId, wedding_id: weddingId, invited: false }], {
+      .upsert([{ guest_id: guestId, event_id: eventId, wedding_id: weddingSlug, invited: false }], {
         onConflict: 'guest_id,event_id',
       });
     if (error) { console.error('Error upserting guest_event_access row:', error); return false; }

@@ -19,6 +19,8 @@ import {
   Tooltip,
   Checkbox,
   InputAdornment,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { Add, People, Upload, Delete, LocalOffer, Close, CheckCircle, Cancel, HelpOutline, MailOutline, KeyboardDoubleArrowDown, Undo, Search } from '@mui/icons-material';
 import { memo, use, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -40,6 +42,7 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import GuestImportWizard from '@/components/admin/guests/GuestImportWizard';
 import { TagPicker } from '@/components/admin/guests/TagPicker';
 import GuestDetailDrawer, { type GuestDetailRecord } from '@/components/admin/guests/GuestDetailDrawer';
+import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII, SHADOWS } from '@/lib/theme/tokens';
 import { getTagColor } from '@/lib/utils/tag-color';
@@ -1010,15 +1013,46 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     cancelEdit();
   }, [cancelEdit, appendTagsToIds]);
 
-  const removeGuest = useCallback(async (id: string) => {
-    if (!confirm('Remove this guest?')) return;
+  // Delete-confirmation dialog flow. Triggers from per-row delete icon AND
+  // bulk delete in the selection bar — both funnel through `pendingDelete`
+  // so the same Phera-styled modal is the single confirmation surface (no
+  // browser confirm()).
+  const [pendingDelete, setPendingDelete] = useState<string[] | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const requestDeleteGuests = useCallback((ids: string[]) => {
+    if (ids.length === 0) return;
+    setPendingDelete(ids);
+  }, []);
+
+  const cancelDeleteGuests = useCallback(() => {
+    if (deleting) return;
+    setPendingDelete(null);
+  }, [deleting]);
+
+  const confirmDeleteGuests = useCallback(async () => {
+    const ids = pendingDelete;
+    if (!ids || ids.length === 0) return;
+    setDeleting(true);
+    // FKs that previously blocked guest deletes (coordination_issues +
+    // whatsapp_broadcasts) now cascade / set null at the DB level (see
+    // migration guests_fk_cascade_cleanup) — no client-side child cleanup
+    // needed.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests.delete() isn't captured by generated supabase types
-    const { error } = await (supabase as any).from('guests').delete().eq('id', id);
+    const { error } = await (supabase as any).from('guests').delete().in('id', ids);
+    setDeleting(false);
     if (error) {
       console.error('guest delete error:', error);
       return;
     }
-    setGuests((prev) => prev.filter((g) => g.id !== id));
+    const idSet = new Set(ids);
+    setGuests((prev) => prev.filter((g) => !idSet.has(g.id)));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      for (const id of ids) next.delete(id);
+      return next;
+    });
+    setPendingDelete(null);
     try {
       const channel = new BroadcastChannel('phera-guests-sync');
       channel.postMessage({ type: 'GUESTS_UPDATED' });
@@ -1026,7 +1060,11 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     } catch {
       // BroadcastChannel unavailable — non-critical.
     }
-  }, []);
+  }, [pendingDelete]);
+
+  const removeGuest = useCallback((id: string) => {
+    requestDeleteGuests([id]);
+  }, [requestDeleteGuests]);
 
   // ─── Selection + bulk tag ────────────────────────────────────
 
@@ -1268,6 +1306,52 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
             </Typography>
           )}
 
+          {guests.length > 0 && (
+            <TextField
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name, email, or phone"
+              size="small"
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search sx={{ fontSize: 18, color: COLORS.text.faint }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: search ? (
+                    <InputAdornment position="end">
+                      <IconButton
+                        size="small"
+                        onClick={() => setSearch('')}
+                        aria-label="Clear search"
+                        sx={{ color: COLORS.text.faint }}
+                      >
+                        <Close sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null,
+                },
+              }}
+              sx={{
+                ml: 2,
+                width: { xs: '100%', sm: 280, md: 320 },
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: RADII.md,
+                  bgcolor: COLORS.bg.white,
+                  fontSize: '0.875rem',
+                  '& input': { py: 0.75, color: COLORS.text.strong },
+                  '& fieldset': { borderColor: COLORS.border.default },
+                  '&:hover fieldset': { borderColor: COLORS.brand.primary },
+                  '&.Mui-focused fieldset': {
+                    borderColor: COLORS.brand.primary,
+                    borderWidth: '1.5px',
+                  },
+                },
+              }}
+            />
+          )}
+
           {/* Right-aligned bulk-tag controls. Inline in the header rather than
               a floating pill so it's obvious the controls act on the table below.
               The undo button sits BEFORE the bulk bar so it coexists cleanly
@@ -1418,6 +1502,25 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                 >
                   Clear tags
                 </SecondaryActionButton>
+                <Tooltip title={`Delete ${selectedIds.size} guest${selectedIds.size === 1 ? '' : 's'}`}>
+                  <IconButton
+                    size="small"
+                    onClick={() => requestDeleteGuests(Array.from(selectedIds))}
+                    disabled={bulkApplying}
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      color: COLORS.brand.primary,
+                      border: `1px solid ${COLORS.brand.primaryBorder}`,
+                      '&:hover': {
+                        bgcolor: COLORS.brand.primarySubtle,
+                        borderColor: COLORS.brand.primary,
+                      },
+                    }}
+                  >
+                    <Delete sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </Tooltip>
                 <Tooltip title="Clear selection">
                   <IconButton
                     size="small"
@@ -1432,61 +1535,6 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
             )}
           </AnimatePresence>
         </Box>
-
-        {guests.length > 0 && (
-          <Box
-            sx={{
-              px: 2.5,
-              py: 1.5,
-              borderBottom: `1px solid ${COLORS.border.faint}`,
-              bgcolor: COLORS.bg.white,
-            }}
-          >
-            <TextField
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, email, or phone"
-              size="small"
-              fullWidth
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search sx={{ fontSize: 18, color: COLORS.text.faint }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: search ? (
-                    <InputAdornment position="end">
-                      <IconButton
-                        size="small"
-                        onClick={() => setSearch('')}
-                        aria-label="Clear search"
-                        sx={{ color: COLORS.text.faint }}
-                      >
-                        <Close sx={{ fontSize: 16 }} />
-                      </IconButton>
-                    </InputAdornment>
-                  ) : null,
-                },
-              }}
-              sx={{
-                maxWidth: 420,
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: RADII.md,
-                  bgcolor: COLORS.bg.white,
-                  fontSize: '0.875rem',
-                  '& input': { py: 0.75, color: COLORS.text.strong },
-                  '& fieldset': { borderColor: COLORS.border.default },
-                  '&:hover fieldset': { borderColor: COLORS.brand.primary },
-                  '&.Mui-focused fieldset': {
-                    borderColor: COLORS.brand.primary,
-                    borderWidth: '1.5px',
-                  },
-                },
-              }}
-            />
-          </Box>
-        )}
 
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -1638,6 +1686,44 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
           );
         }}
       />
+
+      {/* Delete-guest confirmation modal. Same dialog handles single-row +
+          bulk deletes — pendingDelete carries the id list. */}
+      <PheraDialog
+        open={pendingDelete !== null}
+        onClose={cancelDeleteGuests}
+        maxWidth="xs"
+        fullWidth
+      >
+        <PheraDialogTitle onClose={cancelDeleteGuests}>
+          {pendingDelete && pendingDelete.length > 1
+            ? `Delete ${pendingDelete.length} guests?`
+            : 'Delete this guest?'}
+        </PheraDialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.55 }}>
+            {pendingDelete && pendingDelete.length > 1
+              ? `${pendingDelete.length} guests will be permanently removed from this wedding, along with their RSVPs and tags. This can't be undone.`
+              : "This guest will be permanently removed, along with their RSVPs and tags. This can't be undone."}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, pt: 1, gap: 1 }}>
+          <SecondaryActionButton onClick={cancelDeleteGuests} disabled={deleting}>
+            Cancel
+          </SecondaryActionButton>
+          <PrimaryActionButton
+            onClick={confirmDeleteGuests}
+            disabled={deleting}
+            startIcon={<Delete sx={{ fontSize: 18 }} />}
+          >
+            {deleting
+              ? 'Deleting…'
+              : pendingDelete && pendingDelete.length > 1
+                ? `Delete ${pendingDelete.length} guests`
+                : 'Delete'}
+          </PrimaryActionButton>
+        </DialogActions>
+      </PheraDialog>
     </Box>
   );
 }

@@ -22,6 +22,10 @@ interface GuestInput {
   plus_one_name?: string;
   /** Optional direct phone for the plus one (for RSVP follow-up). */
   plus_one_phone?: string;
+  /** Extra named companions beyond the plus one. Each row optionally carries a
+   *  phone for direct follow-up. Surfaces in the guest-list Name + Phone
+   *  columns as separate lines. */
+  additional_guests?: Array<{ name?: string | null; phone?: string | null }>;
   /** Expected attendees for this invite (primary + companions). */
   party_size?: number;
   notes?: string;
@@ -166,6 +170,18 @@ export async function POST(request: NextRequest) {
       }
       if (plusOneName) logisticsFields.plus_one_name = plusOneName;
       if (plusOnePhone) logisticsFields.plus_one_phone = plusOnePhone;
+
+      // Trim + drop empty additional-guest rows (need at least name OR phone).
+      const cleanedAdditional = Array.isArray(g.additional_guests)
+        ? g.additional_guests
+            .map((x) => ({
+              name: typeof x?.name === 'string' ? x.name.trim() : '',
+              phone: typeof x?.phone === 'string' ? x.phone.trim() : '',
+            }))
+            .filter((x) => x.name.length > 0 || x.phone.length > 0)
+        : [];
+      if (cleanedAdditional.length > 0) logisticsFields.additional_guests = cleanedAdditional;
+
       if (partySize !== null) logisticsFields.party_size = partySize;
       const logistics_data = Object.keys(logisticsFields).length > 0 ? logisticsFields : null;
 

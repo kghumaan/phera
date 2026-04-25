@@ -137,12 +137,28 @@ export default function GuestImportWizard({
   const [result, setResult] = useState<ImportResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
-  const [manualGuests, setManualGuests] = useState<
-    Array<{ name: string; email: string; phone: string; country_code: string; tags: string[]; plus_one_name: string; plus_one_phone: string; party_size: number }>
-  >([]);
-  const [manualForm, setManualForm] = useState<{ name: string; email: string; phone: string; country_code: string; tags: string[]; plus_one_name: string; plus_one_phone: string; party_size: number }>(
-    { name: '', email: '', phone: '', country_code: '+1', tags: [], plus_one_name: '', plus_one_phone: '', party_size: 1 },
-  );
+  interface ManualAdditionalGuest { name: string; phone: string }
+  interface ManualGuestForm {
+    name: string;
+    email: string;
+    phone: string;
+    tags: string[];
+    plus_one_name: string;
+    plus_one_phone: string;
+    additional_guests: ManualAdditionalGuest[];
+    party_size: number;
+  }
+  const [manualGuests, setManualGuests] = useState<ManualGuestForm[]>([]);
+  const [manualForm, setManualForm] = useState<ManualGuestForm>({
+    name: '',
+    email: '',
+    phone: '',
+    tags: [],
+    plus_one_name: '',
+    plus_one_phone: '',
+    additional_guests: [],
+    party_size: 1,
+  });
   // Tag picker popover state (shared with guest-list per-row picker UX).
   const [tagDraft, setTagDraft] = useState('');
   const [tagPickerOpen, setTagPickerOpen] = useState(false);
@@ -163,7 +179,7 @@ export default function GuestImportWizard({
     setDragOver(false);
     setParseError(null);
     setManualGuests([]);
-    setManualForm({ name: '', email: '', phone: '', country_code: '+1', tags: [], plus_one_name: '', plus_one_phone: '', party_size: 1 });
+    setManualForm({ name: '', email: '', phone: '', tags: [], plus_one_name: '', plus_one_phone: '', additional_guests: [], party_size: 1 });
     setTagDraft('');
     setTagPickerOpen(false);
   }, [initialTab]);
@@ -229,14 +245,44 @@ export default function GuestImportWizard({
 
   const handleAddManual = () => {
     if (!manualForm.name.trim()) return;
-    setManualGuests((prev) => [...prev, { ...manualForm, tags: [...manualForm.tags] }]);
-    setManualForm({ ...manualForm, name: '', email: '', phone: '', tags: [], plus_one_name: '', plus_one_phone: '', party_size: 1 });
+    setManualGuests((prev) => [
+      ...prev,
+      {
+        ...manualForm,
+        tags: [...manualForm.tags],
+        additional_guests: manualForm.additional_guests.map((x) => ({ ...x })),
+      },
+    ]);
+    setManualForm({ ...manualForm, name: '', email: '', phone: '', tags: [], plus_one_name: '', plus_one_phone: '', additional_guests: [], party_size: 1 });
     setTagDraft('');
     setTagPickerOpen(false);
   };
 
   const handleRemoveManual = (index: number) => {
     setManualGuests((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addManualAdditionalGuest = () => {
+    setManualForm((prev) => ({
+      ...prev,
+      additional_guests: [...prev.additional_guests, { name: '', phone: '' }],
+      // Bump party size if the new row pushes the floor up.
+      party_size: Math.max(prev.party_size, 1 + (prev.plus_one_name || prev.plus_one_phone ? 1 : 0) + prev.additional_guests.length + 1),
+    }));
+  };
+
+  const updateManualAdditionalGuest = (idx: number, patch: Partial<ManualAdditionalGuest>) => {
+    setManualForm((prev) => ({
+      ...prev,
+      additional_guests: prev.additional_guests.map((x, i) => (i === idx ? { ...x, ...patch } : x)),
+    }));
+  };
+
+  const removeManualAdditionalGuest = (idx: number) => {
+    setManualForm((prev) => ({
+      ...prev,
+      additional_guests: prev.additional_guests.filter((_, i) => i !== idx),
+    }));
   };
 
   const stageManualTag = (tag: string) => {
@@ -288,10 +334,16 @@ export default function GuestImportWizard({
       ? manualGuests.map((g) => ({
           name: g.name,
           email: g.email || undefined,
-          phone: g.phone ? `${g.country_code}${g.phone}` : undefined,
+          phone: g.phone.trim() || undefined,
           tags: g.tags.length > 0 ? g.tags : undefined,
           plus_one_name: g.plus_one_name.trim() || undefined,
           plus_one_phone: g.plus_one_phone.trim() || undefined,
+          additional_guests:
+            g.additional_guests.length > 0
+              ? g.additional_guests
+                  .map((x) => ({ name: x.name.trim(), phone: x.phone.trim() }))
+                  .filter((x) => x.name.length > 0 || x.phone.length > 0)
+              : undefined,
           party_size: g.party_size > 0 ? g.party_size : undefined,
         }))
       : buildGuestsFromMapping().map((r) => {
@@ -586,8 +638,16 @@ export default function GuestImportWizard({
             {/* ── Tab 1: Add Manually ─────────────────────── */}
             {tab === 1 && (
               <Box>
-                {/* Input rows — 3 input rows, all same height */}
-                <Stack spacing={1.5}>
+                {/* Stack spacing controls the gap between rows AND the gap
+                    between section headers and adjacent rows so the header
+                    margins above + below match. */}
+                <Stack spacing={2.5}>
+                  <Typography
+                    variant="subtitleCaps"
+                    sx={{ color: COLORS.text.muted, display: 'block', m: 0 }}
+                  >
+                    Primary guest
+                  </Typography>
                   {/* Row 1: Full Name | Email */}
                   <Stack direction="row" spacing={1}>
                     <TextField
@@ -614,50 +674,16 @@ export default function GuestImportWizard({
                     />
                   </Stack>
 
-                  {/* Row 2: Country Code | Phone */}
+                  {/* Row 2: Phone | Party Size — Party size lives with the
+                      primary guest so the Plus One row below stays at two
+                      columns and lines up with the additional-guest rows. */}
                   <Stack direction="row" spacing={1}>
-                    <FormControl sx={{ ...ENHANCED_FORM_CONTROL_SX, minWidth: 110, flexShrink: 0 }}>
-                      <InputLabel>Code</InputLabel>
-                      <Select
-                        label="Code"
-                        value={manualForm.country_code}
-                        onChange={(e) => setManualForm({ ...manualForm, country_code: e.target.value })}
-                      >
-                        <MenuItem value="+1">+1</MenuItem>
-                        <MenuItem value="+91">+91</MenuItem>
-                        <MenuItem value="+44">+44</MenuItem>
-                        <MenuItem value="+61">+61</MenuItem>
-                        <MenuItem value="+971">+971</MenuItem>
-                        <MenuItem value="+81">+81</MenuItem>
-                        <MenuItem value="+65">+65</MenuItem>
-                      </Select>
-                    </FormControl>
                     <TextField
                       label="Phone"
+                      placeholder="Include country code, e.g. +1 415 555 0100"
                       value={manualForm.phone}
                       onChange={(e) => setManualForm({ ...manualForm, phone: e.target.value })}
-                      fullWidth
-                      sx={ENHANCED_TEXT_FIELD_SX}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
-                    />
-                  </Stack>
-
-                  {/* Row 3: Plus One name | Plus One Phone | Party Size */}
-                  <Stack direction="row" spacing={1}>
-                    <TextField
-                      label="Plus One"
-                      placeholder="e.g. Aisha Patel"
-                      value={manualForm.plus_one_name}
-                      onChange={(e) => setManualForm({ ...manualForm, plus_one_name: e.target.value })}
-                      sx={{ ...ENHANCED_TEXT_FIELD_SX, flex: 2 }}
-                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
-                    />
-                    <TextField
-                      label="Plus One Phone"
-                      placeholder="+1 415 555 0199"
-                      value={manualForm.plus_one_phone}
-                      onChange={(e) => setManualForm({ ...manualForm, plus_one_phone: e.target.value })}
-                      sx={{ ...ENHANCED_TEXT_FIELD_SX, flex: 2 }}
+                      sx={{ ...ENHANCED_TEXT_FIELD_SX, flex: 1 }}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
                     />
                     <TextField
@@ -669,12 +695,101 @@ export default function GuestImportWizard({
                         const n = parseInt(e.target.value, 10);
                         setManualForm({ ...manualForm, party_size: Number.isFinite(n) && n > 0 ? n : 1 });
                       }}
-                      sx={{ ...ENHANCED_TEXT_FIELD_SX, flex: 1 }}
+                      sx={{ ...ENHANCED_TEXT_FIELD_SX, width: 140, flexShrink: 0 }}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
                     />
                   </Stack>
 
-                  {/* Row 4: Tags — multi-select with suggestion popover that
+                  <Typography
+                    variant="subtitleCaps"
+                    sx={{ color: COLORS.text.muted, display: 'block', m: 0 }}
+                  >
+                    Additional guests
+                  </Typography>
+                  {/* Row 3: Plus One name | Plus One Phone — two columns,
+                      same shape as each additional-guest row below. */}
+                  <Stack direction="row" spacing={1}>
+                    <TextField
+                      label="Plus One"
+                      placeholder="e.g. Aisha Patel"
+                      value={manualForm.plus_one_name}
+                      onChange={(e) => setManualForm({ ...manualForm, plus_one_name: e.target.value })}
+                      fullWidth
+                      sx={ENHANCED_TEXT_FIELD_SX}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
+                    />
+                    <TextField
+                      label="Plus One Phone"
+                      placeholder="+1 415 555 0199"
+                      value={manualForm.plus_one_phone}
+                      onChange={(e) => setManualForm({ ...manualForm, plus_one_phone: e.target.value })}
+                      fullWidth
+                      sx={ENHANCED_TEXT_FIELD_SX}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
+                    />
+                  </Stack>
+
+                  {/* Additional named guests — same pattern as the detail-drawer
+                      "Additional guests" section. Each row has name + phone +
+                      remove icon, with a chip-style "+ Add additional guest"
+                      to append more. */}
+                  {manualForm.additional_guests.map((ag, idx) => (
+                    <Stack key={idx} direction="row" spacing={1} alignItems="center">
+                      <TextField
+                        label={`Guest ${idx + 2} name`}
+                        placeholder="e.g. Rohan Mehta"
+                        value={ag.name}
+                        onChange={(e) => updateManualAdditionalGuest(idx, { name: e.target.value })}
+                        fullWidth
+                        sx={ENHANCED_TEXT_FIELD_SX}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
+                      />
+                      <TextField
+                        label={`Guest ${idx + 2} phone`}
+                        placeholder="+1 415 555 0198"
+                        value={ag.phone}
+                        onChange={(e) => updateManualAdditionalGuest(idx, { phone: e.target.value })}
+                        fullWidth
+                        sx={ENHANCED_TEXT_FIELD_SX}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddManual(); } }}
+                      />
+                      <IconButton
+                        size="small"
+                        aria-label={`Remove guest ${idx + 2}`}
+                        onClick={() => removeManualAdditionalGuest(idx)}
+                      >
+                        <Close sx={{ fontSize: 18, color: COLORS.text.muted }} />
+                      </IconButton>
+                    </Stack>
+                  ))}
+                  <Box>
+                    <Button
+                      onClick={addManualAdditionalGuest}
+                      endIcon={<AddIcon sx={{ fontSize: 16 }} />}
+                      sx={{
+                        height: 32,
+                        px: 1.5,
+                        py: 0,
+                        textTransform: 'none',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        borderRadius: RADII.pill,
+                        border: `1px dashed ${COLORS.border.default}`,
+                        color: COLORS.text.muted,
+                        '&:hover': {
+                          borderColor: COLORS.brand.primary,
+                          color: COLORS.brand.primary,
+                          borderStyle: 'solid',
+                          bgcolor: COLORS.brand.primarySubtle,
+                        },
+                        '& .MuiButton-endIcon': { ml: 0.5 },
+                      }}
+                    >
+                      Add additional guest
+                    </Button>
+                  </Box>
+
+                  {/* Row 5: Tags — multi-select with suggestion popover that
                       mirrors the per-row tag picker on the guest list. */}
                   <Box>
                     <Typography
@@ -816,7 +931,7 @@ export default function GuestImportWizard({
                               <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.plus_one_name || '—'}</TableCell>
                               <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.plus_one_phone || '—'}</TableCell>
                               <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.email || '—'}</TableCell>
-                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.phone ? `${g.country_code}${g.phone}` : '—'}</TableCell>
+                              <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{g.phone || '—'}</TableCell>
                               <TableCell>
                                 {g.tags.length > 0 ? (
                                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>

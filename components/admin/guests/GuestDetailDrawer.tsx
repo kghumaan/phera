@@ -113,6 +113,10 @@ export function GuestDetailDrawer({ open, guest, onClose, onSaved }: GuestDetail
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [partySize, setPartySize] = useState<number>(1);
+  // String draft so the user can backspace the field to empty mid-edit
+  // without losing the committed numeric value. Reconciled on blur and
+  // whenever the row floor changes.
+  const [partySizeDraft, setPartySizeDraft] = useState<string>('1');
   const [plusOneName, setPlusOneName] = useState('');
   const [plusOnePhone, setPlusOnePhone] = useState('');
   const [additionalGuests, setAdditionalGuests] = useState<AdditionalGuest[]>([]);
@@ -131,7 +135,9 @@ export function GuestDetailDrawer({ open, guest, onClose, onSaved }: GuestDetail
     setEmail(guest.email && !guest.email.includes('@phera.io') ? guest.email : '');
     setPhone(guest.phone ?? '');
     const ld = guest.logistics_data;
-    setPartySize(ld && typeof ld.party_size === 'number' && ld.party_size > 0 ? ld.party_size : 1);
+    const initialPartySize = ld && typeof ld.party_size === 'number' && ld.party_size > 0 ? ld.party_size : 1;
+    setPartySize(initialPartySize);
+    setPartySizeDraft(String(initialPartySize));
     const existingPlusOne = ld && typeof ld.plus_one_name === 'string' ? ld.plus_one_name.trim() : '';
     const existingPlusOnePhone = ld && typeof ld.plus_one_phone === 'string' ? ld.plus_one_phone.trim() : '';
     setPlusOneName(existingPlusOne);
@@ -148,6 +154,17 @@ export function GuestDetailDrawer({ open, guest, onClose, onSaved }: GuestDetail
   }, [guest]);
 
   const rsvp = useMemo(() => (guest ? latestRsvp(guest) : null), [guest]);
+
+  // Floor for party size: 1 (primary) + plus-one row if shown + extra rows.
+  // Party size must never drop below this; if a row is added we bump up.
+  const minPartySize = 1 + (showPlusOne ? 1 : 0) + additionalGuests.length;
+  useEffect(() => {
+    setPartySize(prev => {
+      const next = Math.max(prev, minPartySize);
+      if (next !== prev) setPartySizeDraft(String(next));
+      return next;
+    });
+  }, [minPartySize]);
 
   const handleSave = async () => {
     if (!guest) return;
@@ -332,11 +349,21 @@ export function GuestDetailDrawer({ open, guest, onClose, onSaved }: GuestDetail
               <PheraTextField
                 label="Party size"
                 type="number"
-                inputProps={{ min: 1, max: 20 }}
-                value={partySize}
+                inputProps={{ min: minPartySize, max: 20 }}
+                value={partySizeDraft}
                 onChange={(e) => {
-                  const n = parseInt(e.target.value, 10);
-                  setPartySize(Number.isFinite(n) && n > 0 ? n : 1);
+                  const raw = e.target.value;
+                  setPartySizeDraft(raw);
+                  const n = parseInt(raw, 10);
+                  if (Number.isFinite(n) && n > 0) {
+                    setPartySize(Math.max(n, minPartySize));
+                  }
+                }}
+                onBlur={() => {
+                  const n = parseInt(partySizeDraft, 10);
+                  const next = Math.max(Number.isFinite(n) && n > 0 ? n : 1, minPartySize);
+                  setPartySize(next);
+                  setPartySizeDraft(String(next));
                 }}
                 size="small"
                 sx={{ maxWidth: { sm: 140 }, width: { xs: '100%', sm: 140 } }}

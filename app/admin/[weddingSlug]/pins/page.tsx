@@ -253,8 +253,9 @@ export default function EventAccessPage({ params }: { params: Promise<{ weddingS
         if (guestsErr) console.error('guests load error:', guestsErr);
         setGuests((guestsData || []) as MatrixGuest[]);
 
-        // Existing uninvited rows
-        const accessRows = await weddingService.listGuestEventAccess(wedding.id);
+        // Existing uninvited rows. wedding_id on guest_event_access is the
+        // TEXT slug (RLS policy resolves admin via slug), not the wedding UUID.
+        const accessRows = await weddingService.listGuestEventAccess(weddingSlug);
         const next = new Set<string>();
         for (const row of accessRows) {
           if (row.invited === false) next.add(`${row.guest_id}|${row.event_id}`);
@@ -290,7 +291,7 @@ export default function EventAccessPage({ params }: { params: Promise<{ weddingS
 
   const persistInvite = async (guestId: string, eventId: string, nextInvited: boolean) => {
     if (!weddingId) return;
-    const ok = await weddingService.setGuestEventInvited(weddingId, guestId, eventId, nextInvited);
+    const ok = await weddingService.setGuestEventInvited(weddingSlug, guestId, eventId, nextInvited);
     if (!ok) {
       showStatus('error');
       // Revert on failure
@@ -334,7 +335,7 @@ export default function EventAccessPage({ params }: { params: Promise<{ weddingS
     });
     (async () => {
       for (const gid of targets) {
-        await weddingService.setGuestEventInvited(weddingId, gid, eventId, nextInvited);
+        await weddingService.setGuestEventInvited(weddingSlug, gid, eventId, nextInvited);
       }
       showStatus('saved');
     })();
