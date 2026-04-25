@@ -19,10 +19,10 @@
 import { Dialog, DialogTitle, IconButton, type DialogProps } from '@mui/material';
 import { Close } from '@mui/icons-material';
 import type { ReactNode } from 'react';
-import { COLORS, FONTS, RADII, SHADOWS } from '@/lib/theme/tokens';
+import { COLORS, RADII, SHADOWS } from '@/lib/theme/tokens';
 
 export function PheraDialog({ PaperProps, ...rest }: DialogProps) {
-  const userSx = (PaperProps as any)?.sx;
+  const userSx = (PaperProps as { sx?: object } | undefined)?.sx;
   return (
     <Dialog
       {...rest}
@@ -46,11 +46,14 @@ export interface PheraDialogTitleProps {
 }
 
 export function PheraDialogTitle({ children, onClose, sx }: PheraDialogTitleProps) {
+  // Body font (Outfit), not display — dialog titles render at MUI's default
+  // ~1.25rem which is well under the 2rem threshold for Instrument Serif.
+  // CLAUDE.md rule #4: serif is reserved for h1/h2 (≥ 2rem).
   return (
     <DialogTitle
       sx={{
-        fontFamily: FONTS.display,
         fontWeight: 700,
+        fontSize: '1.125rem',
         color: COLORS.text.strong,
         display: 'flex',
         alignItems: 'center',

@@ -31,7 +31,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
-import LoginModal from '@/components/auth/LoginModal';
 import { InfoAlert } from '@/components/shared/Alert';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import PasswordEntry from './PasswordEntry';
@@ -59,7 +58,6 @@ function readRecentFlag(slug: string, key: string, tsKey: string): string | null
 const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryProps) => {
   const [step, setStep] = useState<Step>('password');
   const [verifiedPassword, setVerifiedPassword] = useState<string>('');
-  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const [showPreviewToast, setShowPreviewToast] = useState(false);
 
@@ -287,55 +285,7 @@ const PinEntry = ({ onPinVerified, weddingSlug, isPreview = false }: PinEntryPro
           />
         )}
 
-        {/* Bottom: login option (password step only) */}
-        {step === 'password' && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', maxWidth: 354 }}>
-              <Box sx={{ flex: 1, height: '1px', bgcolor: COLORS.border.default }} />
-              <Typography variant="body2" sx={{ px: 2, color: COLORS.text.subtle, fontSize: '0.875rem', fontWeight: 500 }}>or</Typography>
-              <Box sx={{ flex: 1, height: '1px', bgcolor: COLORS.border.default }} />
-            </Box>
-            <Button
-              onClick={() => setLoginDialogOpen(true)}
-              sx={{
-                backgroundColor: COLORS.bg.white,
-                color: COLORS.text.strong,
-                borderRadius: RADII.lg,
-                px: { xs: 2.5, sm: 3 },
-                py: 1.5,
-                minHeight: { xs: 48, sm: 52 },
-                fontSize: { xs: '0.875rem', sm: '1rem' },
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '6.25%',
-                width: '100%',
-                maxWidth: 354,
-                border: `1px solid ${COLORS.border.default}`,
-                boxShadow: 'none',
-                '&:hover': {
-                  backgroundColor: COLORS.bg.subtle,
-                  border: `1px solid ${COLORS.border.strong}`,
-                  boxShadow: 'none',
-                },
-              }}
-            >
-              Log in with email
-            </Button>
-          </motion.div>
-        )}
       </Container>
-
-      <LoginModal
-        open={loginDialogOpen}
-        onClose={() => setLoginDialogOpen(false)}
-        onSuccess={() => { setLoginDialogOpen(false); onPinVerified(); }}
-        redirectTo={`/${weddingSlug}?magic_link=true`}
-      />
 
       <Snackbar
         open={showPreviewToast}
