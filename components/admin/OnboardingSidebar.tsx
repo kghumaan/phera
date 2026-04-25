@@ -2,6 +2,7 @@
 
 import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Typography, useTheme, useMediaQuery, IconButton, alpha, CircularProgress } from '@mui/material';
 import Image from 'next/image';
+import NextLink from 'next/link';
 import {
   Home,
   Schedule,
@@ -93,6 +94,7 @@ export const groups: SidebarGroup[] = [
     icon: <People />,
     items: [
       { id: 'guest-list', label: 'Guest List', path: '/guest-list' },
+      { id: 'invites', label: 'Invites', path: '/invites' },
       { id: 'guests', label: 'Guest Responses', path: '/guests' },
       { id: 'rooms', label: 'Room Assignments', path: '/rooms', isPro: true },
       { id: 'transportation', label: 'Transportation', path: '/transportation', isPro: true },
@@ -227,15 +229,17 @@ export default function OnboardingSidebar({
     return initialState;
   });
 
-  // Expand the correct sidebar group when route changes (e.g. via quick links)
+  // On route change, expand only the group that owns the current path and
+  // collapse every other group — one expanded parent at a time. Prevents
+  // users from ending up with multiple accordion sections open after
+  // clicking "Continue: <next section>" buttons that cross groups.
   useEffect(() => {
+    const next: Record<string, boolean> = {};
     groups.forEach(g => {
       if (g.standalone) return;
-      const isActive = g.items.some(item => pathname.includes(item.path));
-      if (isActive && !expandedGroups[g.id]) {
-        setExpandedGroups(prev => ({ ...prev, [g.id]: true }));
-      }
+      next[g.id] = g.items.some(item => pathname.includes(item.path));
     });
+    setExpandedGroups(next);
   }, [pathname]);
 
   // Measure active item positions for arrow alignment
@@ -344,7 +348,14 @@ export default function OnboardingSidebar({
               </Typography>
             )}
             <ListItemButton
-              onClick={() => { if (!checkGuard()) return; router.push('/admin'); }}
+              component={NextLink}
+              href="/admin"
+              onClick={(e: React.MouseEvent) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                e.preventDefault();
+                if (!checkGuard()) return;
+                router.push('/admin');
+              }}
               sx={{
                 px: 1.5,
                 py: 0.75,
@@ -374,7 +385,11 @@ export default function OnboardingSidebar({
               <ListItemButton
                 key={group.id}
                 data-tour={`tour-${group.id}`}
-                onClick={() => {
+                component={NextLink}
+                href={`/admin/${weddingSlug}${item.path}`}
+                onClick={(e: React.MouseEvent) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                  e.preventDefault();
                   handleItemClick(item, true);
                 }}
                 selected={isActive}
@@ -492,7 +507,13 @@ export default function OnboardingSidebar({
                       <Box key={item.id} data-active={isActive ? 'true' : undefined} sx={{ position: 'relative' }}>
                         <ListItemButton
                           {...(['pins', 'guests', 'travel', 'rooms', 'transportation', 'concierge', 'task-manager', 'coordinator', 'team'].includes(item.id) ? { 'data-tour': `tour-${item.id}` } : {})}
-                          onClick={() => {
+                          component={NextLink}
+                          href={`/admin/${weddingSlug}${item.path}`}
+                          onClick={(e: React.MouseEvent) => {
+                            // Preserve native cmd/ctrl/shift/middle-click so the
+                            // browser can open the item in a new tab/window.
+                            if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                            e.preventDefault();
                             handleItemClick(item, false, group.id);
                           }}
                           selected={isActive}
