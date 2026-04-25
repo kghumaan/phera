@@ -69,6 +69,20 @@ export const COLORS = {
     groom: '#3b82f6',   // blue
     both: '#8b5cf6',   // purple
   },
+  // Brand-accurate WhatsApp palette. Used ONLY in the WhatsApp message
+  // preview component so the mockup looks true to what guests will see.
+  whatsapp: {
+    bg: '#EFE7DE',              // chat background base (shows under doodle image)
+    bubble: '#DCF8C6',          // outgoing message bubble (not used in guest-POV preview)
+    header: '#075E54',          // legacy light-teal header
+    headerDark: '#202C33',      // dark header — matches landing concierge mockup
+    headerSubtext: '#8696a0',   // "online" status text
+    bubbleText: '#0b141a',      // bubble body text
+    timestampText: '#667781',   // bubble timestamp + checkmark text
+    dateText: '#54656F',        // "Today" separator text
+    verifiedBlue: '#2979FF',    // blue verified badge next to sender name
+    readCheck: '#53bdeb',       // blue double-check (read receipt)
+  },
 } as const;
 
 // ─── Radii ──────────────────────────────────────────────────────────
