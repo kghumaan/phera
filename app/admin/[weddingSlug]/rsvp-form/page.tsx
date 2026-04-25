@@ -634,7 +634,7 @@ export default function RSVPFormPage({ params }: { params: Promise<{ weddingSlug
       onConfirm: () => {
         setConfirmDialog(prev => ({ ...prev, open: false }));
         setNavigatingToPin(true);
-        router.push(`/admin/${weddingSlug}/pins`);
+        router.push(`/admin/${weddingSlug}/event-access`);
       },
     });
   };

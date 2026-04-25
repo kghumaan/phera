@@ -84,8 +84,8 @@ export const groups: SidebarGroup[] = [
       { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
       { id: 'faq', label: 'FAQ', path: '/faq' },
       { id: 'registry', label: 'Registry', path: '/registry' },
-      { id: 'shopping', label: 'Where to Shop', path: '/shopping' },
-      { id: 'pins', label: 'Event Access', path: '/pins', required: true },
+      { id: 'shopping', label: 'Where to Shop', path: '/where-to-shop' },
+      { id: 'pins', label: 'Event Access', path: '/event-access', required: true },
     ],
   },
   {
@@ -94,7 +94,7 @@ export const groups: SidebarGroup[] = [
     icon: <People />,
     items: [
       { id: 'guest-list', label: 'Guest List', path: '/guest-list' },
-      { id: 'invites', label: 'Invites', path: '/invites' },
+      { id: 'invites', label: 'Messaging', path: '/messaging' },
       { id: 'guests', label: 'Guest Responses', path: '/guests' },
       { id: 'rooms', label: 'Room Assignments', path: '/rooms', isPro: true },
       { id: 'transportation', label: 'Transportation', path: '/transportation', isPro: true },
@@ -116,7 +116,7 @@ export const groups: SidebarGroup[] = [
     icon: <Groups />,
     standalone: true,
     items: [
-      { id: 'team', label: 'Collaborators', path: '/team' },
+      { id: 'team', label: 'Collaborators', path: '/collaborators' },
     ],
   },
   {

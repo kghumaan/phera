@@ -16,10 +16,17 @@ import {
   Flight,
   Mail,
   FavoriteBorder,
+  Edit,
 } from '@mui/icons-material';
 import type { ComponentType } from 'react';
 
-export type InviteTemplateCategory = 'announce' | 'rsvp' | 'reminder' | 'logistics' | 'followup';
+export type InviteTemplateCategory =
+  | 'custom'
+  | 'announce'
+  | 'rsvp'
+  | 'reminder'
+  | 'logistics'
+  | 'followup';
 
 export interface InviteTemplateVariable {
   key: string;
@@ -50,13 +57,34 @@ export interface InviteTemplate {
 
 export const INVITE_TEMPLATES: InviteTemplate[] = [
   {
+    id: 'custom_message',
+    title: 'Create custom',
+    description: 'Write a one-off message — anything you want to send your guests.',
+    category: 'custom',
+    icon: Edit,
+    // The whole template body is just a single placeholder. Whatever the
+    // couple types into the message body field is what guests receive.
+    // Optional: include {{guest_first_name}} anywhere in the body to
+    // personalize per-recipient.
+    body: '{{message_body}}',
+    variables: [
+      {
+        key: 'message_body',
+        label: 'Message body',
+        placeholder:
+          'Type your message here. Use {{guest_first_name}} anywhere to personalize per guest.',
+        multiline: true,
+      },
+    ],
+  },
+  {
     id: 'save_the_date',
     title: 'Save the Date',
     description: 'First-touch announcement. Build anticipation before the formal shaadi card.',
     category: 'announce',
     icon: CardGiftcard,
     body:
-`Namaste {{guest_first_name}} 🪷
+`Namaste {{guest_first_name}} 🙏
 
 We are thrilled to share that {{couple_names}} are getting married on {{wedding_date}} in {{wedding_city}}.
 
@@ -184,6 +212,7 @@ export function getInviteTemplate(id: string): InviteTemplate | undefined {
 }
 
 export const CATEGORY_LABELS: Record<InviteTemplateCategory, string> = {
+  custom: 'Custom',
   announce: 'Announcements',
   rsvp: 'RSVP',
   reminder: 'Reminders',

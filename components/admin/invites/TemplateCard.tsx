@@ -199,24 +199,8 @@ export function TemplateCard({
         </IconButton>
       </Stack>
 
-      {/* Collapsed preview — sits below the header so each card tile shows
-          its message body at a glance. Hidden when expanded since the
-          expanded layout puts the preview on the right column instead. */}
-      {!expanded && (
-        <Box
-          sx={{
-            px: 2,
-            pb: 2,
-            bgcolor: COLORS.bg.muted,
-            borderTop: `1px solid ${COLORS.border.faint}`,
-            pt: 2,
-            display: 'flex',
-            justifyContent: 'center',
-          }}
-        >
-          <WhatsAppPreview message={previewMessage} dense />
-        </Box>
-      )}
+      {/* Collapsed cards stay compact — preview is reserved for the expanded
+          right column so every tile in the grid keeps a uniform height. */}
 
       <Collapse in={expanded} timeout={180} unmountOnExit>
         <Box sx={{ px: 2, pb: 2, borderTop: `1px solid ${COLORS.border.faint}`, pt: 2 }}>
@@ -287,20 +271,27 @@ export function TemplateCard({
                 </Typography>
                 <SecondaryActionButton onClick={onToggle}>Close</SecondaryActionButton>
                 <SecondaryActionButton
-                  startIcon={<AutoAwesome sx={{ fontSize: 18 }} />}
-                  onClick={() => setConciergeConfirmOpen(true)}
-                  disabled={!canSubmit}
-                >
-                  Send via Concierge
-                </SecondaryActionButton>
-                <PrimaryActionButton
                   startIcon={<Send />}
                   onClick={handleSend}
                   disabled={!canSubmit}
                 >
                   Send from my WhatsApp
+                </SecondaryActionButton>
+                <PrimaryActionButton
+                  startIcon={<AutoAwesome sx={{ fontSize: 18 }} />}
+                  onClick={() => setConciergeConfirmOpen(true)}
+                  disabled={!canSubmit}
+                >
+                  Send via Concierge
                 </PrimaryActionButton>
               </Stack>
+              <Typography
+                variant="body2"
+                sx={{ mt: 1, color: COLORS.text.faint, fontSize: '0.8125rem', textAlign: 'right' }}
+              >
+                Heads up: messages sent from your WhatsApp aren&apos;t tracked here.
+                Concierge sends are logged in Recent campaigns.
+              </Typography>
 
               {conciergeResult?.kind === 'ok' && (
                 <Box sx={{ mt: 1.5 }}>

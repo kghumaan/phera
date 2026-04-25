@@ -215,8 +215,8 @@ export default function InvitesPage({ params }: { params: Promise<{ weddingSlug:
   return (
     <Box sx={{ width: '100%' }}>
       <PageHeading
-        title="Invites"
-        subtitle="Send Save-the-Dates, RSVP requests, and reminders to your guests on WhatsApp. Pick a template, write the message once, and we'll generate a personalized link for each guest."
+        title="Messaging"
+        subtitle="Send Save-the-Dates, RSVP requests, and reminders to your guests on WhatsApp. Pick a template, write the message once, and send via the Concierge or your own WhatsApp."
       />
 
       <Box sx={{ mt: 3 }}>

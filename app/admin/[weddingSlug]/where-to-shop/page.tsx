@@ -16,7 +16,7 @@ import {
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { useState, useEffect, use, useCallback } from 'react';
 import { Delete } from '@mui/icons-material';
-import { weddingService } from '@/lib/supabase/wedding-service';
+import { weddingService, type WeddingShop } from '@/lib/supabase/wedding-service';
 import { SHOP_TEMPLATES, ShopTemplate } from '@/components/admin/ShopTemplates';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
@@ -56,7 +56,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
   const { isViewOnly } = useAdminRole();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
-  const [shops, setShops] = useState<any[]>([]);
+  const [shops, setShops] = useState<WeddingShop[]>([]);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const { showStatus } = useAutoSaveStatus();
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
@@ -94,7 +94,7 @@ export default function ShoppingPage({ params }: { params: Promise<{ weddingSlug
     channel.close();
   }, [weddingId]);
 
-  const startEditing = (shop: any) => {
+  const startEditing = (shop: WeddingShop) => {
     if (isViewOnly) return;
     setEditingId(shop.id);
     setDraft({

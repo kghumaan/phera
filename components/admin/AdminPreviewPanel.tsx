@@ -20,8 +20,8 @@ const SECTION_MAP: Record<string, string> = {
     '/travel': 'Travel & Stay',
     '/faq': 'FAQ',
     '/registry': 'Registry',
-    '/shopping': 'Shopping Guide',
-    '/pins': 'Pin Entry Screen',
+    '/where-to-shop': 'Shopping Guide',
+    '/event-access': 'Pin Entry Screen',
     '/rsvp-form': 'RSVP Form',
 };
 

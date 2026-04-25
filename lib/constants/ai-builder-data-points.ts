@@ -6,7 +6,7 @@
  * and auto-save responses to build the wedding website.
  *
  * Generated from analysis of admin pages:
- * - /details, /design, /schedule, /travel, /faq, /registry, /shopping, /pins
+ * - /details, /design, /schedule, /travel, /faq, /registry, /where-to-shop, /event-access
  */
 
 // ─── Wedding Details ───────────────────────────────────────────────────────────
@@ -218,7 +218,7 @@ export interface AIQuestion {
   required: boolean;
   placeholder?: string;
   options?: string[];          // For select type
-  validation?: (value: any) => boolean;
+  validation?: (value: unknown) => boolean;
   followUp?: string;           // ID of next question (for conditional flow)
 }
 

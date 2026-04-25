@@ -83,11 +83,11 @@ describe('Sidebar Reorganization', () => {
       expect(item!.path).toBe('/guests');
     });
 
-    it('should have Invites', () => {
+    it('should have Messaging', () => {
       const item = guests!.items.find((i) => i.id === 'invites');
       expect(item).toBeDefined();
-      expect(item!.label).toBe('Invites');
-      expect(item!.path).toBe('/invites');
+      expect(item!.label).toBe('Messaging');
+      expect(item!.path).toBe('/messaging');
     });
 
     it('should have Room Assignments', () => {
@@ -164,7 +164,7 @@ describe('Sidebar Reorganization', () => {
       const last = website!.items[website!.items.length - 1];
       expect(last.id).toBe('pins');
       expect(last.label).toBe('Event Access');
-      expect(last.path).toBe('/pins');
+      expect(last.path).toBe('/event-access');
     });
 
     it('should NOT include Overview (standalone)', () => {
@@ -181,7 +181,7 @@ describe('Sidebar Reorganization', () => {
 
     it('should have a single team item', () => {
       expect(collab!.items).toHaveLength(1);
-      expect(collab!.items[0].path).toBe('/team');
+      expect(collab!.items[0].path).toBe('/collaborators');
     });
   });
 
