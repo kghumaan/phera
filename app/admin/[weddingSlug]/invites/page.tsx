@@ -260,6 +260,7 @@ export default function InvitesPage({ params }: { params: Promise<{ weddingSlug:
                       guests={guests}
                       defaultVars={defaultVars}
                       onSubmit={handleCardSubmit}
+                      weddingSlug={weddingSlug}
                     />
                   </Box>
                 </Box>
