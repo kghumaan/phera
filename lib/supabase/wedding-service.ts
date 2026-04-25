@@ -1686,6 +1686,85 @@ export class WeddingService {
 
     if (error) throw error;
   }
+
+  // ── Wedding password + per-guest event access ────────────────────────────
+  // The `guest_event_access` table uses the default-true contract: a missing
+  // (guest_id, event_id) row means the guest IS invited. We only write rows
+  // when un-checking; we delete them when re-checking.
+
+  async getWeddingPassword(weddingId: string): Promise<string | null> {
+    const { data, error } = await this.supabase
+      .from('wedding_settings')
+      .select('wedding_password')
+      .eq('wedding_id', weddingId)
+      .maybeSingle();
+    if (error) {
+      console.error('Error fetching wedding password:', error);
+      return null;
+    }
+    return data?.wedding_password ?? null;
+  }
+
+  async setWeddingPassword(weddingId: string, password: string): Promise<boolean> {
+    const existing = await this.getSettings(weddingId);
+    if (existing?.id) {
+      const { error } = await this.supabase
+        .from('wedding_settings')
+        .update({ wedding_password: password })
+        .eq('wedding_id', weddingId);
+      if (error) { console.error('Error updating wedding password:', error); return false; }
+      return true;
+    }
+    const { error } = await this.supabase
+      .from('wedding_settings')
+      .insert([{
+        wedding_id: weddingId,
+        wedding_password: password,
+        pin_codes: [],
+        whatsapp_group_link: '',
+        google_sheets_id: '',
+        lapse_event_codes: {},
+      }]);
+    if (error) { console.error('Error inserting wedding password settings:', error); return false; }
+    return true;
+  }
+
+  async listGuestEventAccess(weddingId: string): Promise<Array<{ guest_id: string; event_id: string; invited: boolean }>> {
+    const { data, error } = await this.supabase
+      .from('guest_event_access')
+      .select('guest_id, event_id, invited')
+      .eq('wedding_id', weddingId);
+    if (error) {
+      console.error('Error fetching guest_event_access:', error);
+      return [];
+    }
+    return (data || []) as Array<{ guest_id: string; event_id: string; invited: boolean }>;
+  }
+
+  async setGuestEventInvited(
+    weddingId: string,
+    guestId: string,
+    eventId: string,
+    invited: boolean,
+  ): Promise<boolean> {
+    // Default-true contract: if invited === true, delete any existing row.
+    if (invited) {
+      const { error } = await this.supabase
+        .from('guest_event_access')
+        .delete()
+        .eq('guest_id', guestId)
+        .eq('event_id', eventId);
+      if (error) { console.error('Error deleting guest_event_access row:', error); return false; }
+      return true;
+    }
+    const { error } = await this.supabase
+      .from('guest_event_access')
+      .upsert([{ guest_id: guestId, event_id: eventId, wedding_id: weddingId, invited: false }], {
+        onConflict: 'guest_id,event_id',
+      });
+    if (error) { console.error('Error upserting guest_event_access row:', error); return false; }
+    return true;
+  }
 }
 
 /**

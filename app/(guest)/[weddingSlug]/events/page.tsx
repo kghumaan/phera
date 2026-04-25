@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { ArrowBack } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { useWedding } from '@/lib/contexts/WeddingContext';
 import { COLORS, RADII } from '@/lib/theme/tokens';
@@ -21,24 +21,40 @@ export default function GuestEventsPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
-  const { user, hasRSVPed, rsvpResponse } = useAuth();
+  const { hasRSVPed, rsvpResponse } = useAuth();
 
   // Use WeddingContext instead of fetching directly
   const { wedding, events: allWeddingEvents, isLoading: loading, error } = useWedding();
 
-  // Filter events by hidden_events from PIN (stored in localStorage)
-  const weddingEvents = (() => {
-    if (typeof window === 'undefined') return allWeddingEvents;
-    const hiddenEventsStr = localStorage.getItem(`phera_hidden_events_${weddingSlug}`);
-    if (!hiddenEventsStr) return allWeddingEvents;
-    try {
-      const hiddenEvents: string[] = JSON.parse(hiddenEventsStr);
-      if (!Array.isArray(hiddenEvents) || hiddenEvents.length === 0) return allWeddingEvents;
-      return allWeddingEvents.filter(event => !hiddenEvents.includes(event.id));
-    } catch {
-      return allWeddingEvents;
-    }
-  })();
+  // Per-guest event access: if the current session has a selected guest,
+  // fetch their invited-event list. Otherwise show everything.
+  const [invitedEventIds, setInvitedEventIds] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !weddingSlug) return;
+    const guestId = localStorage.getItem(`phera_guest_id_${weddingSlug}`);
+    if (!guestId) { setInvitedEventIds(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/access/events/${encodeURIComponent(weddingSlug)}?guestId=${encodeURIComponent(guestId)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data.invitedEventIds)) {
+          setInvitedEventIds(data.invitedEventIds as string[]);
+        }
+      } catch {
+        // Silent fallback — show all events.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [weddingSlug]);
+
+  const weddingEvents = useMemo(() => {
+    if (!invitedEventIds) return allWeddingEvents;
+    const allowed = new Set(invitedEventIds);
+    return allWeddingEvents.filter(event => allowed.has(event.id));
+  }, [allWeddingEvents, invitedEventIds]);
 
   // Only show WhatsApp button if user has RSVP'd "yes" or "maybe"
   const shouldShowWhatsApp = hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
@@ -110,7 +126,7 @@ export default function GuestEventsPage() {
                   lineHeight: 1.5,
                   letterSpacing: '5.56%',
                   textTransform: 'uppercase',
-                  color: '#141414',
+                  color: COLORS.text.strong,
                 }}
               >
                 Events & Dress Code
@@ -235,7 +251,7 @@ export default function GuestEventsPage() {
                                 lineHeight: 1.5,
                                 letterSpacing: '0.07em',
                                 textTransform: 'uppercase',
-                                color: '#474747',
+                                color: COLORS.text.muted,
                                 mb: 0.5,
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
@@ -277,7 +293,7 @@ export default function GuestEventsPage() {
                           {/* Chevron Icon */}
                           <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M10 6L16 12L10 18" stroke="#858585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M10 6L16 12L10 18" stroke={COLORS.text.subtle} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                           </Box>
                         </Box>

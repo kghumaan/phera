@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Box, IconButton, alpha, Typography, Button, DialogContent, Stack, TextField, CircularProgress } from '@mui/material';
+import { Box, IconButton, alpha, Typography, Button, DialogContent, Stack, TextField, CircularProgress, Tooltip } from '@mui/material';
+import { supabase } from '@/lib/supabase/client';
 import { PheraDialog } from '@/components/shared/Dialog';
 import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { ActionButton, PrimaryActionButton } from './ActionButton';
@@ -141,6 +142,42 @@ export default function AdminPreviewPanel({
     }, []);
 
     const showPublishButton = hasUnpublishedChanges || !lastPublishedAt;
+
+    // Publishing is gated on having at least one guest — the site's
+    // RSVPs, travel collection, and invite sends all key off the guest list,
+    // so an empty list = nothing to publish against.
+    const [guestCount, setGuestCount] = useState<number | null>(null);
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests.count not captured in generated types
+            const { count, error } = await (supabase as any)
+                .from('guests')
+                .select('id', { count: 'exact', head: true })
+                .eq('wedding_id', weddingSlug);
+            if (!cancelled) setGuestCount(error ? 0 : (count ?? 0));
+        })();
+
+        // Refresh when the guest list broadcasts a change.
+        const channel = new BroadcastChannel('phera-guests-sync');
+        channel.onmessage = async (event) => {
+            if (event.data?.type === 'GUESTS_UPDATED') {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests.count not captured in generated types
+                const { count } = await (supabase as any)
+                    .from('guests')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('wedding_id', weddingSlug);
+                if (!cancelled) setGuestCount(count ?? 0);
+            }
+        };
+        return () => {
+            cancelled = true;
+            channel.close();
+        };
+    }, [weddingSlug]);
+
+    const canPublish = (guestCount ?? 0) > 0;
+    const publishBlockedReason = !canPublish ? 'Import your guest details before publishing your website.' : '';
 
     const handlePublish = async () => {
         if (isViewOnly || !weddingId) return;
@@ -406,35 +443,41 @@ export default function AdminPreviewPanel({
                         <IosShare sx={{ fontSize: 18 }} />
                     </IconButton>
                     {showPublishButton && (
-                        <ActionButton
-                            variant="contained"
-                            onClick={handlePublish}
-                            loading={isPublishing}
-                            disabled={publishSuccess}
-                            startIcon={publishSuccess ? <Check sx={{ fontSize: 16 }} /> : <Publish sx={{ fontSize: 16 }} />}
-                            sx={{
-                                bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primary,
-                                color: COLORS.text.inverse,
-                                borderRadius: RADII.md,
-                                px: 1.5,
-                                py: 0.5,
-                                ml: 0.5,
-                                textTransform: 'none',
-                                fontWeight: 600,
-                                fontSize: TEXT.sm,
-                                minHeight: 32,
-                                '&:hover': {
-                                    bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primaryHover,
-                                },
-                                '&.Mui-disabled': {
-                                    bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primary,
-                                    color: COLORS.text.inverse,
-                                    opacity: 0.8,
-                                },
-                            }}
-                        >
-                            {publishSuccess ? 'Published' : 'Publish'}
-                        </ActionButton>
+                        <Tooltip title={publishBlockedReason} disableHoverListener={canPublish} arrow>
+                            <span>
+                                <ActionButton
+                                    variant="contained"
+                                    onClick={handlePublish}
+                                    loading={isPublishing}
+                                    disabled={publishSuccess || !canPublish}
+                                    startIcon={publishSuccess ? <Check sx={{ fontSize: 16 }} /> : <Publish sx={{ fontSize: 16 }} />}
+                                    sx={{
+                                        bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primary,
+                                        color: COLORS.text.inverse,
+                                        borderRadius: RADII.md,
+                                        px: 1.5,
+                                        py: 0.5,
+                                        ml: 0.5,
+                                        textTransform: 'none',
+                                        fontWeight: 600,
+                                        fontSize: TEXT.sm,
+                                        minHeight: 32,
+                                        '&:hover': {
+                                            bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primaryHover,
+                                        },
+                                        '&.Mui-disabled': {
+                                            bgcolor: canPublish
+                                                ? (publishSuccess ? COLORS.accent.success : COLORS.brand.primary)
+                                                : COLORS.bg.subtle,
+                                            color: canPublish ? COLORS.text.inverse : COLORS.text.faint,
+                                            opacity: canPublish ? 0.8 : 1,
+                                        },
+                                    }}
+                                >
+                                    {publishSuccess ? 'Published' : 'Publish'}
+                                </ActionButton>
+                            </span>
+                        </Tooltip>
                     )}
                 </Box>
                 <Box
@@ -617,43 +660,51 @@ export default function AdminPreviewPanel({
                                 exit={{ opacity: 0, x: 20, scale: 0.9 }}
                                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                             >
-                                <ActionButton
-                                    variant="contained"
-                                    onClick={handlePublish}
-                                    loading={isPublishing}
-                                    disabled={publishSuccess}
-                                    startIcon={
-                                        publishSuccess ? (
-                                            <Check sx={{ fontSize: 18 }} />
-                                        ) : (
-                                            <Publish sx={{ fontSize: 18 }} />
-                                        )
-                                    }
-                                    sx={{
-                                        bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primary,
-                                        color: COLORS.text.inverse,
-                                        borderRadius: RADII.md,
-                                        px: 2.5,
-                                        py: 1,
-                                        textTransform: 'none',
-                                        fontWeight: 600,
-                                        fontSize: '0.9rem',
-                                        boxShadow: publishSuccess
-                                            ? '0 4px 12px rgba(16, 185, 129, 0.3)'
-                                            : '0 4px 12px rgba(222, 63, 94, 0.3)',
-                                        '&:hover': {
-                                            bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primaryHover,
-                                        },
-                                        '&.Mui-disabled': {
-                                            bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primary,
-                                            color: COLORS.text.inverse,
-                                            opacity: 0.8,
-                                        },
-                                        whiteSpace: 'nowrap',
-                                    }}
-                                >
-                                    {publishSuccess ? 'Published!' : 'Publish'}
-                                </ActionButton>
+                                <Tooltip title={publishBlockedReason} disableHoverListener={canPublish} arrow>
+                                    <span>
+                                        <ActionButton
+                                            variant="contained"
+                                            onClick={handlePublish}
+                                            loading={isPublishing}
+                                            disabled={publishSuccess || !canPublish}
+                                            startIcon={
+                                                publishSuccess ? (
+                                                    <Check sx={{ fontSize: 18 }} />
+                                                ) : (
+                                                    <Publish sx={{ fontSize: 18 }} />
+                                                )
+                                            }
+                                            sx={{
+                                                bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primary,
+                                                color: COLORS.text.inverse,
+                                                borderRadius: RADII.md,
+                                                px: 2.5,
+                                                py: 1,
+                                                textTransform: 'none',
+                                                fontWeight: 600,
+                                                fontSize: '0.9rem',
+                                                boxShadow: publishSuccess
+                                                    ? '0 4px 12px rgba(16, 185, 129, 0.3)'
+                                                    : canPublish
+                                                        ? '0 4px 12px rgba(222, 63, 94, 0.3)'
+                                                        : 'none',
+                                                '&:hover': {
+                                                    bgcolor: publishSuccess ? COLORS.accent.success : COLORS.brand.primaryHover,
+                                                },
+                                                '&.Mui-disabled': {
+                                                    bgcolor: canPublish
+                                                        ? (publishSuccess ? COLORS.accent.success : COLORS.brand.primary)
+                                                        : COLORS.bg.subtle,
+                                                    color: canPublish ? COLORS.text.inverse : COLORS.text.faint,
+                                                    opacity: canPublish ? 0.8 : 1,
+                                                },
+                                                whiteSpace: 'nowrap',
+                                            }}
+                                        >
+                                            {publishSuccess ? 'Published!' : 'Publish'}
+                                        </ActionButton>
+                                    </span>
+                                </Tooltip>
                             </motion.div>
                         )}
                     </AnimatePresence>

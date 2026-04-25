@@ -267,16 +267,27 @@ export default function VerticalScrollLayout({
           weddingService.getWeddingEvents(wedding.id),
         ]);
 
-        // Read hidden events from localStorage for filtering
-        const hiddenEventsStr = typeof window !== 'undefined'
-          ? localStorage.getItem(`phera_hidden_events_${weddingSlug}`)
-          : null;
+        // Per-guest event access: if a guest has been selected, fetch their
+        // invited event list and hide the rest. No guest selected → show all.
         let hiddenEventIds: string[] = [];
-        if (hiddenEventsStr) {
+        const guestId = typeof window !== 'undefined'
+          ? localStorage.getItem(`phera_guest_id_${weddingSlug}`)
+          : null;
+        if (guestId && eventsData && eventsData.length > 0) {
           try {
-            const parsed = JSON.parse(hiddenEventsStr);
-            if (Array.isArray(parsed)) hiddenEventIds = parsed;
-          } catch {}
+            const res = await fetch(`/api/access/events/${encodeURIComponent(weddingSlug)}?guestId=${encodeURIComponent(guestId)}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (Array.isArray(data.invitedEventIds)) {
+                const invitedSet = new Set<string>(data.invitedEventIds);
+                hiddenEventIds = eventsData
+                  .map(e => e.id)
+                  .filter(id => !invitedSet.has(id));
+              }
+            }
+          } catch {
+            // Silent fallback: show all events on network error.
+          }
         }
 
         if (eventsData && eventsData.length > 0) {

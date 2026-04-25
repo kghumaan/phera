@@ -144,7 +144,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
     });
   };
 
-  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => {} });
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => { } });
 
   const handleDeleteClick = async (id: string) => {
     if (isViewOnly) return;
@@ -480,7 +480,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
         </Box>
 
         {/* Response Rate Progress - Show for all RSVP related tabs (0-3) */}
-        {stats.total > 0 && activeTab <= 3 && (
+        {/* {stats.total > 0 && activeTab <= 3 && (
           <Paper sx={{ p: 3, borderRadius: RADII.lg, bgcolor: alpha(COLORS.bg.white, 0.95) }}>
             <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.text.strong }}>
               Response Breakdown
@@ -535,7 +535,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
               </Box>
             </Box>
           </Paper>
-        )}
+        )} */}
 
         {/* Tab Content */}
         {/* Summary content for tabs 4, 5, 6 is removed as per user request to show data in rows */}
@@ -828,7 +828,7 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
                                         label={rsvp.guest.wedding_side === 'bride' ? "Bride's Side" : rsvp.guest.wedding_side === 'groom' ? "Groom's Side" : 'Both'}
                                         sx={{
                                           height: 28,
-                                                bgcolor: alpha(COLORS.text.subtle, 0.1),
+                                          bgcolor: alpha(COLORS.text.subtle, 0.1),
                                           color: COLORS.text.subtle,
                                           fontWeight: 600,
                                           fontSize: '0.875rem',

@@ -2,35 +2,26 @@
 
 import {
   Box,
-  Container,
   Typography,
   Button,
   Stack,
-  Paper,
   Grid,
-  IconButton,
-  DialogContent,
-  DialogActions,
   TextField,
-  Chip,
-  alpha,
-  Divider,
-  FormControlLabel,
-    Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Tooltip,
-  CircularProgress,
-  ClickAwayListener,
+  Checkbox,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
-import { useState, useEffect, use, useCallback } from 'react';
-import { Delete, Edit, Add } from '@mui/icons-material';
+import { useState, useEffect, use, useCallback, useMemo } from 'react';
 import { weddingService } from '@/lib/supabase/wedding-service';
+import { supabase } from '@/lib/supabase/client';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { ENHANCED_TEXT_FIELD_SX, ENHANCED_CONTAINER_MAX_WIDTH, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
+import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 import { BACKGROUNDS, BACKGROUND_UI_OPTIONS } from '@/lib/constants/images';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import ProBadge from '@/components/admin/ProBadge';
@@ -42,48 +33,48 @@ import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
 import ProSelectionsModal, { ProSelection } from '@/components/admin/ProSelectionsModal';
 import ContinueButton from '@/components/admin/ContinueButton';
-import { PrimaryActionButton } from '@/components/admin/ActionButton';
-import { COLORS, RADII } from '@/lib/theme/tokens';
-import { PheraSwitch } from '@/components/shared/Switch';
+import { COLORS, RADII, FONTS } from '@/lib/theme/tokens';
 import { PageHeading } from '@/components/shared/PageHeading';
-import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { PheraCard } from '@/components/shared/Card';
+import { PheraPasswordField } from '@/components/shared/PasswordField';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { SecondaryActionButton } from '@/components/admin/ActionButton';
+import { EventBusy } from '@mui/icons-material';
 
 const textFieldSx = ENHANCED_TEXT_FIELD_SX;
-
 const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;
-
 const FREE_BACKGROUND_COUNT = 4;
 
-function generatePinSummary(
-  pin: { skip_rsvp: boolean; allows_plus_one: boolean; hidden_events: string[] },
-  events: { id: string; name: string }[]
-): string {
-  const parts: string[] = [];
+// ── Types ────────────────────────────────────────────────────────────────
 
-  if (pin.skip_rsvp) {
-    parts.push('skip RSVP');
-  } else {
-    parts.push('require RSVP');
-    parts.push(pin.allows_plus_one ? 'allow plus ones' : 'not allow plus ones');
-  }
-
-  if (pin.hidden_events.length > 0) {
-    const hiddenNames = pin.hidden_events
-      .map(id => events.find(e => e.id === id)?.name)
-      .filter(Boolean);
-    if (hiddenNames.length > 0) {
-      parts.push(`hide ${hiddenNames.join(' and ')} from the schedule`);
-    }
-  }
-
-  if (parts.length === 1) return `This code will ${parts[0]}.`;
-  if (parts.length === 2) return `This code will ${parts[0]} and ${parts[1]}.`;
-  const last = parts.pop();
-  return `This code will ${parts.join(', ')}, and ${last}.`;
+interface MatrixGuest {
+  id: string;
+  name: string;
+  logistics_data: { plus_one_name?: string | null; party_size?: number } & Record<string, unknown> | null;
 }
 
-export default function PINManagementPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
+interface MatrixEvent {
+  id: string;
+  name: string;
+  date: string | null;
+  order_index: number | null;
+}
+
+function getPlusOneName(g: MatrixGuest): string | null {
+  const ld = g.logistics_data;
+  const raw = ld && typeof ld.plus_one_name === 'string' ? ld.plus_one_name.trim() : '';
+  return raw || null;
+}
+
+function getPartySize(g: MatrixGuest): number {
+  const ld = g.logistics_data;
+  const n = ld && typeof ld.party_size === 'number' ? ld.party_size : 0;
+  return n > 0 ? n : 1;
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────
+
+export default function EventAccessPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
   const { isPro } = usePlan();
   const { user: authUser } = useAuth();
@@ -91,15 +82,16 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const { showStatus } = useAutoSaveStatus();
   const [loading, setLoading] = useState(true);
   const [weddingId, setWeddingId] = useState<string | null>(null);
-  const [settings, setSettings] = useState<any>(null);
-  const [editingPinIndex, setEditingPinIndex] = useState<number | null>(null);
-  const [newPin, setNewPin] = useState<{ pin: string; name: string; allows_plus_one: boolean; skip_rsvp: boolean; hidden_events: string[] }>({ pin: '', name: '', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
-  const [events, setEvents] = useState<{ id: string; name: string }[]>([]);
-  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [proModalOpen, setProModalOpen] = useState(false);
-  const [proSelections, setProSelections] = useState<ProSelection[]>([]);
-  const { registerGuard, unregisterGuard } = useNavigationGuard();
-  const [deletePinTarget, setDeletePinTarget] = useState<string | null>(null);
+
+  // Password state
+  const [password, setPassword] = useState('');
+  const [initialPassword, setInitialPassword] = useState('');
+
+  // Matrix state
+  const [guests, setGuests] = useState<MatrixGuest[]>([]);
+  const [events, setEvents] = useState<MatrixEvent[]>([]);
+  const [uninvited, setUninvited] = useState<Set<string>>(new Set()); // keys: `${guestId}|${eventId}`
+  const [matrixSearch, setMatrixSearch] = useState('');
 
   // Lock screen design state
   const [pinEntryText, setPinEntryText] = useState('');
@@ -107,45 +99,61 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
   const [pinEntryBackground, setPinEntryBackground] = useState<string>(BACKGROUNDS.BLUE_CLOUDS);
   const [customPinEntryBackground, setCustomPinEntryBackground] = useState<string | null>(null);
   const [visiblePinBgs, setVisiblePinBgs] = useState(8);
-  const [initialLockScreenData, setInitialLockScreenData] = useState<any>(null);
+  const [initialLockScreenData, setInitialLockScreenData] = useState<Record<string, unknown> | null>(null);
   const [isLockScreenDirty, setIsLockScreenDirty] = useState(false);
 
-  // Auto-save for lock screen design
-  const saveLockScreenDesign = useCallback(async () => {
-    if (isViewOnly) return;
-    if (!weddingId) return;
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [proModalOpen, setProModalOpen] = useState(false);
+  const [proSelections, setProSelections] = useState<ProSelection[]>([]);
+  const { registerGuard, unregisterGuard } = useNavigationGuard();
 
-    // Check if any selected options require pro
+  // ── Save: wedding password ──────────────────────────────────────────────
+  const savePassword = useCallback(async () => {
+    if (isViewOnly || !weddingId) return;
+    const trimmed = password.trim();
+    if (trimmed === initialPassword) return;
+    const ok = await weddingService.setWeddingPassword(weddingId, trimmed);
+    if (!ok) throw new Error('Save failed');
+    setInitialPassword(trimmed);
+  }, [weddingId, password, initialPassword, isViewOnly]);
+
+  const { saveStatus: passwordSaveStatus, debouncedSave: debouncedPasswordSave } = useAutoSave({
+    onSave: savePassword,
+    enabled: !!authUser,
+  });
+
+  useEffect(() => {
+    if (password !== initialPassword) debouncedPasswordSave();
+  }, [password, initialPassword, debouncedPasswordSave]);
+
+  // ── Save: lock screen ───────────────────────────────────────────────────
+  const saveLockScreenDesign = useCallback(async () => {
+    if (isViewOnly || !weddingId) return;
     if (!isPro) {
       const pinBgIndex = BACKGROUND_OPTIONS.findIndex(bg => bg.url === pinEntryBackground);
-
-      if (pinBgIndex >= FREE_BACKGROUND_COUNT && !customPinEntryBackground) {
-        return;
-      }
+      if (pinBgIndex >= FREE_BACKGROUND_COUNT && !customPinEntryBackground) return;
     }
-
     const pinBackgroundToUse = customPinEntryBackground || pinEntryBackground;
-
     const result = await weddingService.updateWedding(weddingId, {
       pin_entry_text: pinEntryText,
       pin_entry_subtitle_text: pinEntrySubtitleText,
       pin_entry_background: pinBackgroundToUse,
     });
     if (!result) throw new Error('Save failed');
-
     await weddingService.markUnpublishedChanges(weddingId);
-
     setInitialLockScreenData({
       pin_entry_text: pinEntryText,
       pin_entry_subtitle_text: pinEntrySubtitleText,
       pin_entry_background: pinBackgroundToUse,
     });
     setIsLockScreenDirty(false);
-  }, [weddingId, isPro, pinEntryText, pinEntrySubtitleText, pinEntryBackground, customPinEntryBackground]);
+  }, [weddingId, isPro, pinEntryText, pinEntrySubtitleText, pinEntryBackground, customPinEntryBackground, isViewOnly]);
 
-  const { saveStatus, debouncedSave } = useAutoSave({ onSave: saveLockScreenDesign, enabled: !!authUser });
+  const { debouncedSave: debouncedLockScreenSave } = useAutoSave({
+    onSave: saveLockScreenDesign,
+    enabled: !!authUser,
+  });
 
-  // Track lock screen dirty state and trigger auto-save
   useEffect(() => {
     if (initialLockScreenData) {
       const currentData = {
@@ -155,52 +163,32 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       };
       const dirty = JSON.stringify(currentData) !== JSON.stringify(initialLockScreenData);
       setIsLockScreenDirty(dirty);
-      if (dirty) {
-        debouncedSave();
-      }
+      if (dirty) debouncedLockScreenSave();
     }
-  }, [
-    pinEntryText,
-    pinEntrySubtitleText,
-    pinEntryBackground,
-    initialLockScreenData,
-    debouncedSave,
-  ]);
+  }, [pinEntryText, pinEntrySubtitleText, pinEntryBackground, initialLockScreenData, debouncedLockScreenSave]);
 
-  // Real-time Preview Sync for lock screen (debounced)
+  // Real-time preview sync
   useEffect(() => {
     if (!weddingId) return;
-
     const timer = setTimeout(() => {
       const channel = new BroadcastChannel('phera-design-sync');
-
-      const syncData = {
+      channel.postMessage({
         type: 'DESIGN_UPDATE',
         weddingId,
         updates: {
           pin_entry_text: pinEntryText,
           pin_entry_subtitle_text: pinEntrySubtitleText,
           pin_entry_background: customPinEntryBackground || pinEntryBackground,
-        }
-      };
-
-      channel.postMessage(syncData);
+        },
+      });
       channel.close();
     }, 300);
-
     return () => clearTimeout(timer);
-  }, [
-    weddingId,
-    pinEntryText,
-    pinEntrySubtitleText,
-    pinEntryBackground,
-    customPinEntryBackground,
-  ]);
+  }, [weddingId, pinEntryText, pinEntrySubtitleText, pinEntryBackground, customPinEntryBackground]);
 
-  // Navigation guard: prompt on leave if pro selections exist
+  // Pro-gate navigation guard for premium backgrounds
   useEffect(() => {
     if (isPro) return;
-
     const getProSelections = () => {
       const sels: ProSelection[] = [];
       const bgIndex = BACKGROUND_OPTIONS.findIndex(bg => bg.url === pinEntryBackground);
@@ -209,7 +197,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       }
       return sels;
     };
-
     registerGuard(() => {
       const sels = getProSelections();
       if (sels.length > 0) {
@@ -219,322 +206,341 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       }
       return true;
     });
-
     return () => unregisterGuard();
   }, [isPro, pinEntryBackground, customPinEntryBackground, registerGuard, unregisterGuard]);
 
-  // Beforeunload safety net
   useEffect(() => {
     if (isPro) return;
-
     const handler = (e: BeforeUnloadEvent) => {
       const bgIndex = BACKGROUND_OPTIONS.findIndex(bg => bg.url === pinEntryBackground);
-      if (bgIndex >= FREE_BACKGROUND_COUNT && !customPinEntryBackground) {
-        e.preventDefault();
-      }
+      if (bgIndex >= FREE_BACKGROUND_COUNT && !customPinEntryBackground) e.preventDefault();
     };
-
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [isPro, pinEntryBackground, customPinEntryBackground]);
 
+  // ── Initial load ────────────────────────────────────────────────────────
   useEffect(() => {
-    loadData();
-  }, [weddingSlug]);
-
-  const loadData = async () => {
-    try {
-      const wedding = await weddingService.getWeddingBySlug(weddingSlug);
-      if (wedding) {
+    (async () => {
+      try {
+        const wedding = await weddingService.getWeddingBySlug(weddingSlug);
+        if (!wedding) return;
         setWeddingId(wedding.id);
-        const settingsData = await weddingService.getSettings(wedding.id);
-        if (settingsData) {
-          setSettings(settingsData);
-        }
-        const weddingEvents = await weddingService.getWeddingEvents(wedding.id);
-        setEvents(weddingEvents.map((e: any) => ({ id: e.id, name: e.name })));
 
-        // Load lock screen design fields
+        // Wedding password
+        const existingPw = await weddingService.getWeddingPassword(wedding.id);
+        setPassword(existingPw || '');
+        setInitialPassword(existingPw || '');
+
+        // Events
+        const weddingEvents = await weddingService.getWeddingEvents(wedding.id);
+        setEvents(
+          weddingEvents.map((e: { id: string; name: string; date?: string | null; order_index?: number | null }) => ({
+            id: e.id,
+            name: e.name,
+            date: e.date ?? null,
+            order_index: e.order_index ?? null,
+          })),
+        );
+
+        // Guests
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests fields here aren't captured by generated supabase types
+        const { data: guestsData, error: guestsErr } = await (supabase as any)
+          .from('guests')
+          .select('id, name, logistics_data, created_at')
+          .eq('wedding_id', weddingSlug)
+          .order('name', { ascending: true });
+        if (guestsErr) console.error('guests load error:', guestsErr);
+        setGuests((guestsData || []) as MatrixGuest[]);
+
+        // Existing uninvited rows
+        const accessRows = await weddingService.listGuestEventAccess(wedding.id);
+        const next = new Set<string>();
+        for (const row of accessRows) {
+          if (row.invited === false) next.add(`${row.guest_id}|${row.event_id}`);
+        }
+        setUninvited(next);
+
+        // Lock screen design
         const defaultText = "You're invited!";
         const defaultSubtitle = 'Enter your invitation code to see all the details and RSVP for our celebration';
-
         setPinEntryText(wedding.pin_entry_text || defaultText);
         setPinEntrySubtitleText(wedding.pin_entry_subtitle_text || defaultSubtitle);
         setPinEntryBackground(wedding.pin_entry_background || BACKGROUNDS.BLUE_CLOUDS);
-
         setInitialLockScreenData({
           pin_entry_text: wedding.pin_entry_text || defaultText,
           pin_entry_subtitle_text: wedding.pin_entry_subtitle_text || defaultSubtitle,
           pin_entry_background: wedding.pin_entry_background || BACKGROUNDS.BLUE_CLOUDS,
         });
+      } catch (err) {
+        console.error('Error loading event access page:', err);
+        showStatus('error');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error loading PIN settings:', err);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weddingSlug]);
+
+  // ── Matrix interactions ─────────────────────────────────────────────────
+  const isInvited = useCallback(
+    (guestId: string, eventId: string) => !uninvited.has(`${guestId}|${eventId}`),
+    [uninvited],
+  );
+
+  const persistInvite = async (guestId: string, eventId: string, nextInvited: boolean) => {
+    if (!weddingId) return;
+    const ok = await weddingService.setGuestEventInvited(weddingId, guestId, eventId, nextInvited);
+    if (!ok) {
       showStatus('error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const [savingPin, setSavingPin] = useState(false);
-
-  const handleAddPin = async () => {
-    if (isViewOnly) return;
-    if (!newPin.pin) {
-      showStatus('error', 'Please enter a PIN code');
-      return;
-    }
-
-    setSavingPin(true);
-    try {
-      const currentPins = settings?.pin_codes || [];
-      let updatedPins;
-
-      if (editingPinIndex !== null && editingPinIndex >= 0) {
-        updatedPins = [...currentPins];
-        updatedPins[editingPinIndex] = newPin;
-      } else {
-        updatedPins = [...currentPins, newPin];
-      }
-
-      if (settings?.id) {
-        await weddingService.updateSettings(weddingId!, {
-          pin_codes: updatedPins,
-        });
-      } else {
-        await weddingService.createSettings({
-          wedding_id: weddingId!,
-          pin_codes: updatedPins,
-          whatsapp_group_link: '',
-          google_sheets_id: '',
-          lapse_event_codes: {},
-        });
-      }
-
-      setEditingPinIndex(null);
-      setNewPin({ pin: '', name: '', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
-      await loadData();
-      showStatus('saved');
-    } catch (err) {
-      console.error('Error saving PIN:', err);
-      showStatus('error');
-    } finally {
-      setSavingPin(false);
-    }
-  };
-
-  const handleEditPin = (pinData: any, index: number) => {
-    setNewPin({
-      pin: pinData.pin,
-      name: pinData.name || pinData.type || '',
-      allows_plus_one: pinData.allows_plus_one || false,
-      skip_rsvp: pinData.skip_rsvp || false,
-      hidden_events: pinData.hidden_events || [],
-    });
-    setEditingPinIndex(index);
-  };
-
-  const handleCancelPinEdit = () => {
-    if (savingPin) return;
-    setEditingPinIndex(null);
-    setNewPin({ pin: '', name: '', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
-  };
-
-  const startNewPin = () => {
-    if (isViewOnly) return;
-    setEditingPinIndex(-1); // -1 = adding new
-    setNewPin({ pin: '', name: '', allows_plus_one: false, skip_rsvp: false, hidden_events: [] });
-  };
-
-  const [deletingPin, setDeletingPin] = useState(false);
-
-  const handleDeletePin = async () => {
-    if (isViewOnly) return;
-    if (!deletePinTarget) return;
-
-    setDeletingPin(true);
-    try {
-      const currentPins = settings?.pin_codes || [];
-      const updatedPins = currentPins.filter((p: any) => p.pin !== deletePinTarget);
-
-      await weddingService.updateSettings(weddingId!, {
-        pin_codes: updatedPins,
+      // Revert on failure
+      setUninvited(prev => {
+        const copy = new Set(prev);
+        const key = `${guestId}|${eventId}`;
+        if (nextInvited) copy.add(key);
+        else copy.delete(key);
+        return copy;
       });
-
-      setDeletePinTarget(null);
-      await loadData();
+    } else {
       showStatus('saved');
-    } catch (err) {
-      showStatus('error');
-    } finally {
-      setDeletingPin(false);
     }
   };
+
+  const toggleCell = (guestId: string, eventId: string) => {
+    if (isViewOnly) return;
+    const key = `${guestId}|${eventId}`;
+    const currentlyInvited = !uninvited.has(key);
+    const next = !currentlyInvited;
+    setUninvited(prev => {
+      const copy = new Set(prev);
+      if (next) copy.delete(key);
+      else copy.add(key);
+      return copy;
+    });
+    persistInvite(guestId, eventId, next);
+  };
+
+  const toggleColumn = (eventId: string, nextInvited: boolean) => {
+    if (isViewOnly || !weddingId) return;
+    const targets = filteredGuests.map(g => g.id);
+    setUninvited(prev => {
+      const copy = new Set(prev);
+      for (const gid of targets) {
+        const key = `${gid}|${eventId}`;
+        if (nextInvited) copy.delete(key);
+        else copy.add(key);
+      }
+      return copy;
+    });
+    (async () => {
+      for (const gid of targets) {
+        await weddingService.setGuestEventInvited(weddingId, gid, eventId, nextInvited);
+      }
+      showStatus('saved');
+    })();
+  };
+
+  const filteredGuests = useMemo(() => {
+    const q = matrixSearch.trim().toLowerCase();
+    if (!q) return guests;
+    return guests.filter(g => {
+      if (g.name?.toLowerCase().includes(q)) return true;
+      const pon = getPlusOneName(g);
+      if (pon && pon.toLowerCase().includes(q)) return true;
+      return false;
+    });
+  }, [guests, matrixSearch]);
+
+  const columnAllInvited = (eventId: string) =>
+    filteredGuests.every(g => isInvited(g.id, eventId));
 
   if (loading) {
     return (
-      <Box sx={{ maxWidth: 1000 }}>
-        <LoadingSpinner message="Loading PIN management..." />
+      <Box sx={{ maxWidth: 1200 }}>
+        <LoadingSpinner message="Loading event access..." />
       </Box>
     );
   }
 
+  // ── Render ──────────────────────────────────────────────────────────────
   return (
-    <Box sx={{ maxWidth: 1000 }}>
+    <Box sx={{ maxWidth: 1200 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <PageHeading
-          title="PIN Management"
-          subtitle="Create and manage unique PIN codes for your guests to access the wedding website"
+          title="Event Access"
+          subtitle="Set a single password for your wedding website, then pick which events each guest is invited to."
         />
 
-        {/* PIN Codes Section */}
-        <Box>
+        {/* ── Wedding Password ────────────────────────────────────────── */}
+        <PheraCard variant="default" sx={{ p: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
-            Guest PIN Codes
+            Wedding Password
           </Typography>
-          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
-            {(settings?.pin_codes?.length || 0) > 0
-              ? `You have ${settings.pin_codes.length} PIN code${settings.pin_codes.length > 1 ? 's' : ''} configured`
-              : 'Add unique PIN codes for your guests to access the wedding website'}
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2.5 }}>
+            Guests enter this password to access your wedding website. Share it via WhatsApp or the invitation you send.
           </Typography>
-        </Box>
+          <PheraPasswordField
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="e.g., lotus2026"
+            fullWidth
+            size="small"
+            showCopy
+            adminStyle
+            disabled={isViewOnly}
+            helperText={
+              passwordSaveStatus === 'saving'
+                ? 'Saving…'
+                : passwordSaveStatus === 'saved'
+                  ? 'Saved'
+                  : passwordSaveStatus === 'error'
+                    ? 'Save failed — try again'
+                    : 'Letters + numbers only. Keep it short and memorable.'
+            }
+          />
+        </PheraCard>
 
-        <Stack spacing={2}>
-          {(settings?.pin_codes || []).map((pinData: any, index: number) => (
-            editingPinIndex === index ? (
-              <InlinePinForm
-                key={index}
-                pin={newPin}
-                setPin={setNewPin}
-                events={events}
-                isEditing
-                onSave={handleAddPin}
-                onCancel={handleCancelPinEdit}
-                onDelete={() => setDeletePinTarget(pinData.pin)}
-                saving={savingPin}
-              />
-            ) : (
-              <Paper
-                key={index}
-                sx={{
-                  p: 3,
-                  borderRadius: RADII.lg,
-                  bgcolor: COLORS.bg.white,
-                  border: '1px solid #EEE',
-                  boxShadow: 'none',
-                  cursor: 'pointer',
-                  '&:hover': { borderColor: COLORS.border.default, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
-                }}
-                onClick={() => handleEditPin(pinData, index)}
-              >
-                <Stack direction="row" alignItems="center" justifyContent="space-between">
-                  <Box sx={{ flex: 1 }}>
-                    <Stack direction="row" alignItems="center" spacing={2} flexWrap="wrap">
-                      <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1.2rem' }}>
-                        {pinData.pin}
-                      </Typography>
-                      <Stack direction="row" spacing={1} flexWrap="wrap">
-                        <Chip
-                          label={pinData.name || pinData.type || 'Guest'}
-                          size="small"
-                          sx={{ bgcolor: alpha(COLORS.brand.primary, 0.1), color: COLORS.brand.primary, fontWeight: 600 }}
-                        />
-                        {pinData.hidden_events?.length > 0 && (
-                          <Tooltip
-                            title={
-                              <Stack spacing={0.25} sx={{ py: 0.5 }}>
-                                {pinData.hidden_events.map((eid: string) => {
-                                  const ev = events.find(e => e.id === eid);
-                                  return ev ? <Typography key={eid} variant="body2" sx={{ fontSize: '0.875rem' }}>{ev.name}</Typography> : null;
-                                })}
-                              </Stack>
-                            }
-                            arrow
-                          >
-                            <Chip
-                              label={`${pinData.hidden_events.length} hidden`}
-                              size="small"
-                              sx={{ bgcolor: alpha(COLORS.text.strong, 0.08), color: COLORS.text.muted, fontWeight: 600, cursor: 'pointer' }}
-                            />
-                          </Tooltip>
-                        )}
-                        {pinData.skip_rsvp ? (
-                          <Chip label="Skip RSVP" size="small" sx={{ bgcolor: alpha(COLORS.text.strong, 0.08), color: COLORS.text.muted, fontWeight: 600 }} />
-                        ) : (
-                          <Chip
-                            label={pinData.allows_plus_one ? 'Plus One' : 'No Plus One'}
-                            size="small"
-                            sx={{ bgcolor: alpha(COLORS.text.strong, 0.08), color: COLORS.text.subtle, fontWeight: 600 }}
-                          />
-                        )}
-                      </Stack>
-                    </Stack>
-                  </Box>
-                  {!isViewOnly && (
-                    <IconButton
-                      size="small"
-                      onClick={(e) => { e.stopPropagation(); setDeletePinTarget(pinData.pin); }}
-                      sx={{ color: COLORS.text.strong, flexShrink: 0 }}
-                    >
-                      <Delete fontSize="small" />
-                    </IconButton>
-                  )}
-                </Stack>
-              </Paper>
-            )
-          ))}
-
-          {/* Inline form for new PIN */}
-          {editingPinIndex === -1 && (
-            <InlinePinForm
-              pin={newPin}
-              setPin={setNewPin}
-              events={events}
-              onSave={handleAddPin}
-              onCancel={handleCancelPinEdit}
-              saving={savingPin}
-            />
-          )}
-
-          {(!settings?.pin_codes || settings.pin_codes.length === 0) && editingPinIndex !== -1 && (
-            <Paper sx={{ p: 4, textAlign: 'center', borderRadius: RADII.lg, bgcolor: COLORS.bg.white, boxShadow: 'none' }}>
+        {/* ── Event Invitations Matrix ───────────────────────────────── */}
+        <PheraCard variant="default" sx={{ p: 3 }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={2} sx={{ mb: 2 }}>
+            <Box>
+              <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong, mb: 0.5 }}>
+                Event Invitations
+              </Typography>
               <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-                No PIN codes yet. Add your first PIN below.
-              </Typography>
-            </Paper>
-          )}
-
-          {/* Add button at bottom */}
-          {!isViewOnly && editingPinIndex === null && (
-            <Box
-              onClick={startNewPin}
-              sx={{
-                bgcolor: COLORS.border.light,
-                border: '1px dashed #BCBCBC',
-                borderRadius: RADII.sm,
-                px: 2, py: 1.5,
-                cursor: 'pointer',
-                textAlign: 'center',
-                '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
-              }}
-            >
-              <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1rem', lineHeight: 1.5 }}>
-                Add PIN Code
-              </Typography>
-              <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
-                Create a new access code for your guests
+                By default, everyone is invited to every event. Uncheck to exclude a guest from a specific event.
               </Typography>
             </Box>
-          )}
-        </Stack>
+            {guests.length > 0 && events.length > 0 && (
+              <TextField
+                size="small"
+                placeholder="Search by name"
+                value={matrixSearch}
+                onChange={(e) => setMatrixSearch(e.target.value)}
+                sx={{ ...textFieldSx, minWidth: 240 }}
+              />
+            )}
+          </Stack>
 
-        {/* Lock Screen Design Section */}
+          {guests.length === 0 ? (
+            <EmptyState
+              icon={<EventBusy sx={{ fontSize: 40 }} />}
+              title="No guests yet"
+              subtitle="Add guests from the Guest List page to start assigning event invitations."
+              action={
+                <SecondaryActionButton href={`/admin/${weddingSlug}/guest-list`}>
+                  Go to Guest List
+                </SecondaryActionButton>
+              }
+            />
+          ) : events.length === 0 ? (
+            <EmptyState
+              icon={<EventBusy sx={{ fontSize: 40 }} />}
+              title="No events yet"
+              subtitle="Add events in the Schedule page before assigning invitations."
+              action={
+                <SecondaryActionButton href={`/admin/${weddingSlug}/schedule`}>
+                  Go to Schedule
+                </SecondaryActionButton>
+              }
+            />
+          ) : (
+            <TableContainer sx={{ border: `1px solid ${COLORS.border.faint}`, borderRadius: RADII.md, overflowX: 'auto' }}>
+              <Table size="small" stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ bgcolor: COLORS.bg.white, fontWeight: 600, color: COLORS.text.strong, minWidth: 240 }}>
+                      Name
+                    </TableCell>
+                    <TableCell sx={{ bgcolor: COLORS.bg.white, fontWeight: 600, color: COLORS.text.strong, width: 72, textAlign: 'center' }}>
+                      Party
+                    </TableCell>
+                    {events.map(ev => {
+                      const allInvited = columnAllInvited(ev.id);
+                      return (
+                        <TableCell
+                          key={ev.id}
+                          sx={{ bgcolor: COLORS.bg.white, textAlign: 'center', minWidth: 160, px: 1.5 }}
+                        >
+                          <Stack alignItems="center" spacing={0.5}>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.875rem' }}>
+                              {ev.name}
+                            </Typography>
+                            {ev.date && (
+                              <Typography variant="caption" sx={{ color: COLORS.text.subtle, fontSize: '0.875rem' }}>
+                                {ev.date}
+                              </Typography>
+                            )}
+                            <Checkbox
+                              checked={allInvited}
+                              onChange={() => toggleColumn(ev.id, !allInvited)}
+                              size="small"
+                              disabled={isViewOnly}
+                              sx={{
+                                p: 0.25,
+                                color: COLORS.text.faint,
+                                '&.Mui-checked': { color: COLORS.brand.primary },
+                              }}
+                            />
+                          </Stack>
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredGuests.map(g => {
+                    const plusOne = getPlusOneName(g);
+                    const party = getPartySize(g);
+                    return (
+                      <TableRow key={g.id} hover sx={{ '&:hover': { bgcolor: COLORS.bg.subtle } }}>
+                        <TableCell sx={{ py: 1.25 }}>
+                          <Typography sx={{ fontFamily: FONTS.body, fontWeight: 600, color: COLORS.text.strong, fontSize: '0.9375rem' }}>
+                            {g.name}
+                          </Typography>
+                          {plusOne && (
+                            <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontSize: '0.8125rem' }}>
+                              {plusOne}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', color: COLORS.text.subtle }}>
+                          {party}
+                        </TableCell>
+                        {events.map(ev => {
+                          const checked = isInvited(g.id, ev.id);
+                          return (
+                            <TableCell key={ev.id} sx={{ textAlign: 'center' }}>
+                              <Checkbox
+                                checked={checked}
+                                onChange={() => toggleCell(g.id, ev.id)}
+                                size="small"
+                                disabled={isViewOnly}
+                                sx={{
+                                  p: 0.25,
+                                  color: COLORS.text.faint,
+                                  '&.Mui-checked': { color: COLORS.brand.primary },
+                                }}
+                              />
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </PheraCard>
+
+        {/* ── Lock Screen Design ─────────────────────────────────────── */}
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, color: COLORS.text.strong }}>
             Lock Screen Design
           </Typography>
           <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
-            Customize the appearance of the PIN entry screen your guests see
+            Customize the appearance of the password entry screen your guests see.
           </Typography>
         </Box>
 
@@ -543,7 +549,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: COLORS.text.strong }}>
             Welcome Text
           </Typography>
-
           <Stack spacing={3}>
             <TextField
               label="Main Heading"
@@ -556,7 +561,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
               helperText="Use {couple_name} as a placeholder for the couple's name"
               sx={textFieldSx}
             />
-
             <TextField
               label="Subtitle Text"
               value={pinEntrySubtitleText}
@@ -576,11 +580,9 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: COLORS.text.strong }}>
             Background Image
           </Typography>
-
           <Grid container spacing={2} mb={3}>
             {BACKGROUND_OPTIONS.slice(0, visiblePinBgs).map((bg, index) => {
               const isProOption = index >= FREE_BACKGROUND_COUNT;
-
               return (
                 <Grid size={{ xs: 6, sm: 4, md: 3 }} key={`pin-bg-${bg.url}`}>
                   <Box
@@ -615,7 +617,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
               );
             })}
           </Grid>
-
           <Stack direction="row" spacing={2} mb={3} justifyContent="center">
             {visiblePinBgs < BACKGROUND_OPTIONS.length && (
               <Button
@@ -636,7 +637,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
               </Button>
             )}
           </Stack>
-
           {weddingId && (
             <ImageUpload
               label="Upload Custom Background"
@@ -652,33 +652,6 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
             />
           )}
         </PheraCard>
-
-        {/* Delete Confirmation Dialog */}
-        <PheraDialog
-          open={!!deletePinTarget}
-          onClose={() => setDeletePinTarget(null)}
-          PaperProps={{ sx: { p: 1, maxWidth: 400 } }}
-        >
-          <PheraDialogTitle onClose={() => setDeletePinTarget(null)}>
-            Delete PIN?
-          </PheraDialogTitle>
-          <DialogContent>
-            <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
-              Are you sure you want to delete PIN <strong>{deletePinTarget}</strong>? This action cannot be undone.
-            </Typography>
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button onClick={() => setDeletePinTarget(null)} sx={{ color: COLORS.text.subtle, borderRadius: RADII.md, textTransform: 'none' }}>
-              Cancel
-            </Button>
-            <PrimaryActionButton
-              onClick={handleDeletePin}
-              loading={deletingPin}
-            >
-              Delete
-            </PrimaryActionButton>
-          </DialogActions>
-        </PheraDialog>
 
         {/* Pro Selections Modal */}
         <ProSelectionsModal
@@ -699,198 +672,5 @@ export default function PINManagementPage({ params }: { params: Promise<{ weddin
       </Stack>
       <ContinueButton weddingSlug={weddingSlug} currentSection="pins" weddingId={weddingId} />
     </Box>
-  );
-}
-
-// ── Inline PIN Form ──────────────────────────────────────────────────────────
-
-// Reuse the standard enhanced text field style from the page-level constant
-const pinFieldSx = textFieldSx;
-
-// Kept for backwards compat only — PheraSwitch already styles itself.
-// Callers can drop `sx={SWITCH_SX}` entirely.
-const SWITCH_SX = {};
-
-interface InlinePinFormProps {
-  pin: { pin: string; name: string; allows_plus_one: boolean; skip_rsvp: boolean; hidden_events: string[] };
-  setPin: (p: any) => void;
-  events: { id: string; name: string }[];
-  isEditing?: boolean;
-  onSave: () => void;
-  onCancel: () => void;
-  onDelete?: () => void;
-  saving: boolean;
-}
-
-function InlinePinForm({ pin, setPin, events, isEditing, onSave, onCancel, onDelete, saving }: InlinePinFormProps) {
-  const canSave = !!pin.pin;
-  const [showHideEvents, setShowHideEvents] = useState(pin.hidden_events.length > 0);
-  const [selectOpen, setSelectOpen] = useState(false);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
-  };
-
-  const handleClickAway = () => {
-    // Don't cancel while the Select dropdown is open
-    if (selectOpen) return;
-    onCancel();
-  };
-
-  return (
-    <ClickAwayListener onClickAway={handleClickAway}>
-      <Paper sx={{ p: 2.5, borderRadius: RADII.lg, bgcolor: COLORS.bg.white, border: '1px solid #EEE', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
-        <Stack spacing={2}>
-          <Stack direction="row" spacing={1.5}>
-            <TextField
-              label="PIN Code"
-              size="small"
-              value={pin.pin}
-              onChange={(e) => {
-                const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-                setPin({ ...pin, pin: val });
-              }}
-              placeholder="1234"
-              disabled={isEditing}
-              autoFocus={!isEditing}
-              onKeyDown={handleKeyDown}
-              inputProps={{ inputMode: 'numeric', maxLength: 4 }}
-              sx={{ ...pinFieldSx, width: 120 }}
-            />
-            <TextField
-              label="Name"
-              size="small"
-              fullWidth
-              value={pin.name}
-              onChange={(e) => setPin({ ...pin, name: e.target.value })}
-              placeholder="e.g., Smith Family"
-              autoFocus={isEditing}
-              onKeyDown={handleKeyDown}
-              sx={pinFieldSx}
-            />
-          </Stack>
-
-          <Stack direction="row" spacing={2} flexWrap="wrap">
-            <FormControlLabel
-              control={
-                <PheraSwitch
-                  checked={pin.skip_rsvp}
-                  onChange={(e) => setPin({ ...pin, skip_rsvp: e.target.checked, allows_plus_one: e.target.checked ? false : pin.allows_plus_one })}
-                  size="small"
-                  sx={SWITCH_SX}
-                />
-              }
-              label={<Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.875rem' }}>Skip RSVP</Typography>}
-            />
-            {!pin.skip_rsvp && (
-              <FormControlLabel
-                control={
-                  <PheraSwitch
-                    checked={pin.allows_plus_one}
-                    onChange={(e) => setPin({ ...pin, allows_plus_one: e.target.checked })}
-                    size="small"
-                    sx={SWITCH_SX}
-                  />
-                }
-                label={<Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.875rem' }}>Plus One</Typography>}
-              />
-            )}
-            {events.length > 0 && (
-              <FormControlLabel
-                control={
-                  <PheraSwitch
-                    checked={showHideEvents}
-                    onChange={(e) => {
-                      setShowHideEvents(e.target.checked);
-                      if (!e.target.checked) {
-                        setPin({ ...pin, hidden_events: [] });
-                      }
-                    }}
-                    size="small"
-                    sx={SWITCH_SX}
-                  />
-                }
-                label={<Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '0.875rem' }}>Hide Events</Typography>}
-              />
-            )}
-          </Stack>
-
-          {showHideEvents && events.length > 0 && (
-            <>
-              <FormControl fullWidth size="small">
-                <InputLabel shrink sx={{ color: COLORS.text.muted, fontWeight: 500, '&.Mui-focused': { color: COLORS.brand.primary } }}>Select events to hide</InputLabel>
-                <Select
-                  value=""
-                  open={selectOpen}
-                  onOpen={() => setSelectOpen(true)}
-                  onClose={() => setSelectOpen(false)}
-                  onChange={(e) => {
-                    const val = e.target.value as string;
-                    if (val && !pin.hidden_events.includes(val)) {
-                      setPin({ ...pin, hidden_events: [...pin.hidden_events, val] });
-                    }
-                  }}
-                  label="Select events to hide"
-                  displayEmpty
-                  notched
-                  renderValue={() => <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Select an event</Typography>}
-                  sx={{
-                    borderRadius: RADII.sm, bgcolor: COLORS.bg.white,
-                    '& fieldset': { borderColor: COLORS.text.faint },
-                    '&:hover fieldset': { borderColor: COLORS.text.faint },
-                    '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary },
-                  }}
-                >
-                  {events
-                    .filter(event => !pin.hidden_events.includes(event.id))
-                    .map((event) => (
-                      <MenuItem key={event.id} value={event.id}>{event.name}</MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {pin.hidden_events.map((eventId) => {
-                  const event = events.find(e => e.id === eventId);
-                  return event ? (
-                    <Chip
-                      key={eventId}
-                      label={event.name}
-                      size="small"
-                      onDelete={() => setPin({ ...pin, hidden_events: pin.hidden_events.filter((id: string) => id !== eventId) })}
-                      sx={{ bgcolor: alpha(COLORS.brand.primary, 0.1), color: COLORS.brand.primary, fontWeight: 600, '& .MuiChip-deleteIcon': { color: COLORS.brand.primary } }}
-                    />
-                  ) : null;
-                })}
-              </Box>
-            </>
-          )}
-
-          <Box sx={{ p: 1.5, borderRadius: RADII.sm, bgcolor: COLORS.bg.subtle, border: '1px solid rgba(0,0,0,0.07)' }}>
-            <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.875rem' }}>
-              {generatePinSummary(pin, events)}
-            </Typography>
-          </Box>
-
-          <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={1}>
-            {isEditing && onDelete && (
-              <IconButton size="small" onClick={onDelete} sx={{ color: COLORS.text.strong }}>
-                <Delete fontSize="small" />
-              </IconButton>
-            )}
-            <PrimaryActionButton
-              onClick={onSave}
-              loading={saving}
-              disabled={!canSave}
-              sx={{
-                px: 3, minWidth: 80,
-                '&.Mui-disabled': { bgcolor: COLORS.border.faint, color: COLORS.text.faint },
-              }}
-            >
-              Save
-            </PrimaryActionButton>
-          </Stack>
-        </Stack>
-      </Paper>
-    </ClickAwayListener>
   );
 }

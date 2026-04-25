@@ -2,18 +2,24 @@
 
 import { Box, Button, DialogContent, TextField, IconButton, Stack, Typography } from '@mui/material';
 import { PheraDialog } from '@/components/shared/Dialog';
-import { ArrowForward, Publish, ContentCopy, Check, Close, OpenInNew } from '@mui/icons-material';
+import { ArrowForward, ContentCopy, Check, Close, OpenInNew } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { PRIMARY_BUTTON_SX } from '@/lib/constants/button-styles';
-import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { groups } from '@/components/admin/OnboardingSidebar';
-import { weddingService } from '@/lib/supabase/wedding-service';
 import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
 import { PrimaryActionButton } from './ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
+// Flow = wedding-website items, then guest-list. After pins (last website
+// section) we push users toward importing their guests rather than showing
+// the publish CTA — publish lives in the preview panel now and is gated on
+// guest count.
 const websiteItems = groups.find(g => g.id === 'wedding-website')!.items;
+const guestListItem = groups
+  .find(g => g.id === 'guests-group')!
+  .items.find(i => i.id === 'guest-list')!;
+const flow = [...websiteItems, guestListItem];
 
 interface ContinueButtonProps {
   weddingSlug: string;
@@ -21,41 +27,21 @@ interface ContinueButtonProps {
   weddingId?: string | null;
 }
 
-export default function ContinueButton({ weddingSlug, currentSection, weddingId }: ContinueButtonProps) {
+export default function ContinueButton({ weddingSlug, currentSection }: ContinueButtonProps) {
   const router = useRouter();
   const { checkGuard } = useNavigationGuard();
-  const { showStatus } = useAutoSaveStatus();
-  const [publishing, setPublishing] = useState(false);
   const [navigating, setNavigating] = useState(false);
   const [showPublishedModal, setShowPublishedModal] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
   const liveUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://phera.io'}/${weddingSlug}`;
 
-  const currentIndex = websiteItems.findIndex(item => item.id === currentSection);
-  const nextItem = currentIndex >= 0 && currentIndex < websiteItems.length - 1
-    ? websiteItems[currentIndex + 1]
+  const currentIndex = flow.findIndex(item => item.id === currentSection);
+  const nextItem = currentIndex >= 0 && currentIndex < flow.length - 1
+    ? flow[currentIndex + 1]
     : null;
 
-  const handlePublish = async () => {
-    if (!weddingId) return;
-    setPublishing(true);
-    try {
-      const success = await weddingService.publishWedding(weddingId);
-      if (success) {
-        setShowPublishedModal(true);
-        window.postMessage({ type: 'CHANGES_SAVED' }, '*');
-      } else {
-        showStatus('error', 'Failed to publish. Please try again.');
-      }
-    } catch {
-      showStatus('error', 'Failed to publish. Please try again.');
-    } finally {
-      setPublishing(false);
-    }
-  };
-
-  if (currentIndex === -1) return null;
+  if (currentIndex === -1 || !nextItem) return null;
 
   const copyLiveUrl = () => {
     navigator.clipboard.writeText(liveUrl);
@@ -66,26 +52,14 @@ export default function ContinueButton({ weddingSlug, currentSection, weddingId 
   return (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, mb: 2 }}>
-        {nextItem ? (
-          <PrimaryActionButton
-            endIcon={<ArrowForward />}
-            sx={PRIMARY_BUTTON_SX}
-            loading={navigating}
-            onClick={() => { if (!checkGuard()) return; setNavigating(true); router.push(`/admin/${weddingSlug}${nextItem.path}`); }}
-          >
-            Continue: {nextItem.label}
-          </PrimaryActionButton>
-        ) : (
-          <PrimaryActionButton
-            startIcon={<Publish />}
-            sx={PRIMARY_BUTTON_SX}
-            onClick={handlePublish}
-            loading={publishing}
-            disabled={!weddingId}
-          >
-            Publish Website
-          </PrimaryActionButton>
-        )}
+        <PrimaryActionButton
+          endIcon={<ArrowForward />}
+          sx={PRIMARY_BUTTON_SX}
+          loading={navigating}
+          onClick={() => { if (!checkGuard()) return; setNavigating(true); router.push(`/admin/${weddingSlug}${nextItem.path}`); }}
+        >
+          Continue: {nextItem.label}
+        </PrimaryActionButton>
       </Box>
 
       {/* Published Modal */}
