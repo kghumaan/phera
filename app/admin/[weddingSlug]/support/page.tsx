@@ -79,7 +79,7 @@ export default function SupportPage({ params }: { params: Promise<{ weddingSlug:
         )}
         {error && <ErrorAlert onClose={() => setError(null)}>{error}</ErrorAlert>}
 
-        <PheraCard variant="default" sx={{ p: 4 }}>
+        <PheraCard variant="muted" sx={{ p: 4 }}>
           <form onSubmit={handleSubmit}>
             <Stack spacing={2.5}>
               <PheraTextField

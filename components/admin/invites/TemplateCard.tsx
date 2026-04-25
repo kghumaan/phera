@@ -69,7 +69,7 @@ export function TemplateCard({
   const [conciergeConfirmOpen, setConciergeConfirmOpen] = useState(false);
   const [conciergeSending, setConciergeSending] = useState(false);
   const [conciergeResult, setConciergeResult] = useState<
-    | { kind: 'ok'; sent: number; failed: number }
+    | { kind: 'ok'; sent: number; failed: number; firstError?: string }
     | { kind: 'error'; message: string }
     | null
   >(null);
@@ -118,7 +118,15 @@ export function TemplateCard({
       if (!res.ok) {
         setConciergeResult({ kind: 'error', message: data?.error || 'Send failed' });
       } else {
-        setConciergeResult({ kind: 'ok', sent: data.sent ?? 0, failed: data.failed ?? 0 });
+        const firstError = Array.isArray(data?.errors) && data.errors.length > 0
+          ? data.errors[0]?.reason
+          : undefined;
+        setConciergeResult({
+          kind: 'ok',
+          sent: data.sent ?? 0,
+          failed: data.failed ?? 0,
+          firstError,
+        });
         setConciergeConfirmOpen(false);
       }
     } catch (err: unknown) {
@@ -295,13 +303,28 @@ export function TemplateCard({
               </Stack>
 
               {conciergeResult?.kind === 'ok' && (
-                <Typography
-                  variant="body2"
-                  sx={{ mt: 1.5, color: COLORS.accent.successText }}
-                >
-                  Sent via Concierge — {conciergeResult.sent} delivered
-                  {conciergeResult.failed > 0 ? `, ${conciergeResult.failed} failed` : ''}.
-                </Typography>
+                <Box sx={{ mt: 1.5 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color:
+                        conciergeResult.failed > 0 && conciergeResult.sent === 0
+                          ? COLORS.accent.dangerText
+                          : COLORS.accent.successText,
+                    }}
+                  >
+                    Sent via Concierge — {conciergeResult.sent} delivered
+                    {conciergeResult.failed > 0 ? `, ${conciergeResult.failed} failed` : ''}.
+                  </Typography>
+                  {conciergeResult.firstError && (
+                    <Typography
+                      variant="body2"
+                      sx={{ mt: 0.5, color: COLORS.text.muted, fontSize: '0.8125rem' }}
+                    >
+                      First error: {conciergeResult.firstError}
+                    </Typography>
+                  )}
+                </Box>
               )}
               {conciergeResult?.kind === 'error' && (
                 <Typography

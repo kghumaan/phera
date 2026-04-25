@@ -1376,8 +1376,9 @@ function LandingPageContent() {
           </Container >
         </Box >
 
-        {/* --- FOR PLANNERS SECTION --- */}
-        <Box id="planners" sx={{ py: { xs: 6, md: 10 }, bgcolor: COLORS.bg.white, overflow: 'hidden' }}>
+        {/* --- FOR PLANNERS SECTION (hidden — planner pitch is not the
+             current landing focus; restore by flipping the false below) --- */}
+        {false && <Box id="planners" sx={{ py: { xs: 6, md: 10 }, bgcolor: COLORS.bg.white, overflow: 'hidden' }}>
           <Container maxWidth="xl" sx={{ pl: { md: 6, lg: 10 } }}>
             <Grid container spacing={{ xs: 4, md: 8 }} alignItems="center">
               <Grid size={{ xs: 12, md: 5 }}>
@@ -1516,7 +1517,7 @@ function LandingPageContent() {
               </Grid>
             </Grid>
           </Container>
-        </Box>
+        </Box>}
 
         {/* --- WEDDING ROADMAP SECTION --- */}
         {/* <Container maxWidth="xl" sx={{ py: { xs: 3, md: 14 } }}>
