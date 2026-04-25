@@ -18,8 +18,8 @@ vi.mock('./ProBadge', () => ({ default: () => null }));
 import { groups } from '@/components/admin/OnboardingSidebar';
 
 describe('Sidebar Reorganization', () => {
-  it('should have 5 groups (Control Tower hidden)', () => {
-    expect(groups).toHaveLength(5);
+  it('should have 6 groups (Control Tower hidden)', () => {
+    expect(groups).toHaveLength(6);
   });
 
   it('should have correct group IDs', () => {
@@ -30,6 +30,7 @@ describe('Sidebar Reorganization', () => {
       'guests-group',
       'planning',
       'collaborators',
+      'support',
     ]);
   });
 
@@ -41,6 +42,7 @@ describe('Sidebar Reorganization', () => {
       'Guest Management',
       'Planning',
       'Collaborators',
+      'Support',
     ]);
   });
 
@@ -74,11 +76,18 @@ describe('Sidebar Reorganization', () => {
       expect(guests!.items[0].path).toBe('/guest-list');
     });
 
-    it('should have RSVPs', () => {
+    it('should have Guest Responses', () => {
       const item = guests!.items.find((i) => i.id === 'guests');
       expect(item).toBeDefined();
-      expect(item!.label).toBe('RSVPs');
+      expect(item!.label).toBe('Guest Responses');
       expect(item!.path).toBe('/guests');
+    });
+
+    it('should have Invites', () => {
+      const item = guests!.items.find((i) => i.id === 'invites');
+      expect(item).toBeDefined();
+      expect(item!.label).toBe('Invites');
+      expect(item!.path).toBe('/invites');
     });
 
     it('should have Room Assignments', () => {
@@ -100,8 +109,8 @@ describe('Sidebar Reorganization', () => {
       expect(item!.label).toBe('Guest Concierge');
     });
 
-    it('should have 5 items', () => {
-      expect(guests!.items).toHaveLength(5);
+    it('should have 6 items', () => {
+      expect(guests!.items).toHaveLength(6);
     });
 
     it('should NOT include Outreach (removed)', () => {

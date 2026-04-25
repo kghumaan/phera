@@ -46,7 +46,7 @@ describe('ConciergeKnowledgeBase', () => {
     });
   });
 
-  function mockFetchEntries(entries: any[] = []) {
+  function mockFetchEntries(entries: unknown[] = []) {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ entries }),
@@ -182,7 +182,7 @@ describe('ConciergeKnowledgeBase', () => {
       await waitFor(() => {
         // Should have called generate endpoint
         const generateCall = mockFetch.mock.calls.find(
-          (call: any[]) => call[0] === '/api/concierge/knowledge/generate'
+          (call: unknown[]) => call[0] === '/api/concierge/knowledge/generate'
         );
         expect(generateCall).toBeTruthy();
       });
@@ -321,7 +321,7 @@ describe('ConciergeKnowledgeBase', () => {
       render(<ConciergeKnowledgeBase weddingId="w-123" />);
 
       await waitFor(() => {
-        expect(screen.getByText(/concierge AI already knows/)).toBeTruthy();
+        expect(screen.getByText(/Supplementary data for the Concierge/i)).toBeTruthy();
       });
     });
   });

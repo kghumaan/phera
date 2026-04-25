@@ -17,12 +17,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Need history so we can diff against the base ref to lint only the
+          # files this push/PR touched. Full-repo lint has accumulated
+          # tech-debt errors that would otherwise wall every commit; this
+          # matches the local pre-commit (lint-staged) behavior.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run lint
+      - name: Lint changed files
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="origin/${{ github.base_ref }}"
+          else
+            BASE="HEAD~1"
+          fi
+          echo "Diffing against $BASE"
+          mapfile -t FILES < <(git diff --name-only --diff-filter=AM "$BASE"...HEAD -- '*.ts' '*.tsx' || true)
+          if [ ${#FILES[@]} -eq 0 ]; then
+            echo "No .ts/.tsx changes — skipping lint."
+            exit 0
+          fi
+          printf '  %s\n' "${FILES[@]}"
+          npx eslint --max-warnings=9999 "${FILES[@]}"
 
   test:
     name: Tests

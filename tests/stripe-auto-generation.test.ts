@@ -37,10 +37,10 @@ import { POST as webhookPOST } from '@/app/api/stripe/webhook/route';
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
-function createJsonRequest(body: any) {
+function createJsonRequest(body: unknown) {
   return {
     json: () => Promise.resolve(body),
-  } as any;
+  } as unknown as Request;
 }
 
 function createWebhookRequest(body: string, signature: string | null) {
@@ -49,7 +49,7 @@ function createWebhookRequest(body: string, signature: string | null) {
     headers: {
       get: (key: string) => key === 'stripe-signature' ? signature : null,
     },
-  } as any;
+  } as unknown as Request;
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────
@@ -96,7 +96,10 @@ describe('Stripe auto-generation integration', () => {
       expect(mockAutoGenerateForUser).toHaveBeenCalledWith('user-123', expect.anything());
     });
 
-    it('should default tier to pro when not specified', async () => {
+    it('should default tier to base when not specified', async () => {
+      // Route default: missing metadata.tier resolves to 'base'. The autoGenerate
+      // path still fires because the user paid; the tier label just falls
+      // through unchanged.
       mockStripeRetrieve.mockResolvedValue({
         payment_status: 'paid',
         metadata: { userId: 'user-123' },
@@ -105,7 +108,7 @@ describe('Stripe auto-generation integration', () => {
       const res = await activateProPOST(createJsonRequest({ sessionId: 'cs_123' }));
       const data = await res.json();
 
-      expect(data.tier).toBe('pro');
+      expect(data.tier).toBe('base');
     });
 
     it('should not block response if autoGenerate fails', async () => {
