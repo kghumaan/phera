@@ -68,24 +68,38 @@ export default async function BlogPostPage({ params }: PageProps) {
     notFound();
   }
 
+  const SITE_ORIGIN = 'https://www.phera.io';
+  const FALLBACK_IMAGE = '/images/couple/imessage-optimized.jpg';
+  const imagePath = post.image || FALLBACK_IMAGE;
+  const absoluteImage = imagePath.startsWith('http') ? imagePath : `${SITE_ORIGIN}${imagePath}`;
+  // Posts ship a date-only string (YYYY-MM-DD); promote to full ISO 8601 with UTC timezone for schema validity.
+  const datePublishedIso = new Date(`${post.date}T00:00:00Z`).toISOString();
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.title,
     description: post.description,
-    datePublished: post.date,
+    image: absoluteImage,
+    datePublished: datePublishedIso,
+    dateModified: datePublishedIso,
     author: {
       '@type': 'Organization',
       name: post.author,
+      url: `${SITE_ORIGIN}/about`,
     },
     publisher: {
       '@type': 'Organization',
       name: 'Phera',
-      url: 'https://www.phera.io',
+      url: SITE_ORIGIN,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_ORIGIN}/logo.svg`,
+      },
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://www.phera.io/blog/${slug}`,
+      '@id': `${SITE_ORIGIN}/blog/${slug}`,
     },
   };
 

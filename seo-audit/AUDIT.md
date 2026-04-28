@@ -787,3 +787,102 @@ SEO technical foundation done. Open follow-ups (deferred, separate decisions):
 - **Design-system migration**: inline hex colors + unused imports across landing pages (currently grandfathered via `eslint-disable` headers). Separate workstream.
 - **`/features` 2-H1 issue**: FeaturesSection ships desktop + mobile responsive duplicates, both promoted to `<h1>`. CSS hides one per viewport but both are in DOM. Single-H1 cleanup possible by restructuring the responsive markup.
 
+---
+
+## SEO Technical Foundation — Final State (2026-04-28)
+
+End-of-sequence snapshot. Engineering work paused after this batch. All changes in `main`, deployed to `https://www.phera.io/`.
+
+### Word counts (visible body text per route)
+
+| Route | Step 1 baseline | Final | Total delta | SSR status |
+|---|---|---|---|---|
+| `/` | 6 | **2289** | +2283 | ✅ full SSR (hero + features + concierge + pricing tiers + FAQ + footer) |
+| `/about` | 202 | 207 | +5 | ✅ SSR (founders' story, H1) |
+| `/features` | 6 | **892** | +886 | ✅ full SSR (6 features × problem/solution + footer) |
+| `/pricing` | 6 | **287** | +281 | ✅ SSR; intrinsically thin page (no hero / FAQ / features) |
+| `/contact` | 109 | 110 | +1 | ✅ SSR (form labels + H1) |
+| `/blog` | 456 | 456 | 0 | ✅ already-SSG since pre-3a |
+| `/blog/[slug]` | 1218 | 1218 | 0 | ✅ already-SSG since pre-3a |
+
+Pre-sequence: 3 commercial routes shipped 0 chars of body to bots. Post-sequence: every commercial route ships indexable content.
+
+### JSON-LD coverage
+
+| Route | Blocks | Types |
+|---|---|---|
+| `/` | 2 | Organization (root layout) + FAQPage (10 questions) |
+| `/about` | 1 | Organization |
+| `/features` | 2 | Organization + SoftwareApplication (3 offers: $0 / $349 / $599 USD) |
+| `/pricing` | 1 | Organization |
+| `/contact` | 1 | Organization |
+| `/blog` | 1 | Organization |
+| `/blog/[slug]` | 2 | Organization + BlogPosting (with absolute image, ISO 8601 datePublished + dateModified, author.url, publisher.logo) |
+
+9 blocks total across 7 routes, all parse-valid, no duplicates.
+
+### Per-route SEO matrix
+
+| Route | Title | Description | Canonical | OG (url+image) | JSON-LD | H1 |
+|---|---|---|---|---|---|---|
+| `/` | unique | unique | abs www | ✅ | Org + FAQ | 1 (hero) |
+| `/about` | unique | unique | abs www | ✅ | Org | 1 |
+| `/features` | unique | unique | abs www | ✅ | Org + SoftwareApp | 2 (responsive duplicates) |
+| `/pricing` | unique | unique | abs www | ✅ | Org | 1 |
+| `/contact` | unique | unique | abs www | ✅ | Org | 1 |
+| `/blog` | unique | unique | abs www | ✅ | Org | 1 |
+| `/blog/[slug]` | per-post | per-post | abs www | ✅ (per-post image) | Org + BlogPosting | 1 |
+
+### Host / redirect
+
+- Apex `phera.io` → 308 Permanent → `www.phera.io` (Vercel domain settings)
+- `metadataBase: new URL('https://www.phera.io')` set in `app/layout.tsx`
+- All canonicals, OG URLs, OG images, twitter images absolutized to www
+- Sitemap at `/sitemap.xml` (17 URLs) + robots at `/robots.txt` — both serve from www, both consistent
+
+### Commit log (in order)
+
+| Commit | Phase | Summary |
+|---|---|---|
+| `a516971` | 3a | metadataBase + canonical host fixes (root layout, blog routes) |
+| `06198eb` | 3b Part 1 | per-route metadata (`/`, `/about`, `/features`, `/pricing`, `/contact`) + H1 on /about + /contact via segment layouts + server-shell split for `/` |
+| `cda94dc` | 3b Part 1 fix | re-declare og:image in per-route metadata (Next.js openGraph replacement quirk) |
+| `3fd290e` | 3b Part 1 verify | AUDIT.md report |
+| `38574d6` | Part 2a | lift homepage SSR bailout, isolate useSearchParams into `HomePostAuthModalOpener` |
+| `00982d4` | Part 2a verify | AUDIT.md report (homepage 8 → 2289 words) |
+| `b8c9cbf` | Part 2b | lift /features + /pricing SSR bailout, h1 → h2 on FeaturesSection, promote /pricing h2 → h1, /features FeaturesSection lead → h1 |
+| `2f9affc` | Part 2b verify | AUDIT.md report (features 892, pricing 287) |
+| `9681dcb` | Part 3 | JSON-LD restructure (Organization sitewide, SoftwareApplication on /features) |
+| `851a0ba` | Part 3 verify | AUDIT.md report (9 valid JSON-LD blocks) |
+| _this commit_ | Part 3 polish | BlogPosting fixes (image, ISO 8601 date with TZ, author.url, publisher.logo) + final-state snapshot + pricing content audit |
+
+### What was deliberately NOT changed
+
+- `aggregateRating` / `Review` schema not added to SoftwareApplication on `/features`. Faking reviews violates Google guidelines; leaving it absent is intentional. The Rich Results validator warning will persist until real reviews exist.
+- `/pricing` content kept thin. Word count is content-scope, not technical-scope. Decision deferred to Part 4 (see `seo-audit/PRICING_CONTENT_AUDIT.md` for verbatim inventory + 11 content gaps flagged).
+- Dead `FeaturesSection` (~620 lines) at top of `app/pricing/page.tsx`. Cleanup yields zero behavior change; deferred.
+- Design-system token migration on landing pages. ~45 inline-hex violations grandfathered via `eslint-disable` headers on `app/HomePageClient.tsx`. Separate workstream.
+- `/features` 2-H1 issue (responsive desktop + mobile duplicates). Tolerated by Google. Single-H1 restructure possible later.
+- `/about` and `/contact` content depth. Both pages SSR, have H1s, have unique meta. Body word count remains at original (~200 / ~110). Content-scope, not SSR-scope.
+
+### Validation tooling shipped
+
+- `seo-audit/raw/parse.py` — H1/H2 + visible-text word count per fetched HTML.
+- `seo-audit/raw/ngram.py` — keyword frequency + 1/2/3-gram analysis.
+- `seo-audit/verify-3a/fetch.sh` — Googlebot-UA fetch of all 7 routes.
+- `seo-audit/verify-3a/check.sh` — canonical / og:url / og:image / twitter:image per route.
+- `seo-audit/verify-3a/wordcount.py` — delta vs Step 1 baseline per route.
+- `seo-audit/verify-3a/jsonld_check.py` — extracts every `<script type="application/ld+json">`, parses with `json.loads`, asserts ≤1 Organization per route.
+
+### Manual validation URLs
+
+Recommended Google + schema.org validation after deploy:
+- `/` rich results: https://search.google.com/test/rich-results?url=https%3A%2F%2Fwww.phera.io%2F
+- `/features` rich results: https://search.google.com/test/rich-results?url=https%3A%2F%2Fwww.phera.io%2Ffeatures
+- `/blog/indian-wedding-task-management` rich results: https://search.google.com/test/rich-results?url=https%3A%2F%2Fwww.phera.io%2Fblog%2Findian-wedding-task-management
+- Schema.org validator: https://validator.schema.org/
+
+### Stop
+
+SEO technical sequence done. All five commercial routes indexable with unique meta + canonical + OG + JSON-LD + H1. Engineering work paused. Next session: Part 4 content decisions (pricing copy, FeaturesSection cleanup, single-H1 polish) on user direction.
+
