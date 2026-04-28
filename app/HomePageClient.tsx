@@ -356,6 +356,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
             >
               {/* Section Header - pinned top */}
               <Typography
+                component="h2"
                 variant="h1"
                 sx={{
                   fontFamily: FONTS.display,
@@ -702,6 +703,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
         {/* Mobile Header */}
         <Box sx={{ py: 6, px: 3, textAlign: 'center' }}>
           <Typography
+            component="h2"
             variant="h1"
             sx={{
               fontFamily: FONTS.display,

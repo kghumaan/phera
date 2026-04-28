@@ -25,7 +25,7 @@ import {
 } from '@mui/material';
 import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
-import { useSearchParams } from 'next/navigation';
+import HomePostAuthModalOpener from '../HomePostAuthModalOpener';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -335,6 +335,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
             <Box sx={{ flex: 1, maxWidth: { md: '420px', lg: '520px' } }}>
               {/* Section Header - Big */}
               <Typography
+                component="h1"
                 sx={{
                   fontFamily: FONTS.display,
                   fontStyle: 'italic',
@@ -609,6 +610,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
         {/* Mobile Header */}
         <Box sx={{ py: 6, px: 3, textAlign: 'center' }}>
           <Typography
+            component="h1"
             sx={{
               fontFamily: FONTS.display,
               fontStyle: 'italic',
@@ -852,11 +854,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
 };
 
 export default function FeaturesPage() {
-  return (
-    <Suspense>
-      <FeaturesPageContent />
-    </Suspense>
-  );
+  return <FeaturesPageContent />;
 }
 
 function FeaturesPageContent() {
@@ -897,46 +895,13 @@ function FeaturesPageContent() {
   ];
 
   const { user } = useAuth();
-  const searchParams = useSearchParams();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
-  const [roadmapIndex, setRoadmapIndex] = useState(0);
   const [expanded, setExpanded] = useState<string | false>(false);
 
   const handleAccordionChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
   };
-
-  const roadmapRef = useRef<HTMLDivElement>(null);
-
-  // Auto-open UpgradeModal when redirected back with tier param
-  useEffect(() => {
-    const tier = searchParams.get('tier');
-    const valid = ['base', 'premium', 'planner_perwedding', 'planner_studio'];
-    if (tier && valid.includes(tier) && user) {
-      setUpgradeModalOpen(true);
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  }, [searchParams, user]);
-
-  useEffect(() => {
-    const handleScroll = (ref: React.RefObject<HTMLDivElement | null>, setIndex: (i: number) => void, itemCount: number) => {
-      if (!ref.current) return;
-      const scrollLeft = ref.current.scrollLeft;
-      const itemWidth = ref.current.scrollWidth / itemCount;
-      const index = Math.round(scrollLeft / itemWidth);
-      setIndex(Math.min(index, itemCount - 1));
-    };
-
-    const roadmapEl = roadmapRef.current;
-    const roadmapHandler = () => handleScroll(roadmapRef, setRoadmapIndex, 4); // 4 roadmap items
-
-    roadmapEl?.addEventListener('scroll', roadmapHandler);
-
-    return () => {
-      roadmapEl?.removeEventListener('scroll', roadmapHandler);
-    };
-  }, []);
 
   return (
     <OptimizedBackground
@@ -964,6 +929,13 @@ function FeaturesPageContent() {
         open={upgradeModalOpen}
         onClose={() => setUpgradeModalOpen(false)}
       />
+
+      <Suspense fallback={null}>
+        <HomePostAuthModalOpener
+          user={user}
+          setUpgradeModalOpen={setUpgradeModalOpen}
+        />
+      </Suspense>
     </OptimizedBackground >
   );
 }

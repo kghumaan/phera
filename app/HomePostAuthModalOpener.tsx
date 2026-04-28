@@ -9,7 +9,9 @@ const VALID_TIERS: readonly Tier[] = ['base', 'premium', 'planner_perwedding', '
 interface Props {
   user: { id?: string } | null | undefined;
   setUpgradeModalOpen: (open: boolean) => void;
-  setUpgradeTier: (tier: Tier) => void;
+  // Optional: pricing & home pages track the active tier so the modal opens on the
+  // correct one. /features only flips the modal open, no tier state — pass nothing.
+  setUpgradeTier?: (tier: Tier) => void;
 }
 
 export default function HomePostAuthModalOpener({ user, setUpgradeModalOpen, setUpgradeTier }: Props) {
@@ -18,7 +20,7 @@ export default function HomePostAuthModalOpener({ user, setUpgradeModalOpen, set
   useEffect(() => {
     const tier = searchParams.get('tier');
     if (tier && (VALID_TIERS as readonly string[]).includes(tier) && user) {
-      setUpgradeTier(tier as Tier);
+      if (setUpgradeTier) setUpgradeTier(tier as Tier);
       setUpgradeModalOpen(true);
       window.history.replaceState({}, '', window.location.pathname);
     }

@@ -25,7 +25,8 @@ import {
 } from '@mui/material';
 import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import HomePostAuthModalOpener from '../HomePostAuthModalOpener';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -865,11 +866,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
 };
 
 export default function PricingPage() {
-  return (
-    <Suspense>
-      <PricingPageContent />
-    </Suspense>
-  );
+  return <PricingPageContent />;
 }
 
 function PricingPageContent() {
@@ -911,29 +908,14 @@ function PricingPageContent() {
 
   const { user } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeTier, setUpgradeTier] = useState<'base' | 'premium' | 'planner_perwedding' | 'planner_studio'>('base');
   const [selectedPricingTier, setSelectedPricingTier] = useState(1);
-  const [roadmapIndex, setRoadmapIndex] = useState(0);
   const [expanded, setExpanded] = useState<string | false>(false);
 
   const handleAccordionChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
   };
-
-  const roadmapRef = useRef<HTMLDivElement>(null);
-
-  // Auto-open UpgradeModal when redirected back with tier param
-  useEffect(() => {
-    const tier = searchParams.get('tier');
-    const valid = ['base', 'premium', 'planner_perwedding', 'planner_studio'];
-    if (tier && valid.includes(tier) && user) {
-      setUpgradeTier(tier as typeof upgradeTier);
-      setUpgradeModalOpen(true);
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  }, [searchParams, user]);
 
   const handleTierAction = (targetTier: typeof upgradeTier, e?: React.MouseEvent) => {
     if (e) {
@@ -951,25 +933,6 @@ function PricingPageContent() {
   const handleBaseAction = (e?: React.MouseEvent) => handleTierAction('base', e);
   const handlePremiumAction = (e?: React.MouseEvent) => handleTierAction('premium', e);
 
-  useEffect(() => {
-    const handleScroll = (ref: React.RefObject<HTMLDivElement | null>, setIndex: (i: number) => void, itemCount: number) => {
-      if (!ref.current) return;
-      const scrollLeft = ref.current.scrollLeft;
-      const itemWidth = ref.current.scrollWidth / itemCount;
-      const index = Math.round(scrollLeft / itemWidth);
-      setIndex(Math.min(index, itemCount - 1));
-    };
-
-    const roadmapEl = roadmapRef.current;
-    const roadmapHandler = () => handleScroll(roadmapRef, setRoadmapIndex, 4); // 4 roadmap items
-
-    roadmapEl?.addEventListener('scroll', roadmapHandler);
-
-    return () => {
-      roadmapEl?.removeEventListener('scroll', roadmapHandler);
-    };
-  }, []);
-
   return (
     <OptimizedBackground
       useAppDefault={true}
@@ -985,6 +948,7 @@ function PricingPageContent() {
           <Container maxWidth="lg">
             <Stack spacing={1} sx={{ textAlign: 'center', mb: { xs: 2.5, md: 4 } }}>
               <Typography
+                component="h1"
                 variant="h2"
                 sx={{
                   fontFamily: FONTS.display,
@@ -1278,6 +1242,14 @@ function PricingPageContent() {
         tier={upgradeTier}
         returnPath="/pricing"
       />
+
+      <Suspense fallback={null}>
+        <HomePostAuthModalOpener
+          user={user}
+          setUpgradeModalOpen={setUpgradeModalOpen}
+          setUpgradeTier={setUpgradeTier}
+        />
+      </Suspense>
     </OptimizedBackground >
   );
 }
