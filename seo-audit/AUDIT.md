@@ -724,3 +724,66 @@ Part 2 complete. Awaiting:
 - Decision on whether to expand `/pricing` content (deferred — out of bailout scope)
 - Go on Part 3 (JSON-LD restructuring: `Organization` to root layout, `SoftwareApplication` for `/features`, dedupe FAQPage)
 
+---
+
+## Part 3 Verification — JSON-LD Restructure (2026-04-28)
+
+Commit `9681dcb` deployed. Verified against `https://www.phera.io/`. Manual `/features?tier=base` and `/pricing?tier=base` tests passed (user-reported).
+
+### Implementation summary
+
+- **`app/layout.tsx`**: added `Organization` JSON-LD inline `<script type="application/ld+json">` in `<head>`. Now emitted on every route. Fields: `name`, `url`, `logo` (`https://www.phera.io/logo.svg` — confirmed `/public/logo.svg` exists), `sameAs` (Instagram), `contactPoint` (email + customerSupport).
+- **`app/HomePageClient.tsx`**: removed inline `Organization` block from the page-level JSON-LD array. The remaining inline JSON-LD is now a single `FAQPage` object (was a 2-element array containing both Organization + FAQPage). Same 10 questions sourced from the existing `faqs` array. Comment added: "FAQ only. Organization is emitted sitewide from app/layout.tsx."
+- **`app/features/page.tsx`**: added new inline `SoftwareApplication` JSON-LD block as a sibling at the top of the page tree. Fields: `@type=SoftwareApplication`, `applicationCategory=BusinessApplication`, `operatingSystem=Web`, `url=https://www.phera.io/features`, `description` matching `/features` meta description, `offers` array with three Offer objects ($0 PHERA FREE, $349 PHERA BASE, $599 PHERA WHITE GLOVE in USD), `publisher=Organization{Phera, www.phera.io}`.
+- No changes to /about, /contact, /pricing, /blog, /blog/[slug] JSON-LD logic.
+- Pricing dead-code FeaturesSection cleanup deferred to Part 4 per spec.
+
+### Check matrix (post-deploy)
+
+| Spec check | Result | Detail |
+|---|---|---|
+| 1. Organization JSON-LD on every route | ✅ | All 7 routes contain exactly 1 parseable Organization block (sourced from root layout). |
+| 2. No duplicate Organization on `/` | ✅ | Exactly 1 Organization on `/`. The page-level JSON-LD now emits FAQPage only. Total JSON-LD blocks on `/` = 2 (Organization from layout + FAQPage from page). |
+| 3. FAQPage on `/` | ✅ | Present, parseable, 10 questions confirmed. |
+| 4. SoftwareApplication on `/features` | ✅ | Present, parseable. Offers prices = `['0', '349', '599']` (USD). Total JSON-LD blocks on `/features` = 2 (Organization + SoftwareApplication). |
+| 5. BlogPosting on `/blog/[slug]` | ✅ | Unchanged from 3a baseline. Headline "Taming the Longest To-Do List of Your Life" verified. Total blocks on blog-post = 2 (Organization + BlogPosting). |
+| 6. JSON validation — every block parses | ✅ | All 9 JSON-LD blocks across 7 routes parsed cleanly via `python3 -m json.tool` round-trip. Zero parse errors. |
+| 7. Word count regression check | ✅ | All 7 routes unchanged from Part 2b verified state (`home=2289, about=207, features=892, pricing=287, contact=110, blog-index=456, blog-post=1218`). |
+
+### JSON-LD inventory per route (post-deploy)
+
+| Route | Block 1 | Block 2 | Total |
+|---|---|---|---|
+| `/` | Organization (root layout) | FAQPage (10 questions) | 2 |
+| `/about` | Organization | — | 1 |
+| `/features` | Organization | SoftwareApplication (3 offers) | 2 |
+| `/pricing` | Organization | — | 1 |
+| `/contact` | Organization | — | 1 |
+| `/blog` | Organization | — | 1 |
+| `/blog/[slug]` | Organization | BlogPosting | 2 |
+
+Total: 9 JSON-LD blocks across 7 routes. All valid JSON. No duplicates. Each route has exactly one Organization block, sourced from root layout, no per-page emission needed.
+
+### Validation tools
+
+Programmatic validation:
+- `seo-audit/verify-3a/jsonld_check.py` — extracts every `<script type="application/ld+json">` block from each fetched HTML, parses with `json.loads`, asserts exactly 1 Organization block per route. Exit 0 = pass.
+
+Manual validation (recommended after deploy):
+- Google Rich Results: https://search.google.com/test/rich-results?url=https%3A%2F%2Fwww.phera.io%2F
+- Google Rich Results (/features): https://search.google.com/test/rich-results?url=https%3A%2F%2Fwww.phera.io%2Ffeatures
+- Google Rich Results (/blog post): https://search.google.com/test/rich-results?url=https%3A%2F%2Fwww.phera.io%2Fblog%2Findian-wedding-task-management
+- Schema.org Validator: https://validator.schema.org/
+
+### Headline result
+
+**7/7 spec checks ✅.** Every route ships an `Organization` block, every block parses, no duplicates, FAQPage on `/`, SoftwareApplication on `/features` with correct $0 / $349 / $599 offers, BlogPosting unchanged on blog posts. JSON-LD foundation complete.
+
+### Stop
+
+SEO technical foundation done. Open follow-ups (deferred, separate decisions):
+- **Part 4 candidate**: `/pricing` content beef-up (currently 287 words). Either add hero/features/FAQ to lift indexable surface area, or accept thin transactional page.
+- **Part 4 candidate**: dead `FeaturesSection` definition (~620 lines) at top of `app/pricing/page.tsx` — never rendered, copy-pasted from `/features`. Cleanup yields no behavior change.
+- **Design-system migration**: inline hex colors + unused imports across landing pages (currently grandfathered via `eslint-disable` headers). Separate workstream.
+- **`/features` 2-H1 issue**: FeaturesSection ships desktop + mobile responsive duplicates, both promoted to `<h1>`. CSS hides one per viewport but both are in DOM. Single-H1 cleanup possible by restructuring the responsive markup.
+
