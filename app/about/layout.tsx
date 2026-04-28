@@ -13,6 +13,15 @@ export const metadata: Metadata = {
     description:
       'Phera was built by a couple who planned their own Indian wedding. Now we help other couples and planners run shaadi logistics end-to-end.',
     url: '/about',
+    images: [
+      {
+        url: '/images/couple/imessage-optimized.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Phera - Indian Wedding Platform',
+        type: 'image/jpeg',
+      },
+    ],
   },
 };
 

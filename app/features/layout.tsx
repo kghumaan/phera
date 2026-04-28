@@ -13,6 +13,15 @@ export const metadata: Metadata = {
     description:
       'Phera handles RSVPs, multi-day events, guest travel, room blocks, and the wedding-day timeline. Built for Indian weddings and destination celebrations.',
     url: '/features',
+    images: [
+      {
+        url: '/images/couple/imessage-optimized.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Phera - Indian Wedding Platform',
+        type: 'image/jpeg',
+      },
+    ],
   },
 };
 
