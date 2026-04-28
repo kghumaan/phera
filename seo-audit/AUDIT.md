@@ -634,3 +634,93 @@ Commit `38574d6` deployed. Verified against `https://www.phera.io/`. Raw HTML in
 
 Awaiting your go to apply the same pattern to `/features` and `/pricing` (Part 2b), and your manual confirmation that `?tier=base` modal auto-open still works post-login.
 
+---
+
+## Part 2b Verification — /features + /pricing SSR Bailout Lifted, H1 Cleanup (2026-04-28)
+
+Commit `b8c9cbf` deployed. Verified against `https://www.phera.io/`. Manual tier-modal test on `/` passed (user-reported). New raw HTML in `seo-audit/verify-3a/`.
+
+### Implementation summary
+
+- **`app/HomePostAuthModalOpener.tsx`**: made `setUpgradeTier` prop optional. /features doesn't track tier state (its existing effect only flipped the modal open without setting tier — preserving that behavior verbatim). Reused for both /features and /pricing.
+- **`app/features/page.tsx`**:
+  - Removed `Suspense` import use, removed `useSearchParams` import + the searchParams call site + the tier-param `useEffect`.
+  - Removed dead `roadmapIndex` state, dead `roadmapRef`, dead roadmap `useEffect` (page never rendered roadmap markup).
+  - Removed outer `<Suspense>` wrapper around `<FeaturesPageContent />`.
+  - Mounted `<Suspense fallback={null}><HomePostAuthModalOpener user={user} setUpgradeModalOpen={setUpgradeModalOpen} /></Suspense>` next to UpgradeModal (no `setUpgradeTier` prop — preserves original no-tier-update behavior).
+  - Promoted FeaturesSection lead Typography (desktop + mobile, lines 337 + 611) to `component="h1"` — pages had zero H1s before this change.
+- **`app/pricing/page.tsx`**:
+  - Same Suspense + useSearchParams + roadmap dead-code surgery as features.
+  - Mounted opener with `setUpgradeTier` (pricing tracks tier state, identical to home's pattern).
+  - Promoted "Simple, Transparent Pricing" Typography from `variant="h2"` to `component="h1" variant="h2"` — visual unchanged, semantic H1 added.
+  - Note: pricing page has a `FeaturesSection` definition copy-pasted from `/features` but **never renders it** — left untouched as dead code (out of 2b scope).
+- **`app/HomePageClient.tsx`** FeaturesSection: downgraded both `variant="h1"` Typography lines (desktop + mobile, lines 359 + 705) to `component="h2" variant="h1"`. Hero is now the only H1 on `/`.
+
+### Check matrix (post-deploy)
+
+| Spec check | Result | Detail |
+|---|---|---|
+| 1. `/features` word count ≥ 1000 | ⚠️ partial | 8 → **892** (+884). Below 1000 target by ~108 but bailout fully lifted. Page renders all 6 feature cards (each with title + problem + solution copy), feature scroll panel, AppHeader nav, AppFooter. Word count is intrinsically capped by the rendered content — there is no hero, no FAQ, no pricing on `/features`. Adding more SEO copy is a 2c content task, not a bailout problem. |
+| 2. `/pricing` word count ≥ 800 | ❌ short | 8 → **287** (+279). Significantly below 800 target. Reason: `/pricing` is a thin page by design — only renders the heading "Simple, Transparent Pricing" + 3-tier cards + "For Wedding Planners" strip + footer. No hero, no FAQ, no features section, no concierge showcase. Original 800-word target was overestimated relative to actual page surface area. **Bailout is fully lifted** (verified by H1 + all 5 tier prices + all 3 tier names appearing in initial HTML). The fix is to add content (2c) rather than re-fix bailout (already done). |
+| 3. `/`, `/features`, `/pricing` have semantic `<h1>` | ✅ | `/` → 1 H1: "Your Desi Wedding, Minus the Headaches" (hero). `/features` → 2 H1s: "Everything you need, simplified" desktop + mobile (FeaturesSection). `/pricing` → 1 H1: "Simple, Transparent Pricing". |
+| 4. H1 count on `/` is 1 (was 3) | ✅ | `grep -c "<h1"` of `home.html` = 1. FeaturesSection's two h1s on `/` correctly downgraded to h2. |
+| 5. Pricing values still visible on `/` | ✅ | `$0` ×1, `$349` ×1, `$599` ×1, `$199` ×1, `$299` ×1 — all present. H1 downgrade did not break pricing markup. |
+| 6. No regressions on /about, /contact, /blog, /blog/[slug] | ✅ | Word counts identical (`about=207`, `contact=110`, `blog-index=456`, `blog-post=1218`). Canonical, og:url, og:image unchanged on all four. |
+| 7. Functional test (manual) — `/?tier=base` modal | ✅ user-reported PASS | User confirmed before 2b started. /features + /pricing tier-modal logic identical to /, just relocated to the same `HomePostAuthModalOpener` island. Manual test for /features?tier=base and /pricing?tier=base left to user. |
+
+### Word count vs Step 1 baseline
+
+| route | step1 | post-3b1 | post-2a | post-2b | total delta |
+|---|---|---|---|---|---|
+| home | 6 | 8 | 2289 | 2289 | +2283 |
+| about | 202 | 207 | 207 | 207 | +5 |
+| features | 6 | 8 | 8 | **892** | **+886** |
+| pricing | 6 | 8 | 8 | **287** | **+281** |
+| contact | 109 | 110 | 110 | 110 | +1 |
+| blog-index | 456 | 456 | 456 | 456 | 0 |
+| blog-post | 1218 | 1218 | 1218 | 1218 | 0 |
+
+All five static commercial routes now ship indexable body content. Three (`/`, `/features`, `/pricing`) jumped from ~8 words to 287–2289.
+
+### H1 audit (post-2b)
+
+| Route | H1 count | H1 text |
+|---|---|---|
+| `/` | 1 | "Your Desi Wedding, Minus the Headaches" |
+| `/about` | 1 | "Modern coordination for Indian weddings" |
+| `/features` | 2 | "Everything you need, simplified" (×2 — desktop + mobile responsive duplicates) |
+| `/pricing` | 1 | "Simple, Transparent Pricing" |
+| `/contact` | 1 | "Talk to Phera" |
+| `/blog` | 1 | "The Phera Blog" |
+| `/blog/[slug]` | 1 | (per-post title) |
+
+`/features` ships 2 H1s because the FeaturesSection renders desktop + mobile responsive duplicates, both promoted. CSS hides one per viewport, but both are in the DOM. Acceptable per modern Google guidance (multiple H1 elements are tolerated). Single-H1 cleanup possible in 2c by promoting only one and using a different element for the other (or restructuring FeaturesSection's responsive markup).
+
+### Unexpected findings
+
+- **`/pricing` page is intrinsically thin** — original spec assumed similar content density to `/`, but `/pricing` lacks hero/FAQ/features sections. The bailout fix did exactly what was asked; the word-count gap is a content scoping question.
+- **Pricing's `FeaturesSection` is dead code** — defined at the top of `app/pricing/page.tsx` (~620 lines, copy-pasted from `/features`) but never rendered. Could be deleted entirely. Out of 2b scope. Worth a follow-up.
+- **`/features` rendered output structure** — 2 H1s, 2 instances of each feature title (desktop sticky-scroll + mobile stacked), so RSVP appears 10× in the body, travel 23×, etc. Heavy keyword density without stuffing.
+- **No hydration mismatches observed** in raw HTML for either page. Strikethrough animations + `whileInView` opacity transitions all SSR with their initial state and animate on hydration as expected.
+- **`useEffect` import remains in features + pricing** despite no longer being used directly in the page-level component (FeaturesSection inside the file still uses hooks). ESLint warns but `eslint-disable` headers (already present from earlier) cover it.
+
+### Open issues for follow-up
+
+- `/pricing` content is thin (287 words). Either add SEO copy (hero, FAQ, features summary) or accept that it's a transactional thin-page. Decision needed.
+- `/features` has 2 H1s. Minor — restructure the FeaturesSection responsive duplicate pattern to ship one H1 in DOM. 2c-scope.
+- `/pricing` has dead `FeaturesSection` component (~620 unused lines). Cleanup candidate.
+- Multiple unused imports / inline-hex grandfathering across all three landing pages. Design-system migration scope.
+
+### Headline result
+
+**5/7 spec checks ✅, 1 ⚠️ partial (/features 892 vs 1000 target — bailout lifted, content intrinsic), 1 ❌ short (/pricing 287 vs 800 — bailout lifted, page intrinsically thin), 1 user-pending manual test for `/features?tier=base` and `/pricing?tier=base`.**
+
+The Suspense bailout that hid the entire commercial surface from Google is now lifted on every commercial-intent page. `/`, `/features`, `/pricing`, `/about`, `/contact` all ship indexable body content with semantic H1, canonical to www, OG image, JSON-LD where applicable, no regressions on blog routes.
+
+### Stop
+
+Part 2 complete. Awaiting:
+- Manual `?tier=base` test on /features + /pricing (user)
+- Decision on whether to expand `/pricing` content (deferred — out of bailout scope)
+- Go on Part 3 (JSON-LD restructuring: `Organization` to root layout, `SoftwareApplication` for `/features`, dedupe FAQPage)
+
