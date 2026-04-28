@@ -22,12 +22,25 @@ export const metadata: Metadata = {
     'indian wedding logistics',
     'south asian wedding planning',
   ],
+  alternates: {
+    canonical: '/blog',
+  },
   openGraph: {
     title: 'Indian Wedding Planning Blog | Phera',
     description:
       'Expert tips and guides for planning Indian weddings. RSVP management, destination wedding logistics, and more.',
     type: 'website',
     siteName: 'Phera',
+    url: '/blog',
+    images: [
+      {
+        url: '/images/couple/imessage-optimized.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Phera - Indian Wedding Platform',
+        type: 'image/jpeg',
+      },
+    ],
   },
 };
 

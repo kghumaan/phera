@@ -62,6 +62,7 @@ const cormorant = Cormorant({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.phera.io"),
   title: {
     default: "Phera | Indian Wedding Planning Platform",
     template: "%s | Phera"
@@ -73,11 +74,11 @@ export const metadata: Metadata = {
     title: "Phera | Indian Wedding Planning Platform",
     description: "The modern Indian wedding platform. Manage RSVPs, coordinate travel, share events, and create beautiful wedding websites. Start free, add smart AI agents when you need them.",
     type: "website",
-    url: process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.phera.io",
     siteName: "Phera",
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage-optimized.jpg`,
+        url: "/images/couple/imessage-optimized.jpg",
         width: 1200,
         height: 630,
         alt: "Phera - Indian Wedding Platform",
@@ -92,7 +93,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Phera | Indian Wedding Planning Platform",
     description: "The modern Indian wedding platform. Manage RSVPs, coordinate travel, share events, and create beautiful wedding websites. Start free, add smart AI agents when you need them.",
-    images: [`${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage-optimized.jpg`],
+    images: ["/images/couple/imessage-optimized.jpg"],
     creator: "@phera",
   },
 
@@ -128,7 +129,7 @@ export const metadata: Metadata = {
     'og:image:width': '1200',
     'og:image:height': '630',
     'og:image:alt': 'Phera - Indian Wedding Platform',
-    'og:image:secure_url': `${process.env.NEXT_PUBLIC_SITE_URL || "https://phera.io"}/images/couple/imessage-optimized.jpg`,
+    'og:image:secure_url': `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.phera.io"}/images/couple/imessage-optimized.jpg`,
   },
 };
 

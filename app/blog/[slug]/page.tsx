@@ -25,6 +25,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const post = getPostBySlug(slug);
   if (!post) return { title: 'Post Not Found' };
 
+  const ogImage = post.image || '/images/couple/imessage-optimized.jpg';
+
   return {
     title: `${post.title} | Phera Blog`,
     description: post.description,
@@ -36,6 +38,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       publishedTime: post.date,
       authors: [post.author],
       siteName: 'Phera',
+      url: `/blog/${slug}`,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description,
+      images: [ogImage],
     },
     alternates: {
       canonical: `/blog/${slug}`,
@@ -64,11 +81,11 @@ export default async function BlogPostPage({ params }: PageProps) {
     publisher: {
       '@type': 'Organization',
       name: 'Phera',
-      url: 'https://phera.io',
+      url: 'https://www.phera.io',
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://phera.io/blog/${slug}`,
+      '@id': `https://www.phera.io/blog/${slug}`,
     },
   };
 
