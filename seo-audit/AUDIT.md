@@ -573,3 +573,64 @@ F. **Move JSON-LD to root layout** (applies to all routes) or **keep page-scoped
 
 Scope only. No code changes. Awaiting answers on A–F before starting Part 2 implementation.
 
+---
+
+## Part 2a Verification — Homepage SSR Bailout Lifted (2026-04-28)
+
+Commit `38574d6` deployed. Verified against `https://www.phera.io/`. Raw HTML in `seo-audit/verify-3a/home.html` (407 KB, was 44 KB).
+
+### Implementation summary
+
+- `app/HomePageClient.tsx`: removed outer `<Suspense>` wrapper around `<LandingPageContent>`. Removed `useSearchParams` import + call site + the 9-line tier-param `useEffect`. Removed dead `expandedImage` state + the unreachable Lightbox `<Dialog>` (lines ~983, ~2085–2144). Removed dead `roadmapIndex`/`roadmapRef` + the dead roadmap `useEffect` (the roadmap section itself remains JSX-commented; only the always-null ref/state were removed). Replaced hero outer `<motion.div initial="hidden" animate="visible" variants={fadeIn}>` with plain `<Box>` so hero is fully visible in initial HTML without JS.
+- `app/HomePostAuthModalOpener.tsx` (NEW, 28 lines, `'use client'`): isolated `useSearchParams` consumer. Receives `user`, `setUpgradeModalOpen`, `setUpgradeTier` via props. Validates `tier` against the same allowlist (`base`, `premium`, `planner_perwedding`, `planner_studio`), opens UpgradeModal post-login, clears URL via `window.history.replaceState`. Returns `null`.
+- Mounted opener in `<Suspense fallback={null}>` next to UpgradeModal — the only remaining Suspense in the file, scoped to one ~20-line component.
+- Diff: `app/HomePageClient.tsx` -104 / +12, plus the 28-line new file. Net: -64 lines.
+
+### Check matrix (post-deploy)
+
+| Spec check | Result | Detail |
+|---|---|---|
+| 1. Word count ≥ 1500 on `/` | ✅ | 8 → **2289** visible words (+2281). HTML body 0 chars → ~7,600 chars. HTML size 44 KB → 407 KB. |
+| 2. Hero H1 in initial HTML | ✅ | `<h1 class="MuiTypography-root MuiTypography-h1 ...">Your Desi Wedding,<br/><span>Minus the Headaches<span>…</span></span></h1>` present. |
+| 3. Internal nav links in initial HTML | ✅ | `/about`, `/blog`, `/contact`, `/demo`, `/privacy`, `/auth/login`, `/auth/login?role=planner`, `/auth/signup`, `#features`-style anchors all present. |
+| 4. Pricing values visible | ✅ | `$0` ×1, `$349` ×1, `$599` ×1, `$199` ×1, `$299` ×1. All five tiers SSR'd. |
+| 5. Hero CTAs anchored | ✅ | "Get Started" → `href="/auth/login"`. "See how it works" → `href="/demo"`. Both as anchor hrefs in initial HTML. |
+| 6. No regression on /about, /contact, /blog, /blog/[slug] | ✅ | Word counts identical to Step 3b Part 1 baseline (`about`=207, `contact`=110, `blog-index`=456, `blog-post`=1218). Canonical, og:url, og:image, twitter:image unchanged. |
+| 7. Functional `?tier=base` auto-open | ⚠️ deferred | Manual test left to user. Logic is identical to pre-2a (same allowlist, same `setUpgradeTier` + `setUpgradeModalOpen` + `replaceState` calls), just relocated to the isolated client island. |
+
+### Word count vs Step 1 baseline
+
+| route | step1 | post-3b | now (2a) | delta vs step1 | delta vs 3b |
+|---|---|---|---|---|---|
+| home | 6 | 8 | **2289** | **+2283** | **+2281** |
+| about | 202 | 207 | 207 | +5 | 0 |
+| features | 6 | 8 | 8 | +2 | 0 |
+| pricing | 6 | 8 | 8 | +2 | 0 |
+| contact | 109 | 110 | 110 | +1 | 0 |
+| blog-index | 456 | 456 | 456 | 0 | 0 |
+| blog-post | 1218 | 1218 | 1218 | 0 | 0 |
+
+`/features` and `/pricing` unchanged — same Suspense bailout still in place there. They are explicitly Part 2b scope.
+
+### Unexpected findings
+
+- **Three `<h1>` elements on `/`.** Hero correctly emits `<h1>Your Desi Wedding, Minus the Headaches</h1>`. The `FeaturesSection` component (lines 357–374 of HomePageClient) ALSO renders `<Typography variant="h1">Everything you need, simplified</h1>` — once for desktop layout, once for mobile, both visible in the SSR'd HTML. Total: 3 H1s. Single-H1-per-page is canonical SEO practice but not a hard rule; multiple H1s are tolerated by modern crawlers. Recommendation: in Part 2b, downgrade the FeaturesSection variant to `<h2>` (visual unchanged via `component="h2" variant="h1"`). Out of 2a scope.
+- **Suspense sentinels in HTML** — 2 `<template>` placeholder nodes from the new modal-opener Suspense boundary. This is normal Next.js streaming markup; scoped to the 28-line island, doesn't affect indexability.
+- **JSON-LD intact** — 1 block emitted (Organization + FAQPage). Will be deduplicated/restructured in Part 3.
+- **No hydration mismatch** observed in raw HTML inspection. The strikethrough `motion.span` SSRs with `style="transform:scaleX(0)"` exactly as expected; client picks it up and animates to `scaleX(1)` on mount. No content invisible by default — the hero outer `motion.div` wrapper was the only opacity-0 default and was removed.
+
+### Open issues remaining for later
+
+- **`/features` and `/pricing` still SSR-bail** (same Suspense + `useSearchParams` pattern). 2b will apply the same isolation pattern to those two pages.
+- **Three H1s on `/`** — minor; recommend FeaturesSection downgrade to h2 in 2b.
+- **Unused imports** in `HomePageClient.tsx` (`Dialog`, `Close`, `useEffect`, `useMemo`, several icons) — covered by the existing `eslint-disable` header. Will be cleaned up alongside the design-system token migration.
+- **JSON-LD scope** — currently only emitted on `/`. Part 3 will hoist `Organization` to root layout and keep `FAQPage` page-scoped.
+
+### Headline result
+
+**6/6 verifiable spec checks ✅** (check 7 is a manual user-facing test — logic preserved verbatim, just relocated). Homepage went from 8 visible words to 2289, with full hero + features copy + concierge section + pricing tiers + FAQ Q/A + footer all in initial HTML to bots. Zero regression on any other route. The Suspense bailout that hid the entire commercial surface from Google is gone.
+
+### Stop
+
+Awaiting your go to apply the same pattern to `/features` and `/pricing` (Part 2b), and your manual confirmation that `?tier=base` modal auto-open still works post-login.
+
