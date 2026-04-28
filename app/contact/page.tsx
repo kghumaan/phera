@@ -86,6 +86,7 @@ export default function ContactPage() {
             <Stack spacing={4}>
               <Box sx={{ textAlign: 'center' }}>
                 <Typography
+                  component="h1"
                   variant="h2"
                   sx={{
                     fontFamily: FONTS.display,
@@ -95,7 +96,7 @@ export default function ContactPage() {
                     mb: 1,
                   }}
                 >
-                  Contact Us
+                  Talk to Phera
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#666', fontSize: '1.1rem' }}>
                   Have questions? We'd love to hear from you.

@@ -73,6 +73,7 @@ export default function AboutPage() {
                 <Stack spacing={4}>
                   <Box>
                     <Typography
+                      component="h1"
                       variant="h2"
                       sx={{
                         fontFamily: FONTS.display,
@@ -83,7 +84,7 @@ export default function AboutPage() {
                         lineHeight: 1.1,
                       }}
                     >
-                      Our Story
+                      Modern coordination for Indian weddings
                     </Typography>
                     <Box
                       sx={{
