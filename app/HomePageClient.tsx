@@ -28,7 +28,8 @@ import {
 } from '@mui/material';
 import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import HomePostAuthModalOpener from './HomePostAuthModalOpener';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -928,11 +929,7 @@ const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
 };
 
 export default function HomePageClient() {
-  return (
-    <Suspense>
-      <LandingPageContent />
-    </Suspense>
-  );
+  return <LandingPageContent />;
 }
 
 function LandingPageContent() {
@@ -974,30 +971,14 @@ function LandingPageContent() {
 
   const { user } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeTier, setUpgradeTier] = useState<'base' | 'premium' | 'planner_perwedding' | 'planner_studio'>('base');
   const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
-  const [roadmapIndex, setRoadmapIndex] = useState(0);
   const [expanded, setExpanded] = useState<string | false>(false);
-  const [expandedImage, setExpandedImage] = useState<{ src: string; alt: string } | null>(null);
 
   const handleAccordionChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
   };
-
-  const roadmapRef = useRef<HTMLDivElement>(null);
-
-  // Auto-open UpgradeModal when redirected back with tier param
-  useEffect(() => {
-    const tier = searchParams.get('tier');
-    const valid = ['base', 'premium', 'planner_perwedding', 'planner_studio'];
-    if (tier && valid.includes(tier) && user) {
-      setUpgradeTier(tier as typeof upgradeTier);
-      setUpgradeModalOpen(true);
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  }, [searchParams, user]);
 
   const handleTierAction = (targetTier: typeof upgradeTier, e?: React.MouseEvent) => {
     if (e) {
@@ -1014,25 +995,6 @@ function LandingPageContent() {
 
   const handleBaseAction = (e?: React.MouseEvent) => handleTierAction('base', e);
   const handlePremiumAction = (e?: React.MouseEvent) => handleTierAction('premium', e);
-
-  useEffect(() => {
-    const handleScroll = (ref: React.RefObject<HTMLDivElement | null>, setIndex: (i: number) => void, itemCount: number) => {
-      if (!ref.current) return;
-      const scrollLeft = ref.current.scrollLeft;
-      const itemWidth = ref.current.scrollWidth / itemCount;
-      const index = Math.round(scrollLeft / itemWidth);
-      setIndex(Math.min(index, itemCount - 1));
-    };
-
-    const roadmapEl = roadmapRef.current;
-    const roadmapHandler = () => handleScroll(roadmapRef, setRoadmapIndex, 4); // 4 roadmap items
-
-    roadmapEl?.addEventListener('scroll', roadmapHandler);
-
-    return () => {
-      roadmapEl?.removeEventListener('scroll', roadmapHandler);
-    };
-  }, []);
 
   return (
     <OptimizedBackground
@@ -1125,7 +1087,7 @@ function LandingPageContent() {
           }}
         >
           <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 } }}>
-            <motion.div initial="hidden" animate="visible" variants={fadeIn}>
+            <Box>
               <Stack spacing={{ xs: 3, md: 4 }} sx={{ alignItems: 'center', textAlign: 'center' }}>
                 <Box
                   sx={{
@@ -1247,7 +1209,7 @@ function LandingPageContent() {
                   </Button>
                 </Stack>
               </Stack>
-            </motion.div>
+            </Box>
           </Container>
         </Box>
 
@@ -2081,67 +2043,13 @@ function LandingPageContent() {
         returnPath="/"
       />
 
-      {/* Lightbox for image expansion */}
-      <Dialog
-        open={!!expandedImage}
-        onClose={() => setExpandedImage(null)}
-        maxWidth={false}
-        PaperProps={{
-          sx: {
-            bgcolor: 'transparent',
-            boxShadow: 'none',
-            m: 1,
-            maxWidth: '100vw',
-            maxHeight: '100vh',
-            overflow: 'visible',
-          },
-        }}
-        sx={{
-          '& .MuiBackdrop-root': { bgcolor: 'rgba(0,0,0,0.85)' },
-        }}
-      >
-        <IconButton
-          onClick={() => setExpandedImage(null)}
-          sx={{
-            position: 'absolute',
-            top: -40,
-            right: 0,
-            color: 'white',
-            zIndex: 1,
-          }}
-        >
-          <Close />
-        </IconButton>
-        {expandedImage && (
-          <Box sx={{ borderRadius: RADII.sm, overflow: 'hidden', bgcolor: 'white' }}>
-            <Box
-              sx={{
-                height: 24,
-                bgcolor: COLORS.border.faint,
-                borderBottom: '1px solid',
-                borderColor: alpha('#000', 0.08),
-                display: 'flex',
-                alignItems: 'center',
-                px: 1.5,
-                gap: 0.5,
-              }}
-            >
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
-            </Box>
-            <Image
-              src={expandedImage.src}
-              alt={expandedImage.alt}
-              width={2694}
-              height={1302}
-              quality={90}
-              sizes="95vw"
-              style={{ width: '100%', height: 'auto', display: 'block' }}
-            />
-          </Box>
-        )}
-      </Dialog>
+      <Suspense fallback={null}>
+        <HomePostAuthModalOpener
+          user={user}
+          setUpgradeModalOpen={setUpgradeModalOpen}
+          setUpgradeTier={setUpgradeTier}
+        />
+      </Suspense>
     </OptimizedBackground >
   );
 }
