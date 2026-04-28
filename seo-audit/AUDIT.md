@@ -406,3 +406,170 @@ No regressions. Body content unchanged on `/`, `/features`, `/pricing` — Suspe
 
 **Stop.** Awaiting go on Part 2 (server-component shell per landing page) and Part 3 (JSON-LD).
 
+---
+
+## Part 2 Scope — Homepage
+
+Read-only inventory of `app/HomePageClient.tsx` (2147 lines, plus 6 imported components also `'use client'`). No code changed.
+
+### 1. Section inventory (render order)
+
+Outermost: `<OptimizedBackground useAppDefault>` → `<AppHeader variant="transparent">` → `<Box component="main">` → bottom-of-tree modals.
+
+| # | Section | Lines | What's in it |
+|---|---|---|---|
+| 0 | Outer wrapper `OptimizedBackground` | n/a | Page-wide animated background image. `'use client'` (uses `framer-motion`). |
+| 1 | JSON-LD script | 1043–1076 | Inline `<script type="application/ld+json">` emitting `Organization` + `FAQPage` schema (FAQs sourced from `faqs` array). |
+| 2 | Decorative marigold images | 1078–1109 | Two `<Box component="img">` overlays (top-left, top-right). Static. |
+| 3 | `<AppHeader>` | 1111–1113 | Sticky transparent navbar. Auth-aware (login state, user menu, RSVP menu, sign-out, scroll-aware visibility). |
+| 4 | HERO | 1116–1252 | Pill badge ("Wedding operations, done for you"), `<Typography variant="h1">` "Your Desi Wedding, Minus the Headaches" with animated strikethrough on "Minus the Headaches", subtitle "One platform for your website, RSVPs, travel, rooms, transport, vendors…", two CTAs: `<Button component={Link} href="/auth/login">Get Started</Button>` and `<Button component={Link} href="/demo">See how it works</Button>`. Wrapped in `<motion.div initial="hidden" animate="visible">` (`fadeIn` variants). |
+| 5 | FEATURES (sticky scroll gallery) | 1254–1257 | `<FeaturesSection items={features}>` — defined lines 241–935. Sticky-scroll panel system with 6 features (`guest-outreach`, `wedding-website`, `travel-coordination`, `guest-communication`, `vendor-coordinator`, `reverse-destination`). Each has title, problem, solution, and a visual (browser frame, iPhone mockup, or `<BroadcastAnimation>`). H1 text: "Everything you need, simplified". Stepper dots, click-to-scroll, cross-fade transitions. |
+| 6 | WHATSAPP CONCIERGE SHOWCASE | 1259–1383 | Dark green section. H2 "Your 24/7 Wedding Concierge", subhead, 4-bullet list (trained on wedding data, knows local weather, handles visa questions, broadcasts updates), green CTA "Get Guest Concierge" (auth-gated → `handleBaseAction`). Right side: `<IPhoneMockup>` containing `<WhatsAppConcierge>` chat with scripted concierge dialogue. `<motion.div whileInView>`. |
+| 7 | WEDDING ROADMAP | 1386–1588 | **Block-commented out (`{/* … */}`).** No render. Dead `useEffect` at 1018–1035 still attaches a scroll listener to `roadmapRef.current` which is always null. Skip in inventory. |
+| 8 | PRICING | 1590–1873 | H2 "Simple, Transparent Pricing", subhead. Mobile toggle (3 buttons, controlled by `selectedPricingTier` state). 3-tier grid: PHERA FREE ($0, links to /auth/signup), PHERA BASE ($349, auth-gated → `handleBaseAction`), PHERA WHITE GLOVE ($599, auth-gated → `handlePremiumAction`). Below: "For Wedding Planners" strip with two sub-tiers ($199 per-wedding, $299 studio). |
+| 9 | FAQ | 1875–1946 | Overline "FAQ", H2 "Common Questions", 10 `<Accordion>` Q/A pairs (controlled by `expanded` state). Q+A content sourced from `faqs` array (covers free tier, guest coordination, data collected, app-less guest experience, follow-up nudges, customization, Concierge data sources, Vendor Coordinator, day-of coordinators, DPDPA compliance). |
+| 10 | FINAL CTA | 1948–1949 | `<FinalCTA>` component (`'use client'`, but pure render — has no hooks, just markup with a `/auth/login` Link). |
+| 11 | INLINE FOOTER | 1951–2074 | Custom 4-column footer (Platform / Company / Connect columns + copyright). Static markup. **Note**: `import AppFooter` at line 64 is unused — the homepage uses this inline footer instead. |
+| 12 | `<UpgradeModal>` | 2077–2082 | Auth-gated upgrade modal. Hidden by default (`upgradeModalOpen=false`). Opens when user lands with `?tier=…` post-login OR clicks an auth-gated tier CTA while signed in. |
+| 13 | Lightbox `<Dialog>` | 2085–2144 | Image lightbox with browser-frame chrome. Bound to `expandedImage` state in `LandingPageContent` (which is **never set** from outside — leftover dead state; the live image-click handler lives in `FeaturesSection`'s own shadowed `expandedImage` state at line 246). |
+
+### 2. Per-section classification
+
+| # | Section | Class | Notes |
+|---|---|---|---|
+| 0 | OptimizedBackground | CLIENT-REQUIRED | `'use client'` itself; uses framer-motion. Fine to render *from* a server component (it'll just hydrate). Cannot be re-marked server. |
+| 1 | JSON-LD script | SERVER-LIFTABLE | Pure data dump. Should hoist to the server shell or to root layout (also overlaps with Part 3 plan to add `Organization` JSON-LD). |
+| 2 | Decorative marigolds | SERVER-LIFTABLE | Pure `<img>` markup. |
+| 3 | AppHeader | CLIENT-REQUIRED | useAuth, usePathname, useRouter, useState, scroll listener, signOut. |
+| 4 | HERO | MIXED | Markup + CTAs are server-renderable. Two motion wrappers (`fadeIn` div + strikethrough `motion.span`) are the only client deps. Recommendation: render H1/subhead/CTAs SSR; isolate the strikethrough into a small `'use client'` decorative span; replace `fadeIn` outer wrapper with CSS opacity animation or drop. |
+| 5 | FEATURES | CLIENT-REQUIRED (with SSR fallback option) | Sticky-scroll behavior depends on `useScroll`/`useMotionValueEvent`/refs/state — cannot SSR the interactive UX. **But** the underlying `features` data array is pure. Two paths: (a) keep interactive version as the only render and accept that bots see only the H1 from this section, or (b) emit a static stacked-list SSR fallback (6× title + problem + solution) for indexing, hidden via CSS once JS hydrates. (b) gives ~+800 SEO words. |
+| 6 | WHATSAPP CONCIERGE SHOWCASE | MIXED | Heading + bullet list + label are static. Right-side iPhone mockup (`IPhoneMockup` + `WhatsAppConcierge`) is decorative client. CTA is auth-gated. Recommend: heading + bullets SSR, iPhone mockup + CTA in a small client island. `motion.div whileInView` should stay (intersection-observer based; opacity defaults to 0 then 1 — could leave content invisible if JS fails, but content is still in DOM for indexing). |
+| 7 | WEDDING ROADMAP | n/a | Commented out. |
+| 8 | PRICING | MIXED | All 3 cards + planner strip are static markup. Mobile toggle (`selectedPricingTier`) and Base/WhiteGlove CTA handlers are interactive. Free tier CTA is a plain Link (server-renderable). Recommendation: SSR the entire grid; replace mobile toggle with CSS-only tabs (or render all 3 stacked on mobile and rely on JS to add toggle behavior); auth-gated CTAs become small client islands. |
+| 9 | FAQ | MIXED | Heading + Q/A pairs are pure data. Accordion expand/collapse needs state. Two SSR paths: (a) render as native `<details>/<summary>` (works without JS, fully indexable, hydrates to MUI Accordion on client — graceful), or (b) render MUI Accordion with all initially-collapsed state SSR'd, hydrate to interactive. Recommendation: (a) for SEO clarity. |
+| 10 | FINAL CTA | SERVER-LIFTABLE (after dropping `'use client'`) | The `FinalCTA` component file is marked `'use client'` but has no actual hooks (just MUI + a Link). Could be re-marked server. Verify before flipping. |
+| 11 | INLINE FOOTER | SERVER-LIFTABLE | Pure markup. Either move to server shell or replace with the existing `<AppFooter>` server-renderable component (currently imported but unused — worth a side investigation in Part 2). |
+| 12 | UpgradeModal | CLIENT-REQUIRED | State-driven (`upgradeModalOpen`). Hidden by default, only matters post-interaction. Renders to portal. SSR-irrelevant. |
+| 13 | Lightbox Dialog | CLIENT-REQUIRED but **dead** in current page | The `expandedImage` state at line 983 is never set by anything in `LandingPageContent`. Live image-lightbox lives in `FeaturesSection`'s own shadow state. The outer Dialog is leftover code that will never open. Worth deleting in Part 2 cleanup. |
+
+### 3. `useSearchParams` audit
+
+- **Single call site**: `app/HomePageClient.tsx` line 977, inside `LandingPageContent`.
+- **Used by**: one `useEffect` (lines 992–1000) that reads the `tier` query param, validates it against `['base', 'premium', 'planner_perwedding', 'planner_studio']`, and if the user is signed in, opens the `UpgradeModal` for that tier and clears the URL via `window.history.replaceState`.
+- **Drives no rendered content.** Only effect on initial render is whether `UpgradeModal` is mounted-but-hidden. The modal's `open` state defaults to `false`. The useEffect only runs on the client. Bots see no tier-driven UI.
+- **This is the entire reason the homepage SSR-bails out today.** Wrapping the *whole* `LandingPageContent` in `<Suspense>` (line 928–932) plus calling `useSearchParams()` inside it tells Next to bail the server pass and stream the empty Suspense fallback. Isolating this single effect into a tiny client island removes the bailout.
+
+### 4. Other client-only dependencies
+
+In `LandingPageContent`:
+
+| Dep | Lines | Affects | SSR-safe? |
+|---|---|---|---|
+| `useAuth()` → `user` | 975 | `handleTierAction` routing logic (logged in → modal, logged out → /auth/login redirect). Does **not** gate any rendered text. | Yes — useAuth is fine inside SSR'd client components. Doesn't bail SSR. |
+| `useRouter()` | 976 | `router.push()` in `handleTierAction`. Imperative only. | Yes. |
+| `useState` × 6 | 978–983 | Modal open, tier choice, pricing-mobile-toggle, roadmap index (dead), FAQ expansion, lightbox image (dead). | Yes — initial state values are SSR'd. |
+| `useRef` × 1 | 989 | `roadmapRef` for scroll listener — bound to commented-out roadmap. Dead. | Yes. |
+| `useEffect` (tier param reader) | 992–1000 | Modal auto-open. **Bailout trigger.** | Only because of `useSearchParams` dependency. Isolate the effect → fix the bailout. |
+| `useEffect` (roadmap scroll) | 1018–1035 | Dead — roadmap is commented out, ref is null, listener attaches to nothing. | Safe to remove entirely. |
+| `window.history.replaceState` | 998 | Inside the tier-param effect. Client-only. | Already gated to client-side effect. No SSR risk. |
+
+In `FeaturesSection` (lines 241–935):
+
+| Dep | Notes |
+|---|---|
+| `useScroll`, `useMotionValueEvent` | Drive the sticky-scroll active feature. Required for the interactive UX. |
+| `useState` (activeIndex, expandedImage) | Active feature index, lightbox state. |
+| `useRef` (containerRef, isScrollingToFeature, scrollTargetIndex) | Scroll target tracking. |
+| `window.scrollTo`, `window.innerHeight` | Inside `scrollToFeature` click handler — gated to user click, no SSR risk. |
+| `setTimeout` | Safety re-enable for scroll tracking. Client-only. |
+
+In imported components (all `'use client'`):
+
+- `AppHeader` — useAuth, usePathname, useRouter, scroll listener (`window.scrollY`), 6× useState. Client-required.
+- `BroadcastAnimation` — 9× useState, multiple useEffect, motion + AnimatePresence. Pure decorative. SSR-renders as initial state markup; animations start on hydration.
+- `FinalCTA` — confirmed: no hooks, only `Link` + MUI. **Could be re-marked server component** in Part 2 cleanup.
+- `WhatsAppConcierge`, `IPhoneMockup`, `OptimizedBackground` — `'use client'` but no hooks beyond what `framer-motion` does internally for animation. SSR-render their initial DOM fine.
+- `UpgradeModal` — has its own state + auth context consumers. Client-required.
+
+### 5. Recommended split
+
+**Two-phase Part 2.** I recommend doing 2a first, verifying the SSR bailout is actually lifted on `/`, then deciding whether 2b is worth the additional churn.
+
+#### Part 2a — minimum-viable bailout fix (recommended starting point)
+
+Goal: get H1 + hero copy + footer + the rest of the static markup into the SSR'd HTML on `/` with the smallest possible diff. Don't restructure rendering across server/client component boundaries beyond what's strictly required.
+
+**Changes:**
+
+1. **`app/HomePageClient.tsx`** — remove the outer `<Suspense>` wrapper around `LandingPageContent`. Drop the now-unused `Suspense` import.
+2. **`app/HomePageClient.tsx`** — remove `useSearchParams` import + call site + the 9-line `useEffect` that consumes it (lines 977, 992–1000).
+3. **New file `app/HomePostAuthModalOpener.tsx`** (`'use client'`) — a tiny island that takes `user`, `setUpgradeModalOpen`, `setUpgradeTier` via props (or via a small dedicated context), reads `useSearchParams()`, and runs the same auto-open effect. Wrapped in its own `<Suspense fallback={null}>` at the call site so its bailout stays scoped.
+4. **`app/HomePageClient.tsx`** — render the new opener as a sibling of UpgradeModal: `<Suspense fallback={null}><HomePostAuthModalOpener … /></Suspense>`.
+5. **`app/HomePageClient.tsx`** — delete the dead `useEffect` for the commented-out roadmap (lines 1018–1035), and the dead `expandedImage` state + Dialog (lines 983, 2085–2144). These are guaranteed-dead code; removing them tightens the diff and reduces hydration scope.
+
+**Files touched: 1 modified + 1 new.** No section moved, no markup changed, no copy edited. The whole existing client tree continues to render — but now Next SSRs it because no Suspense wraps a `useSearchParams` consumer.
+
+Expected SSR-impact on `/`: word count goes from 8 → ~1500+ (full hero + features + concierge + pricing + FAQ + footer body content). H1 element appears. Internal links re-appear in initial HTML (footer + nav).
+
+#### Part 2b — optional SEO enhancement (defer; only if 2a doesn't land enough indexable surface)
+
+Goal: lift static sections out of the client tree into pure server components for cleaner indexable HTML and faster TTFB. Replace framer-motion fade-ins with CSS animations. Drop unnecessary `'use client'` markers (e.g. on `FinalCTA`).
+
+**New files (server components):**
+
+- `components/landing/HomeHero.tsx` — H1, subhead, badge, two CTAs.
+- `components/landing/HomeConciergeCopy.tsx` — heading + bullets + green CTA shell (CTA wraps a small client child for the auth-gated handler).
+- `components/landing/HomePricing.tsx` — heading + 3-tier grid + planner strip (client islands for auth-gated CTAs and mobile toggle).
+- `components/landing/HomeFAQ.tsx` — native `<details>/<summary>` rendering of the `faqs` array.
+- `components/landing/HomeFooter.tsx` — the inline footer (or just use existing `<AppFooter>` if it covers the same content).
+
+**Client islands (small, scoped):**
+
+- `components/landing/HeroStrikethrough.client.tsx` — the `motion.span` strikethrough animation. ~10 lines.
+- `components/landing/PricingMobileToggle.client.tsx` — mobile tab buttons + state. ~15 lines.
+- `components/landing/PricingAuthCTA.client.tsx` — auth-gated buttons calling `handleTierAction`. Receives `tier` prop, internally consumes `useAuth` + `useRouter`.
+- Existing `<FeaturesSection>` stays as-is (interactive sticky-scroll); optionally render a `HomeFeaturesStaticFallback.tsx` server component as an SSR-only stacked list for indexing.
+
+**Risks of 2b** beyond 2a:
+
+- Each new file inherits the design-system ESLint rule. Either migrate hex literals to tokens during extraction (cleaner) or carry `eslint-disable` headers (ugly).
+- More moving parts → more hydration mismatch surface area.
+- Bigger diff to review.
+
+### 6. Risks / gotchas
+
+| # | Risk | Severity | Mitigation |
+|---|---|---|---|
+| 1 | **`motion.div` with `initial="hidden"` (opacity 0) on hero** (line 1128). If JS fails to load or hydration is slow, hero is invisible to humans (still in DOM for bots). | Medium | Replace outer `motion.div` `fadeIn` wrapper with CSS-only `animation: fadeIn 0.6s` or render content fully visible by default. |
+| 2 | **`whileInView` Concierge + features cards** default `opacity: 0` until intersection observer fires. Same risk as #1 on JS-disabled crawlers. | Low | Same mitigation. Acceptable trade-off for now since text is in DOM for indexing. |
+| 3 | **Strikethrough `motion.span`** (line 1170) — initial `scaleX: 0`, animates to 1 on mount. SSR will emit `transform: scaleX(0)` inline. Hydration replays the animation. No mismatch but the animation runs once per mount. | Low | None needed. |
+| 4 | **`OptimizedBackground` is `'use client'`** and wraps the entire page. The new server shell can render it as a child, but the entire visual tree below it lives inside a client component. Server-rendered HTML still includes everything; React's "client component children rendered by server component" is well-supported. | Low | Verify Next.js still SSRs the children correctly through the client boundary. Should be fine — that's the App Router idiom. |
+| 5 | **`AppHeader`** uses `useAuth` and reads `window.scrollY` on mount. The header renders SSR-side as the logged-out state initially; once auth context resolves on client, it may flip to logged-in UI causing a small flash. Already the existing behavior — Part 2 doesn't make it worse. | Low | None — pre-existing. |
+| 6 | **`FeaturesSection` sticky-scroll** depends on container height being measurable. SSR'd container should produce identical `60vh × itemCount` layout — no client/server divergence in dimensions. | Low | Verify visually after deploy. |
+| 7 | **`window.history.replaceState`** in the tier-param effect mutates URL. Moving this into an isolated client island doesn't change behavior; the island still runs the effect on mount. | Low | None. |
+| 8 | **Dead `expandedImage` state + Dialog** in `LandingPageContent` (lines 983, 2085–2144) is leftover code. The Dialog binds to a state that is never set. Removing it is safe; leaving it is harmless. | None | Recommend removal in 2a for cleanliness. |
+| 9 | **Dead `useEffect` for roadmapRef** at lines 1018–1035 attaches to a null ref (roadmap is commented out). Removable in 2a. | None | Recommend removal. |
+| 10 | **`AppFooter` import is unused** (line 64) — the homepage has its own inline footer (lines 1951–2074). Either remove the import or replace inline footer with `<AppFooter>` if it matches. Out of Part 2 scope unless we choose 2b path that involves footer. | None | Flag for later. |
+| 11 | **JSON-LD currently inline in `LandingPageContent`** (lines 1043–1076). Once we hoist to server shell or root layout (Part 3), make sure we remove the inline emission to avoid duplicates. | Medium | Track for Part 3. |
+| 12 | **`'use client'` on `FinalCTA.tsx` is a misclassification.** The component has no hooks. If we re-mark it server in 2b, downstream importers (currently only `LandingPageContent`) keep working since server-rendering a server component from a client tree is fine. | None | Verify by reading file end-to-end before flipping. |
+| 13 | **Hardcoded copyright "© 2026"** in inline footer. Static, no Date.now(). Safe to SSR. | None | None. |
+| 14 | **Pricing copy says `$199/wedding` and `$299/month`** for planners (lines 1845–1864). These are visible-text values that will be indexed. Confirm with the user before lifting them into SSR — once Google sees them, they're cached. | Open question | Confirm copy is current before Part 2 ships. |
+
+### Open questions for you
+
+A. **2a vs. 2b first?** I recommend 2a (minimum bailout fix, ~1 file change + 1 new island). Bigger SEO gains likely come from 2a alone — the entire current client tree lights up in SSR. 2b adds polish but quadruples the diff. Confirm preference.
+
+B. **Drop the hero `fadeIn` motion wrapper?** Removes a 0.6s-into-the-page fade-in but means hero text renders fully visible immediately even if JS is offline — strictly better for SEO. OK to drop, replace with CSS animation, or keep?
+
+C. **FAQ as `<details>/<summary>` vs MUI Accordion?** Native disclosure is more bot-friendly and works without JS. MUI Accordion needs JS but matches existing visual styling. Preference?
+
+D. **Confirm pricing values** (`$0` / `$349` / `$599` / planner `$199` / `$299`) are still current. Once SSR'd they'll be cached by Google.
+
+E. **Delete the dead `expandedImage` Dialog and the dead roadmap `useEffect`?** Both are guaranteed unreachable. Cleanup yes/no.
+
+F. **Move JSON-LD to root layout** (applies to all routes) or **keep page-scoped** (current pattern, only on `/`)? Current behavior emits Organization + FAQPage only on the homepage, which is fine for FAQPage but Organization should probably be sitewide. This is Part 3 territory but worth a heads-up.
+
+### Stop
+
+Scope only. No code changes. Awaiting answers on A–F before starting Part 2 implementation.
+
