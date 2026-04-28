@@ -908,6 +908,32 @@ function FeaturesPageContent() {
       useAppDefault={true}
       className="min-h-screen flex flex-col"
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "Phera",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "url": "https://www.phera.io/features",
+            "description":
+              "Phera handles RSVPs, multi-day events, guest travel, room blocks, and the wedding-day timeline. Built for Indian weddings and destination celebrations.",
+            "offers": [
+              { "@type": "Offer", "name": "PHERA FREE", "price": "0", "priceCurrency": "USD" },
+              { "@type": "Offer", "name": "PHERA BASE", "price": "349", "priceCurrency": "USD" },
+              { "@type": "Offer", "name": "PHERA WHITE GLOVE", "price": "599", "priceCurrency": "USD" },
+            ],
+            "publisher": {
+              "@type": "Organization",
+              "name": "Phera",
+              "url": "https://www.phera.io",
+            },
+          })
+        }}
+      />
+
       <AppHeader
         variant="transparent"
       />

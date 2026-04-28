@@ -143,9 +143,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Phera",
+    "url": "https://www.phera.io",
+    "logo": "https://www.phera.io/logo.svg",
+    "sameAs": [
+      "https://instagram.com/withphera",
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "email": "contact@phera.io",
+      "contactType": "customer support",
+    },
+  };
+
   return (
     <html lang="en">
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         {process.env.NODE_ENV === "development" && (
           <Script
             src="//unpkg.com/react-grab/dist/index.global.js"
