@@ -19,6 +19,7 @@ import {
   CardContent,
   Avatar,
   CircularProgress,
+  Skeleton,
 } from '@mui/material';
 import { useState, useEffect, use } from 'react';
 import { Check, ContentCopy, Launch, CheckCircle, Edit, People, Event, LocationOn, CalendarMonth, HowToReg, PersonOff, HelpOutline, UploadFile, Web, Hotel, DirectionsBus, WhatsApp, SupportAgent, ArrowForward } from '@mui/icons-material';
@@ -58,8 +59,8 @@ interface RSVPData {
 }
 
 const QUICK_LINKS = [
-  { label: 'Customize Design', path: 'design', icon: Edit },
-  { label: 'RSVPs', path: 'guests', icon: People },
+  { label: 'Customize Design', path: 'look-and-feel', icon: Edit },
+  { label: 'RSVPs', path: 'guest-responses', icon: People },
   { label: 'Schedule & Events', path: 'schedule', icon: Event },
 ];
 
@@ -75,6 +76,13 @@ function QuickLinks({
   const router = useRouter();
   const [loadingLink, setLoadingLink] = useState<string | null>(null);
   const [completion, setCompletion] = useState<Record<string, boolean>>({});
+  // Track whether we've finished the initial completion-state fetch. Until
+  // it resolves we render skeleton rows so the cards don't flicker from
+  // "all undone" → "some done" once the queries return.
+  const [completionLoaded, setCompletionLoaded] = useState(false);
+  // If the load takes longer than 5s the queries probably failed silently.
+  // Surface a "couldn't load" state instead of showing a permanent shimmer.
+  const [completionTimedOut, setCompletionTimedOut] = useState(false);
 
   const go = (path: string) => {
     setLoadingLink(path);
@@ -86,6 +94,9 @@ function QuickLinks({
     if (!weddingId) return;
 
     let cancelled = false;
+    const timeoutId = setTimeout(() => {
+      if (!cancelled) setCompletionTimedOut(true);
+    }, 5000);
     (async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- tables not all in generated supabase types
       const sb = supabase as any;
@@ -109,57 +120,135 @@ function QuickLinks({
         'guest-list': (guestsRes.count ?? 0) > 0,
         'details': websiteDone,
         'concierge': !!settingsRes?.data?.concierge_enabled,
-        'rooms': (roomsRes.count ?? 0) > 0,
+        'room-assignments': (roomsRes.count ?? 0) > 0,
         'transportation': (vehiclesRes.count ?? 0) > 0,
-        'coordinator': (vendorsRes.count ?? 0) > 0,
+        'vendor-management': (vendorsRes.count ?? 0) > 0,
       });
+      setCompletionLoaded(true);
+      clearTimeout(timeoutId);
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [weddingId, weddingSlug, weddingData?.couple_name, weddingData?.venue_name, weddingData?.wedding_date_display]);
 
   const roadmap = [
     {
       label: 'Import Guest List',
-      subtext: "Pull in every guest so we can nudge anyone who hasn't responded, track who's coming, and group people for outreach.",
+      subtext: 'Add everyone we should reach out to.',
       icon: UploadFile,
       path: 'guest-list',
     },
     {
       label: 'Create Wedding Website',
-      subtext: "Fill in your wedding details so your site is ready for guests — and so our Concierge knows how to answer their questions.",
+      subtext: 'Fill in details for guests + Concierge.',
       icon: Web,
       path: 'details',
     },
     {
       label: 'Enable Guest Concierge',
-      subtext: 'Turn on the 24/7 WhatsApp assistant for your guests — answers logistics, RSVP nudges, and last-minute questions.',
+      subtext: '24/7 WhatsApp assistant for your guests.',
       icon: WhatsApp,
       path: 'concierge',
       isPro: true,
     },
     {
       label: 'Set Up Room Assignments',
-      subtext: 'Upload a floorplan and place guests into hotel rooms.',
+      subtext: 'Place guests into hotel rooms.',
       icon: Hotel,
-      path: 'rooms',
+      path: 'room-assignments',
       isPro: true,
     },
     {
       label: 'Coordinate Guest Transportation',
-      subtext: 'Shuttles, airport pickups, and venue transfers — optimized so no one gets stranded.',
+      subtext: 'Shuttles, airport pickups, venue transfers.',
       icon: DirectionsBus,
       path: 'transportation',
       isPro: true,
     },
     {
       label: 'Track Vendor Conversations',
-      subtext: 'Add our Agent to your vendor WhatsApp groups for summaries, action items, and flagged risks.',
+      subtext: 'Summaries + action items from vendor groups.',
       icon: SupportAgent,
-      path: 'coordinator',
+      path: 'vendor-management',
       isPro: true,
     },
   ];
+
+  // Show a roadmap-shaped skeleton until the completion queries finish, so
+  // the section doesn't flicker from "all undone" → "some done" once the
+  // results land. After 5s without resolution, fall back to an error state.
+  if (!completionLoaded) {
+    if (completionTimedOut) {
+      return (
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 3, md: 4 },
+            borderRadius: RADII.xl,
+            border: `1px solid ${COLORS.border.light}`,
+            bgcolor: COLORS.bg.white,
+            textAlign: 'center',
+          }}
+        >
+          <Stack spacing={1.5} alignItems="center">
+            <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong }}>
+              Couldn't load progress
+            </Typography>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
+              We hit a network hiccup loading your setup checklist.
+            </Typography>
+            <PrimaryActionButton onClick={() => window.location.reload()} sx={{ mt: 1 }}>
+              Refresh
+            </PrimaryActionButton>
+          </Stack>
+        </Paper>
+      );
+    }
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 3, md: 4 },
+          borderRadius: RADII.xl,
+          background: `linear-gradient(135deg, ${alpha(COLORS.brand.primary, 0.08)} 0%, ${alpha(COLORS.brand.primary, 0.02)} 60%, ${COLORS.bg.white} 100%)`,
+          border: `1px solid ${alpha(COLORS.brand.primary, 0.15)}`,
+        }}
+      >
+        <Stack spacing={0.5} sx={{ mb: 3 }}>
+          <Skeleton variant="text" animation="wave" width={180} sx={{ fontSize: 12 }} />
+          <Skeleton variant="text" animation="wave" width={260} sx={{ fontSize: 14 }} />
+        </Stack>
+        <Stack spacing={1.25}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Paper
+              key={i}
+              elevation={0}
+              sx={{
+                px: { xs: 2, md: 2.5 },
+                py: { xs: 1.75, md: 2 },
+                borderRadius: RADII.md,
+                bgcolor: COLORS.bg.white,
+                border: `1px solid ${COLORS.border.light}`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+              }}
+            >
+              <Skeleton variant="circular" animation="wave" width={36} height={36} />
+              <Stack spacing={0.5} sx={{ flex: 1 }}>
+                <Skeleton variant="text" animation="wave" width="40%" sx={{ fontSize: 15 }} />
+                <Skeleton variant="text" animation="wave" width="65%" sx={{ fontSize: 13 }} />
+              </Stack>
+              <Skeleton variant="circular" animation="wave" width={20} height={20} />
+            </Paper>
+          ))}
+        </Stack>
+      </Paper>
+    );
+  }
 
   return (
     <Paper
@@ -233,8 +322,16 @@ function QuickLinks({
                 {isDone ? <Check sx={{ fontSize: 20 }} /> : <Icon sx={{ fontSize: 18 }} />}
               </Box>
 
-              <Box sx={{ flex: 1, minWidth: 0, opacity: isDone ? 0.55 : 1, transition: 'opacity 0.18s ease' }}>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.25 }}>
+              {/* Title + PRO chip + subtext on one row. Subtext sits to the
+                  right of the title, takes remaining space, drops to a new
+                  line on phones so titles stay readable. */}
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={{ xs: 0.25, sm: 1.5 }}
+                alignItems={{ xs: 'flex-start', sm: 'center' }}
+                sx={{ flex: 1, minWidth: 0, opacity: isDone ? 0.55 : 1, transition: 'opacity 0.18s ease' }}
+              >
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
                   <Typography
                     sx={{
                       fontSize: { xs: 14, md: 15 },
@@ -265,10 +362,19 @@ function QuickLinks({
                     </Box>
                   )}
                 </Stack>
-                <Typography variant="body2" sx={{ color: COLORS.text.subtle, lineHeight: 1.5 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: COLORS.text.subtle,
+                    lineHeight: 1.4,
+                    flex: 1,
+                    minWidth: 0,
+                    textAlign: { xs: 'left', sm: 'right' },
+                  }}
+                >
                   {subtext}
                 </Typography>
-              </Box>
+              </Stack>
 
               <Box
                 className="roadmap-chevron"
@@ -655,7 +761,7 @@ export default function OverviewPage({ params }: { params: Promise<{ weddingSlug
                     <PrimaryActionButton
                       fullWidth
                       size="large"
-                      href={`/admin/${weddingSlug}/guests`}
+                      href={`/admin/${weddingSlug}/guest-responses`}
                       sx={{ mt: 2, py: 1.5 }}
                     >
                       View All Responses

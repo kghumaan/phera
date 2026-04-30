@@ -41,7 +41,7 @@ vi.mock('sonner', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockRouterPush, replace: vi.fn(), back: vi.fn(), prefetch: vi.fn() }),
-  usePathname: () => '/admin/demo/coordinator',
+  usePathname: () => '/admin/demo/vendor-management',
   useSearchParams: () => new URLSearchParams(),
 }));
 
@@ -421,7 +421,7 @@ describe('Demo dashboard flow', () => {
   it('demo vendor cards should navigate to detail pages', () => {
     const weddingSlug = 'demo';
     for (const vendor of DEMO_VENDORS) {
-      const expectedPath = `/admin/${weddingSlug}/coordinator/${vendor.id}`;
+      const expectedPath = `/admin/${weddingSlug}/vendor-management/${vendor.id}`;
       expect(expectedPath).toContain(vendor.id);
       // Verify the detail data exists for this navigation target
       expect(DEMO_VENDOR_DETAILS[vendor.id]).toBeDefined();

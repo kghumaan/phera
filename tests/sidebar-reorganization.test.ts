@@ -80,7 +80,7 @@ describe('Sidebar Reorganization', () => {
       const item = guests!.items.find((i) => i.id === 'guests');
       expect(item).toBeDefined();
       expect(item!.label).toBe('Guest Responses');
-      expect(item!.path).toBe('/guests');
+      expect(item!.path).toBe('/guest-responses');
     });
 
     it('should have Messaging', () => {
@@ -93,7 +93,7 @@ describe('Sidebar Reorganization', () => {
     it('should have Room Assignments', () => {
       const item = guests!.items.find((i) => i.id === 'rooms');
       expect(item).toBeDefined();
-      expect(item!.path).toBe('/rooms');
+      expect(item!.path).toBe('/room-assignments');
       expect(item!.label).toBe('Room Assignments');
     });
 

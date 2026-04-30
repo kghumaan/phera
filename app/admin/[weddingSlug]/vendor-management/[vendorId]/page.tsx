@@ -365,7 +365,7 @@ export default function VendorDetailPage({
       const res = await fetch(`/api/vendors/${vendorId}`, { method: 'DELETE' });
       if (res.ok) {
         showStatus('saved', 'Vendor removed');
-        router.push(`/admin/${weddingSlug}/coordinator`);
+        router.push(`/admin/${weddingSlug}/vendor-management`);
       } else {
         showStatus('error', 'Failed to delete vendor');
       }
@@ -462,7 +462,7 @@ export default function VendorDetailPage({
         <Box sx={{ pr: askPheraOpen ? 3 : 0, bgcolor: COLORS.bg.white }}>
           {/* Header */}
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-            <IconButton size="small" onClick={() => router.push(`/admin/${weddingSlug}/coordinator`)} sx={{ color: COLORS.text.strong }}>
+            <IconButton size="small" onClick={() => router.push(`/admin/${weddingSlug}/vendor-management`)} sx={{ color: COLORS.text.strong }}>
               <ArrowBack sx={{ fontSize: 20 }} />
             </IconButton>
             <Box sx={{ flex: 1 }}>

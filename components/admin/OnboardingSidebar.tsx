@@ -78,7 +78,7 @@ export const groups: SidebarGroup[] = [
     icon: <Language />,
     items: [
       { id: 'details', label: 'Wedding Details', path: '/details', required: true },
-      { id: 'design', label: 'Look & Feel', path: '/design', required: true },
+      { id: 'design', label: 'Look & Feel', path: '/look-and-feel', required: true },
       { id: 'schedule', label: 'Schedule & Events', path: '/schedule', required: true },
       { id: 'travel', label: 'Travel & Stay', path: '/travel' },
       { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
@@ -95,8 +95,8 @@ export const groups: SidebarGroup[] = [
     items: [
       { id: 'guest-list', label: 'Guest List', path: '/guest-list' },
       { id: 'invites', label: 'Messaging', path: '/messaging' },
-      { id: 'guests', label: 'Guest Responses', path: '/guests' },
-      { id: 'rooms', label: 'Room Assignments', path: '/rooms', isPro: true },
+      { id: 'guests', label: 'Guest Responses', path: '/guest-responses' },
+      { id: 'rooms', label: 'Room Assignments', path: '/room-assignments', isPro: true },
       { id: 'transportation', label: 'Transportation', path: '/transportation', isPro: true },
       { id: 'concierge', label: 'Guest Concierge', path: '/concierge', isPro: true },
     ],
@@ -107,7 +107,7 @@ export const groups: SidebarGroup[] = [
     icon: <ViewKanban />,
     items: [
       { id: 'task-manager', label: 'Task Manager', path: '/task-manager', isPro: true },
-      { id: 'coordinator', label: 'Vendor Management', path: '/coordinator', isPro: true },
+      { id: 'coordinator', label: 'Vendor Management', path: '/vendor-management', isPro: true },
     ],
   },
   {
@@ -194,6 +194,8 @@ export default function OnboardingSidebar({
       results.forEach((res: { count: number | null }, i) => {
         completion[checks[i].key] = (res.count ?? 0) > 0;
       });
+      // Guest-list checkmark mirrors the same guests count used by pins.
+      completion['guest-list'] = completion['pins'];
       setSectionComplete(completion);
     });
   }, [wedding?.id, wedding?.slug, wedding?.couple_name, wedding?.venue_name, wedding?.wedding_date, wedding?.primary_color, wedding?.background_image]);
@@ -552,7 +554,7 @@ export default function OnboardingSidebar({
                               }
                             }}
                           />
-                          {group.id === 'wedding-website' && sectionComplete[item.id] && (
+                          {(group.id === 'wedding-website' || item.id === 'guest-list') && sectionComplete[item.id] && (
                             <CheckCircle sx={{ fontSize: 14, color: COLORS.brand.primary, ml: 0.5, flexShrink: 0 }} />
                           )}
                           {item.isPro && !isPro && <ProBadge size="small" />}

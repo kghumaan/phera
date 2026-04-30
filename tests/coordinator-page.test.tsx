@@ -45,7 +45,7 @@ vi.mock('sonner', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockRouterPush, replace: vi.fn(), back: vi.fn(), prefetch: vi.fn() }),
-  usePathname: () => '/admin/test-wedding/coordinator',
+  usePathname: () => '/admin/test-wedding/vendor-management',
   useSearchParams: () => new URLSearchParams(),
 }));
 

@@ -43,7 +43,7 @@ describe('Auth route detection', () => {
 
     it('should NOT treat admin pages as public', () => {
       expect(isPublicRoute('/admin/demo/overview')).toBe(false);
-      expect(isPublicRoute('/admin/my-wedding/design')).toBe(false);
+      expect(isPublicRoute('/admin/my-wedding/look-and-feel')).toBe(false);
     });
 
     it('should NOT treat guest wedding pages as public', () => {
@@ -111,7 +111,7 @@ describe('Auth route detection', () => {
 
     it('should use full auth for admin pages', () => {
       expect(getAuthTier('/admin/demo/overview')).toBe('full');
-      expect(getAuthTier('/admin/my-wedding/design')).toBe('full');
+      expect(getAuthTier('/admin/my-wedding/look-and-feel')).toBe('full');
     });
 
     it('should use full auth for guest wedding pages', () => {

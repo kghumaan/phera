@@ -6,7 +6,7 @@
  * and auto-save responses to build the wedding website.
  *
  * Generated from analysis of admin pages:
- * - /details, /design, /schedule, /travel, /faq, /registry, /where-to-shop, /event-access
+ * - /details, /look-and-feel, /schedule, /travel, /faq, /registry, /where-to-shop, /event-access
  */
 
 // ─── Wedding Details ───────────────────────────────────────────────────────────

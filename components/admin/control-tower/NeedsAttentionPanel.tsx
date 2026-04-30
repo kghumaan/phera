@@ -49,7 +49,7 @@ export default function NeedsAttentionPanel({ guests, totalNeedsAttention, weddi
         {totalNeedsAttention > guests.length && (
           <Typography
             component="a"
-            href={`/admin/${weddingSlug}/guests`}
+            href={`/admin/${weddingSlug}/guest-responses`}
             sx={{ fontSize: 14, color: COLORS.brand.primary, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
           >
             View all

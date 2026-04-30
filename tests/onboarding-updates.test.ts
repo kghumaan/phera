@@ -82,13 +82,13 @@ describe('Onboarding Updates', () => {
   describe('Post-onboarding routing', () => {
     it('should route to guest import if no guests', () => {
       const guestCount = 0;
-      const route = guestCount === 0 ? '/guests' : '/control-tower';
-      expect(route).toBe('/guests');
+      const route = guestCount === 0 ? '/guest-list' : '/control-tower';
+      expect(route).toBe('/guest-list');
     });
 
     it('should route to control tower if guests exist', () => {
       const guestCount = 10;
-      const route = guestCount === 0 ? '/guests' : '/control-tower';
+      const route = guestCount === 0 ? '/guest-list' : '/control-tower';
       expect(route).toBe('/control-tower');
     });
   });

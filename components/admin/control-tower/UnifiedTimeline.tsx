@@ -297,7 +297,7 @@ export default function UnifiedTimeline({ events, weddingSlug }: UnifiedTimeline
                     {weddingSlug && event.guest_id && (
                       <Typography
                         component="a"
-                        href={`/admin/${weddingSlug}/guests`}
+                        href={`/admin/${weddingSlug}/guest-responses`}
                         sx={{ fontSize: 14, color: COLORS.brand.primary, textDecoration: 'none', mt: 0.5, display: 'inline-block', '&:hover': { textDecoration: 'underline' } }}
                       >
                         View guest

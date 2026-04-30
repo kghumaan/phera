@@ -947,7 +947,7 @@ export default function CoordinatorPage({ params }: { params: Promise<{ weddingS
                     key={vendor.id}
                     variant="default"
                     onClick={() =>
-                      router.push(`/admin/${weddingSlug}/coordinator/${vendor.id}`)
+                      router.push(`/admin/${weddingSlug}/vendor-management/${vendor.id}`)
                     }
                     sx={{
                       p: 2.5,
