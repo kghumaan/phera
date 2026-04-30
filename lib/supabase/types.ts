@@ -582,6 +582,44 @@ export type Database = {
           },
         ]
       }
+      guest_households: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          notes: string | null
+          primary_guest_id: string
+          updated_at: string
+          wedding_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          notes?: string | null
+          primary_guest_id: string
+          updated_at?: string
+          wedding_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          notes?: string | null
+          primary_guest_id?: string
+          updated_at?: string
+          wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_households_primary_guest_id_fkey"
+            columns: ["primary_guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_visas: {
         Row: {
           applied_at: string | null
@@ -652,6 +690,7 @@ export type Database = {
           created_at: string | null
           data_retention_until: string | null
           email: string
+          household_id: string | null
           id: string
           initials: string | null
           is_family_liaison: boolean | null
@@ -687,6 +726,7 @@ export type Database = {
           created_at?: string | null
           data_retention_until?: string | null
           email: string
+          household_id?: string | null
           id?: string
           initials?: string | null
           is_family_liaison?: boolean | null
@@ -722,6 +762,7 @@ export type Database = {
           created_at?: string | null
           data_retention_until?: string | null
           email?: string
+          household_id?: string | null
           id?: string
           initials?: string | null
           is_family_liaison?: boolean | null
@@ -741,7 +782,15 @@ export type Database = {
           wedding_side?: string | null
           whatsapp_opted_out?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "guests_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "guest_households"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       milestones: {
         Row: {
@@ -2903,6 +2952,10 @@ export type Database = {
         Args: { w_slug: string }
         Returns: boolean
       }
+      recompute_household_liaison: {
+        Args: { hh_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
@@ -3035,4 +3088,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

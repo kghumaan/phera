@@ -196,9 +196,22 @@ export function GuestDetailDrawer({ open, guest, onClose, onSaved }: GuestDetail
 
     nextLogistics.party_size = partySize > 0 ? Math.floor(partySize) : 1;
 
+    // The guests.email column is NOT NULL. If the user cleared the visible
+    // email, fall back to a placeholder in the same shape the import path
+    // uses, so save doesn't throw a constraint violation. If the existing row
+    // already has a placeholder, reuse it; otherwise generate a new one.
+    const trimmedEmail = email.trim();
+    const isPheraPlaceholder = (e: string | null | undefined) =>
+      typeof e === 'string' && e.includes('@phera.io');
+    const nextEmail = trimmedEmail
+      ? trimmedEmail.toLowerCase()
+      : isPheraPlaceholder(guest.email)
+        ? guest.email
+        : `imported-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@phera.io`;
+
     const updates = {
       name: nextName,
-      email: email.trim() ? email.trim().toLowerCase() : null,
+      email: nextEmail,
       phone: phone.trim() || null,
       logistics_data: nextLogistics,
     };
@@ -450,9 +463,10 @@ export function GuestDetailDrawer({ open, guest, onClose, onSaved }: GuestDetail
                   </Stack>
                 ))}
 
-                {/* Chip-style "+ Add additional guest" button. Mirrors the
-                    per-row "+ Add tag" picker trigger so the visual language
-                    stays consistent across the guest-management surfaces. */}
+                {/* Chip-style "+ Add additional guest" button. Only surfaces
+                    once the plus-one form is visible — additional guests
+                    only make sense beyond a primary-plus-one pair. */}
+                {showPlusOne && (
                 <Box>
                   <Button
                     onClick={() =>
@@ -481,6 +495,7 @@ export function GuestDetailDrawer({ open, guest, onClose, onSaved }: GuestDetail
                     Add additional guest
                   </Button>
                 </Box>
+                )}
               </Stack>
             </Box>
 

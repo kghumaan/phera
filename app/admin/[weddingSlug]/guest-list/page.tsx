@@ -42,10 +42,12 @@ import { weddingService } from '@/lib/supabase/wedding-service';
 import GuestImportWizard from '@/components/admin/guests/GuestImportWizard';
 import { TagPicker } from '@/components/admin/guests/TagPicker';
 import GuestDetailDrawer, { type GuestDetailRecord } from '@/components/admin/guests/GuestDetailDrawer';
+import GroupGuestsDialog from '@/components/admin/guests/GroupGuestsDialog';
 import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII, SHADOWS } from '@/lib/theme/tokens';
 import { getTagColor } from '@/lib/utils/tag-color';
+import { Groups } from '@mui/icons-material';
 
 interface GuestRsvp {
   attending: 'yes' | 'no' | 'maybe' | '' | null;
@@ -368,26 +370,15 @@ const GuestRow = memo(function GuestRow({
               </Typography>
             );
           })()}
-          {/* Plus one name under the primary guest, muted. */}
-          {plusOneName && (
-            <Typography
-              variant="body2"
-              sx={{
-                fontSize: '0.8125rem',
-                color: COLORS.text.subtle,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              + {plusOneName}
-            </Typography>
-          )}
-          {/* Named additional guests — one row each, same "+ name" style. */}
-          {additionalGuests.map((ag, idx) =>
-            ag.name ? (
+          {/* All companions on a single muted line: "+ Priya, Anil, Neha". */}
+          {(() => {
+            const names = [
+              plusOneName,
+              ...additionalGuests.map((ag) => ag.name).filter(Boolean),
+            ].filter((n): n is string => !!n && n.length > 0);
+            if (names.length === 0) return null;
+            return (
               <Typography
-                key={`ag-name-${idx}`}
                 variant="body2"
                 sx={{
                   fontSize: '0.8125rem',
@@ -396,11 +387,12 @@ const GuestRow = memo(function GuestRow({
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                 }}
+                title={`+ ${names.join(', ')}`}
               >
-                + {ag.name}
+                + {names.join(', ')}
               </Typography>
-            ) : null,
-          )}
+            );
+          })()}
           {/* "+ Additional N guest(s)" — remainder of party size that isn't a
               named plus one or named additional guest. */}
           {unnamedRemaining > 0 && (
@@ -590,6 +582,10 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
 
   // Row selection for bulk tag edits.
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // "Group together" dialog — absorbs N selected guests into the primary's
+  // logistics_data (plus_one + additional_guests) and deletes the rest.
+  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
 
   // Detail drawer state — clicking any non-tag cell opens this.
   const [detailGuestId, setDetailGuestId] = useState<string | null>(null);
@@ -1352,6 +1348,37 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
             />
           )}
 
+          {/* Selection count sits next to the search box so it's anchored
+              to the input rather than buried in the right-side bulk bar. */}
+          <AnimatePresence initial={false}>
+            {selectedIds.size > 0 && (
+              <motion.div
+                key="selected-count"
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                style={{ display: 'flex', alignItems: 'center', marginLeft: 8, flexShrink: 0 }}
+              >
+                <Box
+                  sx={{
+                    height: 32,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    px: 1.25,
+                    borderRadius: RADII.pill,
+                    bgcolor: COLORS.brand.primarySubtle,
+                    color: COLORS.brand.primary,
+                    fontWeight: 700,
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  {selectedIds.size} selected
+                </Box>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Right-aligned bulk-tag controls. Inline in the header rather than
               a floating pill so it's obvious the controls act on the table below.
               The undo button sits BEFORE the bulk bar so it coexists cleanly
@@ -1396,23 +1423,6 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                 // of a collection of differently-sized pieces.
                 style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}
               >
-                <Box
-                  sx={{
-                    height: 32,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    px: 1.25,
-                    borderRadius: RADII.pill,
-                    bgcolor: COLORS.brand.primarySubtle,
-                    color: COLORS.brand.primary,
-                    fontWeight: 700,
-                    fontSize: '0.875rem',
-                    flexShrink: 0,
-                  }}
-                >
-                  {selectedIds.size} selected
-                </Box>
-
                 {/* Staged-tag pills — matches the per-row tag UX exactly. */}
                 {stagedTags.map((t) => {
                   const c = getTagColor(t);
@@ -1502,6 +1512,16 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                 >
                   Clear tags
                 </SecondaryActionButton>
+                {selectedIds.size >= 2 && (
+                  <SecondaryActionButton
+                    onClick={() => setGroupDialogOpen(true)}
+                    disabled={bulkApplying}
+                    startIcon={<Groups sx={{ fontSize: 18 }} />}
+                    sx={{ height: 32, px: 1.5, py: 0 }}
+                  >
+                    Group together
+                  </SecondaryActionButton>
+                )}
                 <Tooltip title={`Delete ${selectedIds.size} guest${selectedIds.size === 1 ? '' : 's'}`}>
                   <IconButton
                     size="small"
@@ -1664,6 +1684,25 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
           existingTags={existingTags}
         />
       )}
+
+      {/* Group-creation modal — fired from the bulk action bar. */}
+      <GroupGuestsDialog
+        open={groupDialogOpen}
+        onClose={() => setGroupDialogOpen(false)}
+        selected={Array.from(selectedIds)
+          .map((id) => guests.find((g) => g.id === id))
+          .filter((g): g is Guest => !!g)
+          .map((g) => ({
+            id: g.id,
+            name: g.name,
+            phone: g.phone,
+            logistics_data: g.logistics_data as Record<string, unknown> | null,
+          }))}
+        onCreated={() => {
+          setSelectedIds(new Set());
+          load();
+        }}
+      />
 
       {/* Detail drawer — opens on click of any non-tag cell. */}
       <GuestDetailDrawer
