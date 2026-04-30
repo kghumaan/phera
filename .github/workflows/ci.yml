@@ -17,34 +17,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          # Need history so we can diff against the base ref to lint only the
-          # files this push/PR touched. Full-repo lint has accumulated
-          # tech-debt errors that would otherwise wall every commit; this
-          # matches the local pre-commit (lint-staged) behavior.
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
       - run: npm ci
-      - name: Lint changed files
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE="origin/${{ github.base_ref }}"
-          else
-            BASE="HEAD~1"
-          fi
-          echo "Diffing against $BASE"
-          mapfile -t FILES < <(git diff --name-only --diff-filter=AM "$BASE"...HEAD -- '*.ts' '*.tsx' || true)
-          if [ ${#FILES[@]} -eq 0 ]; then
-            echo "No .ts/.tsx changes — skipping lint."
-            exit 0
-          fi
-          printf '  %s\n' "${FILES[@]}"
-          npx eslint --max-warnings=9999 "${FILES[@]}"
+      - name: Lint
+        # Full-repo lint. Pre-existing violations are recorded in
+        # eslint-suppressions.json (committed). ESLint 9 silences only the
+        # exact (file, rule, line, count) records in that snapshot — any new
+        # error fails CI, even on files this PR didn't touch. Drain the
+        # snapshot over time by fixing files and running:
+        #   npx eslint . --prune-suppressions
+        # then committing the smaller snapshot.
+        run: npx eslint . --pass-on-unpruned-suppressions
 
   test:
     name: Tests

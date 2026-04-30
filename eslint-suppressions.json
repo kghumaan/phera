@@ -1,0 +1,1153 @@
+{
+  "app/(guest)/[weddingSlug]/events/[slug]/page.tsx": {
+    "no-restricted-syntax": {
+      "count": 2
+    }
+  },
+  "app/(guest)/[weddingSlug]/faq/page.tsx": {
+    "no-restricted-syntax": {
+      "count": 2
+    }
+  },
+  "app/(guest)/[weddingSlug]/travel-details/page.tsx": {
+    "no-restricted-syntax": {
+      "count": 13
+    }
+  },
+  "app/(guest)/[weddingSlug]/travel-form/page.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    },
+    "no-restricted-syntax": {
+      "count": 10
+    },
+    "react/no-unescaped-entities": {
+      "count": 3
+    }
+  },
+  "app/(guest)/[weddingSlug]/where-to-shop/page.tsx": {
+    "no-restricted-syntax": {
+      "count": 6
+    }
+  },
+  "app/about/page.tsx": {
+    "no-restricted-syntax": {
+      "count": 25
+    },
+    "react/no-unescaped-entities": {
+      "count": 7
+    }
+  },
+  "app/admin/[weddingSlug]/build-ai/page.tsx": {
+    "react/no-unescaped-entities": {
+      "count": 1
+    }
+  },
+  "app/admin/[weddingSlug]/control-tower/page.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "app/admin/[weddingSlug]/look-and-feel/page.tsx": {
+    "no-restricted-syntax": {
+      "count": 11
+    }
+  },
+  "app/admin/[weddingSlug]/overview/page.tsx": {
+    "react/no-unescaped-entities": {
+      "count": 1
+    }
+  },
+  "app/admin/[weddingSlug]/registry/page.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "app/admin/[weddingSlug]/schedule/components/MajorEventCard.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/admin/[weddingSlug]/schedule/components/MinorEventCard.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/admin/[weddingSlug]/settings/page.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/admin/[weddingSlug]/transportation/page.tsx": {
+    "react/no-unescaped-entities": {
+      "count": 3
+    }
+  },
+  "app/admin/[weddingSlug]/travel/components/TravelSectionCard.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/admin/[weddingSlug]/travel/page.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/admin/[weddingSlug]/vendor-management/[vendorId]/page.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    },
+    "no-restricted-syntax": {
+      "count": 6
+    },
+    "react/no-unescaped-entities": {
+      "count": 2
+    }
+  },
+  "app/admin/[weddingSlug]/vendor-management/page.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "app/admin/new/page.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    },
+    "prefer-const": {
+      "count": 1
+    },
+    "react/no-unescaped-entities": {
+      "count": 2
+    }
+  },
+  "app/admin/page.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/api/admin/seed-demo-template/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "app/api/concierge/broadcasts/send/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "app/api/concierge/conversations/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "app/api/concierge/knowledge/generate/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  },
+  "app/api/concierge/knowledge/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 10
+    }
+  },
+  "app/api/concierge/stats/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  },
+  "app/api/contact/submit/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/api/control-tower/conversation/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/api/control-tower/dashboard/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 24
+    }
+  },
+  "app/api/control-tower/send/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 13
+    }
+  },
+  "app/api/cron/outreach/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "app/api/demo/clone/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/api/feature-request/submit/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/api/guests/smart-parse/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    },
+    "prefer-const": {
+      "count": 1
+    }
+  },
+  "app/api/invites/send/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "app/api/outreach/escalations/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "app/api/stripe/create-payment-intent/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/api/stripe/get-session/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/api/vendors/[vendorId]/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  },
+  "app/api/vendors/ask/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/api/vendors/conversations/[conversationId]/members/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "app/api/vendors/conversations/[conversationId]/reanalyze/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
+    }
+  },
+  "app/api/vendors/conversations/[conversationId]/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/api/vendors/coordinator-info/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/api/vendors/import-chat/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "app/api/vendors/insights/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "app/api/vendors/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "app/api/vendors/sync-all/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
+    }
+  },
+  "app/api/vendors/sync-groups/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 28
+    }
+  },
+  "app/api/whatsapp/broadcast/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    },
+    "prefer-const": {
+      "count": 1
+    }
+  },
+  "app/api/whatsapp/flows/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/api/whatsapp/send-template/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "app/api/whatsapp/webhook/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 12
+    }
+  },
+  "app/api/whatsapp/whapi-webhook/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "app/auth/callback/route.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "app/auth/login/page.tsx": {
+    "@next/next/no-html-link-for-pages": {
+      "count": 2
+    },
+    "no-restricted-syntax": {
+      "count": 19
+    }
+  },
+  "app/auth/signup/page.tsx": {
+    "no-restricted-syntax": {
+      "count": 16
+    }
+  },
+  "app/contact/page.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    },
+    "no-restricted-syntax": {
+      "count": 6
+    },
+    "react/no-unescaped-entities": {
+      "count": 2
+    }
+  },
+  "app/global-error.tsx": {
+    "no-restricted-syntax": {
+      "count": 5
+    }
+  },
+  "app/layout.tsx": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "app/legal/dpa/page.tsx": {
+    "no-restricted-syntax": {
+      "count": 5
+    }
+  },
+  "app/legal/sub-processors/page.tsx": {
+    "no-restricted-syntax": {
+      "count": 4
+    }
+  },
+  "app/not-found.tsx": {
+    "react/no-unescaped-entities": {
+      "count": 1
+    }
+  },
+  "app/onboarding/page.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
+    },
+    "no-restricted-syntax": {
+      "count": 1
+    },
+    "prefer-const": {
+      "count": 1
+    },
+    "react/no-unescaped-entities": {
+      "count": 6
+    }
+  },
+  "app/privacy/page.tsx": {
+    "no-restricted-syntax": {
+      "count": 5
+    }
+  },
+  "app/terms/page.tsx": {
+    "no-restricted-syntax": {
+      "count": 5
+    }
+  },
+  "app/test-magic-link/page.tsx": {
+    "react/no-unescaped-entities": {
+      "count": 3
+    }
+  },
+  "app/test-sms/page.tsx": {
+    "no-restricted-syntax": {
+      "count": 1
+    },
+    "react/no-unescaped-entities": {
+      "count": 2
+    }
+  },
+  "components/admin/AdminDashboard.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "components/admin/AdminTopNav.tsx": {
+    "react/no-unescaped-entities": {
+      "count": 1
+    }
+  },
+  "components/admin/BroadcastForm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "components/admin/GuestHierarchy.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    },
+    "react/no-unescaped-entities": {
+      "count": 2
+    }
+  },
+  "components/admin/PlannerDashboard.tsx": {
+    "prefer-const": {
+      "count": 1
+    }
+  },
+  "components/admin/VoiceWaveform.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "components/admin/WhatsAppAnalytics.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "components/admin/build-ai/ChatEventDetailForm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "components/admin/build-ai/ChatEventForm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "components/admin/build-ai/ChatFAQForm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "components/admin/build-ai/ChatLookFeelForm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "components/admin/build-ai/ChatPinForm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "components/admin/build-ai/ChatRegistryForm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "components/admin/build-ai/ChatShoppingForm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "components/admin/build-ai/ChatTravelForm.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "components/admin/concierge/ConciergeDashboard.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "components/admin/concierge/ConciergeKnowledgeBase.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    },
+    "react/no-unescaped-entities": {
+      "count": 1
+    }
+  },
+  "components/admin/control-tower/ActionQueue.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "components/admin/control-tower/ComposePanel.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "components/admin/control-tower/ConciergeInsightsPanel.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "components/admin/control-tower/OutreachFunnelChart.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "components/admin/control-tower/OutreachTimeline.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "components/admin/control-tower/RecentActivity.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "components/admin/control-tower/RsvpDonutChart.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "components/admin/control-tower/UnifiedTimeline.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "components/admin/coordinator/MembersTab.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "components/admin/transportation/TransportationDashboard.tsx": {
+    "react/no-unescaped-entities": {
+      "count": 2
+    }
+  },
+  "components/admin/transportation/TransportationSetupWizard.tsx": {
+    "react/no-unescaped-entities": {
+      "count": 3
+    }
+  },
+  "components/auth/LoginDialog.tsx": {
+    "react/no-unescaped-entities": {
+      "count": 1
+    }
+  },
+  "components/auth/LoginModal.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  },
+  "components/auth/SMSTestComponent.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "components/guest/GuestList.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 6
+    }
+  },
+  "components/landing/AgentCard.tsx": {
+    "react/no-unescaped-entities": {
+      "count": 2
+    }
+  },
+  "components/landing/AgentModal.tsx": {
+    "react/no-unescaped-entities": {
+      "count": 5
+    }
+  },
+  "components/preview/ReadOnlyComments.tsx": {
+    "@typescript-eslint/ban-ts-comment": {
+      "count": 1
+    },
+    "@typescript-eslint/no-explicit-any": {
+      "count": 7
+    }
+  },
+  "components/shared/AppFooter.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "components/shared/Menu.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "components/ui/GifPicker.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "components/ui/StreamlineIcon.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "components/ui/WhatsAppConcierge.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    },
+    "react/no-unescaped-entities": {
+      "count": 4
+    }
+  },
+  "lib/ai/escalation-engine.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "lib/ai/guest-coordinator.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "lib/build-ai/form-renderer.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "lib/build-ai/question-flow.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
+    },
+    "@typescript-eslint/no-require-imports": {
+      "count": 1
+    }
+  },
+  "lib/build-ai/types.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  },
+  "lib/build-ai/useBuildAI.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 31
+    },
+    "@typescript-eslint/no-require-imports": {
+      "count": 6
+    }
+  },
+  "lib/concierge/generate-knowledge.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "lib/contexts/AuthContext.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 14
+    }
+  },
+  "lib/contexts/WeddingContext.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "lib/demo/seed-demo-mock-data.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 6
+    }
+  },
+  "lib/email/alerts.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "lib/email/resend.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "lib/supabase/auth-service.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "lib/supabase/broadcasts-service.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 13
+    }
+  },
+  "lib/supabase/outreach-service.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "lib/supabase/rsvp-service.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 18
+    }
+  },
+  "lib/supabase/transportation-service.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 27
+    }
+  },
+  "lib/supabase/travel-service.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 7
+    }
+  },
+  "lib/theme/m3-theme.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "lib/travel/generate-travel-content.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "lib/types/outreach.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "lib/utils/analytics.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 12
+    }
+  },
+  "lib/utils/auth-helpers.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "lib/utils/guest-parser.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "lib/vendors/whapi-client.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "lib/whatsapp/admin-commands.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "lib/whatsapp/ai-handler.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 74
+    },
+    "prefer-const": {
+      "count": 1
+    }
+  },
+  "lib/whatsapp/analytics.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "lib/whatsapp/business-profile.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "lib/whatsapp/concierge-tools.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 20
+    }
+  },
+  "lib/whatsapp/flows.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "lib/whatsapp/outreach-sender.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    },
+    "prefer-const": {
+      "count": 1
+    }
+  },
+  "lib/whatsapp/outreach-templates.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "lib/whatsapp/provider.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "lib/whatsapp/template-submission.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "lib/whatsapp/webhook-handler.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "lib/whatsapp/webhooks.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
+    }
+  },
+  "lib/whatsapp/whapi-client.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "lib/whatsapp/whapi-send.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "lib/whatsapp/whapi-webhook.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "next-env.d.ts": {
+    "@typescript-eslint/triple-slash-reference": {
+      "count": 1
+    }
+  },
+  "replace_script.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 1
+    }
+  },
+  "rewrite_pricing.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 1
+    }
+  },
+  "scripts/check-all-tables.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/check-reception-slides.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/check-schedule-items.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/check-wedding-schedule-events.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/create-afterparty-event.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/create-mehendi-event.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/download-wedding-gif.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 4
+    }
+  },
+  "scripts/find-afterparty.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/get-event-id.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/get-event-slides.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/link-sim-kv-admin.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/list-events.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/optimize-for-whatsapp.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/search-afterparty.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/simulate-wedding.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 27
+    }
+  },
+  "scripts/split-sim-kv-events.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/test-alerts.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    },
+    "@typescript-eslint/no-require-imports": {
+      "count": 1
+    }
+  },
+  "scripts/test-real-whatsapp.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "scripts/update-baraat-slides.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/update-event-slides-direct.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/update-jaggo-slides.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/update-sim-kv-slides.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "scripts/update-varmala-slides.js": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 3
+    }
+  },
+  "tests/admin-commands.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "tests/ai-handler.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 26
+    }
+  },
+  "tests/auth-context-logic.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "tests/auth-service.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
+    }
+  },
+  "tests/concierge-conversations-api.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "tests/concierge-generate-api.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "tests/concierge-knowledge-crud.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "tests/control-tower.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 6
+    }
+  },
+  "tests/coordinator-page.test.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 10
+    },
+    "prefer-const": {
+      "count": 2
+    }
+  },
+  "tests/demo-screens.test.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "tests/design-page-logic.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  },
+  "tests/destination-knowledge.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "tests/edge-cases-integration.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "tests/escalation-engine.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    },
+    "prefer-const": {
+      "count": 1
+    }
+  },
+  "tests/generate-knowledge.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
+  "tests/guest-coordinator.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "tests/guest-import-parsers.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "tests/login-page.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "tests/mocks/supabase.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "tests/onboarding-avatar.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "tests/outreach-sender.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 10
+    }
+  },
+  "tests/outreach-service.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 9
+    }
+  },
+  "tests/outreach-templates.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "tests/performance-patterns.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "tests/planner-workflows.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 4
+    }
+  },
+  "tests/rate-limiter.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "tests/rls-integration.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 1
+    }
+  },
+  "tests/rsvp-service.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 11
+    }
+  },
+  "tests/setup.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  },
+  "tests/simulator/whatsapp-simulator.ts": {
+    "prefer-const": {
+      "count": 1
+    }
+  },
+  "tests/sync-groups-api.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 15
+    }
+  },
+  "tests/team-invites.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 15
+    }
+  },
+  "tests/template-submission.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 6
+    }
+  },
+  "tests/tier-redirect.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "tests/transportation-service.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 7
+    }
+  },
+  "tests/webhook-handler.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 6
+    }
+  },
+  "tests/wedding-service.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 7
+    }
+  },
+  "tests/whatsapp-flows.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 8
+    }
+  },
+  "tests/workflow-integration.test.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 5
+    }
+  }
+}

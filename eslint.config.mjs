@@ -105,6 +105,23 @@ const designSystemRules = {
 };
 
 const eslintConfig = [
+  // Build artifacts + worktree clones leak generated JS that produces
+  // hundreds of spurious "error is defined but never used" hits. Pin the
+  // ignore list explicitly — globally-ignored configs go before any other
+  // config block per ESLint flat-config docs.
+  {
+    ignores: [
+      ".next/**",
+      ".claude/**",
+      "node_modules/**",
+      "out/**",
+      "build/**",
+      "coverage/**",
+      "public/**",
+      "*.min.js",
+    ],
+  },
+
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 
   // Apply design-system rules to app + components sources.
