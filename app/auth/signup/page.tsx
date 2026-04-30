@@ -23,6 +23,8 @@ import {
   Link as MuiLink,
   alpha,
   CircularProgress,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import Link from 'next/link';
 import { weddingService } from '@/lib/supabase/wedding-service';
@@ -39,6 +41,7 @@ export default function SignupPage() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const isAnyLoading = emailLoading || googleLoading;
 
@@ -65,6 +68,10 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedTerms) {
+      toast.error('Please agree to the Terms of Service and Privacy Policy to continue.');
+      return;
+    }
     setEmailLoading(true);
 
     try {
@@ -99,6 +106,10 @@ export default function SignupPage() {
   };
 
   const handleGoogleSignup = async () => {
+    if (!acceptedTerms) {
+      toast.error('Please agree to the Terms of Service and Privacy Policy to continue.');
+      return;
+    }
     setGoogleLoading(true);
 
     try {
@@ -306,11 +317,38 @@ export default function SignupPage() {
                       },
                     }}
                   />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={acceptedTerms}
+                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                        size="small"
+                        sx={{
+                          color: COLORS.border.default,
+                          '&.Mui-checked': { color: COLORS.brand.primary },
+                          py: 0.5,
+                        }}
+                      />
+                    }
+                    label={
+                      <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.875rem', lineHeight: 1.5 }}>
+                        I agree to the{' '}
+                        <Link href="/terms" target="_blank" className="text-[#DE3F5E] hover:underline">
+                          Terms of Service
+                        </Link>{' '}
+                        and{' '}
+                        <Link href="/privacy" target="_blank" className="text-[#DE3F5E] hover:underline">
+                          Privacy Policy
+                        </Link>.
+                      </Typography>
+                    }
+                    sx={{ alignItems: 'flex-start', m: 0 }}
+                  />
                   <PrimaryActionButton
                     type="submit"
                     size="large"
                     fullWidth
-                    disabled={isAnyLoading}
+                    disabled={isAnyLoading || !acceptedTerms}
                     loading={emailLoading}
                     sx={{ px: { xs: 4, md: 6 }, py: { xs: 1.2, md: 2 }, fontSize: { xs: '1rem', md: '1.25rem' } }}
                   >
@@ -330,7 +368,7 @@ export default function SignupPage() {
                 size="large"
                 fullWidth
                 onClick={handleGoogleSignup}
-                disabled={isAnyLoading}
+                disabled={isAnyLoading || !acceptedTerms}
                 startIcon={
                   googleLoading ? (
                     <CircularProgress size={18} sx={{ color: COLORS.text.strong }} />

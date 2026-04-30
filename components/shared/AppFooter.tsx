@@ -76,6 +76,12 @@ export default function AppFooter() {
                             <Link href="/terms" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                                 Terms
                             </Link>
+                            <Link href="/legal/sub-processors" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                                Sub-Processors
+                            </Link>
+                            <Link href="/legal/dpa" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                                Data Processing Addendum
+                            </Link>
                         </Stack>
                     </Grid>
                     <Grid size={{ xs: 12, md: 4 } as any}>

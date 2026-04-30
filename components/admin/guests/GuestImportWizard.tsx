@@ -28,6 +28,8 @@ import {
   CircularProgress,
   LinearProgress,
   Collapse,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import {
   UploadFile as UploadFileIcon,
@@ -137,6 +139,9 @@ export default function GuestImportWizard({
   const [result, setResult] = useState<ImportResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
+  // Required attestation before any import — host warrants lawful basis to
+  // upload guest contact info per Terms § 5 (host indemnification clause).
+  const [consentGiven, setConsentGiven] = useState(false);
   interface ManualAdditionalGuest { name: string; phone: string }
   interface ManualGuestForm {
     name: string;
@@ -182,6 +187,7 @@ export default function GuestImportWizard({
     setManualForm({ name: '', email: '', phone: '', tags: [], plus_one_name: '', plus_one_phone: '', additional_guests: [], party_size: 1 });
     setTagDraft('');
     setTagPickerOpen(false);
+    setConsentGiven(false);
   }, [initialTab]);
 
   // Sync local `tab` with `initialTab` whenever the dialog is (re)opened or the
@@ -326,6 +332,7 @@ export default function GuestImportWizard({
   // ─── Import ──────────────────────────────────────────────────
 
   const handleImport = async () => {
+    if (!consentGiven) return;
     setImporting(true);
     setStep('importing');
 
@@ -1116,7 +1123,37 @@ export default function GuestImportWizard({
         )}
       </DialogContent>
 
-      {/* ═══ Footer Actions ══════════════════════════════════ */}
+      {/* ═══ Consent attestation — required for any import. Couples
+              warrant under Terms § 5 they have a lawful basis to upload
+              and have notified guests where required by law. */}
+      {step !== 'done' && step !== 'importing' && (
+        ((step === 'confirm') || (step === 'select' && tab === 1 && manualGuests.length > 0)) && (
+          <Box sx={{ px: 3, pt: 1 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={consentGiven}
+                  onChange={(e) => setConsentGiven(e.target.checked)}
+                  size="small"
+                  sx={{
+                    color: COLORS.border.default,
+                    '&.Mui-checked': { color: COLORS.brand.primary },
+                    py: 0.5,
+                  }}
+                />
+              }
+              label={
+                <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8125rem', lineHeight: 1.5 }}>
+                  I have a lawful basis to upload these contacts and have notified them of how their data will be used, where required by law (TCPA, GDPR, DPDPA, and similar). See our{' '}
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-[#DE3F5E] hover:underline">Terms § 5</a>.
+                </Typography>
+              }
+              sx={{ alignItems: 'flex-start', m: 0 }}
+            />
+          </Box>
+        )
+      )}
+
       {step !== 'done' && step !== 'importing' && (
         <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'space-between' }}>
           {step === 'confirm' || tab !== 1 ? (
@@ -1134,7 +1171,7 @@ export default function GuestImportWizard({
             <PrimaryActionButton
               onClick={handleImport}
               loading={importing}
-              disabled={buildGuestsFromMapping().length === 0}
+              disabled={buildGuestsFromMapping().length === 0 || !consentGiven}
             >
               Import {buildGuestsFromMapping().length} Guest{buildGuestsFromMapping().length !== 1 ? 's' : ''}
             </PrimaryActionButton>
@@ -1144,6 +1181,7 @@ export default function GuestImportWizard({
             <PrimaryActionButton
               onClick={handleImport}
               loading={importing}
+              disabled={!consentGiven}
             >
               Import {manualGuests.length} Guest{manualGuests.length !== 1 ? 's' : ''}
             </PrimaryActionButton>
