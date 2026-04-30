@@ -22,6 +22,8 @@ export interface CampaignHistoryRow {
   templateTitle: string;
   sentAt: string;
   recipientCount: number;
+  kind?: 'sent' | 'failed';
+  sampleError?: string;
 }
 
 export interface CampaignHistoryProps {
@@ -62,6 +64,7 @@ export function CampaignHistory({ rows, loading }: CampaignHistoryProps) {
       {rows.map((row) => {
         const tmpl = getInviteTemplate(row.templateId);
         const Icon = tmpl?.icon ?? History;
+        const isFailed = row.kind === 'failed';
         return (
           <PheraCard key={row.bucketKey} variant="default" sx={{ p: 1.5 }}>
             <Stack direction="row" alignItems="center" spacing={1.5}>
@@ -70,8 +73,10 @@ export function CampaignHistory({ rows, loading }: CampaignHistoryProps) {
                   width: 36,
                   height: 36,
                   borderRadius: RADII.md,
-                  bgcolor: alpha(COLORS.brand.primary, 0.1),
-                  color: COLORS.brand.primary,
+                  bgcolor: isFailed
+                    ? alpha(COLORS.accent.dangerText, 0.1)
+                    : alpha(COLORS.brand.primary, 0.1),
+                  color: isFailed ? COLORS.accent.dangerText : COLORS.brand.primary,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -85,12 +90,13 @@ export function CampaignHistory({ rows, loading }: CampaignHistoryProps) {
                   {row.templateTitle}
                 </Typography>
                 <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
-                  Sent {relativeDay(row.sentAt)}
+                  {isFailed ? 'Failed' : 'Sent'} {relativeDay(row.sentAt)}
+                  {isFailed && row.sampleError ? ` · ${row.sampleError}` : ''}
                 </Typography>
               </Box>
               <PheraChip
-                tone="success"
-                label={`${row.recipientCount} sent`}
+                tone={isFailed ? 'danger' : 'success'}
+                label={`${row.recipientCount} ${isFailed ? 'failed' : 'sent'}`}
                 size="small"
               />
             </Stack>

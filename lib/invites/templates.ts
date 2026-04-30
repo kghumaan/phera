@@ -14,7 +14,6 @@ import {
   EventAvailable,
   Notifications,
   Flight,
-  Mail,
   FavoriteBorder,
   Edit,
 } from '@mui/icons-material';
@@ -24,7 +23,6 @@ export type InviteTemplateCategory =
   | 'custom'
   | 'announce'
   | 'rsvp'
-  | 'reminder'
   | 'logistics'
   | 'followup';
 
@@ -36,6 +34,10 @@ export interface InviteTemplateVariable {
   // from the per-guest loop at send-time (e.g. guest_first_name).
   perGuest?: boolean;
   multiline?: boolean;
+  /** Override default minRows (3) for the multiline composer input. */
+  minRows?: number;
+  /** Cap the textarea growth so a long message doesn't blow out the card. */
+  maxRows?: number;
 }
 
 export interface InviteTemplate {
@@ -74,6 +76,11 @@ export const INVITE_TEMPLATES: InviteTemplate[] = [
         placeholder:
           'Type your message here. Use {{guest_first_name}} anywhere to personalize per guest.',
         multiline: true,
+        // Match the rough vertical footprint of the seeded templates (which
+        // have multiple form fields stacked) so the card height doesn't
+        // jump as the user fills in / clears the body.
+        minRows: 10,
+        maxRows: 14,
       },
     ],
   },
@@ -166,29 +173,6 @@ Takes about 2 minutes. Dhanyavaad 🙏`,
     nextStatus: 'travel_collected',
   },
   {
-    id: 'event_reminder',
-    title: 'Ceremony Reminder',
-    description: 'Day-before or hours-before heads-up for a specific function.',
-    category: 'reminder',
-    icon: Mail,
-    body:
-`Namaste {{guest_first_name}}!
-
-Quick reminder — {{event_name}} is {{event_when}} at {{venue}}.
-
-Dress code: {{dress_code}}
-For anything urgent, please reply here.
-
-See you there 💃🕺`,
-    variables: [
-      { key: 'guest_first_name', label: 'Guest first name', perGuest: true },
-      { key: 'event_name', label: 'Ceremony', placeholder: 'Sangeet' },
-      { key: 'event_when', label: 'When', placeholder: 'tomorrow at 7 PM' },
-      { key: 'venue', label: 'Venue', placeholder: 'Rambagh Palace' },
-      { key: 'dress_code', label: 'Dress code', placeholder: 'Indian festive' },
-    ],
-  },
-  {
     id: 'thank_you',
     title: 'Dhanyavaad',
     description: 'Post-wedding thanks. Optional — couples love this one.',
@@ -215,7 +199,6 @@ export const CATEGORY_LABELS: Record<InviteTemplateCategory, string> = {
   custom: 'Custom',
   announce: 'Announcements',
   rsvp: 'RSVP',
-  reminder: 'Reminders',
   logistics: 'Logistics',
   followup: 'Follow-up',
 };

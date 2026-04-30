@@ -133,7 +133,18 @@ export async function POST(req: NextRequest) {
       }
     } else {
       failed += 1;
-      errors.push({ guestId: g.id, reason: result.error || 'Send failed' });
+      const reason = result.error || 'Send failed';
+      errors.push({ guestId: g.id, reason });
+      // Log failure to outreach_events so the Recent campaigns list surfaces
+      // it with the failure reason. Same shape as success rows.
+      await supabase.from('outreach_events').insert({
+        wedding_id: weddingSlug,
+        guest_id: g.id,
+        event_type: 'template_send_failed',
+        template_name: template.id,
+        channel: 'whatsapp',
+        details: { sent_via: 'concierge', template_title: template.title, error_reason: reason },
+      });
     }
   }
 

@@ -42,6 +42,8 @@ interface OutreachEventRow {
   template_name: string | null;
   guest_id: string;
   created_at: string;
+  event_type: string | null;
+  details: { error_reason?: string } | null;
 }
 
 function tagsFor(g: GuestRow): string[] {
@@ -53,16 +55,35 @@ function tagsFor(g: GuestRow): string[] {
 }
 
 function bucketEvents(events: OutreachEventRow[]): CampaignHistoryRow[] {
-  // Group by template_id + creation date (yyyy-mm-dd).
-  const buckets = new Map<string, { templateId: string; sentAt: string; ids: Set<string> }>();
+  // Group by template_id + creation date (yyyy-mm-dd) + outcome (sent/failed).
+  // Failures get their own bucket so the history surfaces them in red.
+  type Bucket = {
+    templateId: string;
+    sentAt: string;
+    ids: Set<string>;
+    kind: 'sent' | 'failed';
+    sampleError?: string;
+  };
+  const buckets = new Map<string, Bucket>();
   for (const e of events) {
     if (!e.template_name) continue;
+    const kind: 'sent' | 'failed' =
+      e.event_type === 'template_send_failed' ? 'failed' : 'sent';
     const day = (e.created_at || '').slice(0, 10);
-    const key = `${e.template_name}__${day}`;
+    const key = `${e.template_name}__${day}__${kind}`;
     if (!buckets.has(key)) {
-      buckets.set(key, { templateId: e.template_name, sentAt: e.created_at, ids: new Set() });
+      buckets.set(key, {
+        templateId: e.template_name,
+        sentAt: e.created_at,
+        ids: new Set(),
+        kind,
+      });
     }
-    buckets.get(key)!.ids.add(e.guest_id);
+    const b = buckets.get(key)!;
+    b.ids.add(e.guest_id);
+    if (kind === 'failed' && !b.sampleError && e.details?.error_reason) {
+      b.sampleError = e.details.error_reason;
+    }
   }
 
   return Array.from(buckets.entries())
@@ -74,6 +95,8 @@ function bucketEvents(events: OutreachEventRow[]): CampaignHistoryRow[] {
         templateTitle: tmpl?.title || b.templateId,
         sentAt: b.sentAt,
         recipientCount: b.ids.size,
+        kind: b.kind,
+        sampleError: b.sampleError,
       };
     })
     .sort((a, b) => b.sentAt.localeCompare(a.sentAt));
@@ -131,9 +154,9 @@ export default function InvitesPage({ params }: { params: Promise<{ weddingSlug:
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generated supabase types may omit outreach_events
     const { data, error } = await (supabase as any)
       .from('outreach_events')
-      .select('id, template_name, guest_id, created_at')
+      .select('id, template_name, guest_id, created_at, event_type, details')
       .eq('wedding_id', weddingSlug)
-      .eq('event_type', 'template_sent')
+      .in('event_type', ['template_sent', 'template_send_failed'])
       .order('created_at', { ascending: false })
       .limit(500);
     if (error) console.error('invites: history load error:', error);
@@ -216,7 +239,7 @@ export default function InvitesPage({ params }: { params: Promise<{ weddingSlug:
     <Box sx={{ width: '100%' }}>
       <PageHeading
         title="Messaging"
-        subtitle="Send Save-the-Dates, RSVP requests, and reminders to your guests on WhatsApp. Pick a template, write the message once, and send via the Concierge or your own WhatsApp."
+        subtitle="Send messages to your guests: Send Save-the-Dates, RSVP requests, and reminders to your guests on WhatsApp. Pick a template, write the message once, and send via the Concierge or your own WhatsApp."
       />
 
       <Box sx={{ mt: 3 }}>
@@ -238,12 +261,19 @@ export default function InvitesPage({ params }: { params: Promise<{ weddingSlug:
             justifyContent: 'start',
           }}
         >
-          {groupedTemplates.flatMap((g) =>
-            g.items.map((t) => {
+          {(() => {
+            // Flatten + reorder: when a template is expanded, hoist it to the
+            // top so its full-width row sits above all collapsed tiles. The
+            // rest keep their original category-grouped order beneath it.
+            const flat = groupedTemplates.flatMap((g) => g.items);
+            const ordered = expandedId
+              ? [
+                  ...flat.filter((t) => t.id === expandedId),
+                  ...flat.filter((t) => t.id !== expandedId),
+                ]
+              : flat;
+            return ordered.map((t) => {
               const isOpen = expandedId === t.id;
-              // Expanded card spans the full row — preview + composer get
-              // breathing room instead of getting squashed into a single
-              // narrow column.
               return (
                 <Box
                   key={t.id}
@@ -265,8 +295,8 @@ export default function InvitesPage({ params }: { params: Promise<{ weddingSlug:
                   </Box>
                 </Box>
               );
-            }),
-          )}
+            });
+          })()}
         </Box>
       </Box>
 

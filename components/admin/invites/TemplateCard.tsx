@@ -11,7 +11,8 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Box, DialogActions, DialogContent, Stack, Typography, Collapse, IconButton } from '@mui/material';
+import { Box, DialogActions, DialogContent, Stack, Typography, IconButton } from '@mui/material';
+import { toast } from 'sonner';
 import { ExpandMore, Send, AutoAwesome } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
 import { PheraCard } from '@/components/shared/Card';
@@ -116,22 +117,29 @@ export function TemplateCard({
       });
       const data = await res.json();
       if (!res.ok) {
-        setConciergeResult({ kind: 'error', message: data?.error || 'Send failed' });
+        const msg = data?.error || 'Send failed';
+        setConciergeResult({ kind: 'error', message: msg });
+        toast.error(`Concierge send failed: ${msg}`);
       } else {
         const firstError = Array.isArray(data?.errors) && data.errors.length > 0
           ? data.errors[0]?.reason
           : undefined;
-        setConciergeResult({
-          kind: 'ok',
-          sent: data.sent ?? 0,
-          failed: data.failed ?? 0,
-          firstError,
-        });
+        const sent = data.sent ?? 0;
+        const failed = data.failed ?? 0;
+        setConciergeResult({ kind: 'ok', sent, failed, firstError });
         setConciergeConfirmOpen(false);
+        if (failed > 0) {
+          toast.error(
+            `${failed} send${failed === 1 ? '' : 's'} failed${firstError ? `: ${firstError}` : ''}`,
+          );
+        } else {
+          toast.success(`Sent to ${sent} guest${sent === 1 ? '' : 's'} via Concierge`);
+        }
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Network error';
       setConciergeResult({ kind: 'error', message: msg });
+      toast.error(`Concierge send failed: ${msg}`);
     } finally {
       setConciergeSending(false);
     }
@@ -202,14 +210,22 @@ export function TemplateCard({
       {/* Collapsed cards stay compact — preview is reserved for the expanded
           right column so every tile in the grid keeps a uniform height. */}
 
-      <Collapse in={expanded} timeout={180} unmountOnExit>
+      {/* Hard mount/unmount keyed off expanded — no Collapse animation. The
+          grid parent reorders the card position when expandedId changes, and
+          a 180ms height transition was racing that reorder, leaving stale
+          DOM visible inside a narrow column. */}
+      {expanded && (
         <Box sx={{ px: 2, pb: 2, borderTop: `1px solid ${COLORS.border.faint}`, pt: 2 }}>
           {/* Two-column: form fields left, live preview right. Stacks on
               narrow widths so phones still get a readable composer. */}
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) auto' },
+              // Right column fixed at the preview's max width (360 + 32 padding)
+              // so the WhatsApp bubble keeps a constant footprint regardless
+              // of message length. `auto` was sizing to content, shrinking
+              // the bubble to the size of the placeholder when empty.
+              gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) 392px' },
               gap: { xs: 2, md: 3 },
               alignItems: 'start',
             }}
@@ -234,7 +250,8 @@ export function TemplateCard({
                       size="small"
                       fullWidth
                       multiline={v.multiline}
-                      minRows={v.multiline ? 3 : undefined}
+                      minRows={v.multiline ? v.minRows ?? 3 : undefined}
+                      maxRows={v.multiline ? v.maxRows : undefined}
                     />
                   ))
                 )}
@@ -289,8 +306,7 @@ export function TemplateCard({
                 variant="body2"
                 sx={{ mt: 1, color: COLORS.text.faint, fontSize: '0.8125rem', textAlign: 'right' }}
               >
-                Heads up: messages sent from your WhatsApp aren&apos;t tracked here.
-                Concierge sends are logged in Recent campaigns.
+                Only Concierge sends are logged in Recent campaigns.
               </Typography>
 
               {conciergeResult?.kind === 'ok' && (
@@ -334,15 +350,13 @@ export function TemplateCard({
                 borderRadius: RADII.md,
                 display: 'flex',
                 justifyContent: 'center',
-                position: { md: 'sticky' },
-                top: { md: 16 },
               }}
             >
               <WhatsAppPreview message={previewMessage} dense />
             </Box>
           </Box>
         </Box>
-      </Collapse>
+      )}
 
       {/* Concierge-send confirmation. Sends from the Phera WhatsApp Business
           number (Whapi) to every targeted guest with a phone — no wa.me
