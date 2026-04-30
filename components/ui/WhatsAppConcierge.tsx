@@ -96,7 +96,7 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
                 height: '100%',
                 position: 'relative',
                 overflow: 'hidden',
-                backgroundImage: 'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")',
+                backgroundImage: 'url("/images/backgrounds/whatsapp-chat-doodles.webp")',
                 backgroundSize: 'cover',
                 display: 'flex',
                 flexDirection: 'column',

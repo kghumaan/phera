@@ -14,10 +14,9 @@ import { Box, Stack, Typography, Avatar, Paper } from '@mui/material';
 import { ArrowBack, Verified, Check } from '@mui/icons-material';
 import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 
-// Shared WhatsApp chat-background pattern. Same URL used by
+// Shared WhatsApp chat-background pattern. Same asset used by
 // components/ui/WhatsAppConcierge.tsx on the landing page.
-const CHAT_BG_URL =
-  'url("https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png")';
+const CHAT_BG_URL = 'url("/images/backgrounds/whatsapp-chat-doodles.webp")';
 
 export interface WhatsAppPreviewProps {
   message: string;
@@ -95,11 +94,13 @@ export function WhatsAppPreview({ message, timestamp = '12:34', dense = false }:
           overflowY: 'auto',
         }}
       >
-        {/* Incoming bubble — white, left-aligned, tail on top-left. */}
+        {/* Incoming bubble — white, left-aligned, tail on top-left. Fixed
+            width so short messages don't shrink the bubble; the preview
+            footprint stays constant as the composer content grows. */}
         <Box
           sx={{
             alignSelf: 'flex-start',
-            maxWidth: '88%',
+            width: '88%',
             bgcolor: COLORS.bg.white,
             borderRadius: '0px 12px 12px 12px',
             px: 1.25,
