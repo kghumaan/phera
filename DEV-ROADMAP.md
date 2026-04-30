@@ -638,6 +638,8 @@ export async function initializeOutreachForWedding(weddingId: string, weddingDat
 **Tests to create:** `tests/outreach-scheduler.test.ts`
 - Test timeline generation for various wedding dates
 - Test getDueSequences with mocked dates
+
+**Status (2026-05-01):** A divergent scaffold using **Inngest** lives uncommitted at `lib/inngest/` (`client.ts`, `functions/deadline-check.ts`, `functions/outreach-sequence.ts`, `functions/rsvp-reminder.ts`). It targets the same goal as this task but uses Inngest's durable workflow model instead of Vercel Cron. **It does not build today** — the `inngest` npm package isn't installed and there's no `app/api/inngest/route.ts` handler. Decide before continuing: (a) finish the Inngest path — `npm i inngest`, add the handler route, register at inngest.com or self-host; or (b) discard `lib/inngest/` and build Task 5 as originally specified above with Vercel Cron + `app/api/cron/outreach/route.ts`. Tracked here so the scaffold isn't lost.
 - Test that escalation triggers after 3 failed attempts
 - Test opt-out filtering
 - Test batch send integration (mocked)

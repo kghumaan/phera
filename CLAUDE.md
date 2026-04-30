@@ -183,7 +183,7 @@ Build consent into every flow from day one. Full enforcement May 2027.
 6. **Read PIVOT-PLAN.md** for strategic context (target market, pricing, positioning, competitive landscape, implementation phases).
 7. **New files alongside existing ones** — don't modify the stable production files listed above.
 8. **Import path:** Use `@/` alias (maps to project root). Example: `import { whatsappClient } from '@/lib/whatsapp/client'`
-9. **Never create duplicate files with " 2" / " copy" / numeric suffixes.** Always edit the original in place. If macOS/iCloud has already produced a `foo 2.ts` sibling of `foo.ts`, diff them, keep the correct content in the original, and delete the dupe. Never commit, stage, or edit a `* 2.*` file — treat it as sync garbage. If unsure which version is current, check `git show HEAD:foo.ts` against both before deleting.
+9. **Never create duplicate files with " 2" / " copy" / numeric suffixes.** Always edit the original in place. The repo no longer lives in an iCloud-synced folder (moved from `~/Desktop/Code/phera` to `~/Code/phera` on 2026-05-01), so sync-conflict dupes shouldn't regenerate. If you ever see a `foo 2.ts` sibling of `foo.ts`, diff them, keep the correct content in the original, and delete the dupe. The pre-commit hook + `.gitignore` still hard-block staging `* 2.*`, `* copy.*`, etc., as a safety net. Never commit, stage, or edit a `* 2.*` file. If unsure which version is current, check `git show HEAD:foo.ts` against both before deleting.
 
 ## Project Structure (Key Directories)
 
