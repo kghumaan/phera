@@ -129,14 +129,22 @@ describe('Sidebar Reorganization', () => {
       expect(planning).toBeDefined();
     });
 
-    it('should contain Task Manager and Vendor Management', () => {
+    it('should contain Task Manager, Vendor Management, and Knowledge Bank', () => {
       const ids = planning!.items.map((i) => i.id);
       expect(ids).toContain('task-manager');
       expect(ids).toContain('coordinator');
+      expect(ids).toContain('knowledge-bank');
     });
 
-    it('should have 2 items', () => {
-      expect(planning!.items).toHaveLength(2);
+    it('should have 3 items', () => {
+      expect(planning!.items).toHaveLength(3);
+    });
+
+    it('Knowledge Bank should be Pro-gated', () => {
+      const kb = planning!.items.find((i) => i.id === 'knowledge-bank');
+      expect(kb).toBeDefined();
+      expect(kb!.isPro).toBe(true);
+      expect(kb!.path).toBe('/knowledge-bank');
     });
   });
 

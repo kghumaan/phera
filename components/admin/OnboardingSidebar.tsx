@@ -108,6 +108,7 @@ export const groups: SidebarGroup[] = [
     items: [
       { id: 'task-manager', label: 'Task Manager', path: '/task-manager', isPro: true },
       { id: 'coordinator', label: 'Vendor Management', path: '/vendor-management', isPro: true },
+      { id: 'knowledge-bank', label: 'Knowledge Bank', path: '/knowledge-bank', isPro: true },
     ],
   },
   {
@@ -188,6 +189,7 @@ export default function OnboardingSidebar({
       { key: 'shopping', query: supabase.from('wedding_shops').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests select shape not captured by generated types
       { key: 'pins', query: (supabase as any).from('guests').select('id', { count: 'exact', head: true }).eq('wedding_id', slug) },
+      { key: 'knowledge-bank', query: supabase.from('concierge_knowledge_base').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
     ];
 
     Promise.all(checks.map(c => c.query)).then(results => {
@@ -554,7 +556,7 @@ export default function OnboardingSidebar({
                               }
                             }}
                           />
-                          {(group.id === 'wedding-website' || item.id === 'guest-list') && sectionComplete[item.id] && (
+                          {(group.id === 'wedding-website' || item.id === 'guest-list' || item.id === 'knowledge-bank') && sectionComplete[item.id] && (
                             <CheckCircle sx={{ fontSize: 14, color: COLORS.brand.primary, ml: 0.5, flexShrink: 0 }} />
                           )}
                           {item.isPro && !isPro && <ProBadge size="small" />}

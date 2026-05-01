@@ -7,6 +7,7 @@ import AdminTopNav from '@/components/admin/AdminTopNav';
 import AdminPreviewPanel from '@/components/admin/AdminPreviewPanel';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import DemoTour from '@/components/demo/DemoTour';
+import KnowledgeBankAutoGenerateGate from '@/components/admin/KnowledgeBankAutoGenerateGate';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { use, useState, useEffect, useMemo, Suspense } from 'react';
 import { usePathname, useSearchParams, useRouter, notFound } from 'next/navigation';
@@ -416,6 +417,11 @@ function OnboardingLayoutContent({
 
       {/* Demo tour overlay */}
       {showTour && <DemoTour weddingSlug={weddingSlug} />}
+
+      {/* First-time auto-population modal for the Knowledge Bank — fires once
+          when Wedding Details, Schedule & Events, and Travel & Stay are all
+          complete for a Pro user. */}
+      {wedding && <KnowledgeBankAutoGenerateGate wedding={wedding} weddingSlug={weddingSlug} />}
 
       <ViewerBanner />
     </NavigationGuardProvider>

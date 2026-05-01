@@ -71,6 +71,9 @@ interface ConciergeKnowledgeBaseProps {
   isViewOnly?: boolean;
 }
 
+const REGENERATE_THROTTLE_MS = 60_000;
+const regenerateThrottleKey = (weddingId: string) => `phera:kb-last-generate:${weddingId}`;
+
 export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: ConciergeKnowledgeBaseProps) {
   const [entries, setEntries] = useState<KnowledgeEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,6 +102,28 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
   const [uploading, setUploading] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Regenerate throttle: each generation locks the regenerate button out for
+  // 60 seconds. Persist to localStorage so a refresh can't bypass it.
+  const [regenerateCooldown, setRegenerateCooldown] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const stored = window.localStorage.getItem(regenerateThrottleKey(weddingId));
+    if (!stored) return;
+    const last = Number(stored);
+    if (!Number.isFinite(last)) return;
+    const remaining = Math.max(0, Math.ceil((last + REGENERATE_THROTTLE_MS - Date.now()) / 1000));
+    if (remaining > 0) setRegenerateCooldown(remaining);
+  }, [weddingId]);
+
+  useEffect(() => {
+    if (regenerateCooldown <= 0) return;
+    const id = setInterval(() => {
+      setRegenerateCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [regenerateCooldown]);
 
   const hasAutoEntries = entries.some((e) => e.source === 'auto_generated');
 
@@ -290,6 +315,10 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
         return;
       }
       await loadEntries();
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(regenerateThrottleKey(weddingId), String(Date.now()));
+      }
+      setRegenerateCooldown(Math.ceil(REGENERATE_THROTTLE_MS / 1000));
     } catch (err) {
       console.error('Error generating knowledge:', err);
       setGenerateError('Something went wrong. Please try again.');
@@ -407,21 +436,34 @@ export default function ConciergeKnowledgeBase({ weddingId, isViewOnly }: Concie
                 </PrimaryActionButton>
               )}
               {venueLoaded && venueLocation && hasAutoEntries && (
-                <Button
-                  size="small"
-                  startIcon={generating ? <CircularProgress size={14} sx={{ color: COLORS.text.subtle }} /> : <AutoAwesome sx={{ fontSize: 16 }} />}
-                  onClick={() => setConfirmRegenerate(true)}
-                  disabled={generating}
-                  sx={{
-                    textTransform: 'none',
-                    color: COLORS.text.subtle,
-                    fontWeight: 500,
-                    fontSize: '0.875rem',
-                    '&:hover': { color: COLORS.brand.primary, bgcolor: '#DE3F5E08' },
-                  }}
+                <Tooltip
+                  title={regenerateCooldown > 0 ? `You can regenerate again in ${regenerateCooldown}s` : ''}
+                  disableHoverListener={regenerateCooldown === 0}
+                  disableFocusListener={regenerateCooldown === 0}
+                  arrow
                 >
-                  {generating ? 'Regenerating...' : 'Regenerate with AI'}
-                </Button>
+                  <span>
+                    <Button
+                      size="small"
+                      startIcon={generating ? <CircularProgress size={14} sx={{ color: COLORS.text.subtle }} /> : <AutoAwesome sx={{ fontSize: 16 }} />}
+                      onClick={() => setConfirmRegenerate(true)}
+                      disabled={generating || regenerateCooldown > 0}
+                      sx={{
+                        textTransform: 'none',
+                        color: COLORS.text.subtle,
+                        fontWeight: 500,
+                        fontSize: '0.875rem',
+                        '&:hover': { color: COLORS.brand.primary, bgcolor: '#DE3F5E08' },
+                      }}
+                    >
+                      {generating
+                        ? 'Regenerating...'
+                        : regenerateCooldown > 0
+                        ? `Regenerate (${regenerateCooldown}s)`
+                        : 'Regenerate with AI'}
+                    </Button>
+                  </span>
+                </Tooltip>
               )}
             </Box>
           ) : (
