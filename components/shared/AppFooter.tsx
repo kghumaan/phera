@@ -45,7 +45,7 @@ export default function AppFooter() {
                             <Link href="/features" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                                 Features
                             </Link>
-                            <Link href="/pricing" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                            <Link href="/#pricing" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                                 Pricing
                             </Link>
                             <Link href="/demo" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">

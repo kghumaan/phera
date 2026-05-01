@@ -125,89 +125,6 @@ const features = [
   },
 ];
 
-const pricingTiers = [
-  {
-    name: 'PHERA FREE',
-    price: '$0',
-    priceSuffix: '',
-    description: '',
-    features: [
-      'Custom wedding website',
-      'Guest list & RSVP collection',
-      'PIN-gated event access',
-      'Design it yourself or with AI',
-    ],
-    buttonText: 'Get Started',
-    highlight: false,
-    buttonHref: '/auth/signup',
-  },
-  {
-    name: 'PHERA BASE',
-    price: '$349',
-    priceSuffix: '',
-    description: '',
-    features: [
-      'Everything in Free',
-      'Proactive WhatsApp outreach',
-      'Travel, rooms & shuttle coordination',
-      '24/7 WhatsApp Concierge for guests',
-      'Vendor Coordinator Agent',
-    ],
-    buttonText: 'Get Started',
-    highlight: true,
-  },
-  {
-    name: 'PHERA WHITE GLOVE',
-    price: '$599',
-    priceSuffix: '',
-    description:
-      'We work with you 1-on-1 to gather every detail we need, then coordinate the entire guest experience on your behalf.',
-    features: [
-      'Everything in Base',
-      'Dedicated wedding coordinator',
-      '1-on-1 onboarding calls to capture guest list, events & preferences',
-      'We personally WhatsApp + call every guest',
-      'We chase RSVPs, travel, dietary & special requests',
-      'We assign rooms, shuttles & event access',
-      'Weekly status updates so you stay informed',
-      'Priority on-call support through the wedding',
-    ],
-    buttonText: 'Talk to Us',
-    highlight: false,
-  },
-];
-
-const faqs = [
-  {
-    q: 'Is this only for destination weddings?',
-    a: 'Not at all! It works perfectly for any Indian wedding—local, destination, intimate, or grand.',
-  },
-  {
-    q: 'Can I customize the look and feel?',
-    a: 'Absolutely! Choose designs, colors, photos, and cultural elements to match your vision.',
-  },
-  {
-    q: 'What do I actually pay for?',
-    a: "One flat fee per wedding — no subscriptions. Every tier includes the wedding website, RSVP collection, travel coordination, and a 24/7 WhatsApp Concierge. Base adds the Vendor Coordinator Agent; White Glove gives you a dedicated coordinator who personally calls your guests and handles the logistics for you.",
-  },
-  {
-    q: 'Can guests access this without an app?',
-    a: 'Yes! It works in any browser on mobile or desktop. No downloads needed.',
-  },
-  {
-    q: 'Is my guest data secure?',
-    a: 'Yes, we use bank-level encryption to keep your guest information private and secure.',
-  },
-  {
-    q: 'What is the WhatsApp Concierge?',
-    a: 'It is an intelligent automated assistant that guests can text to get answers about your wedding schedule, events, and travel details. It saves you from answering the same questions repeatedly.',
-  },
-  {
-    q: 'Can I upgrade to Pro later?',
-    a: 'Yes, you can start with the Free plan and upgrade to Pro whenever you need the advanced features like travel coordination or the WhatsApp agent.',
-  },
-];
-
 // --- Animation Variants ---
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -896,12 +813,6 @@ function FeaturesPageContent() {
 
   const { user } = useAuth();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
-  const [expanded, setExpanded] = useState<string | false>(false);
-
-  const handleAccordionChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-    setExpanded(isExpanded ? panel : false);
-  };
 
   return (
     <OptimizedBackground

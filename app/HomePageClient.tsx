@@ -65,6 +65,7 @@ import FinalCTA from '@/components/shared/FinalCTA';
 import AppFooter from '@/components/shared/AppFooter';
 import BroadcastAnimation from '@/components/landing/BroadcastAnimation';
 import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
+import { PRICING_TIERS, PLANNER_TIER } from '@/lib/pricing/tiers';
 
 // --- Data & Content ---
 
@@ -122,63 +123,12 @@ const features = [
   },
 ];
 
-const pricingTiers = [
-  {
-    name: 'PHERA FREE',
-    price: '$0',
-    priceSuffix: '',
-    description: '',
-    features: [
-      'Custom wedding website',
-      'Guest list & RSVP collection',
-      'PIN-gated event access',
-      'Design it yourself or with AI',
-    ],
-    buttonText: 'Get Started',
-    highlight: false,
-    buttonHref: '/auth/signup',
-  },
-  {
-    name: 'PHERA BASE',
-    price: '$349',
-    priceSuffix: '',
-    description: '',
-    features: [
-      'Everything in Free',
-      'Proactive WhatsApp outreach',
-      'Travel, rooms & shuttle coordination',
-      '24/7 WhatsApp Concierge for guests',
-      'Vendor Coordinator Agent',
-      'Broadcasts & structured data collection',
-    ],
-    buttonText: 'Get Started',
-    highlight: true,
-  },
-  {
-    name: 'PHERA WHITE GLOVE',
-    price: '$599',
-    priceSuffix: '',
-    description:
-      'We work with you 1-on-1 to gather every detail we need, then coordinate the entire guest experience on your behalf.',
-    features: [
-      'Everything in Base',
-      'Dedicated wedding coordinator',
-      '1-on-1 onboarding calls to capture guest list, events & preferences',
-      'We personally WhatsApp + call every guest',
-      'We chase RSVPs, travel, dietary & special requests',
-      'We assign rooms, shuttles & event access',
-      'Weekly status updates so you stay informed',
-      'Priority on-call support through the wedding',
-    ],
-    buttonText: 'Talk to Us',
-    highlight: false,
-  },
-];
+const pricingTiers = PRICING_TIERS;
 
 const faqs = [
   {
     q: 'Is there a free tier?',
-    a: 'Yes. Phera Free gives you a custom wedding website, guest list + RSVP collection, PIN-gated event access, and AI-assisted design — all at no cost. Base ($349) adds proactive WhatsApp outreach, travel/rooms/shuttle coordination, the 24/7 Concierge, and the Vendor Coordinator Agent.',
+    a: 'Yes. Phera Free gives you a custom wedding website, guest list management, RSVP collection, custom RSVP questions, guest-level event access control, task manager, and multi-user collaboration — all at no cost. Base ($349) adds room assignments, transportation management, the WhatsApp Concierge for guests (inbound and outbound), the WhatsApp bot for the couple, and vendor management.',
   },
   {
     q: 'How does the guest coordination work?',
@@ -974,7 +924,7 @@ function LandingPageContent() {
   const { user } = useAuth();
   const router = useRouter();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [upgradeTier, setUpgradeTier] = useState<'base' | 'premium' | 'planner_perwedding' | 'planner_studio'>('base');
+  const [upgradeTier, setUpgradeTier] = useState<'base' | 'premium' | 'planner_perwedding'>('base');
   const [selectedPricingTier, setSelectedPricingTier] = useState(1); // Start with Pro tier
   const [expanded, setExpanded] = useState<string | false>(false);
 
@@ -1783,36 +1733,20 @@ function LandingPageContent() {
                   </Button>
                 </Grid>
                 <Grid size={{ xs: 12, md: 7 }}>
-                  <Grid container spacing={{ xs: 2, md: 3 }}>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Typography sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, color: COLORS.text.subtle, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', mb: 0.5 }}>
-                        Per-Wedding
-                      </Typography>
-                      <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, color: COLORS.text.strong, fontWeight: 700, lineHeight: 1 }}>
-                        $199
-                        <Box component="span" sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: COLORS.text.subtle, fontWeight: 400, ml: 0.5 }}>
-                          /wedding
-                        </Box>
-                      </Typography>
-                      <Typography sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: COLORS.text.muted, mt: 1, lineHeight: 1.5 }}>
-                        Resell to couples at your own rate. No commitment.
-                      </Typography>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Typography sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, color: COLORS.text.subtle, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', mb: 0.5 }}>
-                        Studio Plan
-                      </Typography>
-                      <Typography sx={{ fontSize: { xs: '1.5rem', md: '2rem' }, color: COLORS.text.strong, fontWeight: 700, lineHeight: 1 }}>
-                        $299
-                        <Box component="span" sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: COLORS.text.subtle, fontWeight: 400, ml: 0.5 }}>
-                          /month
-                        </Box>
-                      </Typography>
-                      <Typography sx={{ fontSize: { xs: '0.8rem', md: '0.9rem' }, color: COLORS.text.muted, mt: 1, lineHeight: 1.5 }}>
-                        Up to 20 active weddings. White-label, team seats.
-                      </Typography>
-                    </Grid>
-                  </Grid>
+                  <Box>
+                    <Typography sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, color: COLORS.text.subtle, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', mb: 0.5 }}>
+                      Per-Wedding
+                    </Typography>
+                    <Typography sx={{ fontSize: { xs: '1.75rem', md: '2.5rem' }, color: COLORS.text.strong, fontWeight: 700, lineHeight: 1 }}>
+                      {PLANNER_TIER.price}
+                      <Box component="span" sx={{ fontSize: { xs: '0.85rem', md: '1rem' }, color: COLORS.text.subtle, fontWeight: 400, ml: 0.5 }}>
+                        {PLANNER_TIER.priceSuffix}
+                      </Box>
+                    </Typography>
+                    <Typography sx={{ fontSize: { xs: '0.85rem', md: '0.95rem' }, color: COLORS.text.muted, mt: 1.5, lineHeight: 1.5 }}>
+                      {PLANNER_TIER.description}
+                    </Typography>
+                  </Box>
                 </Grid>
               </Grid>
             </Paper>

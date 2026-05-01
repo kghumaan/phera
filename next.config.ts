@@ -43,6 +43,7 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: '/auth/signup', destination: '/auth/login', permanent: true },
+      { source: '/pricing', destination: '/#pricing', permanent: true },
     ];
   },
   async headers() {

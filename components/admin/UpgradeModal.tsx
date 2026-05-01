@@ -18,13 +18,14 @@ import { COLORS, RADII } from '@/lib/theme/tokens';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-export type UpgradeTier = 'base' | 'premium' | 'planner_perwedding' | 'planner_studio';
+export type UpgradeTier = 'base' | 'premium' | 'planner_perwedding';
 
 interface UpgradeModalProps {
   open: boolean;
   onClose: () => void;
   tier?: UpgradeTier;
   returnPath?: string;
+  coupleName?: string;
 }
 
 const TIER_COPY: Record<UpgradeTier, { title: string; subtitle: string }> = {
@@ -37,16 +38,12 @@ const TIER_COPY: Record<UpgradeTier, { title: string; subtitle: string }> = {
     subtitle: 'Everything in Base plus Vendor Coordinator Agent, reverse-destination cultural guides, and priority escalation support.',
   },
   planner_perwedding: {
-    title: 'Start as a Planner',
-    subtitle: 'Pay per wedding — resell to couples at your own rate. No commitment.',
-  },
-  planner_studio: {
-    title: 'Planner Studio',
-    subtitle: 'Up to 20 active weddings. White-label, team seats, wholesale pricing.',
+    title: 'Pay for this wedding',
+    subtitle: 'Phera is $249 per wedding for planners. Your card is saved so future weddings are one-click.',
   },
 };
 
-export default function UpgradeModal({ open, onClose, tier = 'base', returnPath }: UpgradeModalProps) {
+export default function UpgradeModal({ open, onClose, tier = 'base', returnPath, coupleName }: UpgradeModalProps) {
   const { user } = useAuth();
   const params = useParams();
   const weddingSlug = params?.weddingSlug as string | undefined;
@@ -70,6 +67,7 @@ export default function UpgradeModal({ open, onClose, tier = 'base', returnPath 
           weddingSlug: weddingSlug || '',
           tier,
           returnPath,
+          coupleName,
         }),
       });
 
@@ -81,7 +79,7 @@ export default function UpgradeModal({ open, onClose, tier = 'base', returnPath 
     } finally {
       setLoading(false);
     }
-  }, [user?.id, user?.email, weddingSlug, tier, returnPath]);
+  }, [user?.id, user?.email, weddingSlug, tier, returnPath, coupleName]);
 
   useEffect(() => {
     if (open && !clientSecret) {

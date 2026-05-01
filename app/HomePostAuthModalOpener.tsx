@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-type Tier = 'base' | 'premium' | 'planner_perwedding' | 'planner_studio';
-const VALID_TIERS: readonly Tier[] = ['base', 'premium', 'planner_perwedding', 'planner_studio'];
+type Tier = 'base' | 'premium' | 'planner_perwedding';
+const VALID_TIERS: readonly Tier[] = ['base', 'premium', 'planner_perwedding'];
 
 interface Props {
   user: { id?: string } | null | undefined;

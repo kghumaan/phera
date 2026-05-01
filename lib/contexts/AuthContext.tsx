@@ -13,7 +13,7 @@ function isPublicRoute(): boolean {
   if (typeof window === 'undefined') return false;
   const path = window.location.pathname;
   // Marketing/landing pages, auth pages don't need the initial auth check
-  const publicPaths = ['/', '/auth/login', '/auth/callback', '/pricing', '/features', '/contact', '/blog', '/privacy', '/terms'];
+  const publicPaths = ['/', '/auth/login', '/auth/callback', '/features', '/contact', '/blog', '/privacy', '/terms'];
   return publicPaths.some(p => path === p) || path.startsWith('/auth/') || path.startsWith('/blog/');
 }
 

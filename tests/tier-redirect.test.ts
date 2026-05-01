@@ -67,14 +67,6 @@ describe('Tier upgrade redirect logic', () => {
       expect(mockRouterPush).toHaveBeenCalledWith('/auth/login?redirect=/?tier=planner');
     });
 
-    it('should redirect with /pricing path for pricing page', () => {
-      const setTier = vi.fn();
-      const setModal = vi.fn();
-      handleTierAction('pro', null, setTier, setModal, mockRouterPush, '/pricing');
-
-      expect(mockRouterPush).toHaveBeenCalledWith('/auth/login?redirect=/pricing?tier=pro');
-    });
-
     it('should redirect with /features path for features page', () => {
       const setTier = vi.fn();
       const setModal = vi.fn();
@@ -100,7 +92,7 @@ describe('Tier upgrade redirect logic', () => {
     it('should open UpgradeModal immediately with planner tier', () => {
       const setTier = vi.fn();
       const setModal = vi.fn();
-      handleTierAction('planner', fakeUser, setTier, setModal, mockRouterPush, '/pricing');
+      handleTierAction('planner', fakeUser, setTier, setModal, mockRouterPush, '/features');
 
       expect(setTier).toHaveBeenCalledWith('planner');
       expect(setModal).toHaveBeenCalledWith(true);
