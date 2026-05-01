@@ -37,6 +37,7 @@ import { supabase } from '@/lib/supabase/client';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import ConciergeConversations from '@/components/admin/concierge/ConciergeConversations';
 import MessagingTab from '@/components/admin/whatsapp-bot/MessagingTab';
+import AdminTab from '@/components/admin/whatsapp-bot/AdminTab';
 import { PageHeading } from '@/components/shared/PageHeading';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
@@ -186,6 +187,7 @@ function WhatsAppBotPageContent({ params }: { params: Promise<{ weddingSlug: str
       >
         <Tab label="Messaging" />
         <Tab label="Conversations" />
+        <Tab label="Admin" />
       </Tabs>
 
       {tab === 0 && (
@@ -206,6 +208,15 @@ function WhatsAppBotPageContent({ params }: { params: Promise<{ weddingSlug: str
           ) : (
             <PageSpinner />
           )}
+        </Box>
+      )}
+
+      {tab === 2 && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
+            A WhatsApp bot for the couple — let trusted numbers update the website, knowledge bank, and task manager just by texting.
+          </Typography>
+          <AdminTab weddingSlug={weddingSlug} />
         </Box>
       )}
 
