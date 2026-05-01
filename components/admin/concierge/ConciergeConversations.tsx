@@ -4,18 +4,17 @@ import {
   Box,
   Typography,
   Stack,
-  Paper,
   Avatar,
   TextField,
   Chip,
   CircularProgress,
-  Divider,
   ToggleButton,
   ToggleButtonGroup,
+  Collapse,
+  IconButton,
 } from '@mui/material';
-import { Search } from '@mui/icons-material';
+import { Search, ExpandMore } from '@mui/icons-material';
 import { useState, useEffect, useCallback } from 'react';
-import ConciergeConversationDetail from './ConciergeConversationDetail';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface Message {
@@ -28,6 +27,7 @@ interface Message {
 interface Conversation {
   guestId: string;
   guestName: string;
+  guestPhone: string | null;
   messages: Message[];
   lastMessageAt: string;
   lastMessagePreview: string;
@@ -39,12 +39,208 @@ interface ConciergeConversationsProps {
   initialGuestId?: string | null;
 }
 
+const CARD_MAX_WIDTH = 400;
+const CARD_MIN_WIDTH = 280;
+
+function getInitials(name: string): string {
+  // Skip non-letter prefixes like the "Unrecognized · …1234" fallback so
+  // initials still come out readable when we don't have a real name.
+  const cleaned = name.replace(/[^a-zA-Z\s]/g, ' ').trim();
+  if (!cleaned) return '?';
+  return cleaned
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() || '')
+    .join('');
+}
+
+function formatTimeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function formatTimestamp(dateStr: string): string {
+  const date = new Date(dateStr);
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+interface ConversationCardProps {
+  conv: Conversation;
+  expanded: boolean;
+  onToggle: () => void;
+}
+
+function ConversationCard({ conv, expanded, onToggle }: ConversationCardProps) {
+  return (
+    <Box
+      sx={{
+        // Cap each card to a phone-screen width so several can sit side
+        // by side on a wide screen, single-column on narrow.
+        width: '100%',
+        maxWidth: CARD_MAX_WIDTH,
+        borderRadius: 1,
+        border: `1px solid ${expanded ? COLORS.brand.primary : COLORS.border.faint}`,
+        bgcolor: COLORS.bg.white,
+        transition: 'border-color 0.15s',
+        overflow: 'hidden',
+        alignSelf: 'flex-start',
+      }}
+    >
+      {/* Header — always visible, click to toggle */}
+      <Box
+        onClick={onToggle}
+        role="button"
+        aria-expanded={expanded}
+        sx={{
+          px: 2,
+          py: 1.5,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          cursor: 'pointer',
+          '&:hover': { bgcolor: expanded ? 'transparent' : COLORS.bg.muted },
+        }}
+      >
+        <Avatar
+          sx={{
+            width: 36,
+            height: 36,
+            bgcolor: '#DE3F5E15',
+            color: COLORS.brand.primary,
+            fontSize: '0.875rem',
+            fontWeight: 700,
+            flexShrink: 0,
+          }}
+        >
+          {getInitials(conv.guestName)}
+        </Avatar>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 1, mb: 0.25 }}>
+            <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {conv.guestName}
+            </Typography>
+            <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint, flexShrink: 0 }}>
+              {formatTimeAgo(conv.lastMessageAt)}
+            </Typography>
+          </Box>
+          <Typography
+            sx={{
+              fontSize: '0.875rem',
+              color: COLORS.text.subtle,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {conv.lastMessagePreview || '(no messages)'}
+          </Typography>
+        </Box>
+        <Chip
+          label={conv.messageCount}
+          size="small"
+          sx={{
+            fontSize: '0.875rem',
+            height: 22,
+            minWidth: 22,
+            flexShrink: 0,
+            bgcolor: COLORS.bg.muted,
+            color: COLORS.text.subtle,
+            fontWeight: 600,
+          }}
+        />
+        <IconButton
+          size="small"
+          aria-label={expanded ? 'Collapse conversation' : 'Expand conversation'}
+          sx={{
+            color: COLORS.text.faint,
+            transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s',
+          }}
+        >
+          <ExpandMore />
+        </IconButton>
+      </Box>
+
+      {/* Expanded thread */}
+      <Collapse in={expanded} timeout="auto" unmountOnExit>
+        <Box sx={{ borderTop: `1px solid ${COLORS.border.faint}`, p: 2, maxHeight: 480, overflow: 'auto' }}>
+          {conv.guestPhone && (
+            <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.faint, mb: 1.5 }}>
+              {conv.guestPhone}
+            </Typography>
+          )}
+          <Stack spacing={1.25}>
+            {conv.messages.map((msg) => (
+              <Box
+                key={msg.id}
+                sx={{
+                  display: 'flex',
+                  justifyContent: msg.role === 'assistant' ? 'flex-end' : 'flex-start',
+                }}
+              >
+                <Box
+                  sx={{
+                    maxWidth: '85%',
+                    px: 1.5,
+                    py: 1,
+                    borderRadius: RADII.md,
+                    bgcolor: msg.role === 'assistant' ? COLORS.brand.primarySubtle : COLORS.bg.muted,
+                    borderTopLeftRadius: msg.role === 'user' ? '4px' : RADII.md,
+                    borderTopRightRadius: msg.role === 'assistant' ? '4px' : RADII.md,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: '0.875rem',
+                      color: COLORS.text.strong,
+                      lineHeight: 1.5,
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {msg.content}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '0.875rem',
+                      color: COLORS.text.faint,
+                      mt: 0.5,
+                      textAlign: msg.role === 'assistant' ? 'right' : 'left',
+                    }}
+                  >
+                    {formatTimestamp(msg.created_at)}
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+      </Collapse>
+    </Box>
+  );
+}
+
 export default function ConciergeConversations({ weddingId, initialGuestId }: ConciergeConversationsProps) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [timeFilter, setTimeFilter] = useState<'all' | 'week' | 'today'>('all');
-  const [selectedGuestId, setSelectedGuestId] = useState<string | null>(initialGuestId || null);
+  // A Set so multiple cards can stay open at once — useful for triaging
+  // multiple unrelated guest threads side-by-side.
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(
+    () => new Set(initialGuestId ? [initialGuestId] : []),
+  );
 
   const loadConversations = useCallback(async () => {
     try {
@@ -63,36 +259,20 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
   useEffect(() => {
     loadConversations();
     // Poll every 15s so new guest messages show up without a manual refresh.
-    // Cheap (one GET of your own weddings' data) and stops when the tab unmounts.
     const interval = setInterval(loadConversations, 15_000);
     return () => clearInterval(interval);
   }, [loadConversations]);
 
   useEffect(() => {
-    if (initialGuestId) setSelectedGuestId(initialGuestId);
+    if (initialGuestId) {
+      setExpandedIds((prev) => new Set([...prev, initialGuestId]));
+    }
   }, [initialGuestId]);
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  };
-
-  const formatTimeAgo = (dateStr: string) => {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'just now';
-    if (mins < 60) return `${mins}m ago`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
-  };
-
   const filteredConversations = conversations.filter((conv) => {
-    // Search filter
     if (search && !conv.guestName.toLowerCase().includes(search.toLowerCase())) {
       return false;
     }
-    // Time filter
     if (timeFilter !== 'all') {
       const msgTime = new Date(conv.lastMessageAt).getTime();
       const now = Date.now();
@@ -102,7 +282,14 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
     return true;
   });
 
-  const selectedConversation = conversations.find((c) => c.guestId === selectedGuestId);
+  const toggle = (guestId: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(guestId)) next.delete(guestId);
+      else next.add(guestId);
+      return next;
+    });
+  };
 
   if (loading) {
     return (
@@ -112,33 +299,12 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
     );
   }
 
-  if (selectedConversation) {
-    return (
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: 1,
-          border: '1px solid rgba(0,0,0,0.07)',
-          bgcolor: COLORS.bg.white,
-          p: 2.5,
-          maxHeight: 600,
-          overflow: 'auto',
-        }}
-      >
-        <ConciergeConversationDetail
-          guestName={selectedConversation.guestName}
-          messages={selectedConversation.messages}
-          onBack={() => setSelectedGuestId(null)}
-        />
-      </Paper>
-    );
-  }
-
   return (
     <Stack spacing={2}>
       <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
-        See what your guests have been asking about and how the concierge has been helping them.
+        See what your guests have been asking about and how the bot has been helping them.
       </Typography>
+
       {/* Filters */}
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
         <TextField
@@ -193,91 +359,43 @@ export default function ConciergeConversations({ weddingId, initialGuestId }: Co
         </ToggleButtonGroup>
       </Box>
 
-      {/* Conversation List */}
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: 1,
-          border: '1px solid rgba(0,0,0,0.07)',
-          bgcolor: COLORS.bg.white,
-          overflow: 'hidden',
-        }}
-      >
-        {filteredConversations.length === 0 ? (
-          <Box sx={{ p: 4, textAlign: 'center' }}>
-            <Typography variant="body2" sx={{ color: COLORS.text.faint }}>
-              {search ? 'No conversations match your search.' : 'No conversations yet.'}
-            </Typography>
-          </Box>
-        ) : (
-          <Stack divider={<Divider />}>
-            {filteredConversations.map((conv) => (
-              <Box
-                key={conv.guestId}
-                onClick={() => setSelectedGuestId(conv.guestId)}
-                sx={{
-                  px: 2.5,
-                  py: 1.75,
-                  display: 'flex',
-                  gap: 1.5,
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                  '&:hover': { bgcolor: COLORS.bg.muted },
-                  transition: 'background-color 0.15s',
-                }}
-              >
-                <Avatar
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    bgcolor: '#DE3F5E15',
-                    color: COLORS.brand.primary,
-                    fontSize: '0.875rem',
-                    fontWeight: 700,
-                    flexShrink: 0,
-                  }}
-                >
-                  {getInitials(conv.guestName)}
-                </Avatar>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.25 }}>
-                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>
-                      {conv.guestName}
-                    </Typography>
-                    <Typography variant="body4" sx={{ color: COLORS.text.faint, flexShrink: 0, ml: 1 }}>
-                      {formatTimeAgo(conv.lastMessageAt)}
-                    </Typography>
-                  </Box>
-                  <Typography
-                    sx={{
-                      fontSize: '0.875rem',
-                      color: COLORS.text.subtle,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {conv.lastMessagePreview}
-                  </Typography>
-                </Box>
-                <Chip
-                  label={conv.messageCount}
-                  size="small"
-                  sx={{
-                    fontSize: '0.875rem',
-                    height: 22,
-                    minWidth: 22,
-                    flexShrink: 0,
-                    bgcolor: COLORS.bg.muted,
-                    color: COLORS.text.subtle,
-                    fontWeight: 600,
-                  }}
-                />
-              </Box>
-            ))}
-          </Stack>
-        )}
-      </Paper>
+      {/* Card grid */}
+      {filteredConversations.length === 0 ? (
+        <Box
+          sx={{
+            p: 4,
+            textAlign: 'center',
+            border: `1px solid ${COLORS.border.faint}`,
+            borderRadius: 1,
+            bgcolor: COLORS.bg.white,
+          }}
+        >
+          <Typography variant="body2" sx={{ color: COLORS.text.faint }}>
+            {search ? 'No conversations match your search.' : 'No conversations yet.'}
+          </Typography>
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: `repeat(auto-fill, minmax(${CARD_MIN_WIDTH}px, ${CARD_MAX_WIDTH}px))`,
+            },
+            gap: 2,
+            justifyContent: 'start',
+          }}
+        >
+          {filteredConversations.map((conv) => (
+            <ConversationCard
+              key={conv.guestId}
+              conv={conv}
+              expanded={expandedIds.has(conv.guestId)}
+              onToggle={() => toggle(conv.guestId)}
+            />
+          ))}
+        </Box>
+      )}
     </Stack>
   );
 }

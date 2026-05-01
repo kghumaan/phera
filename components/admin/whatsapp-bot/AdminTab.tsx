@@ -10,7 +10,7 @@
  * supabase/migrations/20260501_whatsapp_bot_admins.sql.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Stack,
@@ -18,8 +18,17 @@ import {
   CircularProgress,
   IconButton,
   Tooltip,
+  MenuItem,
+  Collapse,
 } from '@mui/material';
-import { Delete, AdminPanelSettings, History } from '@mui/icons-material';
+import {
+  Delete,
+  AdminPanelSettings,
+  History,
+  PlayArrow,
+  Science,
+  ExpandMore,
+} from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
 import { toast } from 'sonner';
 import { PheraCard } from '@/components/shared/Card';
@@ -86,6 +95,14 @@ export default function AdminTab({ weddingSlug }: { weddingSlug: string }) {
   const [newPhone, setNewPhone] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // ─── Simulator state ─────────────────────────────────────────────
+  const [simExpanded, setSimExpanded] = useState(false);
+  const [simAdminId, setSimAdminId] = useState<string>('');
+  const [simMessage, setSimMessage] = useState('');
+  const [simRunning, setSimRunning] = useState(false);
+  const [simReply, setSimReply] = useState<string | null>(null);
+  const [simError, setSimError] = useState<string | null>(null);
+
   const loadAdmins = useCallback(async () => {
     try {
       const res = await fetch(`/api/whatsapp-bot/admins?weddingSlug=${encodeURIComponent(weddingSlug)}`);
@@ -114,6 +131,48 @@ export default function AdminTab({ weddingSlug }: { weddingSlug: string }) {
     loadAdmins();
     loadLog();
   }, [loadAdmins, loadLog]);
+
+  // Default the simulator to the first admin once admins load.
+  useEffect(() => {
+    if (!simAdminId && admins.length > 0) {
+      setSimAdminId(admins[0].id);
+    }
+  }, [admins, simAdminId]);
+
+  const selectedSimAdmin = useMemo(
+    () => admins.find((a) => a.id === simAdminId) || null,
+    [admins, simAdminId],
+  );
+
+  const handleSimulate = async () => {
+    if (!simAdminId || !simMessage.trim()) return;
+    setSimRunning(true);
+    setSimReply(null);
+    setSimError(null);
+    try {
+      const res = await fetch('/api/whatsapp-bot/admins/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          weddingSlug,
+          adminId: simAdminId,
+          messageText: simMessage.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSimError(data?.error || 'Simulation failed');
+        return;
+      }
+      setSimReply(data.reply || '');
+      // Refresh the log so the new entry shows up immediately
+      loadLog();
+    } catch (err) {
+      setSimError(err instanceof Error ? err.message : 'Network error');
+    } finally {
+      setSimRunning(false);
+    }
+  };
 
   const handleAdd = async () => {
     if (!newName.trim() || !newPhone.trim()) return;
@@ -305,6 +364,160 @@ export default function AdminTab({ weddingSlug }: { weddingSlug: string }) {
           )}
         </Box>
       </Box>
+
+      {/* ─── Simulator ─── */}
+      {admins.length > 0 && (
+        <Box>
+          <PheraCard variant="default" sx={{ p: 0, overflow: 'hidden' }}>
+            <Box
+              onClick={() => setSimExpanded((v) => !v)}
+              role="button"
+              aria-expanded={simExpanded}
+              sx={{
+                px: 2,
+                py: 1.5,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                cursor: 'pointer',
+                '&:hover': { bgcolor: simExpanded ? 'transparent' : COLORS.bg.muted },
+              }}
+            >
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  bgcolor: alpha(COLORS.brand.primary, 0.1),
+                  color: COLORS.brand.primary,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Science sx={{ fontSize: 20 }} />
+              </Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
+                  Test as admin
+                </Typography>
+                <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8125rem' }}>
+                  Simulate an inbound WhatsApp from one of your admins — same code path, no message actually sent.
+                </Typography>
+              </Box>
+              <IconButton
+                size="small"
+                aria-label={simExpanded ? 'Collapse simulator' : 'Expand simulator'}
+                sx={{
+                  color: COLORS.text.faint,
+                  transform: simExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s',
+                }}
+              >
+                <ExpandMore />
+              </IconButton>
+            </Box>
+
+            <Collapse in={simExpanded} timeout="auto" unmountOnExit>
+              <Box sx={{ px: 2, pb: 2, pt: 0.5, borderTop: `1px solid ${COLORS.border.faint}` }}>
+                <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+                    <PheraTextField
+                      select
+                      label="Send as"
+                      value={simAdminId}
+                      onChange={(e) => setSimAdminId(e.target.value)}
+                      size="small"
+                      fullWidth
+                      disabled={simRunning}
+                    >
+                      {admins.map((a) => (
+                        <MenuItem key={a.id} value={a.id}>
+                          {a.name} · {a.phone}
+                        </MenuItem>
+                      ))}
+                    </PheraTextField>
+                  </Stack>
+                  <PheraTextField
+                    label="Message"
+                    placeholder="e.g. Add to KB: Best brunch is at Café Mocha"
+                    value={simMessage}
+                    onChange={(e) => setSimMessage(e.target.value)}
+                    size="small"
+                    fullWidth
+                    multiline
+                    minRows={3}
+                    disabled={simRunning}
+                  />
+                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                    <SecondaryActionButton
+                      onClick={() => {
+                        setSimMessage('');
+                        setSimReply(null);
+                        setSimError(null);
+                      }}
+                      disabled={simRunning || (!simMessage && !simReply && !simError)}
+                    >
+                      Clear
+                    </SecondaryActionButton>
+                    <PrimaryActionButton
+                      startIcon={<PlayArrow sx={{ fontSize: 18 }} />}
+                      onClick={handleSimulate}
+                      disabled={!simAdminId || !simMessage.trim() || simRunning}
+                      loading={simRunning}
+                    >
+                      Run
+                    </PrimaryActionButton>
+                  </Stack>
+
+                  {simError && (
+                    <Box
+                      sx={{
+                        p: 1.5,
+                        borderRadius: RADII.sm,
+                        bgcolor: alpha(COLORS.accent.dangerText, 0.08),
+                        border: `1px solid ${alpha(COLORS.accent.dangerText, 0.2)}`,
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ color: COLORS.accent.dangerText, fontSize: '0.875rem' }}>
+                        {simError}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {simReply && (
+                    <Box
+                      sx={{
+                        p: 1.5,
+                        borderRadius: RADII.sm,
+                        bgcolor: alpha(COLORS.brand.primary, 0.05),
+                        border: `1px solid ${alpha(COLORS.brand.primary, 0.2)}`,
+                      }}
+                    >
+                      <Typography sx={{ fontSize: '0.875rem', fontWeight: 700, color: COLORS.brand.primary, mb: 0.75, letterSpacing: 0.5 }}>
+                        BOT REPLY
+                        {selectedSimAdmin ? ` → ${selectedSimAdmin.name}` : ''}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: '0.875rem',
+                          color: COLORS.text.strong,
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                          lineHeight: 1.55,
+                        }}
+                      >
+                        {simReply}
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+              </Box>
+            </Collapse>
+          </PheraCard>
+        </Box>
+      )}
 
       {/* ─── Activity log ─── */}
       <Box>

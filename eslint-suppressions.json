@@ -129,11 +129,6 @@
       "count": 4
     }
   },
-  "app/api/concierge/conversations/route.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 4
-    }
-  },
   "app/api/concierge/knowledge/generate/route.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 5
