@@ -51,6 +51,38 @@ export async function POST(request: NextRequest) {
         };
         if (accountType === 'planner') {
           upsertData.account_type = 'planner';
+
+          // For planner sessions we set setup_future_usage=off_session so Stripe attaches
+          // the card to a Customer. Persist the customer + default PM so we can charge
+          // off-session for subsequent weddings without another checkout flow.
+          try {
+            const customerId = typeof session.customer === 'string'
+              ? session.customer
+              : session.customer?.id;
+            if (customerId) {
+              upsertData.stripe_customer_id = customerId;
+            }
+
+            if (session.payment_intent) {
+              const piId = typeof session.payment_intent === 'string'
+                ? session.payment_intent
+                : session.payment_intent.id;
+              const pi = await stripe.paymentIntents.retrieve(piId);
+              const pmId = typeof pi.payment_method === 'string'
+                ? pi.payment_method
+                : pi.payment_method?.id;
+              if (pmId) {
+                upsertData.stripe_default_payment_method_id = pmId;
+              }
+              if (pi.customer && !upsertData.stripe_customer_id) {
+                upsertData.stripe_customer_id = typeof pi.customer === 'string'
+                  ? pi.customer
+                  : pi.customer.id;
+              }
+            }
+          } catch (err) {
+            console.error('Failed to capture planner customer/payment_method:', err);
+          }
         }
 
         const { error } = await supabase

@@ -6,13 +6,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-08-27.basil' as any,
 });
 
-type PricingTier = 'base' | 'premium' | 'planner_perwedding' | 'planner_studio';
+type PricingTier = 'base' | 'premium' | 'planner_perwedding';
 type AccountType = 'pro' | 'planner';
 
 interface TierConfig {
   envVar: string;
   mode: 'payment' | 'subscription';
   accountType: AccountType;
+  saveCardForFuture?: boolean;
 }
 
 const TIER_MAP: Record<PricingTier, TierConfig> = {
@@ -30,17 +31,13 @@ const TIER_MAP: Record<PricingTier, TierConfig> = {
     envVar: 'STRIPE_PLANNER_PERWEDDING_PRICE_ID',
     mode: 'payment',
     accountType: 'planner',
-  },
-  planner_studio: {
-    envVar: 'STRIPE_PLANNER_STUDIO_PRICE_ID',
-    mode: 'subscription',
-    accountType: 'planner',
+    saveCardForFuture: true,
   },
 };
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, email, weddingSlug, tier = 'base', returnPath } = await request.json();
+    const { userId, email, weddingSlug, tier = 'base', returnPath, coupleName } = await request.json();
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -60,7 +57,11 @@ export async function POST(request: NextRequest) {
     }
 
     let returnUrl: string;
-    if (weddingSlug) {
+    if (tier === 'planner_perwedding' && !weddingSlug) {
+      // Planner first-time checkout: land back on /admin/new with the session id
+      // so the page can finalize the wedding (create row + record payment).
+      returnUrl = `${request.nextUrl.origin}/admin/new?session_id={CHECKOUT_SESSION_ID}`;
+    } else if (weddingSlug) {
       returnUrl = `${request.nextUrl.origin}/admin/${weddingSlug}/upgrade-success?session_id={CHECKOUT_SESSION_ID}`;
     } else if (returnPath) {
       returnUrl = `${request.nextUrl.origin}/upgrade-success?session_id={CHECKOUT_SESSION_ID}&return_path=${encodeURIComponent(returnPath)}`;
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
       returnUrl = `${request.nextUrl.origin}/upgrade-success?session_id={CHECKOUT_SESSION_ID}`;
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       ui_mode: 'embedded',
       line_items: [
         {
@@ -84,9 +85,17 @@ export async function POST(request: NextRequest) {
         weddingSlug: weddingSlug || '',
         tier,
         accountType: config.accountType,
+        ...(coupleName ? { coupleName: String(coupleName).slice(0, 200) } : {}),
       },
       customer_email: email || undefined,
-    });
+    };
+
+    if (config.mode === 'payment' && config.saveCardForFuture) {
+      sessionParams.customer_creation = 'always';
+      sessionParams.payment_intent_data = { setup_future_usage: 'off_session' };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     return NextResponse.json({ clientSecret: session.client_secret });
   } catch (error) {
