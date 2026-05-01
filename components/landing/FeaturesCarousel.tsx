@@ -79,7 +79,7 @@ export default function FeaturesCarousel({ items }: FeaturesCarouselProps) {
                 if (info.offset.x < -SWIPE_DRAG_THRESHOLD) next();
                 else if (info.offset.x > SWIPE_DRAG_THRESHOLD) prev();
               }}
-              style={{ touchAction: 'pan-y' }}
+              style={{ touchAction: 'pan-y', height: '100%' }}
             >
               <FeatureCard item={item} />
             </motion.div>
