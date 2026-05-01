@@ -64,9 +64,9 @@ const TOUR_STEPS: TourStep[] = [
     extraTargets: ['tour-transportation'],
   },
   {
-    target: 'tour-concierge',
-    title: 'WhatsApp Agent',
-    description: "Your guests' 24/7 agent on WhatsApp. Answers schedule, venue, dress code, and local questions instantly — in English or Hindi, in their timezone.",
+    target: 'tour-whatsapp-bot',
+    title: 'WhatsApp Bot',
+    description: "Send save-the-dates and reminders, then let the bot answer your guests' questions 24/7 on WhatsApp — in English or Hindi, in their timezone.",
     expandGroup: 'guests-group',
   },
   {

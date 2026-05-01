@@ -349,7 +349,7 @@ export default function ActionQueue({
                       size="small"
                       variant="outlined"
                       startIcon={<ChatBubbleOutlineIcon sx={{ fontSize: 14 }} />}
-                      href={`/admin/${weddingSlug}/concierge`}
+                      href={`/admin/${weddingSlug}/whatsapp-bot`}
                       sx={{
                         borderRadius: RADII.sm,
                         textTransform: 'none',

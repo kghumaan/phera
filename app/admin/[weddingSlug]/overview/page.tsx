@@ -119,7 +119,7 @@ function QuickLinks({
       setCompletion({
         'guest-list': (guestsRes.count ?? 0) > 0,
         'details': websiteDone,
-        'concierge': !!settingsRes?.data?.concierge_enabled,
+        'whatsapp-bot': !!settingsRes?.data?.concierge_enabled,
         'room-assignments': (roomsRes.count ?? 0) > 0,
         'transportation': (vehiclesRes.count ?? 0) > 0,
         'vendor-management': (vendorsRes.count ?? 0) > 0,
@@ -148,10 +148,10 @@ function QuickLinks({
       path: 'details',
     },
     {
-      label: 'Enable Guest Concierge',
-      subtext: '24/7 WhatsApp assistant for your guests.',
+      label: 'Enable WhatsApp Bot',
+      subtext: 'Send invites + 24/7 reply bot for your guests.',
       icon: WhatsApp,
-      path: 'concierge',
+      path: 'whatsapp-bot',
       isPro: true,
     },
     {

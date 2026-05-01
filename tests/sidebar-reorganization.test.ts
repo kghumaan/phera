@@ -83,11 +83,19 @@ describe('Sidebar Reorganization', () => {
       expect(item!.path).toBe('/guest-responses');
     });
 
-    it('should have Messaging', () => {
-      const item = guests!.items.find((i) => i.id === 'invites');
+    it('should have WhatsApp Bot replacing Messaging + Guest Concierge', () => {
+      const item = guests!.items.find((i) => i.id === 'whatsapp-bot');
       expect(item).toBeDefined();
-      expect(item!.label).toBe('Messaging');
-      expect(item!.path).toBe('/messaging');
+      expect(item!.label).toBe('WhatsApp Bot');
+      expect(item!.path).toBe('/whatsapp-bot');
+    });
+
+    it('should NOT include the legacy Messaging item', () => {
+      expect(guests!.items.find((i) => i.id === 'invites')).toBeUndefined();
+    });
+
+    it('should NOT include the legacy Guest Concierge item', () => {
+      expect(guests!.items.find((i) => i.id === 'concierge')).toBeUndefined();
     });
 
     it('should have Room Assignments', () => {
@@ -103,14 +111,8 @@ describe('Sidebar Reorganization', () => {
       expect(item!.path).toBe('/transportation');
     });
 
-    it('should have Guest Concierge', () => {
-      const item = guests!.items.find((i) => i.id === 'concierge');
-      expect(item).toBeDefined();
-      expect(item!.label).toBe('Guest Concierge');
-    });
-
-    it('should have 6 items', () => {
-      expect(guests!.items).toHaveLength(6);
+    it('should have 5 items after the WhatsApp Bot merge', () => {
+      expect(guests!.items).toHaveLength(5);
     });
 
     it('should NOT include Outreach (removed)', () => {

@@ -258,7 +258,7 @@ export default function EscalationQueue({ escalations, weddingSlug, onResolved }
                       <Button
                         size="small"
                         endIcon={<OpenInNewIcon sx={{ fontSize: 14 }} />}
-                        href={`/admin/${weddingSlug}/concierge?guest=${esc.guest_id}`}
+                        href={`/admin/${weddingSlug}/whatsapp-bot?guest=${esc.guest_id}`}
                         sx={{ textTransform: 'none', fontSize: 14, color: COLORS.brand.primary, p: 0, minWidth: 0, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}
                       >
                         Full Conversation

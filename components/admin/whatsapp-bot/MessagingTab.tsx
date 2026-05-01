@@ -1,0 +1,311 @@
+'use client';
+
+/**
+ * Messaging tab for the WhatsApp Bot page. Lifted from the old /messaging
+ * page so /whatsapp-bot can host the same template grid + recent campaigns
+ * inside a tab shell.
+ *
+ * Templates render the same way as before. Each card now also runs a
+ * debounced auto-detect against the rendered body so we can surface "we'll
+ * track these replies" chips when a template is collecting data — currently
+ * useful for "Create custom" but available to every template body.
+ */
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Box, Stack, Typography } from '@mui/material';
+import { History } from '@mui/icons-material';
+import { SectionHeading } from '@/components/shared/PageHeading';
+import { COLORS } from '@/lib/theme/tokens';
+import { supabase } from '@/lib/supabase/client';
+import { weddingService } from '@/lib/supabase/wedding-service';
+import { outreachService } from '@/lib/supabase/outreach-service';
+import { INVITE_TEMPLATES, type InviteTemplate } from '@/lib/invites/templates';
+import {
+  TemplateCard,
+  type TemplateCardSubmit,
+} from '@/components/admin/invites/TemplateCard';
+import { SendLinksDialog } from '@/components/admin/invites/SendLinksDialog';
+import {
+  CampaignHistory,
+  type CampaignHistoryRow,
+} from '@/components/admin/invites/CampaignHistory';
+import type { AudienceGuest } from '@/components/admin/invites/AudiencePicker';
+
+interface GuestRow {
+  id: string;
+  name: string;
+  phone: string | null;
+  logistics_data: { tag?: string; tags?: string[] } | null;
+  outreach_status: string | null;
+}
+
+interface OutreachEventRow {
+  id: string;
+  template_name: string | null;
+  guest_id: string;
+  created_at: string;
+  event_type: string | null;
+  details: { error_reason?: string } | null;
+}
+
+function tagsFor(g: GuestRow): string[] {
+  const ld = g.logistics_data;
+  if (!ld) return [];
+  if (Array.isArray(ld.tags)) return ld.tags.filter((t): t is string => typeof t === 'string');
+  if (typeof ld.tag === 'string' && ld.tag.trim()) return [ld.tag.trim()];
+  return [];
+}
+
+function bucketEvents(events: OutreachEventRow[]): CampaignHistoryRow[] {
+  type Bucket = {
+    templateId: string;
+    sentAt: string;
+    ids: Set<string>;
+    kind: 'sent' | 'failed';
+    sampleError?: string;
+  };
+  const buckets = new Map<string, Bucket>();
+  for (const e of events) {
+    if (!e.template_name) continue;
+    const kind: 'sent' | 'failed' =
+      e.event_type === 'template_send_failed' ? 'failed' : 'sent';
+    const day = (e.created_at || '').slice(0, 10);
+    const key = `${e.template_name}__${day}__${kind}`;
+    if (!buckets.has(key)) {
+      buckets.set(key, {
+        templateId: e.template_name,
+        sentAt: e.created_at,
+        ids: new Set(),
+        kind,
+      });
+    }
+    const b = buckets.get(key)!;
+    b.ids.add(e.guest_id);
+    if (kind === 'failed' && !b.sampleError && e.details?.error_reason) {
+      b.sampleError = e.details.error_reason;
+    }
+  }
+
+  return Array.from(buckets.entries())
+    .map(([key, b]) => {
+      const tmpl = INVITE_TEMPLATES.find((t) => t.id === b.templateId);
+      return {
+        bucketKey: key,
+        templateId: b.templateId,
+        templateTitle: tmpl?.title || b.templateId,
+        sentAt: b.sentAt,
+        recipientCount: b.ids.size,
+        kind: b.kind,
+        sampleError: b.sampleError,
+      };
+    })
+    .sort((a, b) => b.sentAt.localeCompare(a.sentAt));
+}
+
+function defaultVarsFromWedding(w: {
+  couple_name?: string | null;
+  wedding_date_display?: string | null;
+  wedding_date?: string | null;
+  venue_location?: string | null;
+}): Record<string, string> {
+  const date = w.wedding_date_display || w.wedding_date || '';
+  const city = (w.venue_location || '').split(',').slice(-2).join(',').trim();
+  return {
+    couple_names: w.couple_name || '',
+    wedding_date: date,
+    wedding_city: city,
+  };
+}
+
+export default function MessagingTab({ weddingSlug }: { weddingSlug: string }) {
+  const [defaultVars, setDefaultVars] = useState<Record<string, string>>({});
+  const [guests, setGuests] = useState<AudienceGuest[]>([]);
+  const [history, setHistory] = useState<CampaignHistoryRow[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [sendDraft, setSendDraft] = useState<TemplateCardSubmit | null>(null);
+
+  const loadGuests = useCallback(async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generated supabase types omit outreach columns
+    const { data, error } = await (supabase as any)
+      .from('guests')
+      .select('id, name, phone, logistics_data, outreach_status')
+      .eq('wedding_id', weddingSlug);
+    if (error) console.error('messaging: guests load error:', error);
+    const rows = (data || []) as GuestRow[];
+    setGuests(
+      rows.map((g) => ({
+        id: g.id,
+        name: g.name,
+        phone: g.phone,
+        tags: tagsFor(g),
+        outreach_status: g.outreach_status,
+      })),
+    );
+  }, [weddingSlug]);
+
+  const loadHistory = useCallback(async () => {
+    setLoadingHistory(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generated supabase types may omit outreach_events
+    const { data, error } = await (supabase as any)
+      .from('outreach_events')
+      .select('id, template_name, guest_id, created_at, event_type, details')
+      .eq('wedding_id', weddingSlug)
+      .in('event_type', ['template_sent', 'template_send_failed'])
+      .order('created_at', { ascending: false })
+      .limit(500);
+    if (error) console.error('messaging: history load error:', error);
+    setHistory(bucketEvents((data || []) as OutreachEventRow[]));
+    setLoadingHistory(false);
+  }, [weddingSlug]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const wedding = await weddingService.getWeddingBySlug(weddingSlug);
+      if (cancelled) return;
+      if (wedding) setDefaultVars(defaultVarsFromWedding(wedding));
+    })();
+    loadGuests();
+    loadHistory();
+    return () => {
+      cancelled = true;
+    };
+  }, [weddingSlug, loadGuests, loadHistory]);
+
+  const toggleExpanded = (id: string) => {
+    setExpandedId((curr) => (curr === id ? null : id));
+  };
+
+  const handleCardSubmit = (draft: TemplateCardSubmit) => {
+    setSendDraft(draft);
+  };
+
+  const handleMarkSent = useCallback(
+    async (guestId: string) => {
+      if (!sendDraft) return;
+      const tmpl = sendDraft.template;
+      try {
+        await outreachService.logEvent({
+          wedding_id: weddingSlug,
+          guest_id: guestId,
+          event_type: 'template_sent',
+          template_name: tmpl.id,
+          channel: 'whatsapp',
+          details: { sent_via: 'wa_me_personal', template_title: tmpl.title },
+        });
+        if (tmpl.nextStatus) {
+          await outreachService.updateGuestStatus(guestId, tmpl.nextStatus, {
+            template_id: tmpl.id,
+          });
+        }
+      } catch (e) {
+        console.error('messaging: mark sent failed:', e);
+      }
+    },
+    [sendDraft, weddingSlug],
+  );
+
+  const closeSend = () => {
+    setSendDraft(null);
+    loadHistory();
+    loadGuests();
+  };
+
+  const groupedTemplates = useMemo(() => {
+    const order: string[] = [];
+    const byCat = new Map<string, InviteTemplate[]>();
+    for (const t of INVITE_TEMPLATES) {
+      if (!byCat.has(t.category)) {
+        byCat.set(t.category, []);
+        order.push(t.category);
+      }
+      byCat.get(t.category)!.push(t);
+    }
+    return order.map((c) => ({ category: c, items: byCat.get(c)! }));
+  }, []);
+
+  return (
+    <Box>
+      <Box>
+        <SectionHeading title="Templates" />
+        <Box
+          sx={{
+            mt: 1.5,
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, minmax(0, 400px))',
+              md: 'repeat(3, minmax(0, 400px))',
+            },
+            gap: 1.5,
+            alignItems: 'stretch',
+            justifyContent: 'start',
+          }}
+        >
+          {(() => {
+            const flat = groupedTemplates.flatMap((g) => g.items);
+            const ordered = expandedId
+              ? [
+                  ...flat.filter((t) => t.id === expandedId),
+                  ...flat.filter((t) => t.id !== expandedId),
+                ]
+              : flat;
+            return ordered.map((t) => {
+              const isOpen = expandedId === t.id;
+              return (
+                <Box
+                  key={t.id}
+                  sx={{
+                    gridColumn: isOpen ? '1 / -1' : 'auto',
+                    display: 'flex',
+                  }}
+                >
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <TemplateCard
+                      template={t}
+                      expanded={isOpen}
+                      onToggle={() => toggleExpanded(t.id)}
+                      guests={guests}
+                      defaultVars={defaultVars}
+                      onSubmit={handleCardSubmit}
+                      weddingSlug={weddingSlug}
+                    />
+                  </Box>
+                </Box>
+              );
+            });
+          })()}
+        </Box>
+      </Box>
+
+      <Box sx={{ mt: 4 }}>
+        <SectionHeading
+          title="Recent campaigns"
+          actions={
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <History sx={{ fontSize: 18, color: COLORS.text.faint }} />
+              <Typography variant="body2" sx={{ color: COLORS.text.faint }}>
+                Last 500 sends
+              </Typography>
+            </Stack>
+          }
+        />
+        <Box sx={{ mt: 1.5 }}>
+          <CampaignHistory rows={history} loading={loadingHistory} />
+        </Box>
+      </Box>
+
+      <SendLinksDialog
+        open={!!sendDraft}
+        onClose={closeSend}
+        weddingSlug={weddingSlug}
+        template={sendDraft?.template ?? null}
+        sharedVars={sendDraft?.sharedVars ?? {}}
+        recipients={sendDraft?.recipients ?? []}
+        onMarkSent={handleMarkSent}
+      />
+    </Box>
+  );
+}

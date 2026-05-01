@@ -94,11 +94,10 @@ export const groups: SidebarGroup[] = [
     icon: <People />,
     items: [
       { id: 'guest-list', label: 'Guest List', path: '/guest-list' },
-      { id: 'invites', label: 'Messaging', path: '/messaging' },
+      { id: 'whatsapp-bot', label: 'WhatsApp Bot', path: '/whatsapp-bot' },
       { id: 'guests', label: 'Guest Responses', path: '/guest-responses' },
       { id: 'rooms', label: 'Room Assignments', path: '/room-assignments', isPro: true },
       { id: 'transportation', label: 'Transportation', path: '/transportation', isPro: true },
-      { id: 'concierge', label: 'Guest Concierge', path: '/concierge', isPro: true },
     ],
   },
   {
@@ -510,7 +509,7 @@ export default function OnboardingSidebar({
                     return (
                       <Box key={item.id} data-active={isActive ? 'true' : undefined} sx={{ position: 'relative' }}>
                         <ListItemButton
-                          {...(['pins', 'guests', 'travel', 'rooms', 'transportation', 'concierge', 'task-manager', 'coordinator', 'team'].includes(item.id) ? { 'data-tour': `tour-${item.id}` } : {})}
+                          {...(['pins', 'guests', 'travel', 'rooms', 'transportation', 'whatsapp-bot', 'task-manager', 'coordinator', 'team'].includes(item.id) ? { 'data-tour': `tour-${item.id}` } : {})}
                           component={NextLink}
                           href={`/admin/${weddingSlug}${item.path}`}
                           onClick={(e: React.MouseEvent) => {
