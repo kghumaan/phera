@@ -26,7 +26,6 @@ import {
     Menu as MenuIcon,
     SettingsOutlined,
     ChatBubbleOutline,
-    HelpOutline,
     Logout,
     KeyboardArrowDown,
     AutoAwesome,
@@ -443,33 +442,20 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
 
                         {/* <Divider sx={{ my: 1, opacity: 0.6 }} /> */}
 
-                        {/* Menu Items */}
-                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: RADII.md, py: 1.2, mx: 0.5 }}>
-                            <ListItemIcon sx={{ minWidth: 40 }}>
-                                <SettingsOutlined sx={{ color: COLORS.text.strong, fontSize: 22 }} />
-                            </ListItemIcon>
-                            <ListItemText
-                                primary="Settings"
-                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: COLORS.text.strong } }}
-                            />
-                        </ListItemButton>
-
-                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: RADII.md, py: 1.2, mx: 0.5 }}>
+                        {/* Menu Items — Settings + Help removed; Contact Us
+                            now routes to the dedicated /support page. */}
+                        <ListItemButton
+                            onClick={() => {
+                                handleMenuClose();
+                                router.push(`/admin/${weddingSlug}/support`);
+                            }}
+                            sx={{ borderRadius: RADII.md, py: 1.2, mx: 0.5 }}
+                        >
                             <ListItemIcon sx={{ minWidth: 40 }}>
                                 <ChatBubbleOutline sx={{ color: COLORS.text.strong, fontSize: 22 }} />
                             </ListItemIcon>
                             <ListItemText
-                                primary="Contact Us"
-                                primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: COLORS.text.strong } }}
-                            />
-                        </ListItemButton>
-
-                        <ListItemButton onClick={handleMenuClose} sx={{ borderRadius: RADII.md, py: 1.2, mx: 0.5 }}>
-                            <ListItemIcon sx={{ minWidth: 40 }}>
-                                <HelpOutline sx={{ color: COLORS.text.strong, fontSize: 22 }} />
-                            </ListItemIcon>
-                            <ListItemText
-                                primary="Help"
+                                primary="Contact us"
                                 primaryTypographyProps={{ sx: { fontWeight: 500, fontSize: '0.95rem', color: COLORS.text.strong } }}
                             />
                         </ListItemButton>

@@ -42,7 +42,7 @@ describe('Sidebar Reorganization', () => {
       'Guest Management',
       'Planning',
       'Collaborators',
-      'Support',
+      'Contact us',
     ]);
   });
 

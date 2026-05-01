@@ -121,11 +121,11 @@ export const groups: SidebarGroup[] = [
   },
   {
     id: 'support',
-    label: 'Support',
+    label: 'Contact us',
     icon: <HelpOutline />,
     standalone: true,
     items: [
-      { id: 'support', label: 'Support', path: '/support' },
+      { id: 'support', label: 'Contact us', path: '/support' },
     ],
   },
 ];
