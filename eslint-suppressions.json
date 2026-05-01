@@ -386,11 +386,6 @@
       "count": 3
     }
   },
-  "components/admin/AdminTopNav.tsx": {
-    "react/no-unescaped-entities": {
-      "count": 1
-    }
-  },
   "components/admin/BroadcastForm.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 4

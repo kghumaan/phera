@@ -40,6 +40,7 @@ import { isDemoUser } from '@/lib/demo/coordinator-mock-data';
 
 import { Wedding } from '@/lib/supabase/wedding-service';
 import FeatureRequestModal from './FeatureRequestModal';
+import HopOnCallModal from './HopOnCallModal';
 import UpgradeModal from './UpgradeModal';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import AutoSaveIndicator from './AutoSaveIndicator';
@@ -64,6 +65,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [featureModalOpen, setFeatureModalOpen] = React.useState(false);
+    const [hopOnCallModalOpen, setHopOnCallModalOpen] = React.useState(false);
     const [upgradeModalOpen, setUpgradeModalOpen] = React.useState(false);
     const [homeModalOpen, setHomeModalOpen] = React.useState(false);
     const [signOutModalOpen, setSignOutModalOpen] = React.useState(false);
@@ -175,6 +177,35 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                     {/* Auto-save indicator */}
                     <AutoSaveIndicator status={autoSaveStatus} message={autoSaveMessage} />
 
+                    {/* Hop-on-a-call + Feature Request buttons. Both are
+                        desktop-only — mobile already has the menu drawer. */}
+                    {!isMobile && (
+                        <Button
+                            onClick={() => setHopOnCallModalOpen(true)}
+                            startIcon={<span>📞</span>}
+                            sx={{
+                                height: 34,
+                                px: 1.5,
+                                py: 0,
+                                minWidth: 0,
+                                borderRadius: 1,
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                fontSize: '0.875rem',
+                                color: COLORS.text.strong,
+                                bgcolor: alpha(COLORS.brand.primary, 0.05),
+                                border: '1px solid',
+                                borderColor: alpha(COLORS.brand.primary, 0.1),
+                                '&:hover': {
+                                    bgcolor: alpha(COLORS.brand.primary, 0.1),
+                                    borderColor: alpha(COLORS.brand.primary, 0.2),
+                                },
+                            }}
+                        >
+                            Let&apos;s hop on a call
+                        </Button>
+                    )}
+
                     {/* Feature Request Button */}
                     {!isMobile && (
                         <Button
@@ -200,7 +231,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 }
                             }}
                         >
-                            Want a feature you don't see?
+                            Want a feature you don&apos;t see?
                         </Button>
                     )}
 
@@ -495,6 +526,10 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                 open={featureModalOpen}
                 onClose={() => setFeatureModalOpen(false)}
                 weddingId={wedding?.id}
+            />
+            <HopOnCallModal
+                open={hopOnCallModalOpen}
+                onClose={() => setHopOnCallModalOpen(false)}
             />
             <UpgradeModal
                 open={upgradeModalOpen}
