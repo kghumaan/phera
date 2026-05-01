@@ -110,12 +110,6 @@
     }
   },
   "app/admin/new/page.tsx": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    },
-    "prefer-const": {
-      "count": 1
-    },
     "react/no-unescaped-entities": {
       "count": 2
     }
