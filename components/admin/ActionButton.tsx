@@ -20,6 +20,12 @@ export interface ActionButtonProps extends Omit<ButtonProps, 'onClick' | 'href'>
   loading?: boolean;
   spinnerSize?: number;
   spinnerColor?: string;
+  /**
+   * When true, the button keeps its original background, border, and color
+   * during loading instead of switching to white-bg + colored-border. Use on
+   * marketing CTAs where the visual identity should be preserved.
+   */
+  keepBackgroundOnLoad?: boolean;
 }
 
 /**
@@ -44,6 +50,7 @@ export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(fun
     endIcon,
     spinnerSize = 18,
     spinnerColor,
+    keepBackgroundOnLoad = false,
     sx,
     variant,
     ...rest
@@ -68,10 +75,28 @@ export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(fun
     }
   };
 
-  const resolvedSpinnerColor = spinnerColor ?? COLORS.brand.primary;
+  const defaultSpinnerColor = keepBackgroundOnLoad && variant === 'contained'
+    ? COLORS.text.inverse
+    : COLORS.brand.primary;
+  const resolvedSpinnerColor = spinnerColor ?? defaultSpinnerColor;
 
-  const loadingSx = isLoading
-    ? {
+  let loadingSx: Record<string, unknown> | undefined;
+  if (isLoading) {
+    if (keepBackgroundOnLoad) {
+      // Preserve the button's identity — only hide text + icons, keep bg/border.
+      loadingSx = {
+        color: 'transparent !important',
+        opacity: 1,
+        '& .MuiButton-startIcon, & .MuiButton-endIcon': {
+          visibility: 'hidden',
+        },
+        '&.Mui-disabled': {
+          color: 'transparent !important',
+          opacity: 1,
+        },
+      };
+    } else {
+      loadingSx = {
         bgcolor: `${COLORS.bg.white} !important`,
         color: 'transparent !important',
         border: `1.5px solid ${resolvedSpinnerColor} !important`,
@@ -86,8 +111,9 @@ export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(fun
           border: `1.5px solid ${resolvedSpinnerColor} !important`,
           opacity: 1,
         },
-      }
-    : undefined;
+      };
+    }
+  }
 
   return (
     <Button

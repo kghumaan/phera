@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 // to test their logic in isolation.
 
 function isPublicRoute(pathname: string): boolean {
-  const publicPaths = ['/', '/auth/login', '/auth/callback', '/features', '/contact', '/blog', '/privacy', '/terms'];
+  const publicPaths = ['/', '/auth/login', '/auth/callback', '/about', '/contact', '/blog', '/privacy', '/terms'];
   return publicPaths.some(p => pathname === p) || pathname.startsWith('/auth/') || pathname.startsWith('/blog/');
 }
 
@@ -21,7 +21,7 @@ describe('Auth route detection', () => {
     });
 
     it('should treat marketing pages as public', () => {
-      expect(isPublicRoute('/features')).toBe(true);
+      expect(isPublicRoute('/about')).toBe(true);
       expect(isPublicRoute('/contact')).toBe(true);
       expect(isPublicRoute('/privacy')).toBe(true);
       expect(isPublicRoute('/terms')).toBe(true);
@@ -74,7 +74,7 @@ describe('Auth route detection', () => {
       expect(isPreviewRoute('/')).toBe(false);
       expect(isPreviewRoute('/admin/demo/overview')).toBe(false);
       expect(isPreviewRoute('/my-wedding')).toBe(false);
-      expect(isPreviewRoute('/features')).toBe(false);
+      expect(isPreviewRoute('/about')).toBe(false);
     });
 
     it('should NOT match partial prefix', () => {
@@ -104,7 +104,7 @@ describe('Auth route detection', () => {
 
     it('should use listener-only for public marketing pages', () => {
       expect(getAuthTier('/')).toBe('listener_only');
-      expect(getAuthTier('/features')).toBe('listener_only');
+      expect(getAuthTier('/about')).toBe('listener_only');
       expect(getAuthTier('/auth/login')).toBe('listener_only');
     });
 

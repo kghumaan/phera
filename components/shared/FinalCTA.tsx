@@ -1,7 +1,7 @@
 'use client';
 
-import { Box, Container, Typography, Stack, Button, Paper } from '@mui/material';
-import Link from 'next/link';
+import { Box, Container, Typography, Stack, Paper } from '@mui/material';
+import { ActionButton } from '@/components/admin/ActionButton';
 import { COLORS, FONTS } from '@/lib/theme/tokens';
 
 export default function FinalCTA() {
@@ -24,7 +24,20 @@ export default function FinalCTA() {
                         variant="h2"
                         sx={{ fontFamily: FONTS.display, fontStyle: 'italic', mb: { xs: 2, md: 3 }, color: COLORS.text.strong, fontSize: { xs: '2.5rem', md: '3rem' }, lineHeight: 1.15 }}
                     >
-                        Your wedding, beautifully handled.
+                        We built this because we lived it.
+                    </Typography>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            mb: { xs: 2, md: 3 },
+                            color: COLORS.text.muted,
+                            maxWidth: '640px',
+                            mx: 'auto',
+                            fontSize: { xs: '1rem', md: '1.25rem' },
+                            lineHeight: 1.5,
+                        }}
+                    >
+                        Phera started while we were planning our own wedding — chasing 300 guests, drowning in spreadsheets, fielding 4 a.m. WhatsApps. We wanted a tool that took the stress out and made the months before the wedding feel as good as the day itself.
                     </Typography>
                     <Typography
                         variant="h6"
@@ -37,18 +50,18 @@ export default function FinalCTA() {
                             lineHeight: 1.5,
                         }}
                     >
-                        Hundreds of guests, days of events, people flying in from everywhere — all coordinated over WhatsApp so you can focus on the celebration.
+                        If there&apos;s something you need and we don&apos;t have it yet, just reach out. We&apos;ll build it.
                     </Typography>
                     <Stack
                         direction={{ xs: 'column', sm: 'row' }}
                         spacing={2}
                         sx={{ justifyContent: 'center' }}
                     >
-                        <Button
-                            component={Link}
+                        <ActionButton
                             href="/auth/login"
                             variant="contained"
                             size="large"
+                            keepBackgroundOnLoad
                             sx={{
                                 bgcolor: COLORS.brand.primary,
                                 color: COLORS.text.inverse,
@@ -61,8 +74,30 @@ export default function FinalCTA() {
                                 '&:hover': { bgcolor: COLORS.brand.primaryHover },
                             }}
                         >
-                            Get Started
-                        </Button>
+                            Get Started for Free
+                        </ActionButton>
+                        <ActionButton
+                            href="/contact"
+                            variant="outlined"
+                            size="large"
+                            keepBackgroundOnLoad
+                            sx={{
+                                borderColor: COLORS.brand.primary,
+                                color: COLORS.brand.primary,
+                                px: { xs: 3, md: 5 },
+                                py: { xs: 1, md: 1.5 },
+                                borderRadius: '32px',
+                                fontSize: { xs: '0.85rem', md: '1.1rem' },
+                                fontWeight: 600,
+                                textTransform: 'none',
+                                '&:hover': {
+                                    borderColor: COLORS.brand.primaryHover,
+                                    bgcolor: 'rgba(222, 63, 94, 0.05)',
+                                },
+                            }}
+                        >
+                            Contact Us
+                        </ActionButton>
                     </Stack>
                 </Box>
             </Paper>

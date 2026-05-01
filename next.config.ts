@@ -44,6 +44,7 @@ const nextConfig: NextConfig = {
     return [
       { source: '/auth/signup', destination: '/auth/login', permanent: true },
       { source: '/pricing', destination: '/#pricing', permanent: true },
+      { source: '/features', destination: '/#features', permanent: true },
     ];
   },
   async headers() {

@@ -64,13 +64,17 @@ import IPhoneMockup from '@/components/ui/IPhoneMockup';
 import FinalCTA from '@/components/shared/FinalCTA';
 import AppFooter from '@/components/shared/AppFooter';
 import BroadcastAnimation from '@/components/landing/BroadcastAnimation';
+import AboutSection from '@/components/landing/AboutSection';
+import FeaturesIntro from '@/components/landing/FeaturesIntro';
+import FeaturesCarousel, { FeatureItem } from '@/components/landing/FeaturesCarousel';
+import { ActionButton } from '@/components/admin/ActionButton';
 import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 import { PRICING_TIERS, PLANNER_TIER } from '@/lib/pricing/tiers';
 
 // --- Data & Content ---
 
 // Combined features with problem + solution
-const features = [
+const features: FeatureItem[] = [
   {
     id: 'guest-outreach',
     title: 'We collect every detail from your guests',
@@ -128,43 +132,43 @@ const pricingTiers = PRICING_TIERS;
 const faqs = [
   {
     q: 'Is there a free tier?',
-    a: 'Yes. Phera Free gives you a custom wedding website, guest list management, RSVP collection, custom RSVP questions, guest-level event access control, task manager, and multi-user collaboration — all at no cost. Base ($349) adds room assignments, transportation management, the WhatsApp Concierge for guests (inbound and outbound), the WhatsApp bot for the couple, and vendor management.',
+    a: "Yes — and we mean really free. We wanted couples to be able to put up a beautiful wedding site, build their guest list, and collect RSVPs without paying us a cent. That's our Free plan. When you're ready for the heavier lifting (WhatsApp concierge, room assignments, transportation, vendor management), Base is $349 — flat, one-time, per wedding.",
   },
   {
     q: 'How does the guest coordination work?',
-    a: 'Once you upgrade to Base, Phera proactively reaches out to every guest via WhatsApp on your behalf. We send save-the-dates, collect RSVPs, gather travel details, assign rooms and shuttles, and send reminders — all automatically on a timeline matched to your wedding date.',
+    a: "Once you're on Base, the chasing comes off your plate. From your dashboard, we'll WhatsApp every guest on your behalf — save-the-dates, RSVP nudges, travel details, room assignments, shuttle pickups — on a timeline we tuned by living through it ourselves. You stay in the loop without being the one sending the messages at midnight.",
   },
   {
     q: 'What information does Phera collect from my guests?',
-    a: 'RSVP confirmations, event attendance, dietary needs, travel plans, flight details, party size, and any special requirements — all collected conversationally through WhatsApp and structured into your admin dashboard.',
+    a: "All the stuff that ends up on a spreadsheet at 2am if you're doing it yourself — RSVPs per event, dietary needs, plus-ones, flight numbers, arrival times, hotel preferences, special requests. We gather it through normal WhatsApp conversations so it doesn't feel like a form to your guests, then organize it neatly in your dashboard for you.",
   },
   {
     q: 'Do my guests need to download an app?',
-    a: "No. Everything happens through WhatsApp and your wedding website. Guests reply to a message — no app downloads, no account creation, no passwords.",
+    a: "Nope — that was important to us. Everyone already has WhatsApp open all day, and your wedding site works on any phone or laptop they already use. No new apps to download, no logins to remember, nothing for your auntie to figure out.",
   },
   {
     q: "What if a guest doesn't respond on WhatsApp?",
-    a: 'Phera sends automatic follow-up nudges on a research-backed schedule. After a few attempts with no response, the guest is escalated to you with their contact info so you or a family member can reach out personally.',
+    a: "We follow up a few times — gently, spaced out so it doesn't feel pushy. If they're still not replying, we hand them off to you (or your family) with their contact info so someone close to them can give them a real call. We've all got that one cousin who only responds after a phone call.",
   },
   {
     q: 'Can I customize my wedding website myself?',
-    a: 'Yes. Three options: design it yourself with full customization, let AI build it from a short conversation about your wedding, or work 1-on-1 with our team to nail your vision.',
+    a: 'However you want. You can design every detail yourself with our editor, let our AI take a first pass from a short chat about your wedding, or — on White Glove — sit with us 1-on-1 and we\'ll nail the look together. There\'s no wrong way to do it.',
   },
   {
     q: 'How does the Concierge know about my wedding?',
-    a: "It's trained on your wedding data — venue, dates, events, dress codes — plus a Knowledge Bank we auto-generate for your location: local weather, nearby restaurants and activities, cultural context. You can edit it anytime.",
+    a: "We feed it everything from your dashboard — your schedule, dress codes, venue addresses — plus a Knowledge Bank we auto-build for the city you're in: weather, nearby restaurants, what's worth doing on a free afternoon, cultural context for guests who've never been to an Indian wedding. Anything we get wrong, you can fix in a click.",
   },
   {
     q: 'What does the Vendor Coordinator Agent do?',
-    a: "Add our agent to your vendor WhatsApp groups (caterer, florist, DJ, etc.). It summarizes threads, extracts action items, flags risks, and keeps every commitment on record — so decisions don't get buried in 500-message chats.",
+    a: "We've all been buried in vendor WhatsApp groups — caterer here, florist there, decorator and DJ over there — with important commitments scrolling past at midnight. Add our agent to those groups and it'll summarize what was decided, flag risks, and pull every action item into one clean view so nothing slips.",
   },
   {
     q: 'Do I still need a day-of coordinator?',
-    a: 'Phera handles pre-wedding coordination — the weeks and months of guest logistics leading up to your big day. White Glove gives you a dedicated coordinator who personally calls your guests, gathers their details, and handles the chasing for you. For most couples, pairing White Glove with a local day-of coordinator is the sweet spot.',
+    a: "Phera handles the months leading up to your wedding — guest details, logistics, the chasing. We're not on-site cueing the DJ or fixing your dupatta. For day-of, most couples pair us with a local coordinator. White Glove also gets you a dedicated person on our side who personally calls your guests and runs point on every detail before the big day.",
   },
   {
     q: "Is my guests' data safe?",
-    a: 'Yes. Phera is DPDPA 2023 compliant. Every guest gives explicit consent. Data is retained only until 90 days after your wedding, then deleted. You and your guests can withdraw consent at any time.',
+    a: "We take this really seriously — these are our friends and family on this platform too. Every guest gives explicit consent before we ever message them, we're DPDPA 2023 compliant, and we delete everything 90 days after your wedding. If a guest ever wants out, they can pull their data anytime, no questions asked.",
   },
 ];
 
@@ -175,710 +179,7 @@ const fadeIn = {
 };
 
 
-// --- Features Scroll Section Component ---
-
-interface FeatureItem {
-  id: string;
-  title: string;
-  problem: string;
-  solution: string;
-  featureImage?: string;
-  featureImage2?: string;
-  customComponent?: React.ReactNode;
-  frameType?: 'desktop' | 'desktop-stacked' | 'mobile' | 'none';
-  isPro?: boolean;
-}
-
-const FeaturesSection = ({ items }: { items: FeatureItem[] }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const isScrollingToFeature = useRef(false);
-  const scrollTargetIndex = useRef<number | null>(null);
-  const [expandedImage, setExpandedImage] = useState<{ src: string; alt: string } | null>(null);
-
-  // Use framer-motion for reliable scroll tracking
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
-
-  // Map the scroll progress (0-1) to the active index
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    // When programmatically scrolling, only update when we reach the target
-    if (isScrollingToFeature.current && scrollTargetIndex.current !== null) {
-      const targetIndex = scrollTargetIndex.current;
-      const currentIndex = Math.min(
-        Math.floor(latest * items.length),
-        items.length - 1
-      );
-      if (currentIndex === targetIndex) {
-        setActiveIndex(targetIndex);
-        isScrollingToFeature.current = false;
-        scrollTargetIndex.current = null;
-      }
-      return;
-    }
-
-    const newIndex = Math.min(
-      Math.floor(latest * items.length),
-      items.length - 1
-    );
-    if (newIndex !== activeIndex) {
-      setActiveIndex(newIndex);
-    }
-  });
-
-  // Calculate container height (60vh per item)
-  const containerHeight = items.length * 60;
-
-  // Click handler to scroll to a specific feature
-  const scrollToFeature = (index: number) => {
-    if (!containerRef.current || index === activeIndex) return;
-
-    // Immediately set the active index so the UI updates right away
-    isScrollingToFeature.current = true;
-    scrollTargetIndex.current = index;
-    setActiveIndex(index);
-
-    const containerTop = containerRef.current.offsetTop;
-    const containerPxHeight = containerRef.current.offsetHeight;
-    const viewportHeight = window.innerHeight;
-    // scrollYProgress goes 0→1 as we scroll from containerTop to (containerTop + containerPxHeight - viewportHeight)
-    // For feature index i, target progress = (i + 0.5) / items.length
-    const scrollRange = containerPxHeight - viewportHeight;
-    const targetProgress = (index + 0.5) / items.length;
-    const targetScroll = containerTop + targetProgress * scrollRange;
-    window.scrollTo({ top: targetScroll, behavior: 'smooth' });
-
-    // Safety timeout to re-enable scroll tracking if scroll event never hits exact target
-    setTimeout(() => {
-      isScrollingToFeature.current = false;
-      scrollTargetIndex.current = null;
-    }, 1200);
-  };
-
-  return (
-    <>
-      {/* Desktop Version */}
-      <Box
-        ref={containerRef}
-        sx={{
-          display: { xs: 'none', md: 'block' },
-          position: 'relative',
-          height: `${containerHeight}vh`,
-          overflow: 'clip', // Clip the right-edge bleed from desktop browser frames
-        }}
-      >
-        <Box
-          sx={{
-            position: 'sticky',
-            top: 0,
-            // `100svh` tracks the *visible* viewport on mobile (excludes the URL bar),
-            // so the centered hero actually sits in the middle of the screen instead
-            // of drifting lower as the browser chrome eats into the layout.
-            height: { xs: '100svh', md: '100vh' },
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 10,
-          }}
-        >
-          {/* Full-width container - left side padded, right side extends to viewport edge */}
-          <Box
-            sx={{
-              width: '100%',
-              pl: { md: 6, lg: 10 },
-              pr: 0,
-              display: 'flex',
-              gap: { md: 4, lg: 6 },
-              alignItems: 'center',
-            }}
-          >
-            {/* Left Side - Content (fixed pane + stepper) */}
-            <Box
-              sx={{
-                flex: 1,
-                maxWidth: { md: '460px', lg: '560px' },
-                display: 'flex',
-                flexDirection: 'column',
-                height: '80vh',
-              }}
-            >
-              {/* Section Header - pinned top */}
-              <Typography
-                component="h2"
-                variant="h1"
-                sx={{
-                  fontFamily: FONTS.display,
-                  fontStyle: 'italic',
-                  fontSize: { md: '2.75rem', lg: '3.5rem' },
-                  lineHeight: 1.1,
-                  color: COLORS.text.strong,
-                  mb: { md: 4, lg: 5 },
-                  flexShrink: 0,
-                }}
-              >
-                Everything you need,
-                <br />
-                <Box component="span" sx={{ color: COLORS.brand.primary }}>
-                  simplified
-                </Box>
-              </Typography>
-
-              {/* Active feature content — fixed slot, cross-fades */}
-              <Box
-                sx={{
-                  position: 'relative',
-                  flex: 1,
-                  minHeight: { md: '340px', lg: '380px' },
-                }}
-              >
-                {items.map((item, idx) => {
-                  const isActive = idx === activeIndex;
-                  return (
-                    <motion.div
-                      key={item.id}
-                      initial={false}
-                      animate={{ opacity: isActive ? 1 : 0 }}
-                      transition={{ duration: 0.35, ease: 'easeOut' }}
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        pointerEvents: isActive ? 'auto' : 'none',
-                      }}
-                    >
-                      <Typography
-                        variant="h5"
-                        sx={{
-                          color: COLORS.text.strong,
-                          fontSize: { md: '1.5rem', lg: '1.875rem' },
-                          fontWeight: 500,
-                          lineHeight: 1.2,
-                          mb: { md: 3, lg: 4 },
-                        }}
-                      >
-                        {item.title}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          color: '#888',
-                          fontSize: { md: '1rem', lg: '1.15rem' },
-                          lineHeight: 1.6,
-                          mb: 2,
-                        }}
-                      >
-                        <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
-                          The problem:
-                        </Box>{' '}
-                        {item.problem}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          color: '#555',
-                          fontSize: { md: '1rem', lg: '1.15rem' },
-                          lineHeight: 1.6,
-                        }}
-                      >
-                        <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
-                          Our solution:
-                        </Box>{' '}
-                        {item.solution}
-                      </Typography>
-                    </motion.div>
-                  );
-                })}
-              </Box>
-
-              {/* Stepper — dots only, clickable */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: 1.25,
-                  alignItems: 'center',
-                  pt: 4,
-                  mt: 'auto',
-                  flexShrink: 0,
-                }}
-              >
-                {items.map((item, idx) => {
-                  const isActive = idx === activeIndex;
-                  return (
-                    <Box
-                      key={item.id}
-                      onClick={() => scrollToFeature(idx)}
-                      sx={{
-                        width: isActive ? 32 : 8,
-                        height: 8,
-                        borderRadius: '999px',
-                        bgcolor: isActive ? '#DE3F5E' : alpha('#000', 0.15),
-                        cursor: isActive ? 'default' : 'pointer',
-                        transition: 'all 0.3s ease',
-                        '&:hover': !isActive
-                          ? { bgcolor: alpha('#000', 0.3) }
-                          : {},
-                      }}
-                    />
-                  );
-                })}
-              </Box>
-            </Box>
-
-            {/* Right Side - Feature Images */}
-            <Box
-              sx={{
-                flex: 1.8,
-                height: '90vh',
-                position: 'relative',
-                overflow: 'visible',
-                minWidth: 0, // Allow flex child to shrink
-              }}
-            >
-              {items.map((item, idx) => {
-                const position = idx - activeIndex; // -n = above/past, 0 = active, +n = below/upcoming
-                return (
-                  <motion.div
-                    key={item.id}
-                    initial={false}
-                    animate={{
-                      opacity: position === 0 ? 1 : 0,
-                      y: position === 0 ? '0%' : position < 0 ? '-110%' : '110%',
-                    }}
-                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: item.frameType === 'mobile' ? 'center' : 'flex-start',
-                      pointerEvents: position === 0 ? 'auto' : 'none',
-                    }}
-                  >
-                    {item.featureImage && item.frameType === 'desktop' && (
-                      /* Browser Frame — extends past viewport right edge */
-                      <Box
-                        sx={{
-                          width: 'calc(100% + 14vw)', // Extends past the right edge of the viewport
-                          minWidth: { md: '820px', lg: '1080px' },
-                          borderRadius: '12px 0 0 12px',
-                          overflow: 'hidden',
-                          boxShadow: '-10px 30px 80px rgba(0,0,0,0.18), -5px 10px 30px rgba(0,0,0,0.1)',
-                          bgcolor: 'white',
-                          border: '1px solid',
-                          borderColor: alpha('#000', 0.08),
-                          borderRight: 'none',
-                        }}
-                      >
-                        {/* Browser Title Bar */}
-                        <Box
-                          sx={{
-                            height: { md: 36, lg: 42 },
-                            bgcolor: COLORS.border.faint,
-                            borderBottom: '1px solid',
-                            borderColor: alpha('#000', 0.08),
-                            display: 'flex',
-                            alignItems: 'center',
-                            px: 2,
-                            gap: 1,
-                          }}
-                        >
-                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
-                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
-                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
-                        </Box>
-                        {/* Screenshot */}
-                        <Box sx={{ width: '100%', lineHeight: 0, position: 'relative' }}>
-                          <Image
-                            src={item.featureImage!}
-                            alt={item.title}
-                            width={2694}
-                            height={1302}
-                            quality={85}
-                            sizes="(max-width: 768px) 100vw, 60vw"
-                            style={{
-                              width: '100%',
-                              height: 'auto',
-                              display: 'block',
-                            }}
-                          />
-                        </Box>
-                      </Box>
-                    )}
-
-                    {item.featureImage && item.featureImage2 && item.frameType === 'desktop-stacked' && (
-                      /* Stacked Browser Frames — coordinator1 base (normal pos), coordinator2 overlay (down-right) */
-                      <Box
-                        sx={{
-                          position: 'relative',
-                          width: 'calc(100% + 14vw)',
-                          minWidth: { md: '820px', lg: '1080px' },
-                        }}
-                      >
-                        {/* Base frame (coordinator1) — exact same position as regular desktop frames */}
-                        <Box
-                          sx={{
-                            borderRadius: '12px 0 0 12px',
-                            overflow: 'hidden',
-                            boxShadow: '-10px 30px 80px rgba(0,0,0,0.18), -5px 10px 30px rgba(0,0,0,0.1)',
-                            bgcolor: 'white',
-                            border: '1px solid',
-                            borderColor: alpha('#000', 0.08),
-                            borderRight: 'none',
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              height: { md: 36, lg: 42 },
-                              bgcolor: COLORS.border.faint,
-                              borderBottom: '1px solid',
-                              borderColor: alpha('#000', 0.08),
-                              display: 'flex',
-                              alignItems: 'center',
-                              px: 2,
-                              gap: 1,
-                            }}
-                          >
-                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
-                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
-                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
-                          </Box>
-                          <Box sx={{ width: '100%', lineHeight: 0 }}>
-                            <Image
-                              src={item.featureImage!}
-                              alt={`${item.title} - overview`}
-                              width={2694}
-                              height={1302}
-                              quality={85}
-                              sizes="(max-width: 768px) 100vw, 60vw"
-                              style={{ width: '100%', height: 'auto', display: 'block' }}
-                            />
-                          </Box>
-                        </Box>
-                        {/* Overlay frame (coordinator2) — offset down and to the right */}
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: { md: '40%', lg: '40%' },
-                            left: { md: '35%', lg: '35%' },
-                            width: '100%',
-                            borderRadius: '12px 0 0 12px',
-                            overflow: 'hidden',
-                            boxShadow: '-15px 35px 90px rgba(0,0,0,0.22), -8px 15px 40px rgba(0,0,0,0.14)',
-                            bgcolor: 'white',
-                            border: '1px solid',
-                            borderColor: alpha('#000', 0.08),
-                            borderRight: 'none',
-                            zIndex: 2,
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              height: { md: 36, lg: 42 },
-                              bgcolor: COLORS.border.faint,
-                              borderBottom: '1px solid',
-                              borderColor: alpha('#000', 0.08),
-                              display: 'flex',
-                              alignItems: 'center',
-                              px: 2,
-                              gap: 1,
-                            }}
-                          >
-                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
-                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
-                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
-                          </Box>
-                          <Box sx={{ width: '100%', lineHeight: 0 }}>
-                            <Image
-                              src={item.featureImage2!}
-                              alt={`${item.title} - detail`}
-                              width={2694}
-                              height={1302}
-                              quality={85}
-                              sizes="(max-width: 768px) 100vw, 60vw"
-                              style={{ width: '100%', height: 'auto', display: 'block' }}
-                            />
-                          </Box>
-                        </Box>
-                      </Box>
-                    )}
-
-                    {(item.featureImage || item.customComponent) && item.frameType === 'mobile' && (
-                      <IPhoneMockup
-                        width={{ md: '320px', lg: '380px' }}
-                        sx={{ mx: 'auto' }}
-                      >
-                        {item.customComponent ? (
-                          item.customComponent
-                        ) : (
-                          <Image
-                            src={item.featureImage!}
-                            alt={item.title}
-                            fill
-                            quality={85}
-                            sizes="380px"
-                            style={{
-                              objectFit: 'cover',
-                              objectPosition: 'top',
-                            }}
-                          />
-                        )}
-                      </IPhoneMockup>
-                    )}
-
-                    {item.customComponent && item.frameType === 'none' && (
-                      /* Unframed custom component — floats in the right slot, responsive */
-                      <Box
-                        sx={{
-                          width: { md: '100%', lg: '105%' },
-                          maxWidth: { md: '820px', lg: '1000px' },
-                          pr: { md: 2, lg: 0 },
-                        }}
-                      >
-                        {item.customComponent}
-                      </Box>
-                    )}
-
-                  </motion.div>
-                );
-              })}
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-
-      {/* Mobile Stacked Version */}
-      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-        {/* Mobile Header */}
-        <Box sx={{ py: 6, px: 3, textAlign: 'center' }}>
-          <Typography
-            component="h2"
-            variant="h1"
-            sx={{
-              fontFamily: FONTS.display,
-              fontStyle: 'italic',
-              fontSize: '2.5rem',
-              lineHeight: 1.15,
-              color: COLORS.text.strong,
-            }}
-          >
-            Everything you need,{' '}
-            <Box component="span" sx={{ color: COLORS.brand.primary }}>
-              simplified
-            </Box>
-          </Typography>
-        </Box>
-
-        {/* Mobile Items */}
-        <Box sx={{ px: 3, pb: 6 }}>
-          <Stack spacing={4}>
-            {items.map((item) => (
-              <Box
-                key={item.id}
-                sx={{
-                  pb: 4,
-                  borderBottom: '1px solid',
-                  borderColor: alpha('#000', 0.08),
-                }}
-              >
-                {/* Feature Image */}
-                {item.featureImage && (item.frameType === 'desktop' || item.frameType === 'desktop-stacked') && (
-                  <Box
-                    onClick={() => setExpandedImage({ src: item.featureImage!, alt: item.title })}
-                    sx={{
-                      mx: -1.5, // Slight margin on each side
-                      borderRadius: RADII.sm,
-                      overflow: 'hidden',
-                      boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-                      bgcolor: 'white',
-                      border: '1px solid',
-                      borderColor: alpha('#000', 0.08),
-                      mb: 3,
-                      cursor: 'zoom-in',
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        height: 24,
-                        bgcolor: COLORS.border.faint,
-                        borderBottom: '1px solid',
-                        borderColor: alpha('#000', 0.08),
-                        display: 'flex',
-                        alignItems: 'center',
-                        px: 1,
-                        gap: 0.5,
-                      }}
-                    >
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
-                    </Box>
-                    <Image src={item.featureImage!} alt={item.title} width={2694} height={1302} quality={85} sizes="100vw" style={{ width: '100%', height: 'auto', display: 'block' }} />
-                  </Box>
-                )}
-                {item.customComponent && item.frameType === 'none' && (
-                  <Box sx={{ mx: -1.5, mb: 3 }}>
-                    {item.customComponent}
-                  </Box>
-                )}
-                {(item.featureImage || item.customComponent) && item.frameType === 'mobile' && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-                    <IPhoneMockup
-                      width={{ xs: '220px', sm: '240px', md: '260px' }}
-                      sx={{ height: item.customComponent ? 'auto' : undefined }}
-                    >
-                      {item.customComponent ? (
-                        item.customComponent
-                      ) : (
-                        <Image
-                          src={item.featureImage!}
-                          alt={item.title}
-                          width={726}
-                          height={1566}
-                          quality={85}
-                          sizes="260px"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                        />
-                      )}
-                    </IPhoneMockup>
-                  </Box>
-                )}
-
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      color: COLORS.text.strong,
-                      fontSize: '1.35rem',
-                      fontWeight: 400,
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {item.title}
-                  </Typography>
-                  {item.isPro && (
-                    <Box
-                      sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 0.3,
-                        bgcolor: alpha('#DE3F5E', 0.08),
-                        color: COLORS.brand.primary,
-                        px: 0.8,
-                        py: 0.25,
-                        borderRadius: RADII.md,
-                      }}
-                    >
-                      <AutoAwesome sx={{ fontSize: '0.65rem' }} />
-                      <Typography
-                        sx={{
-                          fontSize: '0.6rem',
-                          fontWeight: 700,
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        PRO
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-
-                <Typography
-                  sx={{
-                    color: '#888',
-                    fontSize: '0.95rem',
-                    lineHeight: 1.6,
-                    mb: 1.5,
-                  }}
-                >
-                  <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
-                    The problem:
-                  </Box>{' '}
-                  {item.problem}
-                </Typography>
-                <Typography
-                  sx={{
-                    color: '#555',
-                    fontSize: '0.95rem',
-                    lineHeight: 1.6,
-                  }}
-                >
-                  <Box component="span" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
-                    Our solution:
-                  </Box>{' '}
-                  {item.solution}
-                </Typography>
-              </Box>
-            ))}
-          </Stack>
-        </Box>
-      </Box>
-
-      {/* Lightbox for mobile image expansion */}
-      <Dialog
-        open={!!expandedImage}
-        onClose={() => setExpandedImage(null)}
-        maxWidth={false}
-        PaperProps={{
-          sx: {
-            bgcolor: 'transparent',
-            boxShadow: 'none',
-            m: 1,
-            maxWidth: '100vw',
-            maxHeight: '100vh',
-            overflow: 'visible',
-          },
-        }}
-        sx={{
-          '& .MuiBackdrop-root': { bgcolor: 'rgba(0,0,0,0.85)' },
-        }}
-      >
-        <IconButton
-          onClick={() => setExpandedImage(null)}
-          sx={{
-            position: 'absolute',
-            top: -40,
-            right: 0,
-            color: 'white',
-            zIndex: 1,
-          }}
-        >
-          <Close />
-        </IconButton>
-        {expandedImage && (
-          <Box sx={{ borderRadius: RADII.sm, overflow: 'hidden', bgcolor: 'white' }}>
-            <Box
-              sx={{
-                height: 24,
-                bgcolor: COLORS.border.faint,
-                borderBottom: '1px solid',
-                borderColor: alpha('#000', 0.08),
-                display: 'flex',
-                alignItems: 'center',
-                px: 1,
-                gap: 0.5,
-              }}
-            >
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
-              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
-            </Box>
-            <Image
-              src={expandedImage.src}
-              alt={expandedImage.alt}
-              width={2694}
-              height={1302}
-              quality={90}
-              sizes="95vw"
-              style={{ width: '100%', height: 'auto', display: 'block' }}
-            />
-          </Box>
-        )}
-      </Dialog>
-    </>
-  );
-};
+// --- Features section now lives in components/landing/FeaturesIntro + FeaturesCarousel ---
 
 export default function HomePageClient() {
   return <LandingPageContent />;
@@ -1099,11 +400,11 @@ function LandingPageContent() {
                   spacing={2}
                   sx={{ pt: 2 }}
                 >
-                  <Button
-                    component={Link}
+                  <ActionButton
                     href="/auth/login"
                     variant="contained"
                     size="large"
+                    keepBackgroundOnLoad
                     sx={{
                       bgcolor: COLORS.brand.primary,
                       color: 'white',
@@ -1117,13 +418,13 @@ function LandingPageContent() {
                       '&:hover': { bgcolor: COLORS.brand.primaryHover },
                     }}
                   >
-                    Get Started
-                  </Button>
-                  <Button
-                    component={Link}
+                    Get Started for Free
+                  </ActionButton>
+                  <ActionButton
                     href="/demo"
                     variant="outlined"
                     size="large"
+                    keepBackgroundOnLoad
                     sx={{
                       borderColor: COLORS.brand.primary,
                       color: COLORS.brand.primary,
@@ -1140,8 +441,8 @@ function LandingPageContent() {
                       },
                     }}
                   >
-                    See how it works
-                  </Button>
+                    View Demo
+                  </ActionButton>
                 </Stack>
               </Stack>
             </Box>
@@ -1150,7 +451,8 @@ function LandingPageContent() {
 
         {/* --- FEATURES SECTION --- */}
         <Box id="features">
-          <FeaturesSection items={features} />
+          <FeaturesIntro />
+          <FeaturesCarousel items={features} />
         </Box>
 
         {/* --- WHATSAPP AGENT SHOWCASE --- */}
@@ -1648,31 +950,32 @@ function LandingPageContent() {
                       const label = tier.buttonText;
                       if (tier.name === 'PHERA BASE' || tier.name === 'PHERA WHITE GLOVE') {
                         return (
-                          <Button
+                          <ActionButton
                             fullWidth
                             onClick={tier.name === 'PHERA BASE' ? handleBaseAction : handlePremiumAction}
                             variant={tier.highlight ? 'contained' : 'outlined'}
                             size="small"
+                            keepBackgroundOnLoad
                             sx={ctaSx}
                           >
                             {label}
-                          </Button>
+                          </ActionButton>
                         );
                       }
                       const href = ('buttonHref' in tier && typeof tier.buttonHref === 'string')
                         ? tier.buttonHref
                         : '/auth/signup';
                       return (
-                        <Button
+                        <ActionButton
                           fullWidth
-                          component={Link}
                           href={href}
                           variant={tier.highlight ? 'contained' : 'outlined'}
                           size="small"
+                          keepBackgroundOnLoad
                           sx={ctaSx}
                         >
                           {label}
-                        </Button>
+                        </ActionButton>
                       );
                     })()}
                   </Paper>
@@ -1712,10 +1015,10 @@ function LandingPageContent() {
                   >
                     Wholesale pricing for planners.
                   </Typography>
-                  <Button
-                    component={Link}
+                  <ActionButton
                     href="/auth/login?role=planner"
                     variant="outlined"
+                    keepBackgroundOnLoad
                     sx={{
                       mt: { xs: 2, md: 3 },
                       borderColor: COLORS.brand.primary,
@@ -1730,7 +1033,7 @@ function LandingPageContent() {
                     }}
                   >
                     Start as a Planner
-                  </Button>
+                  </ActionButton>
                 </Grid>
                 <Grid size={{ xs: 12, md: 7 }}>
                   <Box>
@@ -1751,6 +1054,11 @@ function LandingPageContent() {
               </Grid>
             </Paper>
           </Container>
+        </Box>
+
+        {/* --- ABOUT --- */}
+        <Box id="about">
+          <AboutSection variant="embedded" />
         </Box>
 
         {/* --- FAQ --- */}

@@ -42,7 +42,7 @@ export default function AppFooter() {
                             Platform
                         </Typography>
                         <Stack spacing={1}>
-                            <Link href="/features" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                            <Link href="/#features" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                                 Features
                             </Link>
                             <Link href="/#pricing" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
@@ -61,7 +61,7 @@ export default function AppFooter() {
                             Company
                         </Typography>
                         <Stack spacing={1}>
-                            <Link href="/about" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
+                            <Link href="/#about" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">
                                 About Us
                             </Link>
                             <Link href="/blog" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">

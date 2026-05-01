@@ -30,14 +30,6 @@
       "count": 6
     }
   },
-  "app/about/page.tsx": {
-    "no-restricted-syntax": {
-      "count": 25
-    },
-    "react/no-unescaped-entities": {
-      "count": 7
-    }
-  },
   "app/admin/[weddingSlug]/build-ai/page.tsx": {
     "react/no-unescaped-entities": {
       "count": 1
