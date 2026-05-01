@@ -9,7 +9,7 @@
  * Filters out guests without a phone — wa.me links need one.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   Box,
   Stack,
@@ -46,6 +46,11 @@ export interface AudiencePickerProps {
   guests: AudienceGuest[];
   value: AudienceSelection;
   onChange: (next: AudienceSelection) => void;
+  /**
+   * Optional right-aligned slot rendered alongside the recipient summary line
+   * — intended for send CTAs so they share a row with the count.
+   */
+  actions?: ReactNode;
 }
 
 export function resolveAudience(guests: AudienceGuest[], sel: AudienceSelection): AudienceGuest[] {
@@ -58,7 +63,7 @@ export function resolveAudience(guests: AudienceGuest[], sel: AudienceSelection)
   return withPhone.filter((g) => sel.guestIds.includes(g.id));
 }
 
-export function AudiencePicker({ guests, value, onChange }: AudiencePickerProps) {
+export function AudiencePicker({ guests, value, onChange, actions }: AudiencePickerProps) {
   const [search, setSearch] = useState('');
 
   const allTags = useMemo(() => {
@@ -244,7 +249,14 @@ export function AudiencePicker({ guests, value, onChange }: AudiencePickerProps)
         </Box>
       )}
 
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1.5 }}>
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={1}
+        flexWrap="wrap"
+        useFlexGap
+        sx={{ mt: 1.5, gap: 1 }}
+      >
         <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
           {selectedCount} recipient{selectedCount === 1 ? '' : 's'}
         </Typography>
@@ -252,6 +264,20 @@ export function AudiencePicker({ guests, value, onChange }: AudiencePickerProps)
           <Typography variant="body2" sx={{ color: COLORS.text.faint }}>
             · {missingPhone} guest{missingPhone === 1 ? '' : 's'} skipped (no phone)
           </Typography>
+        )}
+        {actions && (
+          <Box
+            sx={{
+              ml: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              flexWrap: 'wrap',
+              justifyContent: 'flex-end',
+            }}
+          >
+            {actions}
+          </Box>
         )}
       </Stack>
     </Box>

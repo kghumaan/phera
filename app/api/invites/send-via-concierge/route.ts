@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendWhapiText } from '@/lib/whatsapp/whapi-send';
 import { renderTemplate, getInviteTemplate } from '@/lib/invites/templates';
+import type { BroadcastDataField } from '@/lib/supabase/broadcasts-service';
 
 /**
  * Send an invite template through the Concierge WhatsApp number (Whapi),
@@ -15,11 +16,18 @@ import { renderTemplate, getInviteTemplate } from '@/lib/invites/templates';
  *   targetType       'all' | 'tags' | 'specific'
  *   targetTags       (string[]) when targetType === 'tags'
  *   targetGuestIds   (uuid[])    when targetType === 'specific'
+ *   collectsData     (boolean)   true if the template auto-detected data asks
+ *   dataSchema       (BroadcastDataField[])  optional schema of data fields
  *
  * The body is rendered per-guest so per_guest variables (guest_first_name,
  * rsvp_link, travel_link) interpolate correctly. Each send is recorded as an
  * outreach_events row so the Invites page Recent campaigns list picks it up
  * the same way wa.me sends do.
+ *
+ * When `collectsData` is true and `dataSchema` has at least one field we
+ * also create a concierge_broadcasts row + recipient rows so guest replies
+ * can be attributed and surfaced in Guest Responses › Collected Data using
+ * the same plumbing as Concierge broadcasts.
  */
 export async function POST(req: NextRequest) {
   let body: {
@@ -29,6 +37,8 @@ export async function POST(req: NextRequest) {
     targetType: 'all' | 'tags' | 'specific';
     targetTags?: string[];
     targetGuestIds?: string[];
+    collectsData?: boolean;
+    dataSchema?: BroadcastDataField[];
   };
   try {
     body = await req.json();
@@ -43,6 +53,8 @@ export async function POST(req: NextRequest) {
     targetType,
     targetTags = [],
     targetGuestIds = [],
+    collectsData = false,
+    dataSchema = [],
   } = body;
 
   if (!weddingSlug || !templateId || !targetType) {
@@ -99,6 +111,65 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No guests with phone numbers match that target' }, { status: 400 });
   }
 
+  // Render the body once with default placeholders so we can store a useful
+  // reference message on the broadcast row (per-guest interpolation happens
+  // below). Strips out perGuest tokens since they'd leak as "{{key}}" here.
+  const broadcastReferenceMessage = renderTemplate(template.body, {
+    ...sharedVars,
+    guest_first_name: '',
+    rsvp_link: sharedVars.rsvp_link || '',
+    travel_link: sharedVars.travel_link || '',
+  });
+
+  // If the composer detected data the couple is asking for, mirror this run
+  // into concierge_broadcasts so replies attribute back to it and show up in
+  // Guest Responses › Collected Data alongside Concierge broadcasts.
+  const trackingEnabled = !!collectsData && Array.isArray(dataSchema) && dataSchema.length > 0;
+  let broadcastId: string | null = null;
+  const recipientIdByGuest = new Map<string, string>();
+
+  if (trackingEnabled) {
+    const { data: broadcast, error: bErr } = await supabase
+      .from('concierge_broadcasts')
+      .insert({
+        wedding_id: weddingSlug,
+        message: broadcastReferenceMessage.trim(),
+        target_type: targetType,
+        target_tags: targetTags,
+        target_guest_ids: targetGuestIds,
+        collects_data: true,
+        data_schema: dataSchema,
+        status: 'sending',
+      })
+      .select()
+      .single();
+
+    if (bErr || !broadcast) {
+      return NextResponse.json(
+        { error: bErr?.message || 'Failed to create broadcast for tracking' },
+        { status: 500 },
+      );
+    }
+    broadcastId = broadcast.id as string;
+
+    const recipientRows = candidates.map((g: { id: string }) => ({
+      broadcast_id: broadcastId,
+      guest_id: g.id,
+      wedding_id: weddingSlug,
+      delivery_status: 'pending',
+    }));
+    const { data: inserted, error: rErr } = await supabase
+      .from('concierge_broadcast_recipients')
+      .insert(recipientRows)
+      .select('id, guest_id');
+    if (rErr) {
+      return NextResponse.json({ error: rErr.message }, { status: 500 });
+    }
+    (inserted || []).forEach((r: { id: string; guest_id: string }) =>
+      recipientIdByGuest.set(r.guest_id, r.id),
+    );
+  }
+
   // Render + dispatch per guest. Failures are recorded but don't abort the run.
   let sent = 0;
   let failed = 0;
@@ -115,6 +186,7 @@ export async function POST(req: NextRequest) {
     const message = renderTemplate(template.body, perGuestVars);
 
     const result = await sendWhapiText(g.phone, message);
+    const recipientId = trackingEnabled ? recipientIdByGuest.get(g.id) : undefined;
     if (result.id) {
       sent += 1;
       await supabase.from('outreach_events').insert({
@@ -131,6 +203,12 @@ export async function POST(req: NextRequest) {
           .update({ outreach_status: template.nextStatus })
           .eq('id', g.id);
       }
+      if (recipientId) {
+        await supabase
+          .from('concierge_broadcast_recipients')
+          .update({ delivery_status: 'sent', whatsapp_message_id: result.id })
+          .eq('id', recipientId);
+      }
     } else {
       failed += 1;
       const reason = result.error || 'Send failed';
@@ -145,7 +223,25 @@ export async function POST(req: NextRequest) {
         channel: 'whatsapp',
         details: { sent_via: 'concierge', template_title: template.title, error_reason: reason },
       });
+      if (recipientId) {
+        await supabase
+          .from('concierge_broadcast_recipients')
+          .update({ delivery_status: 'failed', error_message: reason })
+          .eq('id', recipientId);
+      }
     }
+  }
+
+  if (trackingEnabled && broadcastId) {
+    await supabase
+      .from('concierge_broadcasts')
+      .update({
+        status: failed && !sent ? 'failed' : 'sent',
+        sent_at: new Date().toISOString(),
+        sent_count: sent,
+        failed_count: failed,
+      })
+      .eq('id', broadcastId);
   }
 
   return NextResponse.json({
@@ -154,5 +250,6 @@ export async function POST(req: NextRequest) {
     sent,
     failed,
     errors: errors.slice(0, 20),
+    broadcast_id: broadcastId,
   });
 }
