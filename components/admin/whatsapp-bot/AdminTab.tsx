@@ -227,11 +227,13 @@ export default function AdminTab({ weddingSlug }: { weddingSlug: string }) {
                 </PheraCard>
               ))}
 
-              {/* Inline add tile — same dashed pattern as Add Minor Event in Schedule. */}
+              {/* Inline add tile — same dashed pattern as Add Minor Event in Schedule.
+                  Capped at 400px so it doesn't sprawl across a full-width tab. */}
               {!showForm ? (
                 <Box
                   onClick={() => setShowForm(true)}
                   sx={{
+                    maxWidth: 400,
                     bgcolor: COLORS.border.light,
                     border: '1px dashed #BCBCBC',
                     borderRadius: RADII.sm,
@@ -252,25 +254,31 @@ export default function AdminTab({ weddingSlug }: { weddingSlug: string }) {
               ) : (
                 <PheraCard variant="default" sx={{ p: 2 }}>
                   <Stack spacing={1.5}>
-                    <PheraTextField
-                      label="Name"
-                      placeholder="e.g. Priya Sharma"
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      size="small"
-                      fullWidth
-                      autoFocus
-                    />
-                    <PheraTextField
-                      label="Phone"
-                      placeholder="+1 555 123 4567"
-                      value={newPhone}
-                      onChange={(e) => setNewPhone(e.target.value)}
-                      size="small"
-                      fullWidth
-                      type="tel"
-                      inputMode="tel"
-                    />
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      spacing={1.5}
+                      alignItems="stretch"
+                    >
+                      <PheraTextField
+                        label="Name"
+                        placeholder="e.g. Priya Sharma"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        size="small"
+                        fullWidth
+                        autoFocus
+                      />
+                      <PheraTextField
+                        label="Phone"
+                        placeholder="+1 555 123 4567"
+                        value={newPhone}
+                        onChange={(e) => setNewPhone(e.target.value)}
+                        size="small"
+                        fullWidth
+                        type="tel"
+                        inputMode="tel"
+                      />
+                    </Stack>
                     <Stack direction="row" spacing={1} justifyContent="flex-end">
                       <SecondaryActionButton
                         onClick={() => {

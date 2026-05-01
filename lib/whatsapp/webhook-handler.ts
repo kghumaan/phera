@@ -9,6 +9,7 @@ import { GuestCoordinator } from '@/lib/ai/guest-coordinator';
 import { outreachService } from '@/lib/supabase/outreach-service';
 import { outreachSender } from '@/lib/whatsapp/outreach-sender';
 import { handleOptOut } from '@/lib/whatsapp/opt-ins';
+import { tryHandleAdminMessage } from '@/lib/whatsapp/admin-router';
 
 const ERROR_FREQUENCY_CAP = 131049;
 const ERROR_OPTED_OUT = 131050;
@@ -89,6 +90,24 @@ export class WebhookHandler {
     message: WebhookMessage,
     weddingId: string
   ): Promise<{ response: string; handler: string }> {
+    const messageText = this.extractMessageText(message);
+
+    // ─── Admin gate ────────────────────────────────────────────────────
+    // Check the bot-admin allowlist before falling into the guest path.
+    // Mirrors the Whapi route — single source of truth lives in admin-router.
+    try {
+      const adminReply = await tryHandleAdminMessage({
+        senderPhone,
+        messageText,
+      });
+      if (adminReply) {
+        return { response: adminReply.reply, handler: 'admin' };
+      }
+    } catch (err) {
+      console.error('[webhook-handler] admin gate failed:', err);
+      // fall through to guest path on error
+    }
+
     // Look up sender in guests table
     const { data: guest } = await supabase
       .from('guests')
@@ -105,7 +124,6 @@ export class WebhookHandler {
     }
 
     const g = guest as any;
-    const messageText = this.extractMessageText(message);
 
     // Route based on contact_type
     if (g.contact_type === 'admin') {

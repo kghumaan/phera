@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { whatsappClient } from '@/lib/whatsapp/client';
 import { generateAIResponse } from '@/lib/whatsapp/ai-handler';
 import { sendMessage as whapiSend } from '@/lib/whatsapp/whapi-client';
+import { tryHandleAdminMessage } from '@/lib/whatsapp/admin-router';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -60,6 +61,28 @@ export async function POST(request: NextRequest) {
       if (!messageText) continue;
 
       console.log(`[whapi-webhook] Message from ${senderName} (${senderPhone}): ${messageText.slice(0, 100)}`);
+
+      // ─── Admin gate ──────────────────────────────────────────────
+      // Before treating the sender as a guest, check whether this phone is
+      // a registered wedding bot admin. If so, the admin handler runs and
+      // we send its reply back via Whapi — no guest-concierge fallthrough.
+      try {
+        const adminReply = await tryHandleAdminMessage({
+          senderPhone,
+          messageText,
+          senderProfileName: senderName,
+        });
+        if (adminReply) {
+          await whapiSend(senderPhone, adminReply.reply);
+          console.log(
+            `[whapi-webhook] ADMIN ${adminReply.adminName} (${adminReply.weddingSlug}): ${adminReply.reply.slice(0, 80)}…`,
+          );
+          continue;
+        }
+      } catch (err) {
+        console.error('[whapi-webhook] admin gate failed:', err);
+        // fall through to guest pipeline so we don't drop a real guest message
+      }
 
       // Look up guest by phone (try multiple formats)
       const rawDigits = senderPhone.replace(/\D/g, '');
