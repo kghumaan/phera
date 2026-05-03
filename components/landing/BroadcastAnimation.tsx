@@ -1,12 +1,18 @@
 'use client';
 
-import { Box, Stack, Typography, Button } from '@mui/material';
+import { Avatar, Box, Stack, Typography, Button } from '@mui/material';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
+import VerifiedIcon from '@mui/icons-material/Verified';
 import StreamlineIcon, { type StreamlineIconName } from '@/components/ui/StreamlineIcon';
 import { generateAvatar } from '@/lib/utils/avatar-generator';
 import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
+
+const WHATSAPP_BG = '/images/backgrounds/whatsapp-chat-doodles.webp';
+const WHATSAPP_HEADER_BG = '#202C33';
+const WHATSAPP_BUBBLE_BG = '#FFFFFF';
+const WHATSAPP_AUTO_BUBBLE_BG = '#F3F0EA';
 
 /**
  * BroadcastAnimation
@@ -24,8 +30,13 @@ import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 const VIEWBOX_W = 1000;
 const VIEWBOX_H = 700;
 
-const ADMIN_ANCHOR = { x: 368, y: 360 }; // right edge of admin panel mid-height
+const ADMIN_ANCHOR = { x: 368, y: 350 }; // right edge of admin panel mid-height
 const CARD_ANCHOR_X = 628; // left edge of card column
+
+// Card layout in viewBox space — cards are absolutely positioned at cardY(i)
+// (their vertical centers) so the SVG curve endpoints line up exactly.
+const CARD_TOP_Y = 60;
+const CARD_BOTTOM_Y = 640;
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -127,7 +138,8 @@ const phaseStartTimes = (() => {
 
 // ─── Geometry ───────────────────────────────────────────────────────
 
-const cardY = (i: number) => 80 + i * 96;
+const cardY = (i: number) =>
+  CARD_TOP_Y + (i * (CARD_BOTTOM_Y - CARD_TOP_Y)) / (GUESTS.length - 1);
 
 const pathFor = (i: number) => {
   const cy = cardY(i);
@@ -448,7 +460,7 @@ export default function BroadcastAnimation() {
             })}
         </svg>
 
-        {/* Admin panel overlay (left) */}
+        {/* Chat panel (left) — styled like a WhatsApp conversation. */}
         <Box
           sx={{
             position: 'absolute',
@@ -462,57 +474,118 @@ export default function BroadcastAnimation() {
             boxShadow: '0 10px 30px rgba(0,0,0,0.06)',
             display: 'flex',
             flexDirection: 'column',
-            p: { xs: 1.5, md: 2.5 },
+            overflow: 'hidden',
           }}
         >
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
-          </Stack>
-
-          {/* Title + body morph per phase */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`head-${activePhaseIdx}`}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: T.phaseFlip }}
-            >
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
-                <Box sx={{ p: 0.75, borderRadius: RADII.sm, bgcolor: COLORS.brand.primarySubtle, display: 'flex' }}>
-                  <StreamlineIcon
-                    name={activePhase.icon}
-                    sx={{ color: COLORS.brand.primary, width: { xs: 16, md: 20 }, height: { xs: 16, md: 20 } }}
-                  />
-                </Box>
+          {/* WhatsApp-style header */}
+          <Box
+            sx={{
+              bgcolor: WHATSAPP_HEADER_BG,
+              color: 'white',
+              px: { xs: 1, md: 1.5 },
+              py: { xs: 0.85, md: 1.1 },
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              flexShrink: 0,
+            }}
+          >
+            <Avatar
+              src="/Phera Logomark.jpg"
+              alt="Phera"
+              sx={{ width: { xs: 28, md: 34 }, height: { xs: 28, md: 34 } }}
+            />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Stack direction="row" alignItems="center" spacing={0.5}>
                 <Typography
                   sx={{
                     fontFamily: FONTS.body,
                     fontWeight: 600,
-                    color: COLORS.text.strong,
-                    fontSize: { xs: '0.8rem', md: '0.95rem' },
+                    fontSize: { xs: '0.78rem', md: '0.9rem' },
+                    color: 'white',
+                    lineHeight: 1.2,
                   }}
                 >
-                  {activePhase.title}
+                  Phera
                 </Typography>
+                <VerifiedIcon
+                  sx={{ fontSize: { xs: 12, md: 14 }, color: '#2979FF' }}
+                />
               </Stack>
-            </motion.div>
-          </AnimatePresence>
+              <Typography
+                sx={{
+                  fontFamily: FONTS.body,
+                  fontSize: { xs: '0.6rem', md: '0.68rem' },
+                  color: 'rgba(255,255,255,0.7)',
+                  lineHeight: 1.2,
+                }}
+              >
+                broadcast bot · online
+              </Typography>
+            </Box>
+          </Box>
 
+          {/* Chat body — WhatsApp doodle background */}
           <Box
             sx={{
               flex: 1,
               minHeight: 0,
-              p: { xs: 1, md: 1.5 },
-              borderRadius: RADII.md,
-              bgcolor: COLORS.bg.subtle,
-              border: `1px solid ${COLORS.border.faint}`,
-              mb: 1.5,
+              bgcolor: '#EFE7DE',
+              backgroundImage: `url("${WHATSAPP_BG}")`,
+              backgroundSize: 'cover',
+              backgroundRepeat: 'repeat',
+              p: { xs: 1.25, md: 1.75 },
+              display: 'flex',
+              flexDirection: 'column',
               overflow: 'hidden',
             }}
           >
+            {/* Phase chip — small, sits above the bubble like a date separator */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`head-${activePhaseIdx}`}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: T.phaseFlip }}
+                style={{ alignSelf: 'center', marginBottom: 8 }}
+              >
+                <Stack
+                  direction="row"
+                  spacing={0.6}
+                  alignItems="center"
+                  sx={{
+                    px: 1,
+                    py: 0.3,
+                    borderRadius: RADII.pill,
+                    bgcolor: 'rgba(255,255,255,0.85)',
+                    border: `1px solid ${COLORS.border.faint}`,
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
+                  }}
+                >
+                  <StreamlineIcon
+                    name={activePhase.icon}
+                    sx={{
+                      color: COLORS.brand.primary,
+                      width: { xs: 11, md: 13 },
+                      height: { xs: 11, md: 13 },
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      fontFamily: FONTS.body,
+                      fontWeight: 600,
+                      fontSize: { xs: '0.6rem', md: '0.7rem' },
+                      color: COLORS.text.strong,
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    {activePhase.title}
+                  </Typography>
+                </Stack>
+              </motion.div>
+            </AnimatePresence>
+
             <AnimatePresence mode="wait">
               <motion.div
                 key={`body-${activePhaseIdx}`}
@@ -527,8 +600,8 @@ export default function BroadcastAnimation() {
                   <Typography
                     sx={{
                       fontFamily: FONTS.body,
-                      color: COLORS.text.muted,
-                      fontSize: { xs: '0.7rem', md: '0.82rem' },
+                      color: COLORS.text.strong,
+                      fontSize: { xs: '0.72rem', md: '0.82rem' },
                       lineHeight: 1.55,
                     }}
                   >
@@ -549,11 +622,11 @@ export default function BroadcastAnimation() {
                           px: 1,
                           py: 0.25,
                           borderRadius: RADII.pill,
-                          bgcolor: COLORS.bg.subtle,
-                          border: `1px solid ${COLORS.border.light}`,
+                          bgcolor: 'rgba(0, 0, 0, 0.04)',
+                          border: `1px solid ${COLORS.border.faint}`,
                           fontFamily: FONTS.body,
                           fontSize: { xs: '0.6rem', md: '0.7rem' },
-                          color: COLORS.text.muted,
+                          color: COLORS.text.strong,
                         }}
                       >
                         {t}
@@ -565,13 +638,16 @@ export default function BroadcastAnimation() {
             </AnimatePresence>
           </Box>
 
-          {/* Stats + button slot — stats grows to absorb button space when fired. */}
+          {/* Stats + button — admin controls below the chat preview. */}
           <Box
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              gap: 1.25,
-              minHeight: { xs: 80, md: 100 },
+              gap: 1,
+              p: { xs: 1.25, md: 1.5 },
+              bgcolor: COLORS.bg.white,
+              borderTop: `1px solid ${COLORS.border.faint}`,
+              flexShrink: 0,
             }}
           >
             <Stack
@@ -688,27 +764,36 @@ export default function BroadcastAnimation() {
           </Box>
         </Box>
 
-        {/* Guest cards overlay (right) */}
+        {/* Guest cards overlay (right). Each card is absolutely positioned at
+            its cardY(i) so the SVG curve endpoints from the chat panel land
+            exactly on the card center. */}
         <Box
           sx={{
             position: 'absolute',
-            top: '5%',
+            top: 0,
             right: '2.4%',
             width: '35%',
-            height: '90%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
+            height: '100%',
           }}
         >
           {GUESTS.map((g, i) => (
-            <GuestCardRow
+            <Box
               key={`card-${i}`}
-              guest={g}
-              pill={pills[i]}
-              bumped={!!bump[i]}
-              avatarUri={avatars[i]}
-            />
+              sx={{
+                position: 'absolute',
+                top: `${(cardY(i) / VIEWBOX_H) * 100}%`,
+                left: 0,
+                right: 0,
+                transform: 'translateY(-50%)',
+              }}
+            >
+              <GuestCardRow
+                guest={g}
+                pill={pills[i]}
+                bumped={!!bump[i]}
+                avatarUri={avatars[i]}
+              />
+            </Box>
           ))}
         </Box>
       </Box>
@@ -1367,6 +1452,8 @@ function GuestCardRow({
 }
 
 // WhatsApp-style chat bubble w/ asymmetric top-left corner + subtle tail.
+// Incoming bubbles on WhatsApp are white; auto-sent ones get a slight tint
+// so the eye distinguishes them from the manual broadcast at a glance.
 function ChatBubble({
   children,
   isAuto,
@@ -1374,6 +1461,7 @@ function ChatBubble({
   children: ReactNode;
   isAuto: boolean;
 }) {
+  const bg = isAuto ? WHATSAPP_AUTO_BUBBLE_BG : WHATSAPP_BUBBLE_BG;
   return (
     <Box
       sx={{
@@ -1381,9 +1469,8 @@ function ChatBubble({
         px: { xs: 1.1, md: 1.25 },
         py: { xs: 0.9, md: 1 },
         borderRadius: '3px 14px 14px 14px',
-        bgcolor: isAuto ? COLORS.bg.muted : COLORS.bg.white,
-        border: `1px solid ${COLORS.border.light}`,
-        boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+        bgcolor: bg,
+        boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
         // Tail notch pointing left (bubble arrives from sender on left).
         '&::before': {
           content: '""',
@@ -1392,7 +1479,7 @@ function ChatBubble({
           top: 0,
           width: 0,
           height: 0,
-          borderTop: `6px solid ${isAuto ? COLORS.bg.muted : COLORS.bg.white}`,
+          borderTop: `6px solid ${bg}`,
           borderLeft: '6px solid transparent',
         },
       }}

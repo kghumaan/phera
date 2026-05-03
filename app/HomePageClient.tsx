@@ -189,34 +189,34 @@ function LandingPageContent() {
   const conciergeMessages: Message[] = [
     {
       type: 'guest',
-      text: "Hey! What time is the shuttle for the Sangeet leaving?",
+      text: "What should I wear to the Sangeet tomorrow?",
       time: "10:42 AM",
     },
     {
       type: 'bot',
-      text: <>Hi! The Sangeet shuttles start leaving from <strong>Grand Hyatt Lobby</strong> at <strong>6:30 PM</strong>. Would you like to reserve a seat? 🚐</>,
+      text: <>Sangeet is festive — jewel tones, lehengas or anarkalis for women, kurtas in deep colors for men. Skip white or black. Indoor venue, heels are fine. 💃 Want the full dress code guide for all 5 events?</>,
       time: "10:42 AM",
       hasCheck: true,
     },
     {
       type: 'guest',
-      text: "Yes please, for 2 people.",
+      text: "Yes please. Also my flight lands at 11pm — is there a pickup?",
       time: "10:43 AM",
     },
     {
       type: 'bot',
-      text: "Done! ✅ I've reserved 2 seats for you on the 6:30 PM shuttle.",
+      text: <>You&apos;re on the <strong>11:30 PM</strong> airport shuttle to the <strong>Grand Hyatt</strong>. Driver Rajesh (+91 98xxx 12345) will be at Arrivals Gate 4 with a Phera sign. ✈️</>,
       time: "10:43 AM",
       hasCheck: true,
     },
     {
       type: 'guest',
-      text: "We have some free time before the reception. Any recommendations nearby?",
+      text: "Perfect. Free afternoon Friday — anything to do nearby?",
       time: "11:05 AM",
     },
     {
       type: 'bot',
-      text: <>Absolutely! 🌴 The <strong>Oasis Spa</strong> is just a 5-min walk, or grab a coffee at <strong>Blue Tokai</strong>.</>,
+      text: <>It&apos;s 28°C and sunny. ☀️ <strong>Hauz Khas Village</strong> is 10 min away (cafés, boutiques), or <strong>Lodhi Garden</strong> for a quiet walk. Want me to book a table somewhere?</>,
       time: "11:06 AM",
       hasCheck: true,
     },

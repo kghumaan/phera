@@ -171,25 +171,28 @@ export default async function BlogPostPage({ params }: PageProps) {
             </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', gap: 0.75, mb: 5, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 0.5, mb: 5, flexWrap: 'wrap' }}>
             {post.tags.map((tag) => (
-              <Typography
+              <Box
                 key={tag}
                 component="span"
                 sx={{
+                  display: 'inline-block',
+                  fontFamily: 'var(--font-outfit)',
                   fontSize: '0.625rem',
+                  lineHeight: 1.4,
                   fontWeight: 600,
                   letterSpacing: '0.08em',
                   textTransform: 'uppercase',
                   color: COLORS.brand.primary,
                   bgcolor: '#FDE8EC',
-                  px: 1,
+                  px: 0.75,
                   py: 0.25,
-                  borderRadius: 8,
+                  borderRadius: 1,
                 }}
               >
                 {tag}
-              </Typography>
+              </Box>
             ))}
           </Box>
 

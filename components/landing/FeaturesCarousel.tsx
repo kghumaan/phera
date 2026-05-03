@@ -47,7 +47,7 @@ export default function FeaturesCarousel({ items }: FeaturesCarouselProps) {
   const next = () => goTo(activeIndex + 1);
 
   return (
-    <Box component="section" sx={{ py: { xs: 6, md: 10 }, bgcolor: COLORS.bg.subtle }}>
+    <Box component="section" sx={{ py: { xs: 8, md: 14 }, bgcolor: COLORS.bg.subtle }}>
       <Container maxWidth="xl" sx={{ position: 'relative', px: { xs: 2, md: 4, lg: 6 } }}>
         {/* Arrows — absolute, vertically centered. Hidden on smallest screens to
             avoid clobbering content; the dots underneath drive nav there. */}
@@ -59,9 +59,9 @@ export default function FeaturesCarousel({ items }: FeaturesCarouselProps) {
             position: 'relative',
             mx: { xs: 0, md: 8, lg: 10 },
             // Fixed height on md+ so the layout never jumps when switching to
-            // the tall phone-frame feature. xs stacks vertically and lets the
-            // content size itself naturally.
-            height: { md: 460 },
+            // the tall phone-frame or wide broadcast features. xs stacks
+            // vertically and lets the content size itself naturally.
+            height: { md: 760 },
           }}
         >
           <AnimatePresence mode="wait" custom={direction}>
@@ -191,6 +191,12 @@ function CarouselArrow({ side, onClick, ariaLabel, inline = false }: CarouselArr
 }
 
 function FeatureCard({ item }: { item: FeatureItem }) {
+  // The broadcast feature (frameType: 'none') is a horizontal scene with its
+  // own admin panel + guest cards — it needs a wider column than the desktop
+  // browser frame or phone mockup features.
+  const wideMedia = item.frameType === 'none';
+  const textCols = wideMedia ? 4 : 6;
+  const mediaCols = wideMedia ? 8 : 6;
   return (
     <Grid
       container
@@ -198,7 +204,7 @@ function FeatureCard({ item }: { item: FeatureItem }) {
       alignItems="center"
       sx={{ height: { md: '100%' } }}
     >
-      <Grid size={{ xs: 12, md: 6 }} order={{ xs: 2, md: 1 }}>
+      <Grid size={{ xs: 12, md: textCols }} order={{ xs: 2, md: 1 }}>
         <Stack spacing={2.5}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography
@@ -264,7 +270,7 @@ function FeatureCard({ item }: { item: FeatureItem }) {
         </Stack>
       </Grid>
 
-      <Grid size={{ xs: 12, md: 6 }} order={{ xs: 1, md: 2 }} sx={{ height: { md: '100%' } }}>
+      <Grid size={{ xs: 12, md: mediaCols }} order={{ xs: 1, md: 2 }} sx={{ height: { md: '100%' } }}>
         <Box
           sx={{
             display: 'flex',
@@ -288,7 +294,7 @@ function FeatureMedia({ item }: { item: FeatureItem }) {
         sx={{
           // Constrain by HEIGHT on md+ so the phone frame never blows past the
           // carousel's fixed height. Width auto-derives from the aspect ratio.
-          height: { xs: 'auto', md: 420 },
+          height: { xs: 'auto', md: 620 },
           width: { xs: 220, sm: 240, md: 'auto' },
           aspectRatio: '9 / 18',
           borderRadius: '36px',
@@ -357,10 +363,13 @@ function FeatureMedia({ item }: { item: FeatureItem }) {
     );
   }
 
-  // frameType === 'none' — render the custom component as-is, but cap its width.
+  // frameType === 'none' — render the custom component as-is. The broadcast
+  // animation has a horizontal admin → guest-cards layout that needs real
+  // width to breathe; the carousel gives this feature an 8/12 column so it
+  // can use up to ~1000px on lg+.
   if (item.customComponent) {
     return (
-      <Box sx={{ width: '100%', maxWidth: { xs: 360, sm: 460, md: 540 } }}>
+      <Box sx={{ width: '100%', maxWidth: { xs: 380, sm: 520, md: 880, lg: 1000 } }}>
         {item.customComponent}
       </Box>
     );
