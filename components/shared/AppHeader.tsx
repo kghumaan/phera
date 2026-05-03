@@ -61,27 +61,17 @@ export default function AppHeader({
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isNavigatingToAdmin, setIsNavigatingToAdmin] = useState(false);
-  const [showScrolledNav, setShowScrolledNav] = useState(false);
+  // True once the landing page has been scrolled past ~80px. Drives the
+  // header's smooth padding contraction + cream blur background reveal.
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isNavigatingToLogin, setIsNavigatingToLogin] = useState(false);
 
   useEffect(() => {
     if (!isLandingPage) return;
-    let lastScrollY = window.scrollY;
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrollingUp = currentScrollY < lastScrollY;
-      const inHeroSection = currentScrollY < window.innerHeight;
-      if (currentScrollY < 80) {
-        setShowScrolledNav(false);
-      } else if (scrollingUp && inHeroSection) {
-        setShowScrolledNav(true);
-      } else {
-        setShowScrolledNav(false);
-      }
-      lastScrollY = currentScrollY;
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 80);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, [isLandingPage]);
 
   const handleSignOut = async () => {
@@ -112,27 +102,36 @@ export default function AppHeader({
     }
   };
 
+  const isLandingTransparent = variant !== 'solid' && isLandingPage;
+
   const headerSx = variant === 'solid' ? {
     position: 'sticky' as const,
     top: 0,
     zIndex: 10,
     display: 'flex',
     alignItems: 'flex-start',
-  } : isLandingPage && showScrolledNav ? {
+  } : isLandingTransparent ? {
+    // Design pattern: header is always fixed on the landing page. At the top
+    // of the page the logo + nav sit heavily inset from the edges with a
+    // transparent background. As soon as the user scrolls past ~80px the
+    // padding contracts to flush with the edges and a cream blur background
+    // fades in. Both the slide and the bg fade run on a 350ms cubic-ease so
+    // the icons appear to glide outward / inward as you scroll up and down.
     position: 'fixed' as const,
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 9999,
-    height: { xs: 64, md: 96 },
+    zIndex: 50,
     display: 'flex',
     alignItems: 'center',
-    background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 100%)',
-    '@keyframes slideDown': {
-      from: { transform: 'translateY(-100%)' },
-      to: { transform: 'translateY(0)' },
-    },
-    animation: 'slideDown 0.3s ease forwards',
+    py: isScrolled ? { xs: 1.25, md: 1.5 } : { xs: 2.25, md: 2.5 },
+    bgcolor: isScrolled ? 'rgba(247, 241, 232, 0.85)' : 'transparent',
+    backdropFilter: isScrolled ? 'blur(16px)' : 'blur(0px)',
+    WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'blur(0px)',
+    borderBottom: '1px solid',
+    borderBottomColor: isScrolled ? 'rgba(0,0,0,0.06)' : 'transparent',
+    transition:
+      'padding 0.35s ease, background-color 0.35s ease, backdrop-filter 0.35s ease, -webkit-backdrop-filter 0.35s ease, border-bottom-color 0.35s ease',
   } : {
     position: 'absolute' as const,
     top: 0,
@@ -172,12 +171,21 @@ export default function AppHeader({
           sx={{
             maxWidth: isLandingPage || isWeddingPage ? '100%' : { xs: '100%', sm: 361, md: 600, lg: 700 },
             width: '100%',
-            // Landing page marigolds sit in the corners, so inset the header
-            // content past them at each breakpoint (marigold widths: 120/160/200).
-            px: isLandingPage
-              ? { xs: '150px', sm: '200px', md: '250px' }
-              : { xs: 2, md: 4 },
-            pt: { xs: 2, md: 4 },
+            // Landing page: heavy edge inset at top (logo + nav pulled in toward
+            // center, past the marigold corners), then contracts to flush as
+            // the user scrolls — the same 350ms transition as the outer
+            // header so the logo glides outward / inward smoothly.
+            px: isLandingTransparent
+              ? (isScrolled
+                  ? { xs: 2, md: 4, lg: 6 }
+                  : { xs: '150px', sm: '200px', md: '250px' })
+              : isLandingPage
+                ? { xs: '150px', sm: '200px', md: '250px' }
+                : { xs: 2, md: 4 },
+            // When the outer header drives its own py (landing-transparent
+            // variant), drop the Container's pt so spacing isn't doubled.
+            pt: isLandingTransparent ? 0 : { xs: 2, md: 4 },
+            transition: isLandingTransparent ? 'padding 0.35s ease' : undefined,
           }}
         >
           <Box

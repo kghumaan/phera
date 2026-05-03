@@ -18,7 +18,7 @@ const WHATSAPP_AUTO_BUBBLE_BG = '#F3F0EA';
  * BroadcastAnimation
  * --------------------------------------------------------------
  * Multi-phase landing-page scene. Admin sends broadcasts, guests
- * reply with structured data — RSVP → Dietary → Travel.
+ * reply with structured data - RSVP → Dietary → Travel.
  *
  * Phase timeline (seconds):
  *   P0 RSVP     0.0 → 4.7   (cursor + press, green + purple packets)
@@ -33,7 +33,7 @@ const VIEWBOX_H = 700;
 const ADMIN_ANCHOR = { x: 368, y: 350 }; // right edge of admin panel mid-height
 const CARD_ANCHOR_X = 628; // left edge of card column
 
-// Card layout in viewBox space — cards are absolutely positioned at cardY(i)
+// Card layout in viewBox space - cards are absolutely positioned at cardY(i)
 // (their vertical centers) so the SVG curve endpoints line up exactly.
 const CARD_TOP_Y = 60;
 const CARD_BOTTOM_Y = 640;
@@ -76,7 +76,7 @@ const GUESTS: Guest[] = [
   { name: 'Meera Nair',   side: 'bride', rsvp: 'attending', diet: 'Veg',     travel: { mode: 'local', label: 'Local · already here' } },
 ];
 
-// Phase config (timing is computed, not stored — see scheduler below)
+// Phase config (timing is computed, not stored - see scheduler below)
 const PHASES: {
   key: PhaseKey;
   title: string;
@@ -86,7 +86,7 @@ const PHASES: {
 }[] = [
   {
     key: 'rsvp',
-    title: 'Sangeet — Save the Date',
+    title: 'Sangeet - Save the Date',
     body: 'Hi {first_name} 👋 Priya & Rahul are getting married! Sangeet is Fri 7 Mar in Udaipur. View the website or tap below to RSVP.',
     chips: ['Attending', 'Maybe', 'Can’t make it'],
     icon: 'megaphone',
@@ -94,14 +94,14 @@ const PHASES: {
   {
     key: 'diet',
     title: 'Dietary preferences',
-    body: 'Quick one — any dietary needs for the Sangeet dinner? Tap what applies.',
+    body: 'Quick one - any dietary needs for the Sangeet dinner? Tap what applies.',
     chips: ['Veg', 'Jain', 'Non-veg', 'Vegan'],
     icon: 'chef-hat',
   },
   {
     key: 'travel',
     title: 'Travel details',
-    body: 'Share your arrival — flight, arrival time, or already in town — so we can arrange pickup.',
+    body: 'Share your arrival - flight, arrival time, or already in town - so we can arrange pickup.',
     chips: ['Flight', 'Arrival time', 'Local'],
     icon: 'buildings',
   },
@@ -314,7 +314,7 @@ export default function BroadcastAnimation() {
         });
       }
 
-      // Stats tick — animate each stat from 0 → target
+      // Stats tick - animate each stat from 0 → target
       const statsAnimStart = phaseStart + (trigger + 0.05) * 1000;
       const statsDur = 2200;
       const tickMs = 40;
@@ -382,7 +382,7 @@ export default function BroadcastAnimation() {
         }}
       >
       <Box sx={{ position: 'relative', width: '100%', aspectRatio: `${VIEWBOX_W} / ${VIEWBOX_H}` }}>
-        {/* SVG layer — curves + packets */}
+        {/* SVG layer - curves + packets */}
         <svg
           viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}
           preserveAspectRatio="xMidYMid meet"
@@ -460,7 +460,7 @@ export default function BroadcastAnimation() {
             })}
         </svg>
 
-        {/* Chat panel (left) — styled like a WhatsApp conversation. */}
+        {/* Chat panel (left) - styled like a WhatsApp conversation. */}
         <Box
           sx={{
             position: 'absolute',
@@ -525,7 +525,7 @@ export default function BroadcastAnimation() {
             </Box>
           </Box>
 
-          {/* Chat body — WhatsApp doodle background */}
+          {/* Chat body - WhatsApp doodle background */}
           <Box
             sx={{
               flex: 1,
@@ -540,7 +540,7 @@ export default function BroadcastAnimation() {
               overflow: 'hidden',
             }}
           >
-            {/* Phase chip — small, sits above the bubble like a date separator */}
+            {/* Phase chip - small, sits above the bubble like a date separator */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={`head-${activePhaseIdx}`}
@@ -638,7 +638,7 @@ export default function BroadcastAnimation() {
             </AnimatePresence>
           </Box>
 
-          {/* Stats + button — admin controls below the chat preview. */}
+          {/* Stats + button - admin controls below the chat preview. */}
           <Box
             sx={{
               display: 'flex',
@@ -678,7 +678,7 @@ export default function BroadcastAnimation() {
               />
             </Stack>
 
-            {/* Send button — removed entirely after fire so stats absorb the space. */}
+            {/* Send button - removed entirely after fire so stats absorb the space. */}
             <Box sx={{ position: 'relative' }}>
               <AnimatePresence mode="wait">
                 {!broadcastFired && (
@@ -815,7 +815,7 @@ export default function BroadcastAnimation() {
           variant="caption"
           sx={{ color: COLORS.text.subtle, fontFamily: FONTS.body, fontSize: { xs: '0.7rem', md: '0.78rem' } }}
         >
-          RSVP · dietary · travel — collected and structured, automatically.
+          RSVP · dietary · travel - collected and structured, automatically.
         </Typography>
         <Button
           onClick={handleReplay}
@@ -955,7 +955,7 @@ export default function BroadcastAnimation() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Stats + button slot — stats grows to absorb button space after fire. */}
+          {/* Stats + button slot - stats grows to absorb button space after fire. */}
           <Box
             sx={{
               display: 'flex',
@@ -1072,7 +1072,7 @@ export default function BroadcastAnimation() {
           </Box>
         </Box>
 
-        {/* Flow indicator — SVG fan of 4 curved strands, packets fly fast each way */}
+        {/* Flow indicator - SVG fan of 4 curved strands, packets fly fast each way */}
         <Box sx={{ position: 'relative', height: 110, bgcolor: COLORS.bg.subtle }}>
           {(() => {
             // viewBox 300x100 w/ default preserveAspectRatio (xMidYMid meet) keeps
@@ -1110,7 +1110,7 @@ export default function BroadcastAnimation() {
                   />
                 ))}
 
-                {/* Packets per phase × strand — outgoing (green) then reply (purple) */}
+                {/* Packets per phase × strand - outgoing (green) then reply (purple) */}
                 {PHASES.map((_, pIdx) => {
                   const trigger = pIdx === 0 ? T.trigger : 0.2;
                   const phaseStart = phaseStartTimes[pIdx];
@@ -1172,7 +1172,7 @@ export default function BroadcastAnimation() {
           })()}
         </Box>
 
-        {/* Guest list — 2×2 grid, cards stacked (pill under name) to use space better */}
+        {/* Guest list - 2×2 grid, cards stacked (pill under name) to use space better */}
         <Box sx={{ bgcolor: COLORS.bg.white, p: 1.25 }}>
           <Box
             sx={{
@@ -1212,7 +1212,7 @@ export default function BroadcastAnimation() {
             variant="caption"
             sx={{ color: COLORS.text.subtle, fontFamily: FONTS.body, fontSize: '0.72rem' }}
           >
-            RSVP · dietary · travel — structured automatically.
+            RSVP · dietary · travel - structured automatically.
           </Typography>
           <Button
             onClick={handleReplay}

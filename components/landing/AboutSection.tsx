@@ -21,19 +21,32 @@ interface AboutSectionProps {
    * `embedded` is for the landing page (sits between other sections).
    */
   variant?: 'page' | 'embedded';
+  /**
+   * Optional eyebrow rendered above the headline in the right column.
+   * Used by the landing page to position "Origin" directly above the
+   * "Modern coordination for Indian weddings" headline.
+   */
+  eyebrow?: React.ReactNode;
 }
 
-export default function AboutSection({ variant = 'embedded' }: AboutSectionProps) {
+export default function AboutSection({ variant = 'embedded', eyebrow }: AboutSectionProps) {
   const isPage = variant === 'page';
 
   return (
     <Box
       component="section"
       sx={{
-        py: isPage ? { xs: 12, md: 20 } : { xs: 6, md: 10 },
+        // Embedded variant uses the same py rhythm as every other
+        // non-hero section on the landing page (`py: 8 / 14`) so the
+        // headline sits clear of the section top instead of bumping it.
+        // Standalone /about page (variant='page') keeps generous padding.
+        py: isPage ? { xs: 12, md: 20 } : { xs: 8, md: 14 },
       }}
     >
-      <Container maxWidth="lg">
+      <Container
+        maxWidth="xl"
+        sx={{ px: { xs: 2.5, md: 6, lg: 10 } }}
+      >
         <Grid container spacing={{ xs: 6, md: 10 }} alignItems="center">
           <Grid size={{ xs: 12, md: 6 }}>
             <motion.div
@@ -42,26 +55,74 @@ export default function AboutSection({ variant = 'embedded' }: AboutSectionProps
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.8 }}
             >
+              {/* Layered frame: a tilted brand-tinted backing tile pokes
+                  out behind a 10px-white-bordered square photo, with a
+                  small italic date pill overlapping the bottom-right
+                  corner. Matches the design's Story photo frame exactly. */}
               <Box
                 sx={{
                   position: 'relative',
-                  borderRadius: '40px',
-                  overflow: 'hidden',
-                  aspectRatio: '1/1',
-                  boxShadow: '0 30px 60px rgba(0,0,0,0.1)',
-                  border: '8px solid white',
-                  maxWidth: { xs: '420px', md: 'none' },
+                  maxWidth: 480,
                   mx: 'auto',
                 }}
               >
-                <Image
-                  src="/images/couple/couple-8.jpg"
-                  alt="Founders of Phera"
-                  fill
-                  sizes="(max-width: 768px) 90vw, 50vw"
-                  style={{ objectFit: 'cover' }}
-                  priority={isPage}
+                {/* Tilted gradient backing tile */}
+                <Box
+                  aria-hidden
+                  sx={{
+                    position: 'absolute',
+                    inset: -18,
+                    borderRadius: '28px',
+                    background:
+                      'linear-gradient(135deg, rgba(222,63,94,0.18), rgba(255,153,51,0.14))',
+                    transform: 'rotate(-2deg)',
+                    zIndex: 0,
+                  }}
                 />
+                {/* Photo with thick white border + drop shadow */}
+                <Box
+                  sx={{
+                    position: 'relative',
+                    borderRadius: '22px',
+                    overflow: 'hidden',
+                    border: '10px solid white',
+                    boxShadow: '0 30px 60px rgba(0,0,0,0.12)',
+                    aspectRatio: '1 / 1',
+                    bgcolor: '#F7F1E8',
+                    zIndex: 1,
+                  }}
+                >
+                  <Image
+                    src="/images/couple/couple-8.jpg"
+                    alt="Sim and KV - founders of Phera"
+                    fill
+                    sizes="(max-width: 768px) 90vw, 480px"
+                    style={{ objectFit: 'cover' }}
+                    priority={isPage}
+                  />
+                </Box>
+                {/* Floating date pill */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: -18,
+                    right: -10,
+                    bgcolor: 'white',
+                    borderRadius: '14px',
+                    px: 2,
+                    py: 1.25,
+                    boxShadow: '0 12px 32px rgba(0,0,0,0.10)',
+                    border: '1px solid rgba(0,0,0,0.05)',
+                    fontFamily: FONTS.display,
+                    fontStyle: 'italic',
+                    fontSize: '1rem',
+                    color: COLORS.text.strong,
+                    zIndex: 2,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Sim &amp; KV  ·  Feb 2025
+                </Box>
               </Box>
             </motion.div>
           </Grid>
@@ -75,6 +136,7 @@ export default function AboutSection({ variant = 'embedded' }: AboutSectionProps
             >
               <Stack spacing={{ xs: 3, md: 4 }}>
                 <Box>
+                  {eyebrow && <Box sx={{ mb: 2 }}>{eyebrow}</Box>}
                   <Typography
                     component={isPage ? 'h1' : 'h2'}
                     variant="h2"
@@ -84,10 +146,13 @@ export default function AboutSection({ variant = 'embedded' }: AboutSectionProps
                       fontSize: { xs: '2.5rem', sm: '3rem', md: '4rem' },
                       color: COLORS.text.strong,
                       mb: 2,
-                      lineHeight: 1.1,
+                      lineHeight: 1.05,
+                      letterSpacing: '-0.02em',
                     }}
                   >
-                    Modern coordination for Indian weddings
+                    We built the team
+                    <br />
+                    we wish we had.
                   </Typography>
                   <Box
                     sx={{
