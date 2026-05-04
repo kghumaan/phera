@@ -392,7 +392,7 @@ function FileRow({
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
             <Box sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.strong }}>
-              hotel-block.pdf
+              hotel-floor-plan.pdf
             </Box>
             <Box
               sx={{

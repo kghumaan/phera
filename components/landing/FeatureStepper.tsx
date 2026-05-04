@@ -30,6 +30,16 @@ interface Step {
   customMock?: () => React.ReactNode;
 }
 
+/** Compact six-step overview chips rendered above the stepper grid. */
+const OVERVIEW_STEPS = [
+  { n: '01', t: 'Bring your guest list' },
+  { n: '02', t: 'Spin up your site' },
+  { n: '03', t: 'Switch on the bot' },
+  { n: '04', t: 'Sort rooms & shuttles' },
+  { n: '05', t: 'Loop us into vendors' },
+  { n: '06', t: 'Show up, celebrate' },
+];
+
 const STEPS: Step[] = [
   {
     tag: 'STEP 01  ·  Guest list',
@@ -147,6 +157,75 @@ export default function FeatureStepper() {
         <SectionHeader
           eyebrow="The full kit"
           title="One platform. Everything coordinated."
+          singleLine
+        />
+
+        {/* "Six steps" overview — six numbered chips with a dashed
+            connector behind. Hidden on mobile. */}
+        <div
+          className="feature-steps-overview"
+          style={{
+            marginTop: 56,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(6, 1fr)',
+            gap: 0,
+            position: 'relative',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              left: '6%',
+              right: '6%',
+              top: 28,
+              height: 1,
+              borderTop: '1.5px dashed rgba(0,0,0,0.15)',
+            }}
+          />
+          {OVERVIEW_STEPS.map((s, i) => (
+            <div key={i} style={{ position: 'relative', padding: '0 12px', textAlign: 'center' }}>
+              <div
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: '50%',
+                  background: 'white',
+                  border: '1px solid rgba(0,0,0,0.08)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: 'var(--font-instrument-serif), Georgia, serif',
+                  fontStyle: 'italic',
+                  fontSize: 24,
+                  color: 'var(--accent)',
+                  position: 'relative',
+                  zIndex: 2,
+                }}
+              >
+                {s.n}
+              </div>
+              <h4
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  margin: '14px 0 0',
+                  color: 'var(--text-strong)',
+                  lineHeight: 1.3,
+                }}
+              >
+                {s.t}
+              </h4>
+            </div>
+          ))}
+        </div>
+
+        <div
+          className="feature-steps-divider"
+          style={{
+            marginTop: 48,
+            height: 1,
+            background: 'rgba(0,0,0,0.06)',
+          }}
         />
 
         <div
@@ -346,6 +425,9 @@ export default function FeatureStepper() {
           .stepper-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
           .stepper-stage { position: relative !important; top: auto !important; aspect-ratio: 1 / 1 !important; max-width: 520px; margin: 0 auto 8px; }
           .stepper-rail { display: none !important; }
+        }
+        @media (max-width: 768px) {
+          .feature-steps-overview, .feature-steps-divider { display: none !important; }
         }
       `}</style>
     </section>

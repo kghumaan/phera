@@ -249,7 +249,7 @@
 /* ===== Hero garland corners ===== */
 .phera-landing .hero-garland {
   position: absolute;
-  top: 0;
+  top: -5px;
   width: clamp(140px, 16vw, 240px);
   height: auto;
   z-index: 3;

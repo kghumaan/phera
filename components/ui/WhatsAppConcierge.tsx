@@ -28,6 +28,13 @@ export interface WhatsAppConciergeProps {
      * when you want every message visible immediately.
      */
     scripted?: boolean;
+    /**
+     * Tighter bubble copy size — only affects the chat bubble text and
+     * timestamp, not header chrome. Use on small landing-card mocks where
+     * the rest of the phone should still match the canonical 24/7 concierge
+     * panel pixel-for-pixel but the chat needs to read smaller.
+     */
+    compact?: boolean;
 }
 
 const defaultMessages: Message[] = [
@@ -66,7 +73,7 @@ const defaultMessages: Message[] = [
     }
 ];
 
-const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages = defaultMessages, hideNotch = false, dense = false, scripted = false }) => {
+const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages = defaultMessages, hideNotch = false, dense = false, scripted = false, compact = false }) => {
     const [shown, setShown] = useState<number>(scripted ? 0 : messages.length);
     const [typing, setTyping] = useState<boolean>(false);
     const chatRef = useRef<HTMLDivElement | null>(null);
@@ -137,9 +144,9 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
         chatSpacing: dense ? 1 : { xs: 1.5, md: 2 },
         chatPad: dense ? 1.25 : { xs: 1.5, md: 2 },
         bubblePad: dense ? 1 : { xs: 1.25, md: 1.5 },
-        bubbleFont: dense ? '0.75rem' : { xs: '0.85rem', md: '1rem' },
-        timeFont: dense ? '0.6rem' : { xs: '0.65rem', md: '0.75rem' },
-        checkSize: dense ? '0.7rem' : { xs: '0.8rem', md: '1rem' },
+        bubbleFont: compact ? '0.65rem' : dense ? '0.75rem' : { xs: '0.85rem', md: '1rem' },
+        timeFont: compact ? '0.55rem' : dense ? '0.6rem' : { xs: '0.65rem', md: '0.75rem' },
+        checkSize: compact ? '0.6rem' : dense ? '0.7rem' : { xs: '0.8rem', md: '1rem' },
         dateFont: dense ? '0.55rem' : { xs: '0.6rem', md: '0.75rem' },
         notchWidth: dense ? '70px' : { xs: '80px', md: '120px' },
         notchHeight: dense ? '18px' : { xs: '20px', md: '28px' },

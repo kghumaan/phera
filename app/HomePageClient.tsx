@@ -7,9 +7,9 @@
 /**
  * Phera landing page.
  *
- * Eight sections — Hero, FeatureStepper ("The full kit"), our WhatsApp
- * Concierge dark panel (kept from a prior iteration), HowItWorks, Pricing,
- * Origin (Story), FAQ, FinalCTA — are mirrored 1:1 from the Claude Design
+ * Seven sections — Hero, FeatureStepper ("The full kit"), our WhatsApp
+ * Concierge dark panel (kept from a prior iteration), Pricing, Origin
+ * (Story), FAQ, FinalCTA — are mirrored 1:1 from the Claude Design
  * package (see /tmp/phera-zip/, also `Phera.zip` at the repo root). The
  * design's CSS lives at app/landing-design.css and is scoped to
  * `.phera-landing` so its classes don't leak into admin or guest surfaces.
@@ -41,7 +41,6 @@ import HomeNavLinks from '@/components/landing/HomeNavLinks';
 
 import HeroSection from '@/components/landing/HeroSection';
 import FeatureStepper from '@/components/landing/FeatureStepper';
-import HowItWorks from '@/components/landing/HowItWorks';
 import PricingSection from '@/components/landing/PricingSection';
 import OriginSection from '@/components/landing/OriginSection';
 import FAQSection from '@/components/landing/FAQSection';
@@ -88,6 +87,7 @@ function LandingPageContent() {
 
   const handleBaseAction = (e?: React.MouseEvent) => handleTierAction('base', e);
   const handlePremiumAction = (e?: React.MouseEvent) => handleTierAction('premium', e);
+  const handlePlannerAction = (e?: React.MouseEvent) => handleTierAction('planner_perwedding', e);
 
   return (
     <OptimizedBackground useAppDefault className="min-h-screen flex flex-col">
@@ -117,8 +117,9 @@ function LandingPageContent() {
         <FeatureStepper />
 
         {/* WHATSAPP AGENT SHOWCASE — kept from prior iteration; sits between
-            FeatureStepper and HowItWorks just like the design's
-            ConciergeShowcase, but uses our IPhoneMockup + WhatsAppConcierge. */}
+            FeatureStepper and Pricing, in the same slot the design's
+            ConciergeShowcase occupied, but uses our IPhoneMockup +
+            WhatsAppConcierge. */}
         <Box
           className="bg-textured bg-wa-doodles"
           sx={{
@@ -161,7 +162,6 @@ function LandingPageContent() {
                   variants={fadeIn}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
-                    <span style={{ display: 'inline-block', width: 28, height: 1, background: 'rgba(255,255,255,0.3)', flex: 'none' }} />
                     <span className="eyebrow" style={{ color: '#FFB347' }}>24/7 concierge</span>
                   </div>
                   <h2
@@ -252,11 +252,10 @@ function LandingPageContent() {
           </div>
         </Box>
 
-        <HowItWorks />
-
         <PricingSection
           onBaseClick={handleBaseAction}
           onPremiumClick={handlePremiumAction}
+          onPlannerClick={handlePlannerAction}
         />
 
         <OriginSection />

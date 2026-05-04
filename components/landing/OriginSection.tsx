@@ -135,7 +135,7 @@ export default function OriginSection() {
                 By the time we were on our honeymoon, we had the bones of Phera. Everything we wished we&rsquo;d had. Everything we&rsquo;d already quietly built for ourselves.
               </p>
               <p style={{ marginBottom: 0 }}>
-                We&rsquo;re still building it, and we&rsquo;d love your help making it better. Message us anytime — we reply, usually within the hour.
+                We&rsquo;re still building it, and we&rsquo;d love your help making it better. Message us anytime — we reply, usually within the day.
               </p>
             </div>
             <div

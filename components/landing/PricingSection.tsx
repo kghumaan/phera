@@ -16,6 +16,7 @@ import { PRICING_TIERS, PLANNER_TIER } from '@/lib/pricing/tiers';
 interface PricingProps {
   onBaseClick: (e?: React.MouseEvent) => void;
   onPremiumClick: (e?: React.MouseEvent) => void;
+  onPlannerClick: (e?: React.MouseEvent) => void;
 }
 
 interface CardTier {
@@ -31,7 +32,7 @@ interface CardTier {
   highlight: boolean;
 }
 
-export default function PricingSection({ onBaseClick, onPremiumClick }: PricingProps) {
+export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerClick }: PricingProps) {
   // Map our PRICING_TIERS data into the design's card shape, preserving
   // the design's MOST CHOSEN highlight on the middle (Base) tier.
   const tiers: CardTier[] = PRICING_TIERS.map((t) => {
@@ -63,6 +64,7 @@ export default function PricingSection({ onBaseClick, onPremiumClick }: PricingP
           eyebrow="Pricing"
           title="One flat fee. Per wedding."
           kicker="Less than a single shuttle bus rental. No subscription. No surprises."
+          singleLine
         />
 
         <div
@@ -150,7 +152,7 @@ export default function PricingSection({ onBaseClick, onPremiumClick }: PricingP
               borderRadius: 22,
               padding: 32,
               display: 'grid',
-              gridTemplateColumns: '1fr auto',
+              gridTemplateColumns: '1fr auto auto',
               gap: 32,
               alignItems: 'center',
             }}
@@ -174,9 +176,27 @@ export default function PricingSection({ onBaseClick, onPremiumClick }: PricingP
                 {PLANNER_TIER.description}
               </p>
             </div>
-            <Link href="/auth/login?role=planner" className="btn btn-ghost">
+            <div className="planner-price" style={{ display: 'flex', alignItems: 'baseline', gap: 6, paddingRight: 8 }}>
+              <span className="display" style={{
+                fontFamily: 'var(--font-instrument-serif), Georgia, serif',
+                fontStyle: 'italic',
+                fontSize: 56,
+                lineHeight: 1,
+                color: 'var(--text-strong)',
+              }}>
+                {PLANNER_TIER.price}
+              </span>
+              <span style={{ fontSize: 13, color: 'var(--text-subtle)' }}>
+                {PLANNER_TIER.priceSuffix || '/wedding'}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={(e) => onPlannerClick?.(e)}
+              className="btn btn-ghost"
+            >
               {PLANNER_TIER.buttonText} <span className="btn-arrow">→</span>
-            </Link>
+            </button>
           </div>
         </Reveal>
       </div>
@@ -184,6 +204,7 @@ export default function PricingSection({ onBaseClick, onPremiumClick }: PricingP
         @media (max-width: 900px) {
           .pricing-grid { grid-template-columns: 1fr !important; }
           .planner-strip { grid-template-columns: 1fr !important; gap: 20px !important; }
+          .planner-price { padding-right: 0 !important; }
         }
       `}</style>
     </section>

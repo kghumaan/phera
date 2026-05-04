@@ -185,7 +185,18 @@ export default function HeroSection() {
             {Array.from({ length: 2 }).flatMap((_, k) =>
               MARQUEE_WORDS.map((w, i) => (
                 <span key={`${k}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 48 }}>
-                  <span className="serif" style={{ fontSize: 28, fontStyle: 'italic' }}>{w}</span>
+                  <span
+                    className="serif"
+                    style={{
+                      // Inline fontFamily - MUI CssBaseline + Tailwind preflight
+                      // can clobber the .phera-landing .serif cascade so the
+                      // marquee falls back to Outfit. Locking it in inline.
+                      fontFamily: 'var(--font-instrument-serif), Georgia, serif',
+                      fontSize: 28,
+                      fontStyle: 'italic',
+                      fontWeight: 400,
+                    }}
+                  >{w}</span>
                   <LotusGlyph size={20} color="rgba(255,153,51,0.7)" />
                 </span>
               )),

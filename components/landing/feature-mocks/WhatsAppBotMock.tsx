@@ -49,6 +49,7 @@ export default function WhatsAppBotMock() {
         <WhatsAppConcierge
           hideNotch
           dense
+          compact
           scripted
           messages={CONCIERGE_MESSAGES}
           sx={{
