@@ -11,6 +11,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { SectionHeader, ImagePlaceholder } from './design-primitives';
+import GuestListImportMock from './feature-mocks/GuestListImportMock';
 
 interface Step {
   tag: string;
@@ -19,6 +20,12 @@ interface Step {
   bullet: string[];
   mockLabel: string;
   tint: string;
+  /**
+   * Optional custom mock renderer. When set, the FeatureStepper renders
+   * this instead of the dashed-border ImagePlaceholder for the step's
+   * sticky viewport. Use one custom mock per step as we build them out.
+   */
+  customMock?: () => React.ReactNode;
 }
 
 const STEPS: Step[] = [
@@ -33,6 +40,7 @@ const STEPS: Step[] = [
     ],
     mockLabel: 'Guest list import & dashboard',
     tint: 'rgba(222,63,94,0.06)',
+    customMock: () => <GuestListImportMock />,
   },
   {
     tag: 'STEP 02  ·  Wedding website',
@@ -287,17 +295,6 @@ export default function FeatureStepper() {
               overflow: 'hidden',
               transition: 'background 0.6s ease',
             }}>
-              {/* corner counter */}
-              <div className="mono" style={{
-                position: 'absolute',
-                top: 18, right: 22,
-                fontSize: 11,
-                letterSpacing: '0.16em',
-                color: 'var(--text-subtle)',
-                zIndex: 3,
-              }}>
-                {String(active + 1).padStart(2, '0')} / {String(STEPS.length).padStart(2, '0')}
-              </div>
 
               {/* crossfade/slide stack */}
               {STEPS.map((s, i) => {
@@ -322,8 +319,8 @@ export default function FeatureStepper() {
                       justifyContent: 'center',
                     }}
                   >
-                    <div style={{ width: '100%', maxHeight: '100%', overflow: 'hidden' }}>
-                      <ImagePlaceholder label={s.mockLabel} />
+                    <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+                      {s.customMock ? s.customMock() : <ImagePlaceholder label={s.mockLabel} />}
                     </div>
                   </div>
                 );
