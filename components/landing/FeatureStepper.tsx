@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from 'react';
 import { SectionHeader, ImagePlaceholder } from './design-primitives';
 import GuestListImportMock from './feature-mocks/GuestListImportMock';
 import WhatsAppBotMock from './feature-mocks/WhatsAppBotMock';
+import RoomAssignmentsMock from './feature-mocks/RoomAssignmentsMock';
 
 interface Step {
   tag: string;
@@ -79,6 +80,7 @@ const STEPS: Step[] = [
     ],
     mockLabel: 'Floor plan + room assignments',
     tint: 'rgba(108,92,231,0.06)',
+    customMock: () => <RoomAssignmentsMock />,
   },
   {
     tag: 'STEP 05  ·  Transportation',
