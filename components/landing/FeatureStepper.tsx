@@ -14,6 +14,7 @@ import { SectionHeader, ImagePlaceholder } from './design-primitives';
 import GuestListImportMock from './feature-mocks/GuestListImportMock';
 import WhatsAppBotMock from './feature-mocks/WhatsAppBotMock';
 import RoomAssignmentsMock from './feature-mocks/RoomAssignmentsMock';
+import TransportationMock from './feature-mocks/TransportationMock';
 
 interface Step {
   tag: string;
@@ -103,6 +104,7 @@ const STEPS: Step[] = [
     ],
     mockLabel: 'Travel & shuttle dashboard',
     tint: 'rgba(59,130,246,0.06)',
+    customMock: () => <TransportationMock />,
   },
   {
     tag: 'STEP 06  ·  Vendor agent',
