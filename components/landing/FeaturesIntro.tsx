@@ -57,25 +57,13 @@ export default function FeaturesIntro() {
               fontSize: { xs: '2.25rem', sm: '3rem', md: '4rem' },
               lineHeight: 1.1,
               color: COLORS.text.strong,
-              maxWidth: 980,
+              maxWidth: 880,
             }}
           >
-            Tools designed to simplify every part of{' '}
+            Built for{' '}
             <Box component="span" sx={{ color: COLORS.brand.primary }}>
               Indian wedding planning
             </Box>
-          </Typography>
-
-          <Typography
-            sx={{
-              fontSize: { xs: '1rem', md: '1.15rem' },
-              lineHeight: 1.6,
-              color: COLORS.text.muted,
-              maxWidth: 720,
-            }}
-          >
-            Hundreds of guests, days of events, vendors in eight WhatsApp groups — Phera turns the chaos
-            of wedding coordination into something you can actually enjoy.
           </Typography>
         </Stack>
 

@@ -67,7 +67,7 @@ export const PRICING_TIERS: PricingTier[] = [
       'We manage guest ops for you',
       'Priority support',
     ],
-    buttonText: 'Talk to Us',
+    buttonText: 'Get Started',
     highlight: false,
   },
 ];

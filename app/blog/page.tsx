@@ -157,25 +157,28 @@ export default function BlogIndexPage() {
 
                   {/* Content */}
                   <Box sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ display: 'flex', gap: 0.75, mb: 1.5, flexWrap: 'wrap' }}>
+                    <Box sx={{ display: 'flex', gap: 0.5, mb: 1.5, flexWrap: 'wrap' }}>
                       {post.tags.slice(0, 2).map((tag) => (
-                        <Typography
+                        <Box
                           key={tag}
                           component="span"
                           sx={{
-                            fontSize: '0.3rem',
+                            display: 'inline-block',
+                            fontFamily: 'var(--font-outfit)',
+                            fontSize: '0.625rem',
+                            lineHeight: 1.4,
                             fontWeight: 600,
                             letterSpacing: '0.08em',
                             textTransform: 'uppercase',
                             color: '#DE3F5E',
                             bgcolor: '#FDE8EC',
-                            px: 1,
+                            px: 0.75,
                             py: 0.25,
                             borderRadius: 1,
                           }}
                         >
                           {tag}
-                        </Typography>
+                        </Box>
                       ))}
                     </Box>
 

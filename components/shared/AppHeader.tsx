@@ -16,7 +16,8 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { ArrowBack, Logout as LogoutIcon, Edit as EditIcon, Dashboard as DashboardIcon } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
+// WhatsApp community/channel flow temporarily removed; will return later.
+// import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { getCurrentWeddingId } from '@/lib/utils/wedding-id-helpers';
 import { COLORS, RADII } from '@/lib/theme/tokens';
@@ -33,6 +34,12 @@ interface AppHeaderProps {
    * Menu toggle that should align with the avatar.
    */
   rightSlot?: React.ReactNode;
+  /**
+   * When true, suppresses the right-side controls (avatar, RSVP status,
+   * login button). Used by the desktop vertical-scroll wedding layout where
+   * the avatar + status live inside the page's nav drawer instead.
+   */
+  hideAuthControls?: boolean;
 }
 
 export default function AppHeader({
@@ -41,6 +48,7 @@ export default function AppHeader({
   title,
   variant = 'transparent',
   rightSlot,
+  hideAuthControls = false,
 }: AppHeaderProps) {
   const { user, isLoading, hasRSVPed, rsvpResponse, signOut, isAdmin, adminWeddingSlug } = useAuth();
   const pathname = usePathname();
@@ -51,37 +59,34 @@ export default function AppHeader({
   // Check if we're on a wedding page (desktop layout needs full width header)
   const isWeddingPage = pathname?.includes('/') && pathname !== '/' && !pathname.includes('/admin');
 
+  // Login href — on landing, omit the redirect so the callback defaults to
+  // onboarding-aware /admin. On other pages (wedding sites, admin reauth)
+  // preserve the current pathname so the user lands back where they were.
+  const loginHref = isLandingPage
+    ? '/auth/login'
+    : `/auth/login?redirect=${encodeURIComponent(pathname || '/')}`;
+
   // Get the current wedding slug for RSVP link
   const weddingSlug = getCurrentWeddingId();
 
-  // Only show WhatsApp button if user has RSVP'd "yes" or "maybe" AND not on landing page
-  const shouldShowWhatsApp = !isLandingPage && hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
+  // WhatsApp button temporarily removed; flag preserved for later reinstatement.
+  // const shouldShowWhatsApp = !isLandingPage && hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
   const [userMenuAnchor, setUserMenuAnchor] = useState<HTMLElement | null>(null);
   const [rsvpMenuAnchor, setRsvpMenuAnchor] = useState<HTMLElement | null>(null);
-  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  // const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isNavigatingToAdmin, setIsNavigatingToAdmin] = useState(false);
-  const [showScrolledNav, setShowScrolledNav] = useState(false);
+  // True once the landing page has been scrolled past ~80px. Drives the
+  // header's smooth padding contraction + cream blur background reveal.
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isNavigatingToLogin, setIsNavigatingToLogin] = useState(false);
 
   useEffect(() => {
     if (!isLandingPage) return;
-    let lastScrollY = window.scrollY;
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrollingUp = currentScrollY < lastScrollY;
-      const inHeroSection = currentScrollY < window.innerHeight;
-      if (currentScrollY < 80) {
-        setShowScrolledNav(false);
-      } else if (scrollingUp && inHeroSection) {
-        setShowScrolledNav(true);
-      } else {
-        setShowScrolledNav(false);
-      }
-      lastScrollY = currentScrollY;
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 80);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, [isLandingPage]);
 
   const handleSignOut = async () => {
@@ -112,27 +117,47 @@ export default function AppHeader({
     }
   };
 
+  const isLandingTransparent = variant !== 'solid' && isLandingPage;
+
   const headerSx = variant === 'solid' ? {
     position: 'sticky' as const,
     top: 0,
     zIndex: 10,
     display: 'flex',
     alignItems: 'flex-start',
-  } : isLandingPage && showScrolledNav ? {
+  } : isLandingTransparent ? {
+    // Design pattern: header is always fixed on the landing page. At the top
+    // of the page the logo + nav sit heavily inset from the edges with a
+    // transparent background. As soon as the user scrolls past ~80px the
+    // padding contracts to flush with the edges and a cream blur background
+    // fades in. Both the slide and the bg fade run on a 350ms cubic-ease so
+    // the icons appear to glide outward / inward as you scroll up and down.
     position: 'fixed' as const,
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 9999,
-    height: { xs: 64, md: 96 },
+    zIndex: 50,
     display: 'flex',
     alignItems: 'center',
-    background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 100%)',
-    '@keyframes slideDown': {
-      from: { transform: 'translateY(-100%)' },
-      to: { transform: 'translateY(0)' },
+    // Match design's `.site-header` rule:
+    //   initial: padding: 18px clamp(180px, 18vw, 260px)
+    //   scrolled: padding: 12px clamp(20px, 4vw, 48px)
+    //   mobile @max 768: 14px 20px / 10px 20px
+    // Single clamp() per axis replaces the prior breakpoint-stepped
+    // `{ xs: 1.25, md: 1.5 }` ladder.
+    py: isScrolled ? '12px' : '18px',
+    px: isScrolled ? 'clamp(20px, 4vw, 48px)' : 'clamp(180px, 18vw, 260px)',
+    bgcolor: isScrolled ? 'rgba(247, 241, 232, 0.85)' : 'transparent',
+    backdropFilter: isScrolled ? 'blur(16px)' : 'blur(0px)',
+    WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'blur(0px)',
+    borderBottom: '1px solid',
+    borderBottomColor: isScrolled ? 'rgba(0,0,0,0.06)' : 'transparent',
+    transition:
+      'padding 0.35s ease, background-color 0.35s ease, backdrop-filter 0.35s ease, -webkit-backdrop-filter 0.35s ease, border-bottom-color 0.35s ease',
+    '@media (max-width: 768px)': {
+      py: isScrolled ? '10px' : '14px',
+      px: '20px',
     },
-    animation: 'slideDown 0.3s ease forwards',
   } : {
     position: 'absolute' as const,
     top: 0,
@@ -172,12 +197,16 @@ export default function AppHeader({
           sx={{
             maxWidth: isLandingPage || isWeddingPage ? '100%' : { xs: '100%', sm: 361, md: 600, lg: 700 },
             width: '100%',
-            // Landing page marigolds sit in the corners, so inset the header
-            // content past them at each breakpoint (marigold widths: 120/160/200).
-            px: isLandingPage
-              ? { xs: '150px', sm: '200px', md: '250px' }
-              : { xs: 2, md: 4 },
-            pt: { xs: 2, md: 4 },
+            // Landing-transparent: outer Box drives padding via clamp(),
+            // so the Container itself stays edge-to-edge here.
+            px: isLandingTransparent
+              ? 0
+              : isLandingPage
+                ? 'clamp(180px, 18vw, 260px)'
+                : { xs: 2, md: 4 },
+            // When the outer header drives its own py, drop the Container's
+            // pt so spacing isn't doubled.
+            pt: isLandingTransparent ? 0 : { xs: 2, md: 4 },
           }}
         >
           <Box
@@ -235,7 +264,11 @@ export default function AppHeader({
               </Link>
             </Box>
 
-            {/* Right side — on landing page, hide on mobile and render as floating bottom-right element below. */}
+            {/* Right side — on landing page, hide on mobile and render as floating bottom-right element below.
+                When `hideAuthControls` is set, the entire right cluster is
+                suppressed (the consuming page renders auth controls itself,
+                e.g. inside a nav drawer). */}
+            {!hideAuthControls && (
             <Box
               sx={{
                 display: isLandingPage ? { xs: 'none', md: 'flex' } : 'flex',
@@ -247,7 +280,8 @@ export default function AppHeader({
             ) : user ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 {rightSlot}
-                {/* WhatsApp Button - Only show if user RSVP'd yes or maybe */}
+                {/* WhatsApp Button — temporarily removed; community/channel
+                    flow will be re-introduced in a later iteration.
                 {shouldShowWhatsApp && (
                   <IconButton
                     onClick={() => setWhatsAppModalOpen(true)}
@@ -276,6 +310,7 @@ export default function AppHeader({
                     </Box>
                   </IconButton>
                 )}
+                */}
 
                 {/* RSVP Status Button - Show when user has RSVPed AND not on landing page */}
                 {!isLandingPage && hasRSVPed && rsvpResponse && (
@@ -348,7 +383,7 @@ export default function AppHeader({
 
                 <Button
                   component={Link}
-                  href={`/auth/login?redirect=${encodeURIComponent(pathname || '/')}`}
+                  href={loginHref}
                   onClick={() => setIsNavigatingToLogin(true)}
                   disabled={isNavigatingToLogin}
                   variant="contained"
@@ -383,6 +418,7 @@ export default function AppHeader({
               </Box>
             )}
             </Box>
+            )}
           </Box>
         </Container>
       </Box>
@@ -442,7 +478,7 @@ export default function AppHeader({
           ) : (
             <Button
               component={Link}
-              href={`/auth/login?redirect=${encodeURIComponent(pathname || '/')}`}
+              href={loginHref}
               onClick={() => setIsNavigatingToLogin(true)}
               disabled={isNavigatingToLogin}
               variant="contained"
@@ -627,11 +663,12 @@ export default function AppHeader({
         </PheraMenu>
       )}
 
-      {/* WhatsApp Channel Modal */}
+      {/* WhatsApp Channel Modal — temporarily removed.
       <WhatsAppChannelModal
         open={whatsAppModalOpen}
         onClose={() => setWhatsAppModalOpen(false)}
       />
+      */}
     </>
   );
 } 
