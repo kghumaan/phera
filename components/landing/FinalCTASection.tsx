@@ -74,9 +74,9 @@ export default function FinalCTASection() {
               }}
               endIcon={<span className="btn-arrow" style={{ display: 'inline-block' }}>→</span>}
             >
-              Get started - it&apos;s free
+              Get started for free
             </ActionButton>
-            <ActionButton
+            {/* <ActionButton
               href="https://wa.me/15558397813"
               variant="outlined"
               className="btn btn-ghost"
@@ -97,7 +97,7 @@ export default function FinalCTASection() {
               }}
             >
               Talk to us on WhatsApp
-            </ActionButton>
+            </ActionButton> */}
           </div>
         </Reveal>
       </div>

@@ -12,9 +12,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { SectionHeader, ImagePlaceholder } from './design-primitives';
 import GuestListImportMock from './feature-mocks/GuestListImportMock';
+import WeddingWebsiteMock from './feature-mocks/WeddingWebsiteMock';
 import WhatsAppBotMock from './feature-mocks/WhatsAppBotMock';
 import RoomAssignmentsMock from './feature-mocks/RoomAssignmentsMock';
 import TransportationMock from './feature-mocks/TransportationMock';
+import VendorAgentMock from './feature-mocks/VendorAgentMock';
 
 interface Step {
   tag: string;
@@ -66,6 +68,7 @@ const STEPS: Step[] = [
     ],
     mockLabel: 'Wedding website + cultural guide',
     tint: 'rgba(255,153,51,0.07)',
+    customMock: () => <WeddingWebsiteMock />,
   },
   {
     tag: 'STEP 03  ·  WhatsApp bot',
@@ -117,6 +120,7 @@ const STEPS: Step[] = [
     ],
     mockLabel: 'Vendor digest + action items',
     tint: 'rgba(212,175,55,0.08)',
+    customMock: () => <VendorAgentMock />,
   },
 ];
 
@@ -324,6 +328,33 @@ export default function FeatureStepper() {
                     </li>
                   ))}
                 </ul>
+
+                {/* Mobile-only inline mock — vertically stacks each
+                    step's mock right under its text on mobile. Hidden on
+                    desktop where the sticky right-column stage shows it. */}
+                {s.customMock && (
+                  <div
+                    className="step-mock-inline"
+                    style={{
+                      marginTop: 32,
+                      borderRadius: 24,
+                      background: s.tint,
+                      border: '1px solid rgba(0,0,0,0.06)',
+                      padding: 'clamp(16px, 5vw, 28px)',
+                      aspectRatio: '1 / 1',
+                      width: '100%',
+                      maxWidth: 540,
+                      marginLeft: 'auto',
+                      marginRight: 'auto',
+                      overflow: 'hidden',
+                      position: 'relative',
+                    }}
+                  >
+                    <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+                      {s.customMock()}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -423,10 +454,19 @@ export default function FeatureStepper() {
       </div>
 
       <style>{`
+        /* Desktop: inline mocks hidden (sticky stage handles display). */
+        .step-mock-inline { display: none; }
+
         @media (max-width: 960px) {
           .stepper-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
-          .stepper-stage { position: relative !important; top: auto !important; aspect-ratio: 1 / 1 !important; max-width: 520px; margin: 0 auto 8px; }
+          /* Mobile: hide the sticky stage — each step renders its own mock
+             inline so the mock follows the step's text as you scroll. */
+          .stepper-stage { display: none !important; }
           .stepper-rail { display: none !important; }
+          .step-mock-inline { display: block; }
+          /* Steps don't need 70vh of breathing room on mobile — the
+             inline mock itself adds height. */
+          .stepper-grid > div > div { min-height: 0 !important; padding-right: 0 !important; opacity: 1 !important; }
         }
         @media (max-width: 768px) {
           .feature-steps-overview, .feature-steps-divider { display: none !important; }

@@ -20,9 +20,9 @@
  */
 
 import './landing-design.css';
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Box, Grid, Stack, Typography, IconButton, alpha } from '@mui/material';
-import { Instagram, Email, WhatsApp } from '@mui/icons-material';
+import { Instagram, Email, WhatsApp, X } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -71,6 +71,22 @@ function LandingPageContent() {
   const router = useRouter();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeTier, setUpgradeTier] = useState<'base' | 'premium' | 'planner_perwedding'>('base');
+
+  // After post-auth redirect from a pricing CTA (?tier=base|premium|planner_perwedding),
+  // resume the upgrade flow once the user lands back here signed in. We strip the
+  // query so a refresh doesn't re-open the modal.
+  useEffect(() => {
+    if (!user || typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const tier = params.get('tier');
+    if (tier === 'base' || tier === 'premium' || tier === 'planner_perwedding') {
+      setUpgradeTier(tier);
+      setUpgradeModalOpen(true);
+      params.delete('tier');
+      const qs = params.toString();
+      window.history.replaceState({}, '', qs ? `/?${qs}` : '/');
+    }
+  }, [user]);
 
   const handleTierAction = (targetTier: typeof upgradeTier, e?: React.MouseEvent) => {
     if (e) {
@@ -162,7 +178,7 @@ function LandingPageContent() {
                   variants={fadeIn}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
-                    <span className="eyebrow" style={{ color: '#FFB347' }}>24/7 concierge</span>
+                    <span className="eyebrow" style={{ color: 'white' }}>24/7 concierge</span>
                   </div>
                   <h2
                     className="display"
@@ -177,7 +193,7 @@ function LandingPageContent() {
                       lineHeight: 0.98,
                     }}
                   >
-                    Trained on <em style={{ color: '#FF8AA0' }}>your</em> wedding.<br />
+                    Trained on <em style={{ color: 'var(--accent)' }}>your</em> wedding.<br />
                     On call <em>at 2 AM.</em>
                   </h2>
                   <p
@@ -333,6 +349,15 @@ function LandingPageContent() {
                     sx={{ color: COLORS.brand.primary, bgcolor: alpha('#DE3F5E', 0.1), '&:hover': { bgcolor: alpha('#DE3F5E', 0.2) } }}
                   >
                     <Instagram />
+                  </IconButton>
+                  <IconButton
+                    component="a"
+                    href="https://x.com/withphera"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{ color: COLORS.brand.primary, bgcolor: alpha(COLORS.brand.primary, 0.1), '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.2) } }}
+                  >
+                    <X />
                   </IconButton>
                   <IconButton
                     component="a"

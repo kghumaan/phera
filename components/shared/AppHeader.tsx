@@ -59,6 +59,13 @@ export default function AppHeader({
   // Check if we're on a wedding page (desktop layout needs full width header)
   const isWeddingPage = pathname?.includes('/') && pathname !== '/' && !pathname.includes('/admin');
 
+  // Login href — on landing, omit the redirect so the callback defaults to
+  // onboarding-aware /admin. On other pages (wedding sites, admin reauth)
+  // preserve the current pathname so the user lands back where they were.
+  const loginHref = isLandingPage
+    ? '/auth/login'
+    : `/auth/login?redirect=${encodeURIComponent(pathname || '/')}`;
+
   // Get the current wedding slug for RSVP link
   const weddingSlug = getCurrentWeddingId();
 
@@ -376,7 +383,7 @@ export default function AppHeader({
 
                 <Button
                   component={Link}
-                  href={`/auth/login?redirect=${encodeURIComponent(pathname || '/')}`}
+                  href={loginHref}
                   onClick={() => setIsNavigatingToLogin(true)}
                   disabled={isNavigatingToLogin}
                   variant="contained"
@@ -471,7 +478,7 @@ export default function AppHeader({
           ) : (
             <Button
               component={Link}
-              href={`/auth/login?redirect=${encodeURIComponent(pathname || '/')}`}
+              href={loginHref}
               onClick={() => setIsNavigatingToLogin(true)}
               disabled={isNavigatingToLogin}
               variant="contained"

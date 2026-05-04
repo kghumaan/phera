@@ -3,7 +3,7 @@
 import { Box, Container, Grid, Typography, Stack, alpha, IconButton } from '@mui/material';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Instagram, Email, WhatsApp } from '@mui/icons-material';
+import { Instagram, Email, WhatsApp, X } from '@mui/icons-material';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
 export default function AppFooter() {
@@ -100,6 +100,15 @@ export default function AppFooter() {
                                 sx={{ color: COLORS.brand.primary, bgcolor: alpha(COLORS.brand.primary, 0.1), '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.2) } }}
                             >
                                 <Instagram />
+                            </IconButton>
+                            <IconButton
+                                component="a"
+                                href="https://x.com/withphera"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                sx={{ color: COLORS.brand.primary, bgcolor: alpha(COLORS.brand.primary, 0.1), '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.2) } }}
+                            >
+                                <X />
                             </IconButton>
                             <IconButton
                                 component="a"

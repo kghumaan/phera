@@ -23,9 +23,10 @@ const LINKS: { label: string; targetId: string }[] = [
 ];
 
 // Reserve space at the top so the section title doesn't land behind the
-// fixed AppHeader. Header collapses to ~60px once scrolled; 88px gives a
-// small breathing margin below it.
-const HEADER_OFFSET_PX = 88;
+// fixed AppHeader. Header collapses to ~60px once scrolled; 40px keeps
+// the section title flush below the header so we scroll a little further
+// into each section than the previous 88px breathing margin allowed.
+const HEADER_OFFSET_PX = 40;
 const SCROLL_DURATION_MS = 900;
 
 const easeInCubic = (t: number) => t * t * t;

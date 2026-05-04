@@ -9,7 +9,7 @@
  */
 
 import { useState } from 'react';
-import { SectionHeader } from './design-primitives';
+import { Reveal } from './design-primitives';
 
 const FAQS = [
   { q: 'Is there really a free tier?', a: "Yes - really free. Beautiful wedding site, guest list, basic RSVPs without paying us a cent. Base ($349) is when you want the heavier lifting: WhatsApp outreach, concierge, travel, rooms." },
@@ -25,18 +25,36 @@ export default function FAQSection() {
   const [open, setOpen] = useState<number>(0);
 
   return (
-    <section id="faq" className="section bg-textured bg-sky-soft" style={{ background: 'var(--sky, #E8F1FB)' }}>
+    <section id="faq" className="section bg-textured bg-paper-floral" style={{ background: 'var(--paper)' }}>
       <div className="container">
-        <div style={{
-          background: 'white',
-          borderRadius: 28,
-          padding: 'clamp(20px, 4vw, 40px) clamp(24px, 5vw, 56px)',
-          maxWidth: 920,
-          margin: '0 auto',
-          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-          border: '1px solid rgba(0,0,0,0.05)',
-        }}>
-          <SectionHeader eyebrow="FAQ" title="Things people ask." align="center" />
+        {/* Custom header — keep "FAQ" eyebrow flush-left while centering the
+            "Things people ask." title above the FAQ list. SectionHeader
+            shares one alignment for both, so the header is inlined here. */}
+        <div style={{ maxWidth: 880, margin: '0 auto' }}>
+          <Reveal>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'center' }}>
+              <span className="eyebrow" style={{ color: 'var(--accent)' }}>FAQ</span>
+            </div>
+          </Reveal>
+          <Reveal delay={1}>
+            <h2
+              className="display wrap-balance"
+              style={{
+                fontFamily: 'var(--font-instrument-serif), Georgia, serif',
+                fontStyle: 'italic',
+                fontWeight: 400,
+                letterSpacing: '-0.025em',
+                lineHeight: 0.95,
+                fontSize: 'clamp(36px, 5.5vw, 76px)',
+                marginTop: 18,
+                marginBottom: 0,
+                color: 'var(--text-strong)',
+                textAlign: 'center',
+              }}
+            >
+              Things people ask.
+            </h2>
+          </Reveal>
         </div>
         <div style={{ maxWidth: 800, margin: '48px auto 0' }}>
           {FAQS.map((f, i) => {

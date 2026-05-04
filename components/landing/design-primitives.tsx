@@ -86,6 +86,7 @@ export function SectionHeader({
   kicker,
   align = 'left',
   singleLine = false,
+  eyebrowColor,
 }: {
   eyebrow: React.ReactNode;
   title: React.ReactNode;
@@ -94,6 +95,8 @@ export function SectionHeader({
   /** When true, the title forces a single line — drops the 18ch cap and
    *  applies whiteSpace: nowrap. Use sparingly for short, punchy titles. */
   singleLine?: boolean;
+  /** Override the eyebrow text color. Defaults to var(--accent) (brand pink). */
+  eyebrowColor?: string;
 }) {
   const isCenter = align === 'center';
   return (
@@ -101,7 +104,7 @@ export function SectionHeader({
       <Reveal>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, justifyContent: isCenter ? 'center' : 'flex-start' }}>
           {/* <span style={{ display: 'inline-block', width: 28, height: 1, background: 'rgba(0,0,0,0.22)', flex: 'none' }} /> */}
-          <span className="eyebrow" style={{ color: 'var(--accent)' }}>{eyebrow}</span>
+          <span className="eyebrow" style={{ color: eyebrowColor ?? 'var(--accent)' }}>{eyebrow}</span>
         </div>
       </Reveal>
       <Reveal delay={1}>
