@@ -117,7 +117,7 @@ export default function HeroSection() {
               lineHeight: 1.5,
             }}
           >
-            Phera is the wedding operations team you wish you had. We coordinate every guest - RSVPs, travel, rooms, shuttles, dress codes, midnight WhatsApp questions - so you can actually enjoy your wedding.
+            The wedding operations team you wish you had. We handle every guest — RSVPs, travel, rooms, shuttles, midnight WhatsApps — so you can actually enjoy your wedding.
           </p>
         </Reveal>
 

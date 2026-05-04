@@ -16,7 +16,8 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { ArrowBack, Logout as LogoutIcon, Edit as EditIcon, Dashboard as DashboardIcon } from '@mui/icons-material';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
+// WhatsApp community/channel flow temporarily removed; will return later.
+// import WhatsAppChannelModal from '@/components/shared/WhatsAppChannelModal';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { getCurrentWeddingId } from '@/lib/utils/wedding-id-helpers';
 import { COLORS, RADII } from '@/lib/theme/tokens';
@@ -33,6 +34,12 @@ interface AppHeaderProps {
    * Menu toggle that should align with the avatar.
    */
   rightSlot?: React.ReactNode;
+  /**
+   * When true, suppresses the right-side controls (avatar, RSVP status,
+   * login button). Used by the desktop vertical-scroll wedding layout where
+   * the avatar + status live inside the page's nav drawer instead.
+   */
+  hideAuthControls?: boolean;
 }
 
 export default function AppHeader({
@@ -41,6 +48,7 @@ export default function AppHeader({
   title,
   variant = 'transparent',
   rightSlot,
+  hideAuthControls = false,
 }: AppHeaderProps) {
   const { user, isLoading, hasRSVPed, rsvpResponse, signOut, isAdmin, adminWeddingSlug } = useAuth();
   const pathname = usePathname();
@@ -54,11 +62,11 @@ export default function AppHeader({
   // Get the current wedding slug for RSVP link
   const weddingSlug = getCurrentWeddingId();
 
-  // Only show WhatsApp button if user has RSVP'd "yes" or "maybe" AND not on landing page
-  const shouldShowWhatsApp = !isLandingPage && hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
+  // WhatsApp button temporarily removed; flag preserved for later reinstatement.
+  // const shouldShowWhatsApp = !isLandingPage && hasRSVPed && (rsvpResponse === 'yes' || rsvpResponse === 'maybe');
   const [userMenuAnchor, setUserMenuAnchor] = useState<HTMLElement | null>(null);
   const [rsvpMenuAnchor, setRsvpMenuAnchor] = useState<HTMLElement | null>(null);
-  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  // const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isNavigatingToAdmin, setIsNavigatingToAdmin] = useState(false);
   // True once the landing page has been scrolled past ~80px. Drives the
@@ -249,7 +257,11 @@ export default function AppHeader({
               </Link>
             </Box>
 
-            {/* Right side — on landing page, hide on mobile and render as floating bottom-right element below. */}
+            {/* Right side — on landing page, hide on mobile and render as floating bottom-right element below.
+                When `hideAuthControls` is set, the entire right cluster is
+                suppressed (the consuming page renders auth controls itself,
+                e.g. inside a nav drawer). */}
+            {!hideAuthControls && (
             <Box
               sx={{
                 display: isLandingPage ? { xs: 'none', md: 'flex' } : 'flex',
@@ -261,7 +273,8 @@ export default function AppHeader({
             ) : user ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 {rightSlot}
-                {/* WhatsApp Button - Only show if user RSVP'd yes or maybe */}
+                {/* WhatsApp Button — temporarily removed; community/channel
+                    flow will be re-introduced in a later iteration.
                 {shouldShowWhatsApp && (
                   <IconButton
                     onClick={() => setWhatsAppModalOpen(true)}
@@ -290,6 +303,7 @@ export default function AppHeader({
                     </Box>
                   </IconButton>
                 )}
+                */}
 
                 {/* RSVP Status Button - Show when user has RSVPed AND not on landing page */}
                 {!isLandingPage && hasRSVPed && rsvpResponse && (
@@ -397,6 +411,7 @@ export default function AppHeader({
               </Box>
             )}
             </Box>
+            )}
           </Box>
         </Container>
       </Box>
@@ -641,11 +656,12 @@ export default function AppHeader({
         </PheraMenu>
       )}
 
-      {/* WhatsApp Channel Modal */}
+      {/* WhatsApp Channel Modal — temporarily removed.
       <WhatsAppChannelModal
         open={whatsAppModalOpen}
         onClose={() => setWhatsAppModalOpen(false)}
       />
+      */}
     </>
   );
 } 

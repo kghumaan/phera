@@ -9,7 +9,30 @@
  * IG pills below the byline.
  */
 
+import { Instagram, LinkedIn, Language } from '@mui/icons-material';
 import { Reveal } from './design-primitives';
+
+interface SocialLinks {
+  name: string;
+  instagram: string;
+  linkedin: string;
+  website: string;
+}
+
+const FOUNDERS: SocialLinks[] = [
+  {
+    name: 'Sim Savani',
+    instagram: 'https://www.instagram.com/simransimranaway/',
+    linkedin: 'https://www.linkedin.com/in/simransavani/',
+    website: 'https://simmetrystudios.com/',
+  },
+  {
+    name: 'KV Ghumaan',
+    instagram: 'https://www.instagram.com/kvghumaan/',
+    linkedin: 'https://www.linkedin.com/in/kvghumaan',
+    website: 'https://ghumaanventures.com',
+  },
+];
 
 export default function OriginSection() {
   return (
@@ -100,43 +123,49 @@ export default function OriginSection() {
             <div style={{ width: 64, height: 4, background: 'var(--accent)', borderRadius: 2, marginTop: 24, marginBottom: 28 }} />
             <div style={{ fontSize: 18, color: 'var(--text-muted)', lineHeight: 1.7, maxWidth: '60ch' }}>
               <p style={{ marginBottom: 18 }}>
-                We built Phera because we were that &ldquo;frustrated couple.&rdquo; Planning a modern Indian wedding comes with a level of complexity that global platforms just don&rsquo;t understand. Guest lists spanning continents, rituals to explain to non-desi friends, and an endless WhatsApp queue.
+                Hi, we&rsquo;re KV and Sim. A software engineer and a product designer who met, fell in love, and then completely nerded out planning our wedding.
               </p>
               <p style={{ marginBottom: 18 }}>
-                We didn&rsquo;t need another website builder. We needed a <em>team</em> to do the work. So we built one - and now we&rsquo;re opening it up to every couple who&rsquo;d rather enjoy their wedding than project-manage it.
+                It started with the website. We looked at Zola, WithJoy, all of them, and nothing felt right. They weren&rsquo;t built for Indian weddings, and the aesthetic wasn&rsquo;t us. We wanted something <em>desi</em>, young, and alive — something that would get our guests excited months before the wedding. We were planning a destination wedding with a bunch of non-desi friends attending, and we wanted them to feel the color and energy of it all before they even boarded a flight.
               </p>
-              <div style={{
-                marginTop: 24,
-                padding: '18px 22px',
-                background: 'rgba(222,63,94,0.05)',
-                border: '1px solid rgba(222,63,94,0.15)',
-                borderRadius: 18,
-                fontStyle: 'italic',
-                fontSize: 16,
-                color: 'var(--text-subtle)',
-                lineHeight: 1.65,
-              }}>
-                &ldquo;We&rsquo;re a young product and always improving. If you have suggestions or just want to chat about your wedding - message us. Sim or KV will reply, usually within the hour.&rdquo;
-              </div>
+              <p style={{ marginBottom: 18 }}>
+                So we built our own. And then while planning, we started noticing everything else that was broken. The follow-ups being sent manually. The same questions asked over and over. The things we were getting ChatGPT and Claude to cobble together because no tool actually handled them properly. One of us kept finding problems, the other kept building solutions.
+              </p>
+              <p style={{ marginBottom: 18 }}>
+                By the time we were on our honeymoon, we had the bones of Phera. Everything we wished we&rsquo;d had. Everything we&rsquo;d already quietly built for ourselves.
+              </p>
+              <p style={{ marginBottom: 0 }}>
+                We&rsquo;re still building it, and we&rsquo;d love your help making it better. Message us anytime — we reply, usually within the hour.
+              </p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 32, paddingTop: 24, borderTop: '1px solid rgba(0,0,0,0.1)', flexWrap: 'wrap' }}>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-strong)' }}>Sim Savani &amp; KV Ghumaan</div>
-                <div style={{ fontSize: 13, color: 'var(--text-subtle)', marginTop: 2 }}>Founders  ·  married Feb 2025  ·  still recovering</div>
-              </div>
-              <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
-                {[
-                  { l: 'Sim · IG', h: 'https://www.instagram.com/simransimranaway/' },
-                  { l: 'KV · IG',  h: 'https://www.instagram.com/kvghumaan/' },
-                ].map((s) => (
-                  <a key={s.l} href={s.h} target="_blank" rel="noopener noreferrer" style={{
-                    fontSize: 12, padding: '8px 14px', borderRadius: 999,
-                    background: 'rgba(222,63,94,0.08)', color: 'var(--accent)',
-                    textDecoration: 'none', fontWeight: 600, letterSpacing: '0.04em',
-                    border: '1px solid rgba(222,63,94,0.18)',
-                  }}>{s.l}</a>
-                ))}
-              </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 20,
+                marginTop: 32,
+                paddingTop: 24,
+                borderTop: '1px solid rgba(0,0,0,0.1)',
+              }}
+            >
+              {FOUNDERS.map((f) => (
+                <div key={f.name}>
+                  <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-strong)' }}>
+                    {f.name}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                    <SocialIconLink href={f.instagram} label={`${f.name} on Instagram`}>
+                      <Instagram sx={{ fontSize: 18 }} />
+                    </SocialIconLink>
+                    <SocialIconLink href={f.linkedin} label={`${f.name} on LinkedIn`}>
+                      <LinkedIn sx={{ fontSize: 18 }} />
+                    </SocialIconLink>
+                    <SocialIconLink href={f.website} label={`${f.name}'s website`}>
+                      <Language sx={{ fontSize: 18 }} />
+                    </SocialIconLink>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </Reveal>
@@ -147,5 +176,45 @@ export default function OriginSection() {
         }
       `}</style>
     </section>
+  );
+}
+
+function SocialIconLink({
+  href,
+  label,
+  children,
+}: {
+  href: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 34,
+        height: 34,
+        borderRadius: 999,
+        background: 'rgba(222,63,94,0.08)',
+        color: 'var(--accent)',
+        border: '1px solid rgba(222,63,94,0.18)',
+        textDecoration: 'none',
+        transition: 'background-color 0.15s ease, transform 0.15s ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = 'rgba(222,63,94,0.16)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = 'rgba(222,63,94,0.08)';
+      }}
+    >
+      {children}
+    </a>
   );
 }

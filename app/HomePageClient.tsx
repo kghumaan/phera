@@ -32,7 +32,8 @@ import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useAuth } from '@/lib/contexts/AuthContext';
-import WhatsAppConcierge, { type Message } from '@/components/ui/WhatsAppConcierge';
+import WhatsAppConcierge from '@/components/ui/WhatsAppConcierge';
+import { CONCIERGE_MESSAGES } from '@/components/landing/concierge-messages';
 import IPhoneMockup from '@/components/ui/IPhoneMockup';
 import HomePostAuthModalOpener from './HomePostAuthModalOpener';
 import { ActionButton } from '@/components/admin/ActionButton';
@@ -67,42 +68,6 @@ export default function HomePageClient() {
 }
 
 function LandingPageContent() {
-  const conciergeMessages: Message[] = [
-    {
-      type: 'guest',
-      text: "What should I wear to the Sangeet tomorrow?",
-      time: "10:42 AM",
-    },
-    {
-      type: 'bot',
-      text: <>Sangeet&apos;s festive - jewel tones, lehengas or anarkalis for women, kurtas in deep colors for men. Skip white &amp; black. Indoor venue, heels are fine 💃</>,
-      time: "10:42 AM",
-      hasCheck: true,
-    },
-    {
-      type: 'guest',
-      text: "Perfect. My flight lands at 11pm - is there a pickup?",
-      time: "10:43 AM",
-    },
-    {
-      type: 'bot',
-      text: <>You&apos;re on the <strong>11:30 PM</strong> shuttle to the <strong>Grand Hyatt</strong>. Driver Rajesh (+91 98xxx 12345) will be at Arrivals Gate 4 with a Phera sign ✈️</>,
-      time: "10:43 AM",
-      hasCheck: true,
-    },
-    {
-      type: 'guest',
-      text: "Free afternoon Friday - anything to do nearby?",
-      time: "11:05 AM",
-    },
-    {
-      type: 'bot',
-      text: <>It&apos;s 28°C and sunny ☀️ <strong>Hauz Khas Village</strong> is 10 min away (cafés, boutiques) or <strong>Lodhi Garden</strong> for a quiet walk. Want me to book a table somewhere?</>,
-      time: "11:06 AM",
-      hasCheck: true,
-    },
-  ];
-
   const { user } = useAuth();
   const router = useRouter();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
@@ -271,13 +236,13 @@ function LandingPageContent() {
                 >
                   <IPhoneMockup
                     width={{ xs: '240px', sm: '270px', md: '300px', lg: '320px' }}
-                    sx={{ maxHeight: { md: '80vh' }, mx: { xs: 'auto', md: 0 } }}
+                    sx={{ maxHeight: { md: '80dvh' }, mx: { xs: 'auto', md: 0 } }}
                   >
                     <WhatsAppConcierge
                       hideNotch
                       dense
                       scripted
-                      messages={conciergeMessages}
+                      messages={CONCIERGE_MESSAGES}
                       sx={{ width: '100%', height: '100%', border: 'none', borderRadius: 0 }}
                     />
                   </IPhoneMockup>

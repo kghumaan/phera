@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SectionHeader, ImagePlaceholder } from './design-primitives';
 import GuestListImportMock from './feature-mocks/GuestListImportMock';
+import WhatsAppBotMock from './feature-mocks/WhatsAppBotMock';
 
 interface Step {
   tag: string;
@@ -65,6 +66,7 @@ const STEPS: Step[] = [
     ],
     mockLabel: 'WhatsApp outreach + concierge bot',
     tint: 'rgba(32,201,151,0.07)',
+    customMock: () => <WhatsAppBotMock />,
   },
   {
     tag: 'STEP 04  ·  Rooms',
@@ -243,11 +245,18 @@ export default function FeatureStepper() {
             ))}
           </div>
 
-          {/* RIGHT: sticky demo viewport */}
+          {/* RIGHT: sticky square viewport. The grid keeps the original
+              1.05fr/1fr separator, but the stage extends past the
+              container's right edge all the way to the viewport edge —
+              ignoring the 32px container padding plus any auto-margin
+              outside the 1280px max. Capped at 640px so it doesn't grow
+              unboundedly on ultra-wide viewports. */}
           <div className="stepper-stage" style={{
             position: 'sticky',
-            top: 'calc(50vh - 280px)',
-            height: 560,
+            top: 'calc(50vh - 320px)',
+            width: 'calc(100% + max(32px, (100vw - 1216px) / 2))',
+            maxWidth: 640,
+            aspectRatio: '1 / 1',
           }}>
             {/* progress rail */}
             <div className="stepper-rail" style={{
@@ -291,7 +300,7 @@ export default function FeatureStepper() {
               borderRadius: 24,
               background: STEPS[active].tint,
               border: '1px solid rgba(0,0,0,0.06)',
-              padding: 'clamp(20px, 2.5vw, 32px)',
+              padding: 'clamp(20px, 2.4vw, 36px)',
               overflow: 'hidden',
               transition: 'background 0.6s ease',
             }}>
@@ -305,7 +314,7 @@ export default function FeatureStepper() {
                     key={i}
                     style={{
                       position: 'absolute',
-                      inset: 'clamp(20px, 2.5vw, 32px)',
+                      inset: 'clamp(20px, 2.4vw, 36px)',
                       opacity: isActive ? 1 : 0,
                       transform: isActive
                         ? 'translateY(0) scale(1)'
@@ -333,7 +342,7 @@ export default function FeatureStepper() {
       <style>{`
         @media (max-width: 960px) {
           .stepper-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
-          .stepper-stage { position: relative !important; top: auto !important; height: 460px !important; margin-bottom: 8px; }
+          .stepper-stage { position: relative !important; top: auto !important; aspect-ratio: 1 / 1 !important; max-width: 520px; margin: 0 auto 8px; }
           .stepper-rail { display: none !important; }
         }
       `}</style>
