@@ -1,43 +1,42 @@
 'use client';
 
-import { Box, Container, Typography, Stack } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { ActionButton } from '@/components/admin/ActionButton';
 import EyebrowLabel from '@/components/landing/EyebrowLabel';
+import SectionContainer from '@/components/landing/SectionContainer';
 import { COLORS, FONTS } from '@/lib/theme/tokens';
 
 /**
  * Last section above the footer. Sits on the shared blue-clouds backdrop
  * (set by the parent wrapper in HomePageClient) so this component renders
- * transparent — no Paper card, no inner gradient. Centered eyebrow +
+ * transparent - no Paper card, no inner gradient. Centered eyebrow +
  * display headline + subtitle + two CTAs.
+ *
+ * Vertical padding is provided by the wrapper Box in HomePageClient via
+ * SECTION.py - the inner SectionContainer here adds none.
  */
 export default function FinalCTA() {
   return (
-    <Container
-      maxWidth="xl"
-      sx={{
-        px: { xs: 2.5, md: 6, lg: 10 },
-        pb: { xs: 6, md: 10 },
-        pt: { xs: 6, md: 10 },
-        textAlign: 'center',
-      }}
-    >
+    <SectionContainer sx={{ textAlign: 'center' }}>
       <Stack spacing={3} sx={{ alignItems: 'center' }}>
         <EyebrowLabel align="center">One last thing</EyebrowLabel>
 
-        <Typography
-          variant="h2"
+        {/* Plain h2 (not Typography variant) so MUI's variant rules don't
+            override the clamp() at lg+. */}
+        <Box
+          component="h2"
           sx={{
             fontFamily: FONTS.display,
             fontStyle: 'italic',
-            // Match design's clamp(48px, 8vw, 120px) — capped lower so it
-            // doesn't dwarf section titles above.
-            fontSize: { xs: '2.75rem', sm: '3.75rem', md: '5.5rem', lg: '6.5rem' },
+            fontWeight: 400,
+            // Design: clamp(48px, 8vw, 120px)
+            fontSize: 'clamp(3rem, 8vw, 7.5rem)',
             lineHeight: 0.95,
             letterSpacing: '-0.025em',
             color: COLORS.text.strong,
             maxWidth: '14ch',
             mx: 'auto',
+            m: 0,
             textWrap: 'balance',
           }}
         >
@@ -48,47 +47,50 @@ export default function FinalCTA() {
             celebrating
           </Box>
           .
-        </Typography>
+        </Box>
 
-        <Typography
+        <Box
+          component="p"
           sx={{
-            fontSize: { xs: '1rem', md: '1.15rem' },
+            fontFamily: FONTS.body,
+            // Design: 18px (subtitle), reduced line-height 1.55 for two-line wraps.
+            fontSize: 'clamp(1rem, 1.4vw, 1.125rem)',
             color: COLORS.text.muted,
             maxWidth: '50ch',
             mx: 'auto',
             lineHeight: 1.55,
+            m: 0,
           }}
         >
           Spin up a free site in 10 minutes. Upgrade when you&apos;re ready
           for us to take over.
-        </Typography>
+        </Box>
 
         <Stack
-          direction={{ xs: 'row', sm: 'row' }}
-          spacing={1.5}
-          sx={{ pt: { xs: 1, md: 2 }, justifyContent: 'center', flexWrap: 'wrap', rowGap: 1.5 }}
+          direction="row"
+          spacing="14px"
+          sx={{ pt: 1, justifyContent: 'center', flexWrap: 'wrap', rowGap: '14px' }}
         >
           <ActionButton
             href="/auth/login"
             variant="contained"
-            keepBackgroundOnLoad
             sx={{
               bgcolor: COLORS.brand.primary,
               color: 'white',
-              px: { xs: 2.5, md: 4 },
-              py: { xs: 1, md: 1.5 },
-              minHeight: { xs: 44, md: 56 },
+              padding: '18px 30px',
               borderRadius: '999px',
-              fontSize: { xs: '0.875rem', md: '1.05rem' },
+              fontSize: '17px',
               textTransform: 'none',
               fontWeight: 600,
-              boxShadow: '0 6px 18px rgba(222,63,94,0.18)',
+              boxShadow: 'none',
+              transition: 'all 0.25s ease',
               '&:hover': {
                 bgcolor: COLORS.brand.primaryHover,
+                transform: 'translateY(-1px)',
                 boxShadow: '0 12px 28px rgba(222,63,94,0.25)',
               },
             }}
-            endIcon={<Box component="span" sx={{ fontSize: '1.1em', lineHeight: 1 }}>→</Box>}
+            endIcon={<Box component="span" sx={{ fontSize: '1.05em', lineHeight: 1 }}>→</Box>}
           >
             Get started - it&apos;s free
           </ActionButton>
@@ -98,17 +100,18 @@ export default function FinalCTA() {
             keepBackgroundOnLoad
             sx={{
               borderColor: 'rgba(0,0,0,0.18)',
+              borderWidth: '1.5px',
               color: COLORS.text.strong,
-              px: { xs: 2.5, md: 4 },
-              py: { xs: 1, md: 1.5 },
-              minHeight: { xs: 44, md: 56 },
+              padding: '18px 30px',
               borderRadius: '999px',
-              fontSize: { xs: '0.875rem', md: '1.05rem' },
+              fontSize: '17px',
               textTransform: 'none',
               fontWeight: 600,
               bgcolor: 'transparent',
+              transition: 'all 0.25s ease',
               '&:hover': {
                 borderColor: COLORS.text.strong,
+                borderWidth: '1.5px',
                 bgcolor: 'rgba(0,0,0,0.02)',
               },
             }}
@@ -117,6 +120,6 @@ export default function FinalCTA() {
           </ActionButton>
         </Stack>
       </Stack>
-    </Container>
+    </SectionContainer>
   );
 }

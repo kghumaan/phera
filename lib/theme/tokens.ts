@@ -133,6 +133,21 @@ export const SHADOWS = {
   dialog: '0 8px 32px rgba(0, 0, 0, 0.08)',
 } as const;
 
+// ─── Section layout ─────────────────────────────────────────────────
+// Mirrors the design package's `--section-pad` CSS var: 140px standard,
+// 80px on small viewports. Used as the canonical `py` for every landing
+// section so vertical rhythm stays uniform without per-component magic
+// numbers.
+
+export const SECTION = {
+  py: { xs: '80px', md: '140px' },
+  /** Container max-width — design's `--container-max`. */
+  maxWidth: 1280,
+  /** Container side padding — design's `.container { padding: 0 32px }`,
+   *  with the `@media (max-width: 768px) { padding: 0 20px }` override. */
+  px: { xs: '20px', md: '32px' },
+} as const;
+
 // ─── Transitions ────────────────────────────────────────────────────
 
 export const TRANSITIONS = {

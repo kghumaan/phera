@@ -46,26 +46,35 @@ function LotusGlyph({ size = 18, color = 'rgba(255, 153, 51, 0.7)' }: { size?: n
 export interface MarqueeProps {
   words?: string[];
   /**
-   * Optional CSS background. Defaults to a vertical cream→paper gradient so
-   * the ticker visually bridges the hero (which fades to cream at the
-   * bottom) and the feature section (paper-toned). Pass a flat color or
-   * different gradient to use the ticker elsewhere on the site.
+   * Optional CSS background. Defaults to the design's translucent white
+   * (`rgba(255,255,255,0.4)`) which pairs with the backdrop-filter blur to
+   * create the "floats on clouds" look at the bottom of the hero. Override
+   * if you need a flat color elsewhere.
    */
   background?: string;
+  /**
+   * Apply backdrop-filter: blur(...) to the strip. Defaults to '6px' to
+   * match the design. Pass 'none' to disable.
+   */
+  backdropBlur?: string;
 }
 
 export default function Marquee({
   words = DEFAULT_WORDS,
-  background = 'linear-gradient(180deg, #F7F1E8 0%, #FAF3E8 50%, #FBF7F1 100%)',
+  background = 'rgba(255, 255, 255, 0.4)',
+  backdropBlur = 'blur(6px)',
 }: MarqueeProps) {
   return (
     <Box
       component="section"
       sx={{
-        py: { xs: 2, md: 2.25 },
+        // Design: padding: 14px 0
+        py: '14px',
         background,
-        borderTop: '1px solid rgba(0, 0, 0, 0.06)',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
+        backdropFilter: backdropBlur,
+        WebkitBackdropFilter: backdropBlur,
+        borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
         position: 'relative',
         zIndex: 2,
       }}

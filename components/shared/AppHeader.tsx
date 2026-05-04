@@ -124,7 +124,14 @@ export default function AppHeader({
     zIndex: 50,
     display: 'flex',
     alignItems: 'center',
-    py: isScrolled ? { xs: 1.25, md: 1.5 } : { xs: 2.25, md: 2.5 },
+    // Match design's `.site-header` rule:
+    //   initial: padding: 18px clamp(180px, 18vw, 260px)
+    //   scrolled: padding: 12px clamp(20px, 4vw, 48px)
+    //   mobile @max 768: 14px 20px / 10px 20px
+    // Single clamp() per axis replaces the prior breakpoint-stepped
+    // `{ xs: 1.25, md: 1.5 }` ladder.
+    py: isScrolled ? '12px' : '18px',
+    px: isScrolled ? 'clamp(20px, 4vw, 48px)' : 'clamp(180px, 18vw, 260px)',
     bgcolor: isScrolled ? 'rgba(247, 241, 232, 0.85)' : 'transparent',
     backdropFilter: isScrolled ? 'blur(16px)' : 'blur(0px)',
     WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'blur(0px)',
@@ -132,6 +139,10 @@ export default function AppHeader({
     borderBottomColor: isScrolled ? 'rgba(0,0,0,0.06)' : 'transparent',
     transition:
       'padding 0.35s ease, background-color 0.35s ease, backdrop-filter 0.35s ease, -webkit-backdrop-filter 0.35s ease, border-bottom-color 0.35s ease',
+    '@media (max-width: 768px)': {
+      py: isScrolled ? '10px' : '14px',
+      px: '20px',
+    },
   } : {
     position: 'absolute' as const,
     top: 0,
@@ -171,21 +182,16 @@ export default function AppHeader({
           sx={{
             maxWidth: isLandingPage || isWeddingPage ? '100%' : { xs: '100%', sm: 361, md: 600, lg: 700 },
             width: '100%',
-            // Landing page: heavy edge inset at top (logo + nav pulled in toward
-            // center, past the marigold corners), then contracts to flush as
-            // the user scrolls — the same 350ms transition as the outer
-            // header so the logo glides outward / inward smoothly.
+            // Landing-transparent: outer Box drives padding via clamp(),
+            // so the Container itself stays edge-to-edge here.
             px: isLandingTransparent
-              ? (isScrolled
-                  ? { xs: 2, md: 4, lg: 6 }
-                  : { xs: '150px', sm: '200px', md: '250px' })
+              ? 0
               : isLandingPage
-                ? { xs: '150px', sm: '200px', md: '250px' }
+                ? 'clamp(180px, 18vw, 260px)'
                 : { xs: 2, md: 4 },
-            // When the outer header drives its own py (landing-transparent
-            // variant), drop the Container's pt so spacing isn't doubled.
+            // When the outer header drives its own py, drop the Container's
+            // pt so spacing isn't doubled.
             pt: isLandingTransparent ? 0 : { xs: 2, md: 4 },
-            transition: isLandingTransparent ? 'padding 0.35s ease' : undefined,
           }}
         >
           <Box

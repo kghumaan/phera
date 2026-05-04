@@ -2,7 +2,6 @@
 
 import {
   Box,
-  Container,
   Grid,
   IconButton,
   Paper,
@@ -13,7 +12,8 @@ import {
 import { Instagram, Language, LinkedIn } from '@mui/icons-material';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { COLORS, FONTS } from '@/lib/theme/tokens';
+import SectionContainer from '@/components/landing/SectionContainer';
+import { COLORS, FONTS, SECTION } from '@/lib/theme/tokens';
 
 interface AboutSectionProps {
   /**
@@ -36,17 +36,13 @@ export default function AboutSection({ variant = 'embedded', eyebrow }: AboutSec
     <Box
       component="section"
       sx={{
-        // Embedded variant uses the same py rhythm as every other
-        // non-hero section on the landing page (`py: 8 / 14`) so the
-        // headline sits clear of the section top instead of bumping it.
+        // Embedded variant uses the canonical SECTION.py (80/140) so it
+        // shares vertical rhythm with every other landing section.
         // Standalone /about page (variant='page') keeps generous padding.
-        py: isPage ? { xs: 12, md: 20 } : { xs: 8, md: 14 },
+        py: isPage ? { xs: 12, md: 20 } : SECTION.py,
       }}
     >
-      <Container
-        maxWidth="xl"
-        sx={{ px: { xs: 2.5, md: 6, lg: 10 } }}
-      >
+      <SectionContainer>
         <Grid container spacing={{ xs: 6, md: 10 }} alignItems="center">
           <Grid size={{ xs: 12, md: 6 }}>
             <motion.div
@@ -137,29 +133,34 @@ export default function AboutSection({ variant = 'embedded', eyebrow }: AboutSec
               <Stack spacing={{ xs: 3, md: 4 }}>
                 <Box>
                   {eyebrow && <Box sx={{ mb: 2 }}>{eyebrow}</Box>}
-                  <Typography
+                  {/* Plain h1/h2 (not Typography variant) so MUI's variant
+                      rules can't override the clamp() at lg+. */}
+                  <Box
                     component={isPage ? 'h1' : 'h2'}
-                    variant="h2"
                     sx={{
                       fontFamily: FONTS.display,
                       fontStyle: 'italic',
-                      fontSize: { xs: '2.5rem', sm: '3rem', md: '4rem' },
+                      fontWeight: 400,
+                      // Design Story headline: clamp(40px, 5vw, 76px)
+                      fontSize: 'clamp(2.5rem, 5vw, 4.75rem)',
                       color: COLORS.text.strong,
                       mb: 2,
-                      lineHeight: 1.05,
-                      letterSpacing: '-0.02em',
+                      m: 0,
+                      lineHeight: 1.02,
+                      letterSpacing: '-0.025em',
                     }}
                   >
                     We built the team
                     <br />
                     we wish we had.
-                  </Typography>
+                  </Box>
                   <Box
                     sx={{
                       width: '60px',
                       height: '4px',
                       bgcolor: COLORS.brand.primary,
                       borderRadius: '2px',
+                      mt: { xs: 3, md: 4 },
                       mb: { xs: 2, md: 4 },
                     }}
                   />
@@ -254,7 +255,7 @@ export default function AboutSection({ variant = 'embedded', eyebrow }: AboutSec
             </motion.div>
           </Grid>
         </Grid>
-      </Container>
+      </SectionContainer>
     </Box>
   );
 }
