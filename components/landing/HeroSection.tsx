@@ -34,13 +34,12 @@ export default function HeroSection() {
   return (
     <section
       id="top"
-      className="hero-clouds"
+      className="hero-clouds hero-section"
       style={{
         color: 'var(--text-strong)',
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        paddingTop: 100,
         paddingBottom: 0,
         position: 'relative',
         overflow: 'hidden',
@@ -93,7 +92,7 @@ export default function HeroSection() {
               fontWeight: 400,
               letterSpacing: '-0.025em',
               lineHeight: 0.95,
-              fontSize: 'clamp(48px, 9.5vw, 132px)',
+              fontSize: 'clamp(44px, 9.5vw, 132px)',
               color: 'var(--text-strong)',
               maxWidth: '17ch',
               margin: 0,
@@ -122,14 +121,14 @@ export default function HeroSection() {
         </Reveal>
 
         <Reveal delay={3}>
-          <div style={{ display: 'flex', gap: 14, marginTop: 40, flexWrap: 'wrap' }}>
+          <div className="hero-cta-row">
             <ActionButton
               href="/auth/login"
               variant="contained"
               className="btn btn-primary"
               sx={{
-                fontSize: 17,
-                padding: '18px 30px',
+                fontSize: { xs: 15, sm: 17 },
+                padding: { xs: '13px 22px', sm: '18px 30px' },
                 borderRadius: '999px',
                 textTransform: 'none',
                 fontWeight: 600,
@@ -146,8 +145,8 @@ export default function HeroSection() {
               variant="outlined"
               className="btn btn-ghost"
               sx={{
-                fontSize: 17,
-                padding: '18px 30px',
+                fontSize: { xs: 15, sm: 17 },
+                padding: { xs: '13px 22px', sm: '18px 30px' },
                 borderRadius: '999px',
                 textTransform: 'none',
                 fontWeight: 600,
@@ -168,6 +167,7 @@ export default function HeroSection() {
 
       {/* Marquee at bottom of hero - design verbatim. */}
       <div
+        className="hero-marquee-bar"
         style={{
           marginTop: 0,
           padding: '14px 0',
@@ -186,7 +186,7 @@ export default function HeroSection() {
               MARQUEE_WORDS.map((w, i) => (
                 <span key={`${k}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 48 }}>
                   <span
-                    className="serif"
+                    className="serif hero-marquee-word"
                     style={{
                       // Inline fontFamily - MUI CssBaseline + Tailwind preflight
                       // can clobber the .phera-landing .serif cascade so the
@@ -204,6 +204,18 @@ export default function HeroSection() {
           </div>
         </div>
       </div>
+      <style>{`
+        .hero-section { padding-top: 100px; }
+        .hero-cta-row { display: flex; gap: 14px; margin-top: 40px; flex-wrap: wrap; align-items: stretch; }
+        .hero-cta-row > * { flex: 0 0 auto; }
+        @media (max-width: 600px) {
+          .hero-section { padding-top: 88px; }
+          .hero-cta-row { gap: 10px; margin-top: 28px; flex-direction: column; align-items: stretch; }
+          .hero-cta-row > * { flex: 1 1 auto; width: 100%; min-width: 0; }
+          .hero-marquee-word { font-size: 22px !important; }
+          .hero-marquee-bar { padding: 12px 0 !important; }
+        }
+      `}</style>
     </section>
   );
 }

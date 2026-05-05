@@ -331,27 +331,31 @@ export default function FeatureStepper() {
 
                 {/* Mobile-only inline mock — vertically stacks each
                     step's mock right under its text on mobile. Hidden on
-                    desktop where the sticky right-column stage shows it. */}
+                    desktop where the sticky right-column stage shows it.
+                    The inner content is rendered at a fixed intrinsic
+                    width (480px) and CSS-scaled to fit narrower viewports
+                    so detailed mocks (guest list table, room grid, vendor
+                    digest) never get clipped on the right edge. */}
                 {s.customMock && (
                   <div
                     className="step-mock-inline"
                     style={{
-                      marginTop: 32,
-                      borderRadius: 24,
+                      marginTop: 28,
+                      borderRadius: 20,
                       background: s.tint,
                       border: '1px solid rgba(0,0,0,0.06)',
-                      padding: 'clamp(16px, 5vw, 28px)',
-                      aspectRatio: '1 / 1',
                       width: '100%',
-                      maxWidth: 540,
+                      maxWidth: 480,
                       marginLeft: 'auto',
                       marginRight: 'auto',
                       overflow: 'hidden',
                       position: 'relative',
                     }}
                   >
-                    <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
-                      {s.customMock()}
+                    <div className="step-mock-scaler">
+                      <div className="step-mock-content">
+                        {s.customMock()}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -456,20 +460,55 @@ export default function FeatureStepper() {
       <style>{`
         /* Desktop: inline mocks hidden (sticky stage handles display). */
         .step-mock-inline { display: none; }
+        /* Mocks are authored against a fixed 480 × 480 design canvas. On
+           mobile we render at intrinsic size and use a CSS transform to
+           scale the visual rendering to fit the available frame, so
+           detail-heavy mocks (guest list rows, room grid, vendor digest)
+           never get clipped on the right edge — they just shrink uniformly. */
+        .step-mock-scaler {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          overflow: hidden;
+        }
+        .step-mock-content {
+          width: 480px;
+          height: 480px;
+          transform-origin: top left;
+        }
 
         @media (max-width: 960px) {
-          .stepper-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          /* minmax(0, 1fr) lets the column shrink below the intrinsic
+             width of its children — without it, the 480px-wide
+             .step-mock-content forces the grid track wider than the
+             viewport and the body copy clips on the right edge. */
+          .stepper-grid { grid-template-columns: minmax(0, 1fr) !important; gap: 24px !important; }
           /* Mobile: hide the sticky stage — each step renders its own mock
              inline so the mock follows the step's text as you scroll. */
           .stepper-stage { display: none !important; }
           .stepper-rail { display: none !important; }
-          .step-mock-inline { display: block; }
+          .step-mock-inline { display: block; min-width: 0; max-width: 100%; }
+          .step-mock-scaler { min-width: 0; }
           /* Steps don't need 70vh of breathing room on mobile — the
              inline mock itself adds height. */
-          .stepper-grid > div > div { min-height: 0 !important; padding-right: 0 !important; opacity: 1 !important; }
+          .stepper-grid > div > div { min-height: 0 !important; padding-right: 0 !important; opacity: 1 !important; min-width: 0; }
         }
         @media (max-width: 768px) {
           .feature-steps-overview, .feature-steps-divider { display: none !important; }
+        }
+        /* Below 520px the available frame (viewport - container padding)
+           drops below 480px, so the mock needs to scale down to fit.
+           Container padding is 20px each side at this breakpoint. */
+        @media (max-width: 520px) {
+          .step-mock-content {
+            transform: scale(calc((100vw - 40px) / 480));
+          }
+        }
+        /* Container padding tightens to 16px each side below 480px. */
+        @media (max-width: 480px) {
+          .step-mock-content {
+            transform: scale(calc((100vw - 32px) / 480));
+          }
         }
       `}</style>
     </section>

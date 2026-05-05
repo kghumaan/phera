@@ -108,7 +108,7 @@ export function SectionHeader({
         </div>
       </Reveal>
       <Reveal delay={1}>
-        <h2 className="display wrap-balance" style={{
+        <h2 className={`display wrap-balance ${singleLine ? 'section-header-single-line' : ''}`} style={{
           // Inline font props - MUI CssBaseline + Tailwind preflight reset
           // h1-h6 in ways that beat `.phera-landing .display` cascade.
           fontFamily: 'var(--font-instrument-serif), Georgia, serif',
@@ -116,12 +116,11 @@ export function SectionHeader({
           fontWeight: 400,
           letterSpacing: '-0.025em',
           lineHeight: 0.95,
-          fontSize: 'clamp(36px, 5.5vw, 76px)',
+          fontSize: 'clamp(34px, 5.5vw, 76px)',
           marginTop: 18,
           marginBottom: 0,
           color: 'var(--text-strong)',
           maxWidth: singleLine ? 'none' : '18ch',
-          whiteSpace: singleLine ? 'nowrap' : undefined,
           marginLeft: isCenter ? 'auto' : 0,
           marginRight: isCenter ? 'auto' : 0,
         }}>

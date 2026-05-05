@@ -120,8 +120,18 @@
 }
 @media (max-width: 768px) {
   .phera-landing .container { padding: 0 20px; }
-  .phera-landing { --section-pad: 80px; }
+  .phera-landing { --section-pad: 72px; }
 }
+@media (max-width: 480px) {
+  .phera-landing .container { padding: 0 16px; }
+  .phera-landing { --section-pad: 64px; }
+}
+
+/* Make sure landing surfaces never produce horizontal scroll on mobile —
+   stray decorative elements (offset gradients, date pills, marquees that
+   reach past the container) should be clipped, not punch the page wider
+   than the viewport. */
+.phera-landing { overflow-x: hidden; }
 
 /* ===== Buttons ===== */
 .phera-landing .btn {
@@ -139,6 +149,13 @@
   text-decoration: none;
   transition: all 0.25s ease;
   white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .phera-landing .btn {
+    font-size: 15px;
+    padding: 13px 22px;
+    gap: 8px;
+  }
 }
 .phera-landing .btn-primary {
   background: var(--accent);
@@ -245,6 +262,14 @@
 /* ===== Pretty wrap ===== */
 .phera-landing .wrap-pretty { text-wrap: pretty; }
 .phera-landing .wrap-balance { text-wrap: balance; }
+
+/* ===== Section heading singleLine — nowrap on desktop, wrap on tablet
+   and below so short titles don't punch past the container edge on
+   narrow viewports. ===== */
+.phera-landing .section-header-single-line { white-space: nowrap; }
+@media (max-width: 900px) {
+  .phera-landing .section-header-single-line { white-space: normal; }
+}
 
 /* ===== Hero garland corners ===== */
 .phera-landing .hero-garland {

@@ -65,9 +65,9 @@ export default function OriginSection() {
         >
         {/* LEFT: framed photo + founder credit block */}
         <Reveal>
-          <div style={{ maxWidth: 480, marginInline: 'auto' }}>
-            <div style={{ position: 'relative' }}>
-              <div style={{
+          <div className="origin-photo-block" style={{ maxWidth: 480, marginInline: 'auto' }}>
+            <div className="origin-photo-frame" style={{ position: 'relative' }}>
+              <div className="origin-photo-bg" style={{
                 position: 'absolute',
                 inset: -18,
                 borderRadius: 28,
@@ -75,7 +75,7 @@ export default function OriginSection() {
                 transform: 'rotate(-2deg)',
                 zIndex: 0,
               }} />
-              <div style={{
+              <div className="origin-photo-img-wrap" style={{
                 position: 'relative',
                 borderRadius: 22,
                 overflow: 'hidden',
@@ -92,7 +92,7 @@ export default function OriginSection() {
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
               </div>
-              <div style={{
+              <div className="origin-photo-pill" style={{
                 position: 'absolute',
                 bottom: -18,
                 right: -10,
@@ -106,6 +106,7 @@ export default function OriginSection() {
                 fontSize: 16,
                 color: 'var(--text-strong)',
                 zIndex: 2,
+                whiteSpace: 'nowrap',
               }}>
                 Sim &amp; KV  ·  Feb 2025
               </div>
@@ -172,7 +173,22 @@ export default function OriginSection() {
       </div>
       <style>{`
         @media (max-width: 900px) {
-          #story .origin-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+          #story .origin-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+        }
+        @media (max-width: 600px) {
+          /* Pull the offset gradient and date pill in a bit so the photo
+             frame fits cleanly inside the container with breathing room
+             on the sides. */
+          #story .origin-photo-block { padding-left: 8px; padding-right: 12px; }
+          #story .origin-photo-bg { inset: -10px !important; }
+          #story .origin-photo-pill {
+            right: -4px !important;
+            bottom: -14px !important;
+            font-size: 14px !important;
+            padding: 8px 12px !important;
+          }
+          #story .origin-grid { gap: 32px !important; }
+          #story p { font-size: 16px !important; line-height: 1.65 !important; }
         }
       `}</style>
     </section>
