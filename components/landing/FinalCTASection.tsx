@@ -40,7 +40,7 @@ export default function FinalCTASection() {
             fontStyle: 'italic',
             fontWeight: 400,
             letterSpacing: '-0.025em',
-            fontSize: 'clamp(44px, 8vw, 120px)',
+            fontSize: 'clamp(54px, 9vw, 120px)',
             marginTop: 24,
             marginBottom: 0,
             color: 'var(--text-strong)',

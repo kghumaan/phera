@@ -189,7 +189,7 @@ function LandingPageContent() {
                       fontStyle: 'italic',
                       fontWeight: 400,
                       letterSpacing: '-0.02em',
-                      fontSize: 'clamp(36px, 6vw, 88px)',
+                      fontSize: 'clamp(50px, 7vw, 88px)',
                       color: 'white',
                       margin: 0,
                       lineHeight: 0.98,

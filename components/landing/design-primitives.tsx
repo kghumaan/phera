@@ -116,7 +116,7 @@ export function SectionHeader({
           fontWeight: 400,
           letterSpacing: '-0.025em',
           lineHeight: 0.95,
-          fontSize: 'clamp(34px, 5.5vw, 76px)',
+          fontSize: 'clamp(50px, 6.5vw, 76px)',
           marginTop: 18,
           marginBottom: 0,
           color: 'var(--text-strong)',
