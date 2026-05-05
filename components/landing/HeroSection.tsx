@@ -92,7 +92,7 @@ export default function HeroSection() {
               fontWeight: 400,
               letterSpacing: '-0.025em',
               lineHeight: 0.95,
-              fontSize: 'clamp(56px, 11vw, 156px)',
+              fontSize: 'clamp(68px, 12vw, 156px)',
               color: 'var(--text-strong)',
               maxWidth: '17ch',
               margin: 0,
