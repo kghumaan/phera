@@ -68,7 +68,7 @@ export default function HeroSection() {
       />
 
       <div
-        className="container"
+        className="container hero-content"
         style={{
           position: 'relative',
           zIndex: 2,
@@ -92,7 +92,7 @@ export default function HeroSection() {
               fontWeight: 400,
               letterSpacing: '-0.025em',
               lineHeight: 0.95,
-              fontSize: 'clamp(44px, 9.5vw, 132px)',
+              fontSize: 'clamp(56px, 11vw, 156px)',
               color: 'var(--text-strong)',
               maxWidth: '17ch',
               margin: 0,
@@ -205,13 +205,33 @@ export default function HeroSection() {
         </div>
       </div>
       <style>{`
+        /* Hero — push content down a bit so the H1 doesn't sit so high
+           against the header. justify-content stays centered for the
+           inner stack; the extra push comes from a min top inset. */
         .hero-section { padding-top: 100px; }
+        .hero-content { padding-top: clamp(48px, 8vh, 120px); }
         .hero-cta-row { display: flex; gap: 14px; margin-top: 40px; flex-wrap: wrap; align-items: stretch; }
-        .hero-cta-row > * { flex: 0 0 auto; }
+        .hero-cta-row > * {
+          flex: 0 0 auto;
+          /* Equal heights even though one button has an arrow icon. */
+          min-height: 56px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
         @media (max-width: 600px) {
           .hero-section { padding-top: 88px; }
+          .hero-content { padding-top: clamp(64px, 10vh, 120px); }
+          /* Both CTAs are the same size on mobile: equal flex basis,
+             equal min-height, same horizontal padding. */
           .hero-cta-row { gap: 10px; margin-top: 28px; flex-direction: column; align-items: stretch; }
-          .hero-cta-row > * { flex: 1 1 auto; width: 100%; min-width: 0; }
+          .hero-cta-row > * {
+            flex: 1 1 0;
+            width: 100%;
+            min-width: 0;
+            min-height: 52px;
+            box-sizing: border-box;
+          }
           .hero-marquee-word { font-size: 22px !important; }
           .hero-marquee-bar { padding: 12px 0 !important; }
         }

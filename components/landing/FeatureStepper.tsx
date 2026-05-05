@@ -492,22 +492,29 @@ export default function FeatureStepper() {
           /* Steps don't need 70vh of breathing room on mobile — the
              inline mock itself adds height. */
           .stepper-grid > div > div { min-height: 0 !important; padding-right: 0 !important; opacity: 1 !important; min-width: 0; }
+          /* Breathing room between consecutive step blocks — adjacent
+             sibling so the first step has no extra top margin. */
+          .stepper-grid > div > div + div { margin-top: 72px; }
         }
         @media (max-width: 768px) {
           .feature-steps-overview, .feature-steps-divider { display: none !important; }
         }
         /* Below 520px the available frame (viewport - container padding)
            drops below 480px, so the mock needs to scale down to fit.
-           Container padding is 20px each side at this breakpoint. */
+           Container padding is 20px each side at this breakpoint.
+           NOTE: scale() needs a unitless number, so the calc must
+           divide a length by a length (px/px) — not by a bare 480. */
         @media (max-width: 520px) {
           .step-mock-content {
-            transform: scale(calc((100vw - 40px) / 480));
+            transform: scale(calc((100vw - 40px) / 480px));
           }
         }
-        /* Container padding tightens to 16px each side below 480px. */
+        /* Container padding tightens to 20px each side below 480px too
+           (mobile design uses 20px below 768px). Reserve 4px slack so
+           the rightmost pixel never clips. */
         @media (max-width: 480px) {
           .step-mock-content {
-            transform: scale(calc((100vw - 32px) / 480));
+            transform: scale(calc((100vw - 44px) / 480px));
           }
         }
       `}</style>

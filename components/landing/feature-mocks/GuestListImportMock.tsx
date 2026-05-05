@@ -361,10 +361,10 @@ function Divider() {
 }
 
 const COL = {
-  guest: '0 0 220px',
+  guest: '0 0 150px',
   tags: '1 1 auto',
-  rsvp: '0 0 60px',
-  party: '0 0 36px',
+  rsvp: '0 0 56px',
+  party: '0 0 32px',
 } as const;
 
 function TableHeader({ visible, rsvpVisible }: { visible: boolean; rsvpVisible: boolean }) {
@@ -400,11 +400,11 @@ function RsvpHeaderCell({ visible }: { visible: boolean }) {
   return (
     <motion.div
       initial={false}
-      animate={{ width: visible ? 60 : 0, opacity: visible ? 1 : 0 }}
+      animate={{ width: visible ? 56 : 0, opacity: visible ? 1 : 0 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       style={{ overflow: 'hidden', flex: 'none' }}
     >
-      <Box sx={{ width: 60 }}>RSVP</Box>
+      <Box sx={{ width: 56 }}>RSVP</Box>
     </motion.div>
   );
 }
@@ -432,7 +432,9 @@ function Row({
       }}
     >
       {/* Guest name + plus-one — fixed-width column so tags column starts
-          at the same x across every row. */}
+          at the same x across every row. The plus-one stacks UNDER the
+          name so the column stays narrow enough for the tags + RSVP +
+          party columns to fit at mobile widths. */}
       <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: COL.guest, minWidth: 0 }}>
         <Box
           sx={{
@@ -451,8 +453,17 @@ function Row({
         >
           {guest.initials}
         </Box>
-        <Box sx={{ minWidth: 0, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-          <Box component="span" sx={{ color: COLORS.text.strong, fontWeight: 500 }}>
+        <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+          <Box
+            component="span"
+            sx={{
+              color: COLORS.text.strong,
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
             {guest.name}
           </Box>
           {guest.plusOne && (
@@ -461,8 +472,10 @@ function Row({
               sx={{
                 color: COLORS.text.faint,
                 fontWeight: 400,
-                ml: 0.5,
-                fontSize: '0.75rem',
+                fontSize: '0.7rem',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             >
               + {guest.plusOne}
@@ -553,7 +566,7 @@ function RsvpCell({
           delay: visible ? 0.3 + delayMs / 1000 : 0,
           ease: 'easeOut',
         }}
-        style={{ width: 60 }}
+        style={{ width: 56 }}
       >
         <Stack direction="row" spacing={0.5} alignItems="center">
           <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: tone.dot, flex: 'none' }} />
