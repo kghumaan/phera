@@ -48,7 +48,7 @@ export default function FinalCTASection() {
             marginInline: 'auto',
             lineHeight: 0.95,
           }}>
-            Stop chasing.<br />Start <em style={{ color: 'var(--accent)' }}>celebrating</em>.
+            Plan less.<br />Celebrate <em style={{ color: 'var(--accent)' }}>more</em>.
           </h2>
         </Reveal>
         <Reveal delay={2}>

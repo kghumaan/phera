@@ -116,7 +116,7 @@ export default function HeroSection() {
               lineHeight: 1.5,
             }}
           >
-            The wedding operations team you wish you had. We handle every guest — RSVPs, travel, rooms, shuttles, midnight WhatsApps — so you can actually enjoy your wedding.
+            The wedding operations platform you wish you had. We handle every guest: RSVPs, travel, rooms, midnight WhatsApps. So you can actually enjoy your wedding.
           </p>
         </Reveal>
 
@@ -159,7 +159,7 @@ export default function HeroSection() {
                 },
               }}
             >
-              See how it works
+              View Demo
             </ActionButton>
           </div>
         </Reveal>

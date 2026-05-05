@@ -195,7 +195,7 @@ function LandingPageContent() {
                       lineHeight: 0.98,
                     }}
                   >
-                    Trained on <em style={{ color: 'var(--accent)' }}>your</em> wedding.<br />
+                    Trained on <em style={{ color: '#F08AA0' }}>your</em> wedding.<br />
                     On call <em>at 2 AM.</em>
                   </h2>
                   <Typography
@@ -217,7 +217,7 @@ function LandingPageContent() {
                       'Broadcasts updates and collects replies back from every guest',
                     ].map((line, i) => (
                       <Box component="li" key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, fontSize: { xs: 14, md: 16 }, color: 'rgba(255,255,255,0.85)', lineHeight: 1.5 }}>
-                        <Box component="span" sx={{ color: 'var(--accent)', fontWeight: 600, marginTop: '2px', flex: 'none' }}>✓</Box>
+                        <Box component="span" sx={{ color: '#F08AA0', fontWeight: 600, marginTop: '2px', flex: 'none' }}>✓</Box>
                         {line}
                       </Box>
                     ))}

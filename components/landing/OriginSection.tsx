@@ -48,7 +48,7 @@ export default function OriginSection() {
             right column. */}
         <SectionHeader
           eyebrow="origin"
-          title="We built the team we wish we had."
+          title="Meet the founders."
           singleLine
           eyebrowColor="var(--text-strong)"
         />
@@ -155,7 +155,7 @@ export default function OriginSection() {
                 Hi, we&rsquo;re KV and Sim. A software engineer and a product designer who met, fell in love, and then completely nerded out planning our wedding.
               </p>
               <p style={{ marginBottom: 18 }}>
-                It started with the website. We looked at Zola, WithJoy, all of them, and nothing felt right. They weren&rsquo;t built for Indian weddings, and the aesthetic wasn&rsquo;t us. We wanted something <em>desi</em>, young, and alive — something that would get our guests excited months before the wedding. We were planning a destination wedding with a bunch of non-desi friends attending, and we wanted them to feel the color and energy of it all before they even boarded a flight.
+                It started with the website. We looked at Zola, WithJoy, all of them, and nothing felt right. They weren&rsquo;t built for Indian weddings, and the aesthetic wasn&rsquo;t us. We wanted something <em>desi</em>, young, and alive. Something that would get our guests excited months before the wedding. We were planning a destination wedding with a bunch of non-desi friends attending, and we wanted them to feel the color and energy of it all before they even boarded a flight.
               </p>
               <p style={{ marginBottom: 18 }}>
                 So we built our own. And then while planning, we started noticing everything else that was broken. The follow-ups being sent manually. The same questions asked over and over. The things we were getting ChatGPT and Claude to cobble together because no tool actually handled them properly. One of us kept finding problems, the other kept building solutions.
@@ -164,7 +164,7 @@ export default function OriginSection() {
                 By the time we were on our honeymoon, we had the bones of Phera. Everything we wished we&rsquo;d had. Everything we&rsquo;d already quietly built for ourselves.
               </p>
               <p style={{ marginBottom: 0 }}>
-                We&rsquo;re still building it, and we&rsquo;d love your help making it better. Message us anytime — we reply, usually within the day.
+                We&rsquo;re still building it, and we&rsquo;d love your help making it better. Message us anytime. We reply, usually within the day.
               </p>
             </div>
           </div>

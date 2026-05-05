@@ -464,17 +464,23 @@ export default function FeatureStepper() {
            mobile we render at intrinsic size and use a CSS transform to
            scale the visual rendering to fit the available frame, so
            detail-heavy mocks (guest list rows, room grid, vendor digest)
-           never get clipped on the right edge — they just shrink uniformly. */
+           never get clipped on the right edge - they just shrink uniformly.
+           transform-origin: center + flex-centered scaler gives equal
+           breathing room on all four sides. */
         .step-mock-scaler {
           position: relative;
           width: 100%;
           aspect-ratio: 1 / 1;
           overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         .step-mock-content {
           width: 480px;
           height: 480px;
-          transform-origin: top left;
+          transform-origin: center;
+          flex: none;
         }
 
         @media (max-width: 960px) {
@@ -504,17 +510,17 @@ export default function FeatureStepper() {
            Container padding is 20px each side at this breakpoint.
            NOTE: scale() needs a unitless number, so the calc must
            divide a length by a length (px/px) — not by a bare 480. */
+        /* Reserve extra horizontal space (beyond the container padding)
+           so the flex-centered scaled content has breathing room on all
+           four sides instead of clinging to the right + bottom edges. */
         @media (max-width: 520px) {
           .step-mock-content {
-            transform: scale(calc((100vw - 40px) / 480px));
+            transform: scale(calc((100vw - 104px) / 480px));
           }
         }
-        /* Container padding tightens to 20px each side below 480px too
-           (mobile design uses 20px below 768px). Reserve 4px slack so
-           the rightmost pixel never clips. */
         @media (max-width: 480px) {
           .step-mock-content {
-            transform: scale(calc((100vw - 44px) / 480px));
+            transform: scale(calc((100vw - 96px) / 480px));
           }
         }
       `}</style>

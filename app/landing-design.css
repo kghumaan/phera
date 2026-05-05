@@ -342,7 +342,7 @@
 .phera-landing .bg-paisley::before       { background-image: url('/images/backgrounds/paisley-cream.webp'); opacity: 0.18; }
 .phera-landing .bg-sage::before          { background-image: url('/images/backgrounds/sage-watercolor.webp'); opacity: 0.55; mix-blend-mode: normal; }
 .phera-landing .bg-sunset::before        { background-image: url('/images/backgrounds/sunset.webp'); opacity: 1; mix-blend-mode: normal; }
-.phera-landing .bg-sky-soft::before      { background-image: url('/images/backgrounds/watercolor-blue-sky.webp'); opacity: 1; mix-blend-mode: normal; background-size: 100% auto; background-position: center top; }
+.phera-landing .bg-sky-soft::before      { background-image: url('/images/backgrounds/watercolor-blue-sky.webp'); opacity: 1; mix-blend-mode: normal; background-size: cover; background-position: center; }
 .phera-landing .bg-marble-gold::before   { background-image: url('/images/backgrounds/marble-gold.webp'); opacity: 0.85; mix-blend-mode: normal; }
 .phera-landing .bg-wa-doodles::before    { background-image: url('/images/backgrounds/whatsapp-chat-doodles.webp'); opacity: 0.06; mix-blend-mode: normal; }
 

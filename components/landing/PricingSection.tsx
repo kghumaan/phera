@@ -105,7 +105,18 @@ export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerC
                   {t.name}
                 </div>
                 <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-                  <span className="pricing-price display" style={{ fontStyle: 'italic', lineHeight: 1, color: 'var(--text-strong)' }}>{t.price}</span>
+                  <span
+                    className="pricing-price display"
+                    style={{
+                      fontFamily: 'var(--font-instrument-serif), Georgia, serif',
+                      fontStyle: 'italic',
+                      fontWeight: 400,
+                      lineHeight: 1,
+                      color: 'var(--text-strong)',
+                    }}
+                  >
+                    {t.price}
+                  </span>
                   <span style={{ fontSize: 13, color: 'var(--text-subtle)' }}>{t.sub}</span>
                 </div>
                 <p style={{ marginTop: 12, fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5 }}>

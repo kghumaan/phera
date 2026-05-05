@@ -53,7 +53,7 @@ const THREAD: ThreadMessage[] = [
   { sender: 'Priya Sharma',   role: 'admin',  text: 'What\'s the deposit + per-plate?',          time: '10:18' },
   { sender: 'Mehul Catering', role: 'vendor', text: '$500 by March 15. ₹1,200 per plate, setup included.', time: '10:22' },
   { sender: 'Priya Sharma',   role: 'admin',  text: 'Can we add 30 Jain plates?',                time: '10:24' },
-  { sender: 'Mehul Catering', role: 'vendor', text: 'Yes — pure veg, no upcharge. Need final headcount Fri 5 PM.', time: '10:26' },
+  { sender: 'Mehul Catering', role: 'vendor', text: 'Yes, pure veg, no upcharge. Need final headcount Fri 5 PM.', time: '10:26' },
 ];
 
 type InsightType = 'summary' | 'decision' | 'price_quote' | 'action_item' | 'deadline';
