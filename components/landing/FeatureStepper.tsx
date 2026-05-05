@@ -9,7 +9,7 @@
  * (you'll swap real screenshots in later).
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { SectionHeader, ImagePlaceholder } from './design-primitives';
 import GuestListImportMock from './feature-mocks/GuestListImportMock';
 import WeddingWebsiteMock from './feature-mocks/WeddingWebsiteMock';
@@ -128,6 +128,26 @@ export default function FeatureStepper() {
   const [active, setActive] = useState(0);
   const [progress, setProgress] = useState(0);
   const stepRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const inlineRefs = useRef<Array<HTMLDivElement | null>>([]);
+  /**
+   * Per-step "run id" that increments each time the step's animation
+   * should restart from scratch. We bump it on:
+   *   - desktop: when the step becomes the active sticky-stage step
+   *   - mobile:  when the step's inline mock enters the viewport
+   * The id is folded into the React `key` of the rendered mock so the
+   * component fully unmounts + remounts (resetting its internal cycle
+   * state) on each restart event.
+   */
+  const [runIds, setRunIds] = useState<number[]>(() => Array(STEPS.length).fill(0));
+  const prevActive = useRef<number | null>(null);
+
+  const bumpRun = (i: number) => {
+    setRunIds((prev) => {
+      const next = prev.slice();
+      next[i] = (next[i] || 0) + 1;
+      return next;
+    });
+  };
 
   useEffect(() => {
     const onScroll = () => {
@@ -151,6 +171,43 @@ export default function FeatureStepper() {
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Desktop: bump runId every time `active` changes (so the mock that
+  // just became visible in the sticky stage restarts from idle).
+  useEffect(() => {
+    if (prevActive.current === active) return;
+    prevActive.current = active;
+    bumpRun(active);
+  }, [active]);
+
+  // Mobile: IntersectionObserver per inline mock — bump runId when each
+  // mock scrolls into view from below or above. Threshold 0.35 means
+  // "bump once ~a third of the mock is on screen" so the restart fires
+  // before the user is scrolled all the way over it.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
+    const observers: IntersectionObserver[] = [];
+    inlineRefs.current.forEach((el, i) => {
+      if (!el) return;
+      let wasIntersecting = false;
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting && !wasIntersecting) {
+              wasIntersecting = true;
+              bumpRun(i);
+            } else if (!e.isIntersecting) {
+              wasIntersecting = false;
+            }
+          });
+        },
+        { threshold: 0.35 },
+      );
+      obs.observe(el);
+      observers.push(obs);
+    });
+    return () => observers.forEach((o) => o.disconnect());
   }, []);
 
   return (
@@ -338,6 +395,9 @@ export default function FeatureStepper() {
                     digest) never get clipped on the right edge. */}
                 {s.customMock && (
                   <div
+                    ref={(el) => {
+                      inlineRefs.current[i] = el;
+                    }}
                     className="step-mock-inline"
                     style={{
                       marginTop: 28,
@@ -354,7 +414,13 @@ export default function FeatureStepper() {
                   >
                     <div className="step-mock-scaler">
                       <div className="step-mock-content">
-                        {s.customMock()}
+                        {/* Fragment key forces remount whenever this
+                            step's runId changes — the mock's internal
+                            timers reset and its loop restarts from
+                            phase 'idle'. */}
+                        <Fragment key={`run-mob-${i}-${runIds[i]}`}>
+                          {s.customMock()}
+                        </Fragment>
                       </div>
                     </div>
                   </div>
@@ -447,7 +513,13 @@ export default function FeatureStepper() {
                     }}
                   >
                     <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
-                      {s.customMock ? s.customMock() : <ImagePlaceholder label={s.mockLabel} />}
+                      {s.customMock ? (
+                        <Fragment key={`run-desk-${i}-${runIds[i]}`}>
+                          {s.customMock()}
+                        </Fragment>
+                      ) : (
+                        <ImagePlaceholder label={s.mockLabel} />
+                      )}
                     </div>
                   </div>
                 );
