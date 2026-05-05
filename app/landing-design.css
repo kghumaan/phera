@@ -127,11 +127,14 @@
   .phera-landing { --section-pad: 64px; }
 }
 
-/* Make sure landing surfaces never produce horizontal scroll on mobile —
+/* Make sure landing surfaces never produce horizontal scroll on mobile -
    stray decorative elements (offset gradients, date pills, marquees that
    reach past the container) should be clipped, not punch the page wider
-   than the viewport. */
-.phera-landing { overflow-x: hidden; }
+   than the viewport. NOTE: `overflow-x: clip` (not `hidden`) - the
+   `hidden` variant forces the element into a scroll container, which
+   kills `position: sticky` for descendants (the FeatureStepper sticky
+   stage was scrolling away on desktop because of this). */
+.phera-landing { overflow-x: clip; }
 
 /* ===== Buttons ===== */
 .phera-landing .btn {

@@ -512,15 +512,16 @@ export default function FeatureStepper() {
            divide a length by a length (px/px) — not by a bare 480. */
         /* Reserve extra horizontal space (beyond the container padding)
            so the flex-centered scaled content has breathing room on all
-           four sides instead of clinging to the right + bottom edges. */
+           four sides instead of clinging to the right + bottom edges.
+           Smaller numbers = tighter padding around the mock. */
         @media (max-width: 520px) {
           .step-mock-content {
-            transform: scale(calc((100vw - 104px) / 480px));
+            transform: scale(calc((100vw - 76px) / 480px));
           }
         }
         @media (max-width: 480px) {
           .step-mock-content {
-            transform: scale(calc((100vw - 96px) / 480px));
+            transform: scale(calc((100vw - 68px) / 480px));
           }
         }
       `}</style>
