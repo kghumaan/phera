@@ -48,7 +48,7 @@ export default function OriginSection() {
             right column. */}
         <SectionHeader
           eyebrow="origin"
-          title="We built the team we wish we had."
+          title="Meet the founders."
           singleLine
           eyebrowColor="var(--text-strong)"
         />
@@ -65,9 +65,9 @@ export default function OriginSection() {
         >
         {/* LEFT: framed photo + founder credit block */}
         <Reveal>
-          <div style={{ maxWidth: 480, marginInline: 'auto' }}>
-            <div style={{ position: 'relative' }}>
-              <div style={{
+          <div className="origin-photo-block" style={{ maxWidth: 480, marginInline: 'auto' }}>
+            <div className="origin-photo-frame" style={{ position: 'relative' }}>
+              <div className="origin-photo-bg" style={{
                 position: 'absolute',
                 inset: -18,
                 borderRadius: 28,
@@ -75,7 +75,7 @@ export default function OriginSection() {
                 transform: 'rotate(-2deg)',
                 zIndex: 0,
               }} />
-              <div style={{
+              <div className="origin-photo-img-wrap" style={{
                 position: 'relative',
                 borderRadius: 22,
                 overflow: 'hidden',
@@ -92,7 +92,7 @@ export default function OriginSection() {
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
               </div>
-              <div style={{
+              <div className="origin-photo-pill" style={{
                 position: 'absolute',
                 bottom: -18,
                 right: -10,
@@ -106,6 +106,7 @@ export default function OriginSection() {
                 fontSize: 16,
                 color: 'var(--text-strong)',
                 zIndex: 2,
+                whiteSpace: 'nowrap',
               }}>
                 Sim &amp; KV  ·  Feb 2025
               </div>
@@ -154,7 +155,7 @@ export default function OriginSection() {
                 Hi, we&rsquo;re KV and Sim. A software engineer and a product designer who met, fell in love, and then completely nerded out planning our wedding.
               </p>
               <p style={{ marginBottom: 18 }}>
-                It started with the website. We looked at Zola, WithJoy, all of them, and nothing felt right. They weren&rsquo;t built for Indian weddings, and the aesthetic wasn&rsquo;t us. We wanted something <em>desi</em>, young, and alive — something that would get our guests excited months before the wedding. We were planning a destination wedding with a bunch of non-desi friends attending, and we wanted them to feel the color and energy of it all before they even boarded a flight.
+                It started with the website. We looked at Zola, WithJoy, all of them, and nothing felt right. They weren&rsquo;t built for Indian weddings, and the aesthetic wasn&rsquo;t us. We wanted something <em>desi</em>, young, and alive. Something that would get our guests excited months before the wedding. We were planning a destination wedding with a bunch of non-desi friends attending, and we wanted them to feel the color and energy of it all before they even boarded a flight.
               </p>
               <p style={{ marginBottom: 18 }}>
                 So we built our own. And then while planning, we started noticing everything else that was broken. The follow-ups being sent manually. The same questions asked over and over. The things we were getting ChatGPT and Claude to cobble together because no tool actually handled them properly. One of us kept finding problems, the other kept building solutions.
@@ -163,7 +164,7 @@ export default function OriginSection() {
                 By the time we were on our honeymoon, we had the bones of Phera. Everything we wished we&rsquo;d had. Everything we&rsquo;d already quietly built for ourselves.
               </p>
               <p style={{ marginBottom: 0 }}>
-                We&rsquo;re still building it, and we&rsquo;d love your help making it better. Message us anytime — we reply, usually within the day.
+                We&rsquo;re still building it, and we&rsquo;d love your help making it better. Message us anytime. We reply, usually within the day.
               </p>
             </div>
           </div>
@@ -172,7 +173,22 @@ export default function OriginSection() {
       </div>
       <style>{`
         @media (max-width: 900px) {
-          #story .origin-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+          #story .origin-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+        }
+        @media (max-width: 600px) {
+          /* Pull the offset gradient and date pill in a bit so the photo
+             frame fits cleanly inside the container with breathing room
+             on the sides. */
+          #story .origin-photo-block { padding-left: 8px; padding-right: 12px; }
+          #story .origin-photo-bg { inset: -10px !important; }
+          #story .origin-photo-pill {
+            right: -4px !important;
+            bottom: -14px !important;
+            font-size: 14px !important;
+            padding: 8px 12px !important;
+          }
+          #story .origin-grid { gap: 32px !important; }
+          #story p { font-size: 16px !important; line-height: 1.65 !important; }
         }
       `}</style>
     </section>

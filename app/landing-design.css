@@ -120,8 +120,21 @@
 }
 @media (max-width: 768px) {
   .phera-landing .container { padding: 0 20px; }
-  .phera-landing { --section-pad: 80px; }
+  .phera-landing { --section-pad: 72px; }
 }
+@media (max-width: 480px) {
+  .phera-landing .container { padding: 0 16px; }
+  .phera-landing { --section-pad: 64px; }
+}
+
+/* Make sure landing surfaces never produce horizontal scroll on mobile -
+   stray decorative elements (offset gradients, date pills, marquees that
+   reach past the container) should be clipped, not punch the page wider
+   than the viewport. NOTE: `overflow-x: clip` (not `hidden`) - the
+   `hidden` variant forces the element into a scroll container, which
+   kills `position: sticky` for descendants (the FeatureStepper sticky
+   stage was scrolling away on desktop because of this). */
+.phera-landing { overflow-x: clip; }
 
 /* ===== Buttons ===== */
 .phera-landing .btn {
@@ -139,6 +152,13 @@
   text-decoration: none;
   transition: all 0.25s ease;
   white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .phera-landing .btn {
+    font-size: 15px;
+    padding: 13px 22px;
+    gap: 8px;
+  }
 }
 .phera-landing .btn-primary {
   background: var(--accent);
@@ -246,6 +266,14 @@
 .phera-landing .wrap-pretty { text-wrap: pretty; }
 .phera-landing .wrap-balance { text-wrap: balance; }
 
+/* ===== Section heading singleLine — nowrap on desktop, wrap on tablet
+   and below so short titles don't punch past the container edge on
+   narrow viewports. ===== */
+.phera-landing .section-header-single-line { white-space: nowrap; }
+@media (max-width: 900px) {
+  .phera-landing .section-header-single-line { white-space: normal; }
+}
+
 /* ===== Hero garland corners ===== */
 .phera-landing .hero-garland {
   position: absolute;
@@ -279,7 +307,7 @@
 .phera-landing .hero-clouds {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.0) 0%, rgba(247,241,232,0.5) 85%, var(--cream) 100%),
-    url('/images/backgrounds/blue-clouds.webp') center/cover no-repeat,
+    url('/images/backgrounds/watercolor-blue-sky.webp') center/cover no-repeat,
     #BDDFF1;
   position: relative;
 }
@@ -317,7 +345,7 @@
 .phera-landing .bg-paisley::before       { background-image: url('/images/backgrounds/paisley-cream.webp'); opacity: 0.18; }
 .phera-landing .bg-sage::before          { background-image: url('/images/backgrounds/sage-watercolor.webp'); opacity: 0.55; mix-blend-mode: normal; }
 .phera-landing .bg-sunset::before        { background-image: url('/images/backgrounds/sunset.webp'); opacity: 1; mix-blend-mode: normal; }
-.phera-landing .bg-sky-soft::before      { background-image: url('/images/backgrounds/blue-clouds.webp'); opacity: 1; mix-blend-mode: normal; background-size: 100% auto; background-position: center top; }
+.phera-landing .bg-sky-soft::before      { background-image: url('/images/backgrounds/watercolor-blue-sky.webp'); opacity: 1; mix-blend-mode: normal; background-size: cover; background-position: center; }
 .phera-landing .bg-marble-gold::before   { background-image: url('/images/backgrounds/marble-gold.webp'); opacity: 0.85; mix-blend-mode: normal; }
 .phera-landing .bg-wa-doodles::before    { background-image: url('/images/backgrounds/whatsapp-chat-doodles.webp'); opacity: 0.06; mix-blend-mode: normal; }
 

@@ -9,7 +9,7 @@
  * (you'll swap real screenshots in later).
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { SectionHeader, ImagePlaceholder } from './design-primitives';
 import GuestListImportMock from './feature-mocks/GuestListImportMock';
 import WeddingWebsiteMock from './feature-mocks/WeddingWebsiteMock';
@@ -128,6 +128,26 @@ export default function FeatureStepper() {
   const [active, setActive] = useState(0);
   const [progress, setProgress] = useState(0);
   const stepRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const inlineRefs = useRef<Array<HTMLDivElement | null>>([]);
+  /**
+   * Per-step "run id" that increments each time the step's animation
+   * should restart from scratch. We bump it on:
+   *   - desktop: when the step becomes the active sticky-stage step
+   *   - mobile:  when the step's inline mock enters the viewport
+   * The id is folded into the React `key` of the rendered mock so the
+   * component fully unmounts + remounts (resetting its internal cycle
+   * state) on each restart event.
+   */
+  const [runIds, setRunIds] = useState<number[]>(() => Array(STEPS.length).fill(0));
+  const prevActive = useRef<number | null>(null);
+
+  const bumpRun = (i: number) => {
+    setRunIds((prev) => {
+      const next = prev.slice();
+      next[i] = (next[i] || 0) + 1;
+      return next;
+    });
+  };
 
   useEffect(() => {
     const onScroll = () => {
@@ -151,6 +171,43 @@ export default function FeatureStepper() {
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Desktop: bump runId every time `active` changes (so the mock that
+  // just became visible in the sticky stage restarts from idle).
+  useEffect(() => {
+    if (prevActive.current === active) return;
+    prevActive.current = active;
+    bumpRun(active);
+  }, [active]);
+
+  // Mobile: IntersectionObserver per inline mock — bump runId when each
+  // mock scrolls into view from below or above. Threshold 0.35 means
+  // "bump once ~a third of the mock is on screen" so the restart fires
+  // before the user is scrolled all the way over it.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
+    const observers: IntersectionObserver[] = [];
+    inlineRefs.current.forEach((el, i) => {
+      if (!el) return;
+      let wasIntersecting = false;
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting && !wasIntersecting) {
+              wasIntersecting = true;
+              bumpRun(i);
+            } else if (!e.isIntersecting) {
+              wasIntersecting = false;
+            }
+          });
+        },
+        { threshold: 0.35 },
+      );
+      obs.observe(el);
+      observers.push(obs);
+    });
+    return () => observers.forEach((o) => o.disconnect());
   }, []);
 
   return (
@@ -331,27 +388,40 @@ export default function FeatureStepper() {
 
                 {/* Mobile-only inline mock — vertically stacks each
                     step's mock right under its text on mobile. Hidden on
-                    desktop where the sticky right-column stage shows it. */}
+                    desktop where the sticky right-column stage shows it.
+                    The inner content is rendered at a fixed intrinsic
+                    width (480px) and CSS-scaled to fit narrower viewports
+                    so detailed mocks (guest list table, room grid, vendor
+                    digest) never get clipped on the right edge. */}
                 {s.customMock && (
                   <div
+                    ref={(el) => {
+                      inlineRefs.current[i] = el;
+                    }}
                     className="step-mock-inline"
                     style={{
-                      marginTop: 32,
-                      borderRadius: 24,
+                      marginTop: 28,
+                      borderRadius: 20,
                       background: s.tint,
                       border: '1px solid rgba(0,0,0,0.06)',
-                      padding: 'clamp(16px, 5vw, 28px)',
-                      aspectRatio: '1 / 1',
                       width: '100%',
-                      maxWidth: 540,
+                      maxWidth: 480,
                       marginLeft: 'auto',
                       marginRight: 'auto',
                       overflow: 'hidden',
                       position: 'relative',
                     }}
                   >
-                    <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
-                      {s.customMock()}
+                    <div className="step-mock-scaler">
+                      <div className="step-mock-content">
+                        {/* Fragment key forces remount whenever this
+                            step's runId changes — the mock's internal
+                            timers reset and its loop restarts from
+                            phase 'idle'. */}
+                        <Fragment key={`run-mob-${i}-${runIds[i]}`}>
+                          {s.customMock()}
+                        </Fragment>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -443,7 +513,13 @@ export default function FeatureStepper() {
                     }}
                   >
                     <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
-                      {s.customMock ? s.customMock() : <ImagePlaceholder label={s.mockLabel} />}
+                      {s.customMock ? (
+                        <Fragment key={`run-desk-${i}-${runIds[i]}`}>
+                          {s.customMock()}
+                        </Fragment>
+                      ) : (
+                        <ImagePlaceholder label={s.mockLabel} />
+                      )}
                     </div>
                   </div>
                 );
@@ -456,20 +532,69 @@ export default function FeatureStepper() {
       <style>{`
         /* Desktop: inline mocks hidden (sticky stage handles display). */
         .step-mock-inline { display: none; }
+        /* Mocks are authored against a fixed 480 × 480 design canvas. On
+           mobile we render at intrinsic size and use a CSS transform to
+           scale the visual rendering to fit the available frame, so
+           detail-heavy mocks (guest list rows, room grid, vendor digest)
+           never get clipped on the right edge - they just shrink uniformly.
+           transform-origin: center + flex-centered scaler gives equal
+           breathing room on all four sides. */
+        .step-mock-scaler {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .step-mock-content {
+          width: 480px;
+          height: 480px;
+          transform-origin: center;
+          flex: none;
+        }
 
         @media (max-width: 960px) {
-          .stepper-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          /* minmax(0, 1fr) lets the column shrink below the intrinsic
+             width of its children — without it, the 480px-wide
+             .step-mock-content forces the grid track wider than the
+             viewport and the body copy clips on the right edge. */
+          .stepper-grid { grid-template-columns: minmax(0, 1fr) !important; gap: 24px !important; }
           /* Mobile: hide the sticky stage — each step renders its own mock
              inline so the mock follows the step's text as you scroll. */
           .stepper-stage { display: none !important; }
           .stepper-rail { display: none !important; }
-          .step-mock-inline { display: block; }
+          .step-mock-inline { display: block; min-width: 0; max-width: 100%; }
+          .step-mock-scaler { min-width: 0; }
           /* Steps don't need 70vh of breathing room on mobile — the
              inline mock itself adds height. */
-          .stepper-grid > div > div { min-height: 0 !important; padding-right: 0 !important; opacity: 1 !important; }
+          .stepper-grid > div > div { min-height: 0 !important; padding-right: 0 !important; opacity: 1 !important; min-width: 0; }
+          /* Breathing room between consecutive step blocks — adjacent
+             sibling so the first step has no extra top margin. */
+          .stepper-grid > div > div + div { margin-top: 72px; }
         }
         @media (max-width: 768px) {
           .feature-steps-overview, .feature-steps-divider { display: none !important; }
+        }
+        /* Below 520px the available frame (viewport - container padding)
+           drops below 480px, so the mock needs to scale down to fit.
+           Container padding is 20px each side at this breakpoint.
+           NOTE: scale() needs a unitless number, so the calc must
+           divide a length by a length (px/px) — not by a bare 480. */
+        /* Reserve extra horizontal space (beyond the container padding)
+           so the flex-centered scaled content has breathing room on all
+           four sides instead of clinging to the right + bottom edges.
+           Smaller numbers = tighter padding around the mock. */
+        @media (max-width: 520px) {
+          .step-mock-content {
+            transform: scale(calc((100vw - 76px) / 480px));
+          }
+        }
+        @media (max-width: 480px) {
+          .step-mock-content {
+            transform: scale(calc((100vw - 68px) / 480px));
+          }
         }
       `}</style>
     </section>

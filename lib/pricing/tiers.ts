@@ -78,11 +78,11 @@ export const PLANNER_TIER = {
   price: '$249',
   priceSuffix: '/wedding',
   description:
-    'For wedding planners managing multiple clients. Pay per wedding. Card on file — confirm and charge for each new wedding.',
+    'For wedding planners managing multiple clients. Pay per wedding. Card on file. Confirm and charge for each new wedding.',
   features: [
     'Unlimited weddings under one account',
     'Everything in Phera Base for each wedding',
-    'Card saved after first wedding — one-click for the rest',
+    'Card saved after first wedding, one-click for the rest',
     'Resell to your couples at your own rate',
   ],
   buttonText: 'Start as a Planner',

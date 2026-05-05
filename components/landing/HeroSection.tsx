@@ -34,13 +34,12 @@ export default function HeroSection() {
   return (
     <section
       id="top"
-      className="hero-clouds"
+      className="hero-clouds hero-section"
       style={{
         color: 'var(--text-strong)',
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        paddingTop: 100,
         paddingBottom: 0,
         position: 'relative',
         overflow: 'hidden',
@@ -69,7 +68,7 @@ export default function HeroSection() {
       />
 
       <div
-        className="container"
+        className="container hero-content"
         style={{
           position: 'relative',
           zIndex: 2,
@@ -93,7 +92,7 @@ export default function HeroSection() {
               fontWeight: 400,
               letterSpacing: '-0.025em',
               lineHeight: 0.95,
-              fontSize: 'clamp(48px, 9.5vw, 132px)',
+              fontSize: 'clamp(56px, 10.5vw, 156px)',
               color: 'var(--text-strong)',
               maxWidth: '17ch',
               margin: 0,
@@ -117,19 +116,19 @@ export default function HeroSection() {
               lineHeight: 1.5,
             }}
           >
-            The wedding operations team you wish you had. We handle every guest — RSVPs, travel, rooms, shuttles, midnight WhatsApps — so you can actually enjoy your wedding.
+            The wedding operations platform you wish you had. We handle every guest: RSVPs, travel, rooms, midnight WhatsApps. So you can actually enjoy your wedding.
           </p>
         </Reveal>
 
         <Reveal delay={3}>
-          <div style={{ display: 'flex', gap: 14, marginTop: 40, flexWrap: 'wrap' }}>
+          <div className="hero-cta-row">
             <ActionButton
               href="/auth/login"
               variant="contained"
               className="btn btn-primary"
               sx={{
-                fontSize: 17,
-                padding: '18px 30px',
+                fontSize: { xs: 15, sm: 17 },
+                padding: { xs: '13px 22px', sm: '18px 30px' },
                 borderRadius: '999px',
                 textTransform: 'none',
                 fontWeight: 600,
@@ -146,8 +145,8 @@ export default function HeroSection() {
               variant="outlined"
               className="btn btn-ghost"
               sx={{
-                fontSize: 17,
-                padding: '18px 30px',
+                fontSize: { xs: 15, sm: 17 },
+                padding: { xs: '13px 22px', sm: '18px 30px' },
                 borderRadius: '999px',
                 textTransform: 'none',
                 fontWeight: 600,
@@ -160,7 +159,7 @@ export default function HeroSection() {
                 },
               }}
             >
-              See how it works
+              View Demo
             </ActionButton>
           </div>
         </Reveal>
@@ -168,6 +167,7 @@ export default function HeroSection() {
 
       {/* Marquee at bottom of hero - design verbatim. */}
       <div
+        className="hero-marquee-bar"
         style={{
           marginTop: 0,
           padding: '14px 0',
@@ -186,7 +186,7 @@ export default function HeroSection() {
               MARQUEE_WORDS.map((w, i) => (
                 <span key={`${k}-${i}`} style={{ display: 'flex', alignItems: 'center', gap: 48 }}>
                   <span
-                    className="serif"
+                    className="serif hero-marquee-word"
                     style={{
                       // Inline fontFamily - MUI CssBaseline + Tailwind preflight
                       // can clobber the .phera-landing .serif cascade so the
@@ -204,6 +204,38 @@ export default function HeroSection() {
           </div>
         </div>
       </div>
+      <style>{`
+        /* Hero — push content down a bit so the H1 doesn't sit so high
+           against the header. justify-content stays centered for the
+           inner stack; the extra push comes from a min top inset. */
+        .hero-section { padding-top: 100px; }
+        .hero-content { padding-top: clamp(48px, 8vh, 120px); }
+        .hero-cta-row { display: flex; gap: 14px; margin-top: 40px; flex-wrap: wrap; align-items: stretch; }
+        .hero-cta-row > * {
+          flex: 0 0 auto;
+          /* Equal heights even though one button has an arrow icon. */
+          min-height: 56px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+        @media (max-width: 600px) {
+          .hero-section { padding-top: 88px; }
+          .hero-content { padding-top: clamp(64px, 10vh, 120px); }
+          /* Both CTAs are the same size on mobile: equal flex basis,
+             equal min-height, same horizontal padding. */
+          .hero-cta-row { gap: 10px; margin-top: 28px; flex-direction: column; align-items: stretch; }
+          .hero-cta-row > * {
+            flex: 1 1 0;
+            width: 100%;
+            min-width: 0;
+            min-height: 52px;
+            box-sizing: border-box;
+          }
+          .hero-marquee-word { font-size: 22px !important; }
+          .hero-marquee-bar { padding: 12px 0 !important; }
+        }
+      `}</style>
     </section>
   );
 }

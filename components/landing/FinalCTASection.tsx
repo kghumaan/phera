@@ -40,7 +40,7 @@ export default function FinalCTASection() {
             fontStyle: 'italic',
             fontWeight: 400,
             letterSpacing: '-0.025em',
-            fontSize: 'clamp(48px, 8vw, 120px)',
+            fontSize: 'clamp(54px, 9vw, 120px)',
             marginTop: 24,
             marginBottom: 0,
             color: 'var(--text-strong)',
@@ -48,23 +48,23 @@ export default function FinalCTASection() {
             marginInline: 'auto',
             lineHeight: 0.95,
           }}>
-            Stop chasing.<br />Start <em style={{ color: 'var(--accent)' }}>celebrating</em>.
+            Plan less.<br />Celebrate <em style={{ color: 'var(--accent)' }}>more</em>.
           </h2>
         </Reveal>
         <Reveal delay={2}>
-          <p style={{ marginTop: 24, fontSize: 18, color: 'var(--text-muted)', maxWidth: '50ch', marginInline: 'auto' }}>
+          <p className="final-cta-kicker" style={{ marginTop: 20, fontSize: 17, color: 'var(--text-muted)', maxWidth: '50ch', marginInline: 'auto' }}>
             Spin up a free site in 10 minutes. Upgrade when you&apos;re ready for us to take over.
           </p>
         </Reveal>
         <Reveal delay={3}>
-          <div style={{ marginTop: 40, display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="final-cta-row" style={{ marginTop: 32, display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <ActionButton
               href="/auth/login"
               variant="contained"
               className="btn btn-primary"
               sx={{
-                fontSize: 17,
-                padding: '18px 32px',
+                fontSize: { xs: 15, sm: 17 },
+                padding: { xs: '13px 24px', sm: '18px 32px' },
                 borderRadius: '999px',
                 textTransform: 'none',
                 fontWeight: 600,

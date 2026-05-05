@@ -178,16 +178,17 @@ export default function IPhoneMockup({
             </Box>
           )}
 
-          {/* Dynamic Island */}
+          {/* Dynamic Island — slightly smaller on mobile so the pill
+              doesn't visually dominate the smaller phone renders. */}
           {showDynamicIsland && (
             <Box
               sx={{
                 position: 'absolute',
-                top: '11px',
+                top: { xs: '8px', md: '11px' },
                 left: '50%',
                 transform: 'translateX(-50%)',
-                width: '108px',
-                height: '32px',
+                width: { xs: '78px', md: '108px' },
+                height: { xs: '22px', md: '32px' },
                 bgcolor: '#000',
                 borderRadius: '999px',
                 zIndex: 30,

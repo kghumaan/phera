@@ -140,6 +140,7 @@ function LandingPageContent() {
           className="bg-textured bg-wa-doodles"
           sx={{
             py: 'var(--section-pad, 140px)',
+            px: 0,
             bgcolor: 'var(--wa-header)',
             color: 'white',
             position: 'relative',
@@ -159,12 +160,13 @@ function LandingPageContent() {
           <Box
             sx={{
               position: 'absolute',
-              top: -100,
-              right: -100,
-              width: { xs: 200, md: 400 },
-              height: { xs: 200, md: 400 },
+              top: { xs: -60, md: -100 },
+              right: { xs: -60, md: -100 },
+              width: { xs: 160, md: 400 },
+              height: { xs: 160, md: 400 },
               bgcolor: 'rgba(255,255,255,0.06)',
               borderRadius: '50%',
+              pointerEvents: 'none',
             }}
           />
 
@@ -187,39 +189,39 @@ function LandingPageContent() {
                       fontStyle: 'italic',
                       fontWeight: 400,
                       letterSpacing: '-0.02em',
-                      fontSize: 'clamp(40px, 6vw, 88px)',
+                      fontSize: 'clamp(50px, 7vw, 88px)',
                       color: 'white',
                       margin: 0,
                       lineHeight: 0.98,
                     }}
                   >
-                    Trained on <em style={{ color: 'var(--accent)' }}>your</em> wedding.<br />
+                    Trained on <em style={{ color: '#F08AA0' }}>your</em> wedding.<br />
                     On call <em>at 2 AM.</em>
                   </h2>
-                  <p
-                    style={{
-                      marginTop: 24,
-                      fontSize: 18,
+                  <Typography
+                    sx={{
+                      marginTop: 3,
+                      fontSize: { xs: 16, md: 18 },
                       color: 'rgba(255,255,255,0.72)',
                       maxWidth: '52ch',
                       lineHeight: 1.55,
                     }}
                   >
                     Concierge knows your venues, dates, dress codes, weather, nearby restaurants, visa rules. Guests get instant answers. You get to sleep.
-                  </p>
-                  <ul style={{ marginTop: 32, listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  </Typography>
+                  <Box component="ul" sx={{ marginTop: { xs: 3, md: 4 }, listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: { xs: 1.25, md: 1.75 } }}>
                     {[
                       'Trained on your full wedding data - venues, schedule, dress codes',
                       'Knows the local weather, restaurants, things to do, spas',
                       'Handles visa walkthroughs and airport pickups in English or Hindi',
                       'Broadcasts updates and collects replies back from every guest',
                     ].map((line, i) => (
-                      <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, fontSize: 16, color: 'rgba(255,255,255,0.85)' }}>
-                        <span style={{ color: 'var(--accent)', fontWeight: 600, marginTop: 2 }}>✓</span>
+                      <Box component="li" key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, fontSize: { xs: 14, md: 16 }, color: 'rgba(255,255,255,0.85)', lineHeight: 1.5 }}>
+                        <Box component="span" sx={{ color: '#F08AA0', fontWeight: 600, marginTop: '2px', flex: 'none' }}>✓</Box>
                         {line}
-                      </li>
+                      </Box>
                     ))}
-                  </ul>
+                  </Box>
                   <ActionButton
                     onClick={handleBaseAction}
                     variant="contained"
@@ -227,9 +229,9 @@ function LandingPageContent() {
                     spinnerColor="#fff"
                     className="btn btn-primary"
                     sx={{
-                      marginTop: '36px',
-                      fontSize: 16,
-                      padding: '16px 28px',
+                      marginTop: { xs: '28px', md: '36px' },
+                      fontSize: { xs: 15, md: 16 },
+                      padding: { xs: '13px 22px', md: '16px 28px' },
                       borderRadius: '999px',
                       textTransform: 'none',
                       fontWeight: 600,
@@ -251,7 +253,7 @@ function LandingPageContent() {
                   transition={{ duration: 0.8 }}
                 >
                   <IPhoneMockup
-                    width={{ xs: '240px', sm: '270px', md: '300px', lg: '320px' }}
+                    width={{ xs: '220px', sm: '260px', md: '300px', lg: '320px' }}
                     sx={{ maxHeight: { md: '80dvh' }, mx: { xs: 'auto', md: 0 } }}
                   >
                     <WhatsAppConcierge
@@ -286,7 +288,7 @@ function LandingPageContent() {
           sx={{
             bgcolor: '#FBF7F1',
             color: COLORS.text.strong,
-            py: 8,
+            py: { xs: 5, md: 8 },
             borderTop: '1px solid rgba(0,0,0,0.06)',
           }}
         >

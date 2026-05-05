@@ -70,7 +70,7 @@ export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerC
         <div
           className="pricing-grid"
           style={{
-            marginTop: 80,
+            marginTop: 'clamp(48px, 6vw, 80px)',
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
             gap: 24,
@@ -80,12 +80,12 @@ export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerC
           {tiers.map((t, i) => (
             <Reveal key={i} delay={Math.min(3, i + 1) as 1 | 2 | 3}>
               <div
+                className="pricing-card"
                 style={{
                   background: 'white',
                   color: 'var(--text-strong)',
                   border: t.highlight ? '2px solid var(--accent)' : '1px solid rgba(0,0,0,0.07)',
                   borderRadius: 22,
-                  padding: 32,
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
@@ -104,8 +104,19 @@ export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerC
                 <div className="mono" style={{ fontSize: 11, letterSpacing: '0.16em', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>
                   {t.name}
                 </div>
-                <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                  <span className="display" style={{ fontSize: 64, fontStyle: 'italic', lineHeight: 1, color: 'var(--text-strong)' }}>{t.price}</span>
+                <div style={{ marginTop: 14, display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+                  <span
+                    className="pricing-price display"
+                    style={{
+                      fontFamily: 'var(--font-instrument-serif), Georgia, serif',
+                      fontStyle: 'italic',
+                      fontWeight: 400,
+                      lineHeight: 1,
+                      color: 'var(--text-strong)',
+                    }}
+                  >
+                    {t.price}
+                  </span>
                   <span style={{ fontSize: 13, color: 'var(--text-subtle)' }}>{t.sub}</span>
                 </div>
                 <p style={{ marginTop: 12, fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5 }}>
@@ -150,7 +161,6 @@ export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerC
               background: 'linear-gradient(135deg, rgba(212,175,55,0.08), rgba(255,153,51,0.05))',
               border: '1px solid rgba(212,175,55,0.25)',
               borderRadius: 22,
-              padding: 32,
               display: 'grid',
               gridTemplateColumns: '1fr auto auto',
               gap: 32,
@@ -201,10 +211,17 @@ export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerC
         </Reveal>
       </div>
       <style>{`
+        .pricing-card { padding: 32px; }
+        .pricing-price { font-size: 64px; }
+        .planner-strip { padding: 32px; }
         @media (max-width: 900px) {
-          .pricing-grid { grid-template-columns: 1fr !important; }
-          .planner-strip { grid-template-columns: 1fr !important; gap: 20px !important; }
+          .pricing-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+          .planner-strip { grid-template-columns: 1fr !important; gap: 20px !important; padding: 24px !important; }
           .planner-price { padding-right: 0 !important; }
+        }
+        @media (max-width: 600px) {
+          .pricing-card { padding: 24px; border-radius: 18px !important; }
+          .pricing-price { font-size: 52px !important; }
         }
       `}</style>
     </section>

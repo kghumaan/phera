@@ -464,7 +464,7 @@ function CheckBadge() {
 /* ──────────────── chat column ──────────────── */
 
 const OUTREACH_TEXT = "Hi! What's your flight info coming in for Priya & Aarav's wedding? ✈️";
-const REPLY_TEXT = 'UA 234 — lands 11:23 PM at JFK';
+const REPLY_TEXT = 'UA 234, lands 11:23 PM at JFK';
 const DISPATCH_TEXT = "You're on Shuttle A · 11:45 PM 🚐";
 
 function ChatColumn({ phase }: { phase: Phase }) {

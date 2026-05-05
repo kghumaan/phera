@@ -45,7 +45,7 @@ export default function FAQSection() {
                 fontWeight: 400,
                 letterSpacing: '-0.025em',
                 lineHeight: 0.95,
-                fontSize: 'clamp(36px, 5.5vw, 76px)',
+                fontSize: 'clamp(50px, 6.5vw, 76px)',
                 marginTop: 18,
                 marginBottom: 0,
                 color: 'var(--text-strong)',
@@ -56,7 +56,7 @@ export default function FAQSection() {
             </h2>
           </Reveal>
         </div>
-        <div style={{ maxWidth: 800, margin: '48px auto 0' }}>
+        <div className="faq-list" style={{ maxWidth: 800, margin: '48px auto 0' }}>
           {FAQS.map((f, i) => {
             const isOpen = open === i;
             return (
@@ -64,22 +64,23 @@ export default function FAQSection() {
                 <button
                   type="button"
                   onClick={() => setOpen(isOpen ? -1 : i)}
+                  className="faq-trigger"
                   style={{
                     width: '100%',
                     textAlign: 'left',
                     background: 'transparent',
                     border: 0,
                     cursor: 'pointer',
-                    padding: '24px 0',
+                    padding: '20px 0',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    gap: 24,
+                    gap: 16,
                     fontFamily: 'var(--sans)',
                     color: 'inherit',
                   }}
                 >
-                  <span style={{ fontSize: 19, fontWeight: 500, color: 'var(--text-strong)' }}>{f.q}</span>
+                  <span className="faq-question" style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-strong)', lineHeight: 1.35 }}>{f.q}</span>
                   <span style={{
                     width: 32, height: 32, borderRadius: '50%',
                     border: '1px solid rgba(0,0,0,0.1)',
@@ -95,13 +96,21 @@ export default function FAQSection() {
                   overflow: 'hidden',
                   transition: 'max-height 0.4s cubic-bezier(.2,.7,.2,1)',
                 }}>
-                  <p style={{ paddingBottom: 24, fontSize: 16, color: 'var(--text-muted)', lineHeight: 1.65, maxWidth: '60ch', margin: 0 }}>{f.a}</p>
+                  <p className="faq-answer" style={{ paddingBottom: 22, fontSize: 16, color: 'var(--text-muted)', lineHeight: 1.65, maxWidth: '60ch', margin: 0 }}>{f.a}</p>
                 </div>
               </div>
             );
           })}
         </div>
       </div>
+      <style>{`
+        @media (max-width: 600px) {
+          .faq-list { margin-top: 32px !important; }
+          .faq-trigger { padding: 16px 0 !important; gap: 12px !important; }
+          .faq-question { font-size: 16px !important; }
+          .faq-answer { font-size: 15px !important; padding-bottom: 18px !important; }
+        }
+      `}</style>
     </section>
   );
 }
