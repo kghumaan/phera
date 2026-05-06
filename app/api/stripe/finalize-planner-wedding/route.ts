@@ -10,6 +10,7 @@ import {
   findUniqueSlug,
   generateWeddingSlug,
 } from '@/lib/stripe/planner-wedding';
+import { decodeClientReference } from '@/lib/stripe/payment-links';
 
 export async function POST(request: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -62,7 +63,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid session' }, { status: 400 });
   }
 
-  if (session.metadata?.userId !== user.id) {
+  // Payment Link sessions identify the customer via client_reference_id;
+  // legacy embedded-checkout sessions used metadata.userId. Accept both.
+  const refUserId = decodeClientReference(session.client_reference_id ?? null).userId;
+  const sessionUserId = session.metadata?.userId || refUserId;
+  if (sessionUserId !== user.id) {
     return NextResponse.json({ error: 'Session does not belong to user' }, { status: 403 });
   }
 

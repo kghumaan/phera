@@ -67,10 +67,13 @@ export default function HomePageClient() {
 }
 
 function LandingPageContent() {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeTier, setUpgradeTier] = useState<'base' | 'premium' | 'planner_perwedding'>('base');
+  // Tier whose CTA was just clicked — drives the spinner on the pricing card
+  // until the in-flight redirect (auth or Stripe) takes over the page.
+  const [pendingTier, setPendingTier] = useState<'base' | 'premium' | 'planner_perwedding' | null>(null);
 
   // After post-auth redirect from a pricing CTA (?tier=base|premium|planner_perwedding),
   // resume the upgrade flow once the user lands back here signed in. We strip the
@@ -81,6 +84,7 @@ function LandingPageContent() {
     const tier = params.get('tier');
     if (tier === 'base' || tier === 'premium' || tier === 'planner_perwedding') {
       setUpgradeTier(tier);
+      setPendingTier(tier);
       setUpgradeModalOpen(true);
       params.delete('tier');
       const qs = params.toString();
@@ -93,11 +97,17 @@ function LandingPageContent() {
       e.preventDefault();
       e.stopPropagation();
     }
+    if (authLoading || pendingTier) return; // Still resolving auth or already redirecting
+
+    setPendingTier(targetTier);
     setUpgradeTier(targetTier);
     if (user) {
+      // UpgradeModal mounts and immediately redirects to the Stripe Payment Link.
       setUpgradeModalOpen(true);
     } else {
-      router.push(`/auth/login?redirect=/?tier=${targetTier}`);
+      // Encode the target so /?tier=X survives the auth round-trip intact.
+      const target = `/?tier=${targetTier}`;
+      router.push(`/auth/login?redirect=${encodeURIComponent(target)}`);
     }
   };
 
@@ -274,6 +284,7 @@ function LandingPageContent() {
           onBaseClick={handleBaseAction}
           onPremiumClick={handlePremiumAction}
           onPlannerClick={handlePlannerAction}
+          loadingTier={pendingTier}
         />
 
         <OriginSection />

@@ -8,9 +8,13 @@ import {
   IconButton,
   TextField,
   ClickAwayListener,
+  ToggleButton,
+  ToggleButtonGroup,
+  InputAdornment,
+  Button,
 } from '@mui/material';
 import React, { useState, useEffect, use, useRef, useCallback } from 'react';
-import { Delete, CardGiftcard, LockOutlined } from '@mui/icons-material';
+import { Delete, CardGiftcard, LockOutlined, Bolt } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { usePlan } from '@/lib/contexts/PlanContext';
@@ -70,6 +74,83 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
   const [saving, setSaving] = useState(false);
   const [registryDescription, setRegistryDescription] = useState('');
   const descriptionTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Stripe payment-link generator state
+  const [generatorOpen, setGeneratorOpen] = useState(false);
+  const [genFundName, setGenFundName] = useState('');
+  const [genEmoji, setGenEmoji] = useState('🎁');
+  const [genMode, setGenMode] = useState<'fixed' | 'flexible'>('fixed');
+  const [genAmount, setGenAmount] = useState('');
+  const [genSuggested, setGenSuggested] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [genError, setGenError] = useState<string | null>(null);
+
+  const closeGenerator = () => {
+    setGeneratorOpen(false);
+    setGenFundName('');
+    setGenEmoji('🎁');
+    setGenMode('fixed');
+    setGenAmount('');
+    setGenSuggested('');
+    setGenError(null);
+  };
+
+  const handleGenerateStripeLink = async () => {
+    setGenError(null);
+    if (!genFundName.trim()) {
+      setGenError('Please add a name for this fund.');
+      return;
+    }
+    if (!weddingId) {
+      setGenError('Wedding not loaded yet — try again in a moment.');
+      return;
+    }
+    let amountCents: number | undefined;
+    let suggestedAmountCents: number | undefined;
+    if (genMode === 'fixed') {
+      const dollars = Number.parseFloat(genAmount);
+      if (!Number.isFinite(dollars) || dollars < 1) {
+        setGenError('Enter a fixed amount of at least $1.');
+        return;
+      }
+      amountCents = Math.round(dollars * 100);
+    } else if (genSuggested.trim()) {
+      const dollars = Number.parseFloat(genSuggested);
+      if (Number.isFinite(dollars) && dollars >= 1) {
+        suggestedAmountCents = Math.round(dollars * 100);
+      }
+    }
+
+    setGenerating(true);
+    try {
+      const res = await fetch('/api/registry/create-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          weddingId,
+          fundName: genFundName.trim(),
+          emoji: genEmoji.trim() || '🎁',
+          mode: genMode,
+          amountCents,
+          suggestedAmountCents,
+          currency: 'usd',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.error || 'Failed to create Stripe payment link');
+      }
+      await loadData();
+      await syncPreview();
+      showStatus('saved');
+      closeGenerator();
+    } catch (err) {
+      console.error('[registry] generate link error:', err);
+      setGenError(err instanceof Error ? err.message : 'Failed to create payment link.');
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -379,26 +460,171 @@ export default function RegistryPage({ params }: { params: Promise<{ weddingSlug
             </PheraCard>
           )}
 
-          {!isViewOnly && !isAddingNew && (
-            <Box
-              onClick={startNew}
-              sx={{
-                bgcolor: COLORS.border.light,
-                border: '1px dashed #BCBCBC',
-                borderRadius: RADII.sm,
-                px: 2, py: 1.5,
-                cursor: 'pointer',
-                textAlign: 'center',
-                '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
-              }}
-            >
-              <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1rem', lineHeight: 1.5 }}>
-                Add Registry Link
-              </Typography>
-              <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
-                Stripe, Zola, Amazon, Honeyfund, etc.
-              </Typography>
-            </Box>
+          {!isViewOnly && !isAddingNew && !generatorOpen && (
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+              <Box
+                onClick={() => setGeneratorOpen(true)}
+                sx={{
+                  flex: 1,
+                  bgcolor: COLORS.bg.white,
+                  border: '1px solid',
+                  borderColor: COLORS.brand.primary,
+                  borderRadius: RADII.sm,
+                  px: 2, py: 1.5,
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  '&:hover': { bgcolor: 'rgba(222,63,94,0.04)' },
+                }}
+              >
+                <Stack direction="row" spacing={1} alignItems="center" justifyContent="center">
+                  <Bolt sx={{ fontSize: 18, color: COLORS.brand.primary }} />
+                  <Typography sx={{ fontWeight: 600, color: COLORS.brand.primary, fontSize: '1rem', lineHeight: 1.5 }}>
+                    Generate Stripe Link
+                  </Typography>
+                </Stack>
+                <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
+                  We&apos;ll create a branded checkout link for this fund.
+                </Typography>
+              </Box>
+              <Box
+                onClick={startNew}
+                sx={{
+                  flex: 1,
+                  bgcolor: COLORS.border.light,
+                  border: '1px dashed #BCBCBC',
+                  borderRadius: RADII.sm,
+                  px: 2, py: 1.5,
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  '&:hover': { bgcolor: COLORS.border.default, borderColor: COLORS.text.faint },
+                }}
+              >
+                <Typography sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: '1rem', lineHeight: 1.5 }}>
+                  Paste External Link
+                </Typography>
+                <Typography sx={{ color: COLORS.text.subtle, fontSize: '0.875rem', lineHeight: 1.5 }}>
+                  Zola, Amazon, Honeyfund, etc.
+                </Typography>
+              </Box>
+            </Stack>
+          )}
+
+          {!isViewOnly && generatorOpen && (
+            <ClickAwayListener onClickAway={() => { if (!generating) closeGenerator(); }}>
+              <Paper sx={{ p: 2.5, borderRadius: RADII.lg, bgcolor: COLORS.bg.white, border: '1px solid #EEE', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' }}>
+                <Stack spacing={2}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Bolt sx={{ fontSize: 18, color: COLORS.brand.primary }} />
+                    <Typography sx={{ fontWeight: 600, color: COLORS.text.strong }}>
+                      Generate Stripe Payment Link
+                    </Typography>
+                  </Stack>
+
+                  <Stack direction="row" spacing={1.5}>
+                    <TextField
+                      label="Emoji"
+                      size="small"
+                      value={genEmoji}
+                      onChange={(e) => setGenEmoji(e.target.value)}
+                      sx={{ ...inFieldSx, width: 80 }}
+                    />
+                    <TextField
+                      label="Fund name"
+                      size="small"
+                      fullWidth
+                      autoFocus
+                      value={genFundName}
+                      onChange={(e) => setGenFundName(e.target.value)}
+                      placeholder="e.g., Honeymoon Fund"
+                      sx={inFieldSx}
+                    />
+                  </Stack>
+
+                  <ToggleButtonGroup
+                    value={genMode}
+                    exclusive
+                    onChange={(_, v) => { if (v) setGenMode(v); }}
+                    fullWidth
+                    size="small"
+                    sx={{
+                      '& .MuiToggleButton-root': {
+                        textTransform: 'none',
+                        borderColor: COLORS.text.faint,
+                        color: COLORS.text.muted,
+                        '&.Mui-selected': {
+                          bgcolor: 'rgba(222,63,94,0.08)',
+                          color: COLORS.brand.primary,
+                          borderColor: COLORS.brand.primary,
+                          '&:hover': { bgcolor: 'rgba(222,63,94,0.12)' },
+                        },
+                      },
+                    }}
+                  >
+                    <ToggleButton value="fixed">Fixed amount</ToggleButton>
+                    <ToggleButton value="flexible">Donor chooses amount</ToggleButton>
+                  </ToggleButtonGroup>
+
+                  {genMode === 'fixed' ? (
+                    <TextField
+                      label="Amount"
+                      size="small"
+                      fullWidth
+                      type="number"
+                      value={genAmount}
+                      onChange={(e) => setGenAmount(e.target.value)}
+                      placeholder="500"
+                      slotProps={{
+                        input: {
+                          startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                        },
+                      }}
+                      sx={inFieldSx}
+                    />
+                  ) : (
+                    <TextField
+                      label="Suggested amount (optional)"
+                      size="small"
+                      fullWidth
+                      type="number"
+                      value={genSuggested}
+                      onChange={(e) => setGenSuggested(e.target.value)}
+                      placeholder="100"
+                      helperText="Pre-fills the donor's input. Leave blank to let them start from zero."
+                      slotProps={{
+                        input: {
+                          startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                        },
+                      }}
+                      sx={inFieldSx}
+                    />
+                  )}
+
+                  {genError && (
+                    <Typography variant="caption" sx={{ color: COLORS.accent.dangerText }}>
+                      {genError}
+                    </Typography>
+                  )}
+
+                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                    <Button
+                      variant="text"
+                      onClick={closeGenerator}
+                      disabled={generating}
+                      sx={{ color: COLORS.text.subtle, textTransform: 'none', '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' } }}
+                    >
+                      Cancel
+                    </Button>
+                    <PrimaryActionButton
+                      onClick={handleGenerateStripeLink}
+                      loading={generating}
+                      disabled={generating || !genFundName.trim() || (genMode === 'fixed' && !genAmount.trim())}
+                    >
+                      Create Payment Link
+                    </PrimaryActionButton>
+                  </Stack>
+                </Stack>
+              </Paper>
+            </ClickAwayListener>
           )}
         </Stack>
       </Stack>

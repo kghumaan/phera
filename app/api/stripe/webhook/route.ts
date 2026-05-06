@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { autoGenerateForUser } from '@/lib/concierge/generate-knowledge';
+import { decodeClientReference } from '@/lib/stripe/payment-links';
 
 export async function POST(request: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -38,7 +39,11 @@ export async function POST(request: NextRequest) {
     const session = event.data.object as Stripe.Checkout.Session;
 
     if (session.payment_status === 'paid' || session.payment_status === 'no_payment_required') {
-      const userId = session.metadata?.userId;
+      // Payment Link sessions carry the user id in `client_reference_id`
+      // (metadata is link-wide, not per-customer). Embedded checkout
+      // sessions still set `metadata.userId` directly. Read either.
+      const refUserId = decodeClientReference(session.client_reference_id ?? null).userId;
+      const userId = session.metadata?.userId || refUserId || undefined;
       const tier = session.metadata?.tier || 'base';
       // Any paid non-planner tier grants Pro access; planner tiers grant Planner access.
       const accountType = session.metadata?.accountType || 'pro';

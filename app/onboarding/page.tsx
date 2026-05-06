@@ -17,7 +17,6 @@ import {
   Chip,
   TextField,
   Fade,
-  IconButton,
   Divider,
   List,
   ListItemButton,
@@ -35,25 +34,14 @@ import {
   EventNote,
   FlightTakeoff,
   ArrowForward,
-  ArrowBack,
-  CheckCircle,
-  CreditCard,
   LocationOn,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { loadStripe } from '@stripe/stripe-js';
-import {
-  EmbeddedCheckoutProvider,
-  EmbeddedCheckout
-} from '@stripe/react-stripe-js';
 import { supabase } from '@/lib/supabase/client';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
 import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
-
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 // --- Types ---
 type OnboardingStep = 1 | 2 | 3;
@@ -219,7 +207,6 @@ export default function OnboardingPage() {
   const venueSessionTokenRef = useRef<string>(typeof crypto !== 'undefined' ? crypto.randomUUID() : '');
   const [companyName, setCompanyName] = useState('');
   const [plannerLocation, setPlannerLocation] = useState('');
-  const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Preparing your experience...');
 
@@ -315,18 +302,6 @@ export default function OnboardingPage() {
     venueSessionTokenRef.current = crypto.randomUUID();
   };
 
-  useEffect(() => {
-    // Check if we're returning from Stripe
-    const query = new URLSearchParams(window.location.search);
-    const sessionId = query.get('session_id');
-    if (sessionId) {
-      console.log('[Onboarding DEBUG] Returned from Stripe with session:', sessionId);
-      setLoading(true);
-      setLoadingMessage('Payment successful! Finalizing your wedding workspace...');
-      handleStripeSuccess(sessionId);
-    }
-  }, []);
-
   // Restore settings or redirect if no user is found
   useEffect(() => {
     const checkSession = async () => {
@@ -411,58 +386,7 @@ export default function OnboardingPage() {
     } catch (err) {
       console.error('[Onboarding DEBUG] FATAL error in restoreSettings:', err);
     } finally {
-      // Only stop loading if we're NOT returning from Stripe
-      // (Stripe handling has its own loading management)
-      const query = new URLSearchParams(window.location.search);
-      if (!query.has('session_id')) {
-        setLoading(false);
-      }
-    }
-  };
-
-  const handleStripeSuccess = async (sessionId: string) => {
-    console.log('[Onboarding] Handling Stripe success for session:', sessionId);
-    setLoading(true);
-    try {
-      // 1. Retrieve session from our new API
-      const response = await fetch(`/api/stripe/get-session?session_id=${sessionId}`);
-      const session = await response.json();
-
-      if (session.error) throw new Error(session.error);
-      if (session.payment_status !== 'paid') {
-        console.warn('[Onboarding] Payment status not paid:', session.payment_status);
-        return;
-      }
-
-      const { userId, role, coupleName, partnerName, weddingDate, weddingEndDate, venueName, selectedFeatures } = session.metadata;
-      const features = JSON.parse(selectedFeatures || '[]');
-
-      console.log('[Onboarding] Retrieved metadata from Stripe:', { userId, role, coupleName, partnerName, weddingDate, weddingEndDate, venueName, features });
-
-      setLoadingMessage(`Setting up ${coupleName}'s wedding workspace...`);
-
-      // 2. Finalize settings in DB
-      await finalizeOnboarding({
-        userId,
-        role: role as UserRole,
-        plan: 'pro',
-        coupleName,
-        partnerName,
-        weddingDate,
-        weddingEndDate,
-        venueName,
-        selectedFeatures: features
-      });
-
-    } catch (err: any) {
-      console.error('[Onboarding] Error in handleStripeSuccess:', err);
-      if (err.message) console.error('Error message:', err.message);
-      if (err.details) console.error('Error details:', err.details);
-      if (err.hint) console.error('Error hint:', err.hint);
-      alert('We received your payment but encountered an error setting up your account. Please contact support.');
       setLoading(false);
-    } finally {
-      // Don't setLoading(false) here to avoid flickering before redirect
     }
   };
 
@@ -652,10 +576,6 @@ export default function OnboardingPage() {
   };
 
   const handleBack = () => {
-    if (checkoutClientSecret) {
-      setCheckoutClientSecret(null);
-      return;
-    }
     if (step > 1) setStep((step - 1) as OnboardingStep);
   };
 
@@ -753,13 +673,13 @@ export default function OnboardingPage() {
       }}>
         <Box sx={{
           width: '100%',
-          maxWidth: checkoutClientSecret ? '1000px' : '600px',
+          maxWidth: '600px',
           transition: 'max-width 0.5s ease-in-out'
         }}>
 
           <AnimatePresence mode="wait">
             <motion.div
-              key={checkoutClientSecret ? 'payment' : step}
+              key={step}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
@@ -803,133 +723,7 @@ export default function OnboardingPage() {
                   </Box>
                 )}
 
-                {checkoutClientSecret ? (
-                  <Box sx={{ p: 0 }}>
-                    <Box sx={{ mb: 4, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <IconButton
-                        onClick={() => setCheckoutClientSecret(null)}
-                        sx={{
-                          position: 'absolute',
-                          left: 0,
-                          color: COLORS.text.subtle,
-                          p: { xs: 0.5, md: 1 }
-                        }}
-                      >
-                        <ArrowBack sx={{ fontSize: { xs: 20, md: 24 } }} />
-                      </IconButton>
-                      <Typography
-                        variant="h5"
-                        sx={{
-                          fontWeight: 700,
-                          color: COLORS.text.strong,
-                          fontSize: { xs: '1.2rem', md: '1.5rem' },
-                          px: 5 // Add padding to avoid overlapping with absolute icon
-                        }}
-                      >
-                        Complete Pro Upgrade
-                      </Typography>
-                    </Box>
-
-                    <Grid container spacing={{ xs: 2, md: 4 }} alignItems="flex-start" justifyContent="center">
-                      {/* Left Column: Plan Details & Features */}
-                      <Grid size={{ xs: 12, md: 4, lg: 3.5 }}>
-                        <Box sx={{
-                          textAlign: 'left',
-                          p: { xs: 2, md: 4 },
-                          bgcolor: alpha(COLORS.brand.primary, 0.05),
-                          borderRadius: RADII.dialog,
-                          border: '1px solid',
-                          borderColor: alpha(COLORS.brand.primary, 0.1),
-                          display: 'flex',
-                          flexDirection: 'column'
-                        }}>
-                          <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: { xs: 2, md: 4 } }}>
-                            <Box sx={{ bgcolor: COLORS.brand.primary, color: COLORS.text.inverse, p: { xs: 1, md: 1.5 }, borderRadius: RADII.md, display: 'flex' }}>
-                              <CreditCard sx={{ fontSize: { xs: 20, md: 28 } }} />
-                            </Box>
-                            <Box>
-                              <Typography variant="h6" sx={{ fontWeight: 800, color: COLORS.text.strong, lineHeight: 1.2, fontSize: { xs: '1rem', md: '1.25rem' } }}>Pro Plan</Typography>
-                              <Typography variant="h4" sx={{ fontWeight: 800, color: COLORS.brand.primary, fontSize: { xs: '1.5rem', md: '2.125rem' } }}>$99</Typography>
-                            </Box>
-                          </Stack>
-
-                          {/* Desktop Feature Title */}
-                          <Typography variant="subtitle2" sx={{ display: { xs: 'none', md: 'block' }, fontWeight: 700, color: COLORS.text.strong, mb: 2, textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: '0.875rem', opacity: 0.7 }}>
-                            What's included:
-                          </Typography>
-
-                          {/* Mobile Toggle Button */}
-                          <Button
-                            variant="text"
-                            size="small"
-                            onClick={() => setShowAllFeatures(!showAllFeatures)}
-                            endIcon={<ArrowForward sx={{ transform: showAllFeatures ? 'rotate(90deg)' : 'none', transition: '0.2s', fontSize: 16 }} />}
-                            sx={{
-                              display: { xs: 'flex', md: 'none' },
-                              color: COLORS.brand.primary,
-                              fontWeight: 700,
-                              p: 0,
-                              mb: showAllFeatures ? 2 : 0,
-                              justifyContent: 'flex-start',
-                              textTransform: 'none',
-                              fontSize: '0.875rem'
-                            }}
-                          >
-                            {showAllFeatures ? 'Hide premium features' : 'Show all premium features'}
-                          </Button>
-
-                          <Box sx={{ display: { xs: showAllFeatures ? 'block' : 'none', md: 'block' } }}>
-                            <Stack spacing={2.5}>
-                              {[
-                                { text: '24/7 AI-Powered WhatsApp Guest Concierge', icon: <WhatsApp /> },
-                                { text: 'Real-time RSVP Tracking & Analytics', icon: <CheckCircle /> },
-                                { text: 'Automated Travel & Flight Logistics', icon: <CheckCircle /> },
-                                { text: 'Global Guest Broadcasts & Updates', icon: <CheckCircle /> },
-                                { text: 'Gift Registry & Honeymoon Funds', icon: <CheckCircle /> },
-                                { text: 'Dedicated Relationship Manager', icon: <CheckCircle /> },
-                                { text: 'Unlimited Guest Capacity', icon: <CheckCircle /> }
-                              ].map((item, i) => (
-                                <Stack key={i} direction="row" spacing={1.5} alignItems="flex-start">
-                                  {React.cloneElement(item.icon as React.ReactElement<any>, {
-                                    sx: { color: COLORS.brand.primary, fontSize: { xs: 16, md: 20 }, mt: 0.3 }
-                                  })}
-                                  <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 500, lineHeight: 1.5, fontSize: { xs: '0.85rem', md: '0.95rem' } }}>
-                                    {item.text}
-                                  </Typography>
-                                </Stack>
-                              ))}
-                              <Typography variant="caption" sx={{ color: COLORS.text.faint, fontStyle: 'italic', mt: 2, display: 'block', fontSize: '0.875rem' }}>
-                                + even more features coming soon
-                              </Typography>
-                            </Stack>
-                          </Box>
-                        </Box>
-                      </Grid>
-
-                      {/* Right Column: Checkout Form */}
-                      <Grid size={{ xs: 12, md: 7, lg: 6 }}>
-                        <Box id="checkout" sx={{
-                          width: '100%',
-                          minHeight: 'auto',
-                          bgcolor: COLORS.bg.white,
-                          borderRadius: RADII.dialog,
-                          p: { xs: 1, md: 2 },
-                          '& iframe': {
-                            width: '100% !important',
-                          }
-                        }}>
-                          <EmbeddedCheckoutProvider
-                            stripe={stripePromise}
-                            options={{ clientSecret: checkoutClientSecret }}
-                          >
-                            <EmbeddedCheckout />
-                          </EmbeddedCheckoutProvider>
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </Box>
-                ) : (
-                  <>
+                <>
                     {/* STEP 1: ROLE SELECTION */}
                     {step === 1 && (
                       <Box>
@@ -1333,29 +1127,26 @@ export default function OnboardingPage() {
                         </Button>
                       </Stack>
                     )}
-                  </>
-                )}
+                </>
               </Paper>
             </motion.div>
           </AnimatePresence>
 
           {/* Progress Dots */}
-          {!checkoutClientSecret && (
-            <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 3 }}>
-              {[1, 2, 3].map(s => (
-                <Box
-                  key={s}
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    bgcolor: step >= s ? COLORS.brand.primary : alpha(COLORS.brand.primary, 0.15),
-                    transition: 'background-color 0.3s ease',
-                  }}
-                />
-              ))}
-            </Stack>
-          )}
+          <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 3 }}>
+            {[1, 2, 3].map(s => (
+              <Box
+                key={s}
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  bgcolor: step >= s ? COLORS.brand.primary : alpha(COLORS.brand.primary, 0.15),
+                  transition: 'background-color 0.3s ease',
+                }}
+              />
+            ))}
+          </Stack>
         </Box>
       </Container>
     </OptimizedBackground>

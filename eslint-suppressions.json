@@ -338,7 +338,7 @@
   },
   "app/onboarding/page.tsx": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 9
+      "count": 7
     },
     "no-restricted-syntax": {
       "count": 1
@@ -347,7 +347,7 @@
       "count": 1
     },
     "react/no-unescaped-entities": {
-      "count": 6
+      "count": 5
     }
   },
   "app/privacy/page.tsx": {

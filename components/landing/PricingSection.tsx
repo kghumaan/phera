@@ -17,6 +17,8 @@ interface PricingProps {
   onBaseClick: (e?: React.MouseEvent) => void;
   onPremiumClick: (e?: React.MouseEvent) => void;
   onPlannerClick: (e?: React.MouseEvent) => void;
+  /** Which paid tier (if any) is mid-redirect — its CTA shows a spinner. */
+  loadingTier?: 'base' | 'premium' | 'planner_perwedding' | null;
 }
 
 interface CardTier {
@@ -32,10 +34,10 @@ interface CardTier {
   highlight: boolean;
 }
 
-export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerClick }: PricingProps) {
+export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerClick, loadingTier }: PricingProps) {
   // Map our PRICING_TIERS data into the design's card shape, preserving
   // the design's MOST CHOSEN highlight on the middle (Base) tier.
-  const tiers: CardTier[] = PRICING_TIERS.map((t) => {
+  const tiers: (CardTier & { tierId: 'base' | 'premium' | null })[] = PRICING_TIERS.map((t) => {
     const isFree = t.id === 'free';
     const isBase = t.id === 'paid';
     const isWhiteGlove = t.id === 'white_glove';
@@ -54,8 +56,26 @@ export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerC
       href: isBase || isWhiteGlove ? undefined : (t.buttonHref || '/auth/signup'),
       onClick: isBase ? onBaseClick : isWhiteGlove ? onPremiumClick : undefined,
       highlight: t.highlight,
+      tierId: isBase ? 'base' : isWhiteGlove ? 'premium' : null,
     };
   });
+
+  const isAnyLoading = !!loadingTier;
+  const Spinner = (
+    <span
+      aria-hidden
+      style={{
+        display: 'inline-block',
+        width: 14,
+        height: 14,
+        border: '2px solid currentColor',
+        borderTopColor: 'transparent',
+        borderRadius: '50%',
+        animation: 'phera-spin 0.7s linear infinite',
+        verticalAlign: 'middle',
+      }}
+    />
+  );
 
   return (
     <section id="pricing" className="section" style={{ background: 'var(--paper)' }}>
@@ -133,16 +153,34 @@ export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerC
                   <button
                     type="button"
                     onClick={(e) => t.onClick?.(e)}
+                    disabled={isAnyLoading}
+                    aria-busy={loadingTier === t.tierId}
                     className={t.highlight ? 'btn btn-primary' : 'btn btn-ghost'}
-                    style={{ marginTop: 28, width: '100%' }}
+                    style={{
+                      marginTop: 28,
+                      width: '100%',
+                      opacity: isAnyLoading && loadingTier !== t.tierId ? 0.55 : 1,
+                      cursor: isAnyLoading ? 'not-allowed' : 'pointer',
+                    }}
                   >
-                    {t.cta} <span className="btn-arrow">→</span>
+                    {loadingTier === t.tierId ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+                        {Spinner} Redirecting to checkout…
+                      </span>
+                    ) : (
+                      <>{t.cta} <span className="btn-arrow">→</span></>
+                    )}
                   </button>
                 ) : (
                   <Link
                     href={t.href || '/auth/signup'}
                     className={t.highlight ? 'btn btn-primary' : 'btn btn-ghost'}
-                    style={{ marginTop: 28, width: '100%' }}
+                    style={{
+                      marginTop: 28,
+                      width: '100%',
+                      pointerEvents: isAnyLoading ? 'none' : undefined,
+                      opacity: isAnyLoading ? 0.55 : 1,
+                    }}
                   >
                     {t.cta} <span className="btn-arrow">→</span>
                   </Link>
@@ -203,14 +241,27 @@ export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerC
             <button
               type="button"
               onClick={(e) => onPlannerClick?.(e)}
+              disabled={isAnyLoading}
+              aria-busy={loadingTier === 'planner_perwedding'}
               className="btn btn-ghost"
+              style={{
+                opacity: isAnyLoading && loadingTier !== 'planner_perwedding' ? 0.55 : 1,
+                cursor: isAnyLoading ? 'not-allowed' : 'pointer',
+              }}
             >
-              {PLANNER_TIER.buttonText} <span className="btn-arrow">→</span>
+              {loadingTier === 'planner_perwedding' ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+                  {Spinner} Redirecting…
+                </span>
+              ) : (
+                <>{PLANNER_TIER.buttonText} <span className="btn-arrow">→</span></>
+              )}
             </button>
           </div>
         </Reveal>
       </div>
       <style>{`
+        @keyframes phera-spin { to { transform: rotate(360deg); } }
         .pricing-card { padding: 32px; }
         .pricing-price { font-size: 64px; }
         .planner-strip { padding: 32px; }
