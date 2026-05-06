@@ -219,7 +219,7 @@ function ReadOnlyComments() {
               {mockComments.map((comment, index) => (
                 <Box key={comment.id}>
                   <Box>
-                    <Box sx={{ display: 'flex', gap: 1, py: 3 }}>
+                    <Box sx={{ display: 'flex', gap: 1, py: 1.5 }}>
                       <Avatar
                         sx={{
                           width: 32,

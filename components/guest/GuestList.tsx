@@ -748,7 +748,7 @@ export default function GuestList({
                   transition={{ delay: index * 0.05 }}
                 >
                   <Box>
-                    <Box sx={{ display: 'flex', gap: 1, py: 3 }}>
+                    <Box sx={{ display: 'flex', gap: 1, py: 1.5 }}>
                       <Avatar
                         sx={{
                           width: 40,
