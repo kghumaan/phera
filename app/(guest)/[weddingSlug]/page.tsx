@@ -1050,7 +1050,7 @@ export default function HomePage() {
             right: 0,
             top: 0,
             width: '50%',
-            height: '100vh',
+            height: '100dvh',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'center',
@@ -1406,7 +1406,7 @@ export default function HomePage() {
               transition: 'transform 0.3s ease-in-out',
             }}
           >
-            <AppHeader variant="transparent" />
+            <AppHeader variant="transparent" hideAuthControls />
           </div>
           <VerticalScrollLayout
             wedding={{

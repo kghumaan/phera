@@ -10,6 +10,8 @@ import {
   AccordionSummary,
   AccordionDetails,
   Paper,
+  Avatar,
+  CircularProgress,
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -47,6 +49,9 @@ import { getFrameConfig } from '@/lib/constants/images';
 import { getCoupleFont } from '@/lib/constants/fonts';
 import { ActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { Logout as LogoutIcon, Dashboard as DashboardIcon } from '@mui/icons-material';
 
 // Types
 interface WeddingData {
@@ -218,6 +223,41 @@ export default function VerticalScrollLayout({
   const [guestListExpanded, setGuestListExpanded] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const lastScrollY = useRef(0);
+
+  // Drawer-hosted auth controls (avatar + RSVP status). Lifted from the
+  // AppHeader in this layout so the top-right doesn't collide with the
+  // floating Menu button.
+  const router = useRouter();
+  const {
+    user: authUser,
+    signOut,
+    isAdmin,
+    adminWeddingSlug,
+  } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isNavigatingToAdmin, setIsNavigatingToAdmin] = useState(false);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await signOut();
+      setNavOpen(false);
+      router.push('/');
+    } catch (err) {
+      console.error('Error signing out:', err);
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
+
+  const formatRSVPResponse = (r?: string): string => {
+    switch (r) {
+      case 'yes': return 'Going';
+      case 'no': return 'Not Going';
+      case 'maybe': return 'Maybe';
+      default: return 'RSVP';
+    }
+  };
 
   // Section data states
   const [schedule, setSchedule] = useState<ScheduleDay[]>([]);
@@ -1670,40 +1710,51 @@ export default function VerticalScrollLayout({
 
       </Box>
 
-      {/* Fixed Menu Button — aligned with the AppHeader user avatar:
-          - Avatar sits inside AppHeader Container at pt { xs: 2, md: 4 } and
-            is centered in a row whose height equals the logo (40px xs, 48px md).
-          - Avatar is 32px xs / 45px md on the right edge (Container px 2/4).
-          - Match: same top + same height, positioned just left of the avatar
-            with an 8px gap. */}
+      {/* Fixed Menu Button — top-right corner, vertically aligned with the
+          Phera logo on the left at every breakpoint.
+
+          Wrapper mirrors AppHeader's Container `pt` + `px` exactly, and the
+          pill inherits the same row height as the logo wrapper
+          ({ xs: 40, sm: 48, md: 48 }). Because both elements share `pt` and
+          row height, their vertical centers always match — no manual math
+          and no breakpoint gaps. */}
       <Box
-        onClick={() => setNavOpen(true)}
         sx={{
           position: 'fixed',
-          right: { xs: '56px', md: '85px' },   // avatar width (32/45) + 8 gap + container px (16/32)
-          top: { xs: '20px', md: '33.5px' },   // header pt + (row - avatar)/2
-          height: { xs: 32, md: 45 },
+          top: 0,
+          right: 0,
           zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 0.75,
-          px: { xs: 1.5, md: 2 },
-          borderRadius: '100px',
-          backgroundColor: COLORS.text.strong,
-          color: COLORS.text.inverse,
-          cursor: 'pointer',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
-          userSelect: 'none',
-          '&:hover': {
-            backgroundColor: COLORS.text.strong,
-            boxShadow: '0 6px 20px rgba(0,0,0,0.35)',
-          },
+          pt: { xs: 2, md: 4 },
+          pr: { xs: 2, md: 4 },
+          pointerEvents: 'none',
         }}
       >
-        <MenuIcon sx={{ fontSize: { xs: 18, md: 20 }, color: COLORS.text.inverse }} />
-        <Typography variant="subtitleCaps" sx={{ fontSize: { xs: '0.7rem', md: '0.8rem' }, color: COLORS.text.inverse, letterSpacing: '0.03em' }}>
-          Menu
-        </Typography>
+        <Box
+          onClick={() => setNavOpen(true)}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            height: { xs: 40, sm: 48, md: 48 },
+            gap: 0.75,
+            px: { xs: 1.5, md: 2 },
+            borderRadius: '100px',
+            backgroundColor: COLORS.text.strong,
+            color: COLORS.text.inverse,
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+            userSelect: 'none',
+            pointerEvents: 'auto',
+            '&:hover': {
+              backgroundColor: COLORS.text.strong,
+              boxShadow: '0 6px 20px rgba(0,0,0,0.35)',
+            },
+          }}
+        >
+          <MenuIcon sx={{ fontSize: { xs: 18, md: 20 }, color: COLORS.text.inverse }} />
+          <Typography variant="subtitleCaps" sx={{ fontSize: { xs: '0.7rem', md: '0.8rem' }, color: COLORS.text.inverse, letterSpacing: '0.03em' }}>
+            Menu
+          </Typography>
+        </Box>
       </Box>
 
       {/* Sidebar Overlay + Drawer */}
@@ -1819,6 +1870,140 @@ export default function VerticalScrollLayout({
                   </>
                 )}
               </Box>
+
+              {/* Auth controls — pinned to the bottom of the drawer.
+                  Hosts the avatar, RSVP status pill, and sign-out / admin
+                  shortcuts that used to live in the top-right of AppHeader. */}
+              {authUser ? (
+                <Box sx={{ px: 3, pb: 4, pt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
+                  <Avatar
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      backgroundColor: authUser.avatar_color,
+                      color: COLORS.text.inverse,
+                      fontWeight: 600,
+                      fontSize: '1.25rem',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    }}
+                  >
+                    {authUser.avatar_svg ? (
+                      <Box
+                        dangerouslySetInnerHTML={{ __html: authUser.avatar_svg }}
+                        sx={{
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          '& svg': { width: '100%', height: '100%' },
+                        }}
+                      />
+                    ) : (
+                      authUser.initials
+                    )}
+                  </Avatar>
+
+                  <Typography
+                    variant="body3"
+                    sx={{
+                      color: COLORS.text.subtle,
+                      maxWidth: '100%',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {authUser.email}
+                  </Typography>
+
+                  {hasRSVPed && rsvpResponse && (
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setNavOpen(false);
+                        router.push(`/${weddingSlug}/rsvp`);
+                      }}
+                      sx={{
+                        backgroundColor: COLORS.text.strong,
+                        color: COLORS.text.inverse,
+                        borderRadius: '28px',
+                        px: 3.6,
+                        py: 1,
+                        fontSize: '0.9rem',
+                        fontWeight: 400,
+                        textTransform: 'none',
+                        minHeight: 40,
+                        '&:hover': { backgroundColor: COLORS.text.strong },
+                      }}
+                    >
+                      {formatRSVPResponse(rsvpResponse)}
+                    </Button>
+                  )}
+
+                  <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+                    {isAdmin && adminWeddingSlug && (
+                      <IconButton
+                        onClick={() => {
+                          setIsNavigatingToAdmin(true);
+                          setNavOpen(false);
+                          router.push(`/admin/${adminWeddingSlug}/overview`);
+                        }}
+                        disabled={isNavigatingToAdmin}
+                        sx={{
+                          color: COLORS.text.subtle,
+                          '&:hover': { backgroundColor: 'rgba(0,0,0,0.06)' },
+                        }}
+                        aria-label="Admin dashboard"
+                      >
+                        {isNavigatingToAdmin
+                          ? <CircularProgress size={18} sx={{ color: COLORS.text.subtle }} />
+                          : <DashboardIcon fontSize="small" />}
+                      </IconButton>
+                    )}
+                    <IconButton
+                      onClick={handleSignOut}
+                      disabled={isSigningOut}
+                      sx={{
+                        color: COLORS.text.subtle,
+                        '&:hover': { backgroundColor: 'rgba(0,0,0,0.06)' },
+                      }}
+                      aria-label="Sign out"
+                    >
+                      {isSigningOut
+                        ? <CircularProgress size={18} sx={{ color: COLORS.text.subtle }} />
+                        : <LogoutIcon fontSize="small" />}
+                    </IconButton>
+                  </Stack>
+                </Box>
+              ) : (
+                <Box sx={{ px: 3, pb: 4, pt: 1, display: 'flex', justifyContent: 'center' }}>
+                  <Button
+                    component={Link}
+                    href={`/auth/login?redirect=${encodeURIComponent(`/${weddingSlug}`)}`}
+                    variant="contained"
+                    sx={{
+                      backgroundColor: COLORS.text.strong,
+                      color: COLORS.text.inverse,
+                      borderRadius: '28px',
+                      px: 4,
+                      py: 1.2,
+                      fontSize: '0.9rem',
+                      fontWeight: 500,
+                      textTransform: 'none',
+                      minWidth: 96,
+                      minHeight: 45,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      '&:hover': {
+                        backgroundColor: COLORS.text.strong,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                      },
+                    }}
+                  >
+                    Login
+                  </Button>
+                </Box>
+              )}
             </motion.div>
           </>
         )}
