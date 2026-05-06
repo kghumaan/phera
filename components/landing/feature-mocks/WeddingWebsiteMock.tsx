@@ -6,9 +6,13 @@
  * Static composition: the couple's wedding website (desktop) with a
  * compact phone in the corner showing the per-event mobile carousel.
  *
- * Container aspect ratios are LOCKED to the source images so the
- * screenshots fill their frames exactly, no letterboxing:
- *   browser.png   3456 × 1644  → aspect 2.103
+ * The browser image dictates its own height (width:100% / height:auto),
+ * so the frame always fits the screenshot exactly — no aspect-ratio
+ * math, no letterboxing, no edge clipping when the source image is
+ * swapped for a taller version.
+ *
+ * Carousel container aspect is still locked to the source so the phone
+ * stays a phone:
  *   carousel.png   726 × 1400  → aspect 0.519
  *
  * The phone uses a plain rounded-rectangle device outline (not the
@@ -24,7 +28,8 @@ import { COLORS } from '@/lib/theme/tokens';
 const BROWSER_SRC = '/images/feature_images/browser.png';
 const CAROUSEL_SRC = '/images/feature_images/carousel.png';
 const BROWSER_CHROME_HEIGHT = 30;
-const BROWSER_IMG_ASPECT = 3456 / 1644; // ≈ 2.103
+const BROWSER_IMG_W = 3456;
+const BROWSER_IMG_H = 1750;
 const PHONE_IMG_ASPECT = 726 / 1400;    // ≈ 0.519
 
 export default function WeddingWebsiteMock() {
@@ -57,7 +62,6 @@ export default function WeddingWebsiteMock() {
           borderRadius: '14px',
           overflow: 'hidden',
           border: '1px solid rgba(0,0,0,0.1)',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.10), 0 6px 16px rgba(0,0,0,0.06)',
           bgcolor: '#FBF7F1',
           display: 'flex',
           flexDirection: 'column',
@@ -106,21 +110,17 @@ export default function WeddingWebsiteMock() {
           </Box>
         </Box>
 
-        {/* Page content — aspect ratio matches the image so it fills exactly. */}
-        <Box
-          sx={{
-            position: 'relative',
-            aspectRatio: `${BROWSER_IMG_ASPECT}`,
-            width: '100%',
-            bgcolor: '#FBF7F1',
-          }}
-        >
+        {/* Page content — image drives its own height. width:100% +
+            height:auto means the rendered frame always matches the
+            image's natural aspect, even after the source is swapped. */}
+        <Box sx={{ width: '100%', bgcolor: '#FBF7F1', lineHeight: 0 }}>
           <Image
             src={BROWSER_SRC}
             alt="Wedding website preview"
-            fill
+            width={BROWSER_IMG_W}
+            height={BROWSER_IMG_H}
             sizes="(max-width: 900px) 100vw, 600px"
-            style={{ objectFit: 'cover', objectPosition: 'top' }}
+            style={{ width: '100%', height: 'auto', display: 'block' }}
             priority={false}
           />
         </Box>
@@ -137,7 +137,6 @@ export default function WeddingWebsiteMock() {
           borderRadius: '20px',
           padding: '6px',
           bgcolor: '#1a1a1a',
-          boxShadow: '0 22px 32px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.4) inset',
           opacity: ready ? 1 : 0,
           transform: ready ? 'translateY(0)' : 'translateY(8px)',
           transition: 'opacity 0.6s ease 0.18s, transform 0.6s ease 0.18s',
