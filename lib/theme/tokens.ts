@@ -34,6 +34,10 @@ export const COLORS = {
     muted: '#FAFAFA',
     subtle: '#F8F8F8',
     wash: 'rgba(0, 0, 0, 0.03)',
+    // Warm cream "paper" — matches landing CSS var(--paper). Used as the
+    // base for textured sections (e.g. landing 'full kit', vertical-scroll
+    // left content panel).
+    paper: '#FBF7F1',
   },
   border: {
     faint: 'rgba(0, 0, 0, 0.06)',
