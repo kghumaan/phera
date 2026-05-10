@@ -74,9 +74,11 @@ export default function FinalCTA() {
           <ActionButton
             href="/auth/login"
             variant="contained"
+            keepBackgroundOnLoad
+            spinnerColor={COLORS.text.inverse}
             sx={{
               bgcolor: COLORS.brand.primary,
-              color: 'white',
+              color: COLORS.text.inverse,
               padding: '18px 30px',
               borderRadius: '999px',
               fontSize: '17px',

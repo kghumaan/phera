@@ -13,6 +13,7 @@
 
 import Image from 'next/image';
 import { ActionButton } from '@/components/admin/ActionButton';
+import { COLORS } from '@/lib/theme/tokens';
 import { LotusGlyph, Reveal } from './design-primitives';
 
 const MARQUEE_WORDS = [
@@ -126,6 +127,8 @@ export default function HeroSection() {
               href="/auth/login"
               variant="contained"
               className="btn btn-primary"
+              keepBackgroundOnLoad
+              spinnerColor={COLORS.text.inverse}
               sx={{
                 fontSize: { xs: 15, sm: 17 },
                 padding: { xs: '13px 22px', sm: '18px 30px' },
@@ -133,7 +136,7 @@ export default function HeroSection() {
                 textTransform: 'none',
                 fontWeight: 600,
                 bgcolor: 'var(--accent)',
-                color: '#fff',
+                color: COLORS.text.inverse,
                 '&:hover': { bgcolor: 'var(--accent-hover)' },
               }}
               endIcon={<span className="btn-arrow" style={{ display: 'inline-block' }}>→</span>}

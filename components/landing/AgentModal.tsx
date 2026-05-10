@@ -8,7 +8,6 @@ import {
   Typography,
   Box,
   Stack,
-  Chip,
   List,
   ListItem,
   ListItemIcon,
@@ -21,6 +20,7 @@ import { PheraDialog } from '@/components/shared/Dialog';
 import { useState, useEffect } from 'react';
 import { SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 import { trackAgentModalOpen, trackWaitlistSignup, trackPreorderSignup } from '@/lib/utils/analytics';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface AgentModalProps {
   open: boolean;
@@ -107,7 +107,7 @@ export default function AgentModal({
         setSuccess(false);
         onClose();
       }, 2000);
-    } catch (err) {
+    } catch {
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -121,7 +121,7 @@ export default function AgentModal({
 
   const renderWaitlistContent = () => (
     <Stack spacing={3}>
-      <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.6 }}>
+      <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
         Be the first to know when <strong>{agent?.name} {agent?.persona}</strong> launches!
         Join our waitlist and get <strong>exclusive early access</strong> with special pricing.
       </Typography>
@@ -129,40 +129,40 @@ export default function AgentModal({
       <Box
         sx={{
           p: 3,
-          bgcolor: 'rgba(222, 63, 94, 0.05)',
-          borderRadius: '16px',
-          border: '1px solid rgba(222, 63, 94, 0.1)',
+          bgcolor: COLORS.brand.primaryWash,
+          borderRadius: RADII.lg,
+          border: `1px solid ${COLORS.brand.primarySubtle}`,
         }}
       >
-        <Typography variant="h6" sx={{ mb: 2, color: '#1a1a1a' }}>
+        <Typography variant="h6" sx={{ mb: 2, color: COLORS.text.strong }}>
           What you'll get:
         </Typography>
         <List dense>
           <ListItem disableGutters>
             <ListItemIcon sx={{ minWidth: 36 }}>
-              <CheckCircle sx={{ color: '#DE3F5E', fontSize: 20 }} />
+              <CheckCircle sx={{ color: COLORS.brand.primary, fontSize: 20 }} />
             </ListItemIcon>
             <ListItemText 
               primary="Early access notification"
-              primaryTypographyProps={{ sx: { color: '#1a1a1a' } }}
+              primaryTypographyProps={{ sx: { color: COLORS.text.strong } }}
             />
           </ListItem>
           <ListItem disableGutters>
             <ListItemIcon sx={{ minWidth: 36 }}>
-              <CheckCircle sx={{ color: '#DE3F5E', fontSize: 20 }} />
+              <CheckCircle sx={{ color: COLORS.brand.primary, fontSize: 20 }} />
             </ListItemIcon>
             <ListItemText 
               primary="Launch discount (save 30%)"
-              primaryTypographyProps={{ sx: { color: '#1a1a1a' } }}
+              primaryTypographyProps={{ sx: { color: COLORS.text.strong } }}
             />
           </ListItem>
           <ListItem disableGutters>
             <ListItemIcon sx={{ minWidth: 36 }}>
-              <CheckCircle sx={{ color: '#DE3F5E', fontSize: 20 }} />
+              <CheckCircle sx={{ color: COLORS.brand.primary, fontSize: 20 }} />
             </ListItemIcon>
             <ListItemText 
               primary="Extended free trial period"
-              primaryTypographyProps={{ sx: { color: '#1a1a1a' } }}
+              primaryTypographyProps={{ sx: { color: COLORS.text.strong } }}
             />
           </ListItem>
         </List>
@@ -186,7 +186,7 @@ export default function AgentModal({
         disabled={loading || success}
         sx={{
           '& .MuiOutlinedInput-root': {
-            borderRadius: '12px',
+            borderRadius: RADII.md,
           },
         }}
       />
@@ -195,7 +195,7 @@ export default function AgentModal({
 
   const renderPreOrderContent = () => (
     <Stack spacing={3}>
-      <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.6 }}>
+      <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
         Reserve your spot for <strong>{agent?.name} {agent?.persona}</strong> and save
         <strong> 50%</strong> at launch! Limited early bird pricing available.
       </Typography>
@@ -203,28 +203,28 @@ export default function AgentModal({
       <Box
         sx={{
           p: 3,
-          bgcolor: '#FFF3E0',
-          borderRadius: '16px',
-          border: '1px solid #FFB74D',
+          bgcolor: COLORS.accent.warningBg,
+          borderRadius: RADII.lg,
+          border: `1px solid ${COLORS.accent.warning}`,
         }}
       >
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Box>
-            <Typography variant="body2" sx={{ color: '#666' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
               Regular Price
             </Typography>
             <Typography
               variant="h5"
-              sx={{ textDecoration: 'line-through', color: '#999' }}
+              sx={{ textDecoration: 'line-through', color: COLORS.text.faint }}
             >
               {getPriceDisplay()}
             </Typography>
           </Box>
           <Box>
-            <Typography variant="body2" sx={{ color: '#666' }}>
+            <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
               Early Bird Price
             </Typography>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#DE3F5E' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: COLORS.brand.primary }}>
               ${agent ? Math.round(agent.pricing / 2) : 15}
             </Typography>
           </Box>
@@ -234,48 +234,48 @@ export default function AgentModal({
       <Box
         sx={{
           p: 3,
-          bgcolor: 'rgba(222, 63, 94, 0.05)',
-          borderRadius: '16px',
+          bgcolor: COLORS.brand.primaryWash,
+          borderRadius: RADII.lg,
         }}
       >
-        <Typography variant="h6" sx={{ mb: 2, color: '#1a1a1a' }}>
+        <Typography variant="h6" sx={{ mb: 2, color: COLORS.text.strong }}>
           Pre-Order Benefits:
         </Typography>
         <List dense>
           <ListItem disableGutters>
             <ListItemIcon sx={{ minWidth: 36 }}>
-              <CheckCircle sx={{ color: '#DE3F5E', fontSize: 20 }} />
+              <CheckCircle sx={{ color: COLORS.brand.primary, fontSize: 20 }} />
             </ListItemIcon>
             <ListItemText 
               primary="Save 50% - lock in early bird pricing"
-              primaryTypographyProps={{ sx: { color: '#1a1a1a' } }}
+              primaryTypographyProps={{ sx: { color: COLORS.text.strong } }}
             />
           </ListItem>
           <ListItem disableGutters>
             <ListItemIcon sx={{ minWidth: 36 }}>
-              <CheckCircle sx={{ color: '#DE3F5E', fontSize: 20 }} />
+              <CheckCircle sx={{ color: COLORS.brand.primary, fontSize: 20 }} />
             </ListItemIcon>
             <ListItemText 
               primary="First access when agent launches"
-              primaryTypographyProps={{ sx: { color: '#1a1a1a' } }}
+              primaryTypographyProps={{ sx: { color: COLORS.text.strong } }}
             />
           </ListItem>
           <ListItem disableGutters>
             <ListItemIcon sx={{ minWidth: 36 }}>
-              <CheckCircle sx={{ color: '#DE3F5E', fontSize: 20 }} />
+              <CheckCircle sx={{ color: COLORS.brand.primary, fontSize: 20 }} />
             </ListItemIcon>
             <ListItemText 
               primary="Extended trial period (30 days)"
-              primaryTypographyProps={{ sx: { color: '#1a1a1a' } }}
+              primaryTypographyProps={{ sx: { color: COLORS.text.strong } }}
             />
           </ListItem>
           <ListItem disableGutters>
             <ListItemIcon sx={{ minWidth: 36 }}>
-              <CheckCircle sx={{ color: '#DE3F5E', fontSize: 20 }} />
+              <CheckCircle sx={{ color: COLORS.brand.primary, fontSize: 20 }} />
             </ListItemIcon>
             <ListItemText 
               primary="Influence feature development"
-              primaryTypographyProps={{ sx: { color: '#1a1a1a' } }}
+              primaryTypographyProps={{ sx: { color: COLORS.text.strong } }}
             />
           </ListItem>
         </List>
@@ -299,12 +299,12 @@ export default function AgentModal({
         disabled={loading || success}
         sx={{
           '& .MuiOutlinedInput-root': {
-            borderRadius: '12px',
+            borderRadius: RADII.md,
           },
         }}
       />
 
-      <Typography variant="caption" sx={{ color: '#666', textAlign: 'center' }}>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, textAlign: 'center' }}>
         No payment required now. We'll contact you before launch to complete purchase.
       </Typography>
     </Stack>
@@ -313,17 +313,17 @@ export default function AgentModal({
   const renderLearnMoreContent = () => (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h6" sx={{ mb: 1, color: '#1a1a1a' }}>
+        <Typography variant="h6" sx={{ mb: 1, color: COLORS.text.strong }}>
           The Problem
         </Typography>
         <Typography
           variant="body2"
           sx={{
-            color: '#666',
+            color: COLORS.text.subtle,
             fontStyle: 'italic',
             p: 2,
-            bgcolor: '#FAFAFA',
-            borderRadius: '12px',
+            bgcolor: COLORS.bg.muted,
+            borderRadius: RADII.md,
             lineHeight: 1.6,
           }}
         >
@@ -332,10 +332,10 @@ export default function AgentModal({
       </Box>
 
       <Box>
-        <Typography variant="h6" sx={{ mb: 1, color: '#1a1a1a' }}>
+        <Typography variant="h6" sx={{ mb: 1, color: COLORS.text.strong }}>
           How {agent?.persona} Helps
         </Typography>
-        <Typography variant="body2" sx={{ color: '#4a4a4a', lineHeight: 1.6 }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
           {agent?.solution}
         </Typography>
       </Box>
@@ -343,22 +343,22 @@ export default function AgentModal({
       <Box
         sx={{
           p: 3,
-          bgcolor: 'rgba(222, 63, 94, 0.05)',
-          borderRadius: '16px',
+          bgcolor: COLORS.brand.primaryWash,
+          borderRadius: RADII.lg,
         }}
       >
-        <Typography variant="h6" sx={{ mb: 2, color: '#1a1a1a' }}>
+        <Typography variant="h6" sx={{ mb: 2, color: COLORS.text.strong }}>
           Key Features
         </Typography>
         <List dense>
           {getFeaturesByAgent(agent?.id || '').map((feature, idx) => (
             <ListItem key={idx} disableGutters>
               <ListItemIcon sx={{ minWidth: 36 }}>
-                <CheckCircle sx={{ color: '#DE3F5E', fontSize: 20 }} />
+                <CheckCircle sx={{ color: COLORS.brand.primary, fontSize: 20 }} />
               </ListItemIcon>
               <ListItemText 
                 primary={feature}
-                primaryTypographyProps={{ sx: { color: '#1a1a1a' } }}
+                primaryTypographyProps={{ sx: { color: COLORS.text.strong } }}
               />
             </ListItem>
           ))}
@@ -368,20 +368,20 @@ export default function AgentModal({
       <Box
         sx={{
           p: 2,
-          bgcolor: '#FFF3E0',
-          borderRadius: '12px',
+          bgcolor: COLORS.accent.warningBg,
+          borderRadius: RADII.md,
           textAlign: 'center',
         }}
       >
-        <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a1a1a' }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong }}>
           {getPriceDisplay()}/wedding
         </Typography>
-        <Typography variant="body2" sx={{ color: '#666', mt: 0.5 }}>
+        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.5 }}>
           One-time payment • No subscription required
         </Typography>
       </Box>
 
-      <Typography variant="body2" sx={{ color: '#4a4a4a', textAlign: 'center' }}>
+      <Typography variant="body2" sx={{ color: COLORS.text.muted, textAlign: 'center' }}>
         Interested? Join the waitlist to get notified when {agent?.persona} launches!
       </Typography>
     </Stack>
@@ -515,7 +515,7 @@ export default function AgentModal({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          color: '#1a1a1a',
+          color: COLORS.text.strong,
           px: 3,
           pt: 3,
           pb: 1,
@@ -527,12 +527,12 @@ export default function AgentModal({
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
               {getModalTitle()}
             </Typography>
-            <Typography variant="body2" sx={{ color: '#DE3F5E', fontWeight: 500 }}>
+            <Typography variant="body2" sx={{ color: COLORS.brand.primary, fontWeight: 500 }}>
               {agent?.tagline}
             </Typography>
           </Box>
         </Stack>
-        <IconButton onClick={onClose} sx={{ color: '#666' }}>
+        <IconButton onClick={onClose} sx={{ color: COLORS.text.subtle }}>
           <CloseIcon />
         </IconButton>
       </Box>
@@ -549,7 +549,7 @@ export default function AgentModal({
             <Button
               onClick={onClose}
               sx={{
-                color: '#666',
+                color: COLORS.text.subtle,
                 textTransform: 'none',
                 fontWeight: 600,
               }}
@@ -561,22 +561,23 @@ export default function AgentModal({
               onClick={handleSubmit}
               disabled={loading || success || !email}
               sx={{
-                bgcolor: '#DE3F5E',
-                color: 'white',
-                borderRadius: '12px',
+                bgcolor: COLORS.brand.primary,
+                color: COLORS.text.inverse,
+                borderRadius: RADII.md,
                 textTransform: 'none',
                 fontWeight: 600,
                 px: 4,
                 '&:hover': {
-                  bgcolor: '#C8365A',
+                  bgcolor: COLORS.brand.primaryHover,
                 },
                 '&:disabled': {
-                  bgcolor: '#ccc',
+                  bgcolor: COLORS.brand.primary,
+                  color: COLORS.text.inverse,
                 },
               }}
             >
               {loading ? (
-                <CircularProgress size={24} sx={{ color: 'white' }} />
+                <CircularProgress size={24} sx={{ color: COLORS.text.inverse }} />
               ) : (
                 getButtonText()
               )}
@@ -592,14 +593,14 @@ export default function AgentModal({
               // Trigger waitlist modal (parent component will handle this)
             }}
             sx={{
-              bgcolor: '#DE3F5E',
-              color: 'white',
-              borderRadius: '12px',
+              bgcolor: COLORS.brand.primary,
+              color: COLORS.text.inverse,
+              borderRadius: RADII.md,
               textTransform: 'none',
               fontWeight: 600,
               py: 1.5,
               '&:hover': {
-                bgcolor: '#C8365A',
+                bgcolor: COLORS.brand.primaryHover,
               },
             }}
           >
@@ -610,4 +611,3 @@ export default function AgentModal({
     </PheraDialog>
   );
 }
-

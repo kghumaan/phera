@@ -12,6 +12,7 @@
  */
 
 import { ActionButton } from '@/components/admin/ActionButton';
+import { COLORS } from '@/lib/theme/tokens';
 import { Reveal } from './design-primitives';
 
 export default function FinalCTASection() {
@@ -62,6 +63,8 @@ export default function FinalCTASection() {
               href="/auth/login"
               variant="contained"
               className="btn btn-primary"
+              keepBackgroundOnLoad
+              spinnerColor={COLORS.text.inverse}
               sx={{
                 fontSize: { xs: 15, sm: 17 },
                 padding: { xs: '13px 24px', sm: '18px 32px' },
@@ -69,7 +72,7 @@ export default function FinalCTASection() {
                 textTransform: 'none',
                 fontWeight: 600,
                 bgcolor: 'var(--accent)',
-                color: '#fff',
+                color: COLORS.text.inverse,
                 '&:hover': { bgcolor: 'var(--accent-hover)' },
               }}
               endIcon={<span className="btn-arrow" style={{ display: 'inline-block' }}>→</span>}

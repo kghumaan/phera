@@ -236,7 +236,7 @@ function LandingPageContent() {
                     onClick={handleBaseAction}
                     variant="contained"
                     keepBackgroundOnLoad
-                    spinnerColor="#fff"
+                    spinnerColor={COLORS.text.inverse}
                     className="btn btn-primary"
                     sx={{
                       marginTop: { xs: '28px', md: '36px' },
@@ -246,7 +246,7 @@ function LandingPageContent() {
                       textTransform: 'none',
                       fontWeight: 600,
                       bgcolor: 'var(--accent)',
-                      color: '#fff',
+                      color: COLORS.text.inverse,
                       '&:hover': { bgcolor: 'var(--accent-hover)' },
                     }}
                     endIcon={<span className="btn-arrow" style={{ display: 'inline-block' }}>→</span>}
