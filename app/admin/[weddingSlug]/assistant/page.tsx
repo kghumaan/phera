@@ -1,0 +1,269 @@
+'use client';
+
+import { Box, Stack, Typography, CircularProgress } from '@mui/material';
+import { use, useCallback, useEffect, useRef, useState } from 'react';
+import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { PheraCard } from '@/components/shared/Card';
+import { PheraTextField } from '@/components/shared/TextField';
+import { PheraChip } from '@/components/shared/Chip';
+import { IconActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import type { AgentStreamEvent, AgentContentBlock } from '@/lib/agent/types';
+
+type ChatItem =
+  | { kind: 'user'; text: string }
+  | { kind: 'assistant'; text: string }
+  | { kind: 'tool'; label: string; status: 'running' | 'ok' | 'failed' };
+
+const STARTERS = [
+  'How is our planning going so far?',
+  "What's still missing from our setup?",
+  'How many guests have RSVPed?',
+  'Which rooms still have space?',
+];
+
+function itemsFromPersisted(messages: Array<{ role: string; content: AgentContentBlock[] }>): ChatItem[] {
+  const items: ChatItem[] = [];
+  for (const message of messages) {
+    for (const block of message.content ?? []) {
+      if (block.type === 'text' && block.text.trim()) {
+        items.push({ kind: message.role === 'user' ? 'user' : 'assistant', text: block.text });
+      } else if (block.type === 'tool_use') {
+        items.push({ kind: 'tool', label: block.name.replace(/_/g, ' '), status: 'ok' });
+      }
+    }
+  }
+  return items;
+}
+
+export default function AssistantPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
+  const { weddingSlug } = use(params);
+  const [items, setItems] = useState<ChatItem[]>([]);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const conversationIdRef = useRef<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/agent/conversations?weddingSlug=${encodeURIComponent(weddingSlug)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        if (data.conversation) conversationIdRef.current = data.conversation.id;
+        if (data.messages?.length) setItems(itemsFromPersisted(data.messages));
+      } finally {
+        if (!cancelled) setLoadingHistory(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [weddingSlug]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+  }, [items, busy]);
+
+  const handleEvent = useCallback((event: AgentStreamEvent) => {
+    setItems((prev) => {
+      const next = [...prev];
+      switch (event.type) {
+        case 'text_delta': {
+          const last = next[next.length - 1];
+          if (last?.kind === 'assistant') {
+            next[next.length - 1] = { ...last, text: last.text + event.text };
+          } else {
+            next.push({ kind: 'assistant', text: event.text });
+          }
+          return next;
+        }
+        case 'tool_start':
+          next.push({ kind: 'tool', label: event.label, status: 'running' });
+          return next;
+        case 'tool_done': {
+          for (let i = next.length - 1; i >= 0; i--) {
+            const item = next[i];
+            if (item.kind === 'tool' && item.status === 'running') {
+              next[i] = { ...item, status: event.ok ? 'ok' : 'failed' };
+              break;
+            }
+          }
+          return next;
+        }
+        case 'error':
+          next.push({ kind: 'assistant', text: event.message });
+          return next;
+        default:
+          return next;
+      }
+    });
+  }, []);
+
+  const send = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || busy) return;
+      setInput('');
+      setBusy(true);
+      setItems((prev) => [...prev, { kind: 'user', text: trimmed }]);
+      try {
+        const res = await fetch('/api/agent/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            weddingSlug,
+            message: trimmed,
+            conversationId: conversationIdRef.current ?? undefined,
+          }),
+        });
+        if (!res.ok || !res.body) {
+          handleEvent({ type: 'error', message: 'I could not reach the planner just now — please try again.' });
+          return;
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const frames = buffer.split('\n\n');
+          buffer = frames.pop() ?? '';
+          for (const frame of frames) {
+            const line = frame.trim();
+            if (!line.startsWith('data: ')) continue;
+            try {
+              const event = JSON.parse(line.slice(6)) as AgentStreamEvent;
+              if (event.type === 'conversation') {
+                conversationIdRef.current = event.conversationId;
+              } else {
+                handleEvent(event);
+              }
+            } catch {
+              // Ignore malformed frames
+            }
+          }
+        }
+      } finally {
+        setBusy(false);
+      }
+    },
+    [busy, weddingSlug, handleEvent]
+  );
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+      <PageHeading
+        title="Planner"
+        subtitle="Your AI wedding planner — ask anything, change anything. It works with the same data as every page here."
+      />
+
+      <PheraCard
+        variant="default"
+        sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 480, overflow: 'hidden', p: 0 }}
+      >
+        <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
+          {loadingHistory ? (
+            <Stack alignItems="center" py={6}>
+              <CircularProgress size={22} sx={{ color: COLORS.brand.primary }} />
+            </Stack>
+          ) : items.length === 0 ? (
+            <Stack spacing={2} alignItems="center" py={6}>
+              <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 32 }} />
+              <Typography variant="body1" sx={{ color: COLORS.text.muted, textAlign: 'center', maxWidth: 420 }}>
+                I&apos;m your wedding planner. I can read and update your guest list, schedule, rooms,
+                vendors, and more — just tell me what&apos;s happening.
+              </Typography>
+              <Stack direction="row" flexWrap="wrap" justifyContent="center" gap={1}>
+                {STARTERS.map((starter) => (
+                  <PheraChip
+                    key={starter}
+                    tone="brand"
+                    label={starter}
+                    onClick={() => send(starter)}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </Stack>
+            </Stack>
+          ) : (
+            <Stack spacing={1.5}>
+              {items.map((item, index) =>
+                item.kind === 'tool' ? (
+                  <Box key={index} sx={{ alignSelf: 'flex-start' }}>
+                    <PheraChip
+                      tone={item.status === 'failed' ? 'danger' : 'neutral'}
+                      size="small"
+                      label={item.status === 'running' ? `${item.label}…` : item.label}
+                      icon={
+                        item.status === 'running' ? (
+                          <CircularProgress size={12} sx={{ color: COLORS.text.subtle }} />
+                        ) : undefined
+                      }
+                    />
+                  </Box>
+                ) : (
+                  <Box
+                    key={index}
+                    sx={{
+                      alignSelf: item.kind === 'user' ? 'flex-end' : 'flex-start',
+                      maxWidth: '85%',
+                      px: 2,
+                      py: 1.25,
+                      borderRadius: `${RADII.md}px`,
+                      bgcolor: item.kind === 'user' ? COLORS.brand.primarySubtle : COLORS.bg.subtle,
+                      border: `1px solid ${item.kind === 'user' ? COLORS.brand.primaryBorder : COLORS.border.faint}`,
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{ color: COLORS.text.strong, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+                    >
+                      {item.text}
+                    </Typography>
+                  </Box>
+                )
+              )}
+              {busy && items[items.length - 1]?.kind !== 'assistant' && (
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ pl: 0.5 }}>
+                  <CircularProgress size={14} sx={{ color: COLORS.brand.primary }} />
+                  <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
+                    Thinking…
+                  </Typography>
+                </Stack>
+              )}
+            </Stack>
+          )}
+        </Box>
+
+        <Box
+          component="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            send(input);
+          }}
+          sx={{ display: 'flex', gap: 1, p: 2, borderTop: `1px solid ${COLORS.border.faint}` }}
+        >
+          <PheraTextField
+            fullWidth
+            size="small"
+            placeholder="Tell me what's happening — e.g. “Uncle Raj can't make it anymore”"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={busy}
+            autoComplete="off"
+          />
+          <IconActionButton type="submit" disabled={busy || !input.trim()} aria-label="Send message">
+            <SendRoundedIcon fontSize="small" />
+          </IconActionButton>
+        </Box>
+      </PheraCard>
+    </Box>
+  );
+}

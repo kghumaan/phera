@@ -30,6 +30,7 @@ import {
   ChatBubbleOutline,
   Settings,
   Hotel,
+  AutoAwesome,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
@@ -68,6 +69,15 @@ export const groups: SidebarGroup[] = [
     standalone: true,
     items: [
       { id: 'overview', label: 'Overview', path: '/overview' },
+    ],
+  },
+  {
+    id: 'planner',
+    label: 'Planner',
+    icon: <AutoAwesome />,
+    standalone: true,
+    items: [
+      { id: 'assistant', label: 'Planner', path: '/assistant' },
     ],
   },
   // Control Tower hidden from sidebar until feature is ready for broader

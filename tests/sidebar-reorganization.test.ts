@@ -18,14 +18,15 @@ vi.mock('./ProBadge', () => ({ default: () => null }));
 import { groups } from '@/components/admin/OnboardingSidebar';
 
 describe('Sidebar Reorganization', () => {
-  it('should have 6 groups (Control Tower hidden)', () => {
-    expect(groups).toHaveLength(6);
+  it('should have 7 groups (Control Tower hidden)', () => {
+    expect(groups).toHaveLength(7);
   });
 
   it('should have correct group IDs', () => {
     const ids = groups.map((g) => g.id);
     expect(ids).toEqual([
       'overview',
+      'planner',
       'wedding-website',
       'guests-group',
       'planning',
@@ -38,12 +39,24 @@ describe('Sidebar Reorganization', () => {
     const labels = groups.map((g) => g.label);
     expect(labels).toEqual([
       'Overview',
+      'Planner',
       'Wedding Website',
       'Guest Management',
       'Planning',
       'Collaborators',
       'Contact us',
     ]);
+  });
+
+  describe('Planner group', () => {
+    const planner = groups.find((g) => g.id === 'planner');
+
+    it('should be standalone with the assistant page', () => {
+      expect(planner!.standalone).toBe(true);
+      expect(planner!.items).toHaveLength(1);
+      expect(planner!.items[0].id).toBe('assistant');
+      expect(planner!.items[0].path).toBe('/assistant');
+    });
   });
 
   it('should NOT include Control Tower (hidden until feature-ready)', () => {
