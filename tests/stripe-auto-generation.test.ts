@@ -21,11 +21,17 @@ vi.mock('stripe', () => ({
 }));
 
 const mockUpsert = vi.fn().mockResolvedValue({ error: null });
+// Post-upsert the route reads user_settings.onboarding_completed to decide
+// where the success page routes the user.
+const mockSettingsSingle = vi.fn().mockResolvedValue({ data: { onboarding_completed: true } });
 
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => ({
     from: vi.fn(() => ({
       upsert: mockUpsert,
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({ single: mockSettingsSingle })),
+      })),
     })),
   })),
 }));
@@ -93,6 +99,12 @@ describe('Stripe auto-generation integration', () => {
 
       expect(data.success).toBe(true);
       expect(data.tier).toBe('pro');
+      expect(data.accountType).toBe('pro');
+      expect(data.onboardingCompleted).toBe(true);
+      expect(mockUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({ user_id: 'user-123', subscription_tier: 'pro' }),
+        { onConflict: 'user_id' }
+      );
       expect(mockAutoGenerateForUser).toHaveBeenCalledWith('user-123', expect.anything());
     });
 
