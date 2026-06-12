@@ -199,21 +199,24 @@ export const guestTools: AgentToolDefinition[] = [
     label: 'Adding a guest',
     risk: 'write',
     description:
-      'Add a single guest to the guest list. Call this when the user names someone to invite. For bulk imports, point the user to the Guest List import wizard instead.',
+      'Add a single guest to the guest list. Call this when the user names someone to invite. A phone number is REQUIRED (it is how Phera reaches guests on WhatsApp) — if the user did not give one, ask for it before calling this. Email is optional. For bulk imports, point the user to the Guest List import wizard instead.',
     inputSchema: {
       type: 'object',
       properties: {
         name: { type: 'string' },
-        email: { type: 'string' },
-        phone: { type: 'string', description: 'Include country code, e.g. +1415...' },
+        phone: { type: 'string', description: 'Required. Include country code, e.g. +1415...' },
+        email: { type: 'string', description: 'Optional' },
         side: { type: 'string', enum: ['bride', 'groom', 'both'] },
         party_size: { type: 'integer', description: 'Total people in this party including the guest (default 1)' },
         tags: { type: 'array', items: { type: 'string' } },
       },
-      required: ['name'],
+      required: ['name', 'phone'],
       additionalProperties: false,
     },
     execute: async (input, ctx) => {
+      if (!input.phone || !String(input.phone).trim()) {
+        throw new Error('A phone number is required to add a guest — ask the user for it.');
+      }
       const logistics: Record<string, unknown> = {};
       if (input.party_size) logistics.party_size = input.party_size;
       if (input.tags) logistics.tags = input.tags;
