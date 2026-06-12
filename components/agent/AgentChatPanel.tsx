@@ -7,14 +7,21 @@ import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import { PheraCard } from '@/components/shared/Card';
 import { PheraTextField } from '@/components/shared/TextField';
 import { PheraChip } from '@/components/shared/Chip';
-import { IconActionButton } from '@/components/admin/ActionButton';
+import { IconActionButton, PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { CONFIRMATION_NOTE_PREFIX } from '@/lib/agent/confirm';
 import type { AgentStreamEvent, AgentContentBlock } from '@/lib/agent/types';
 
 type ChatItem =
   | { kind: 'user'; text: string }
   | { kind: 'assistant'; text: string }
-  | { kind: 'tool'; label: string; status: 'running' | 'ok' | 'failed' };
+  | { kind: 'tool'; label: string; status: 'running' | 'ok' | 'failed' }
+  | {
+      kind: 'confirm';
+      actionId: string;
+      label: string;
+      status: 'pending' | 'resolving' | 'confirmed' | 'declined';
+    };
 
 const DEFAULT_STARTERS = [
   'How is our planning going so far?',
@@ -28,6 +35,9 @@ function itemsFromPersisted(messages: Array<{ role: string; content: AgentConten
   for (const message of messages) {
     for (const block of message.content ?? []) {
       if (block.type === 'text' && block.text.trim()) {
+        // Confirmation-outcome notes are internal plumbing — the agent's
+        // acknowledgment that follows them carries the user-facing content.
+        if (block.text.startsWith(CONFIRMATION_NOTE_PREFIX)) continue;
         items.push({ kind: message.role === 'user' ? 'user' : 'assistant', text: block.text });
       } else if (block.type === 'tool_use') {
         items.push({ kind: 'tool', label: block.name.replace(/_/g, ' '), status: 'ok' });
@@ -70,7 +80,16 @@ export function AgentChatPanel({
         const data = await res.json();
         if (cancelled) return;
         if (data.conversation) conversationIdRef.current = data.conversation.id;
-        if (data.messages?.length) setItems(itemsFromPersisted(data.messages));
+        const restored = data.messages?.length ? itemsFromPersisted(data.messages) : [];
+        for (const pending of data.pendingActions ?? []) {
+          restored.push({
+            kind: 'confirm',
+            actionId: pending.id,
+            label: String(pending.tool_name).replace(/_/g, ' '),
+            status: 'pending',
+          });
+        }
+        if (restored.length) setItems(restored);
       } finally {
         if (!cancelled) setLoadingHistory(false);
       }
@@ -110,6 +129,14 @@ export function AgentChatPanel({
           }
           return next;
         }
+        case 'confirmation_required':
+          next.push({
+            kind: 'confirm',
+            actionId: event.actionId,
+            label: event.label,
+            status: 'pending',
+          });
+          return next;
         case 'error':
           next.push({ kind: 'assistant', text: event.message });
           return next;
@@ -118,6 +145,72 @@ export function AgentChatPanel({
       }
     });
   }, []);
+
+  /** Shared SSE consumer for chat + confirm responses. */
+  const consumeStream = useCallback(
+    async (res: Response) => {
+      if (!res.ok || !res.body) {
+        handleEvent({ type: 'error', message: 'I could not reach the planner just now — please try again.' });
+        return;
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const frames = buffer.split('\n\n');
+        buffer = frames.pop() ?? '';
+        for (const frame of frames) {
+          const line = frame.trim();
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const event = JSON.parse(line.slice(6)) as AgentStreamEvent;
+            if (event.type === 'conversation') {
+              conversationIdRef.current = event.conversationId;
+            } else {
+              handleEvent(event);
+            }
+          } catch {
+            // Ignore malformed frames
+          }
+        }
+      }
+    },
+    [handleEvent]
+  );
+
+  const resolveAction = useCallback(
+    async (actionId: string, approve: boolean) => {
+      if (busy) return;
+      setBusy(true);
+      setItems((prev) =>
+        prev.map((item) =>
+          item.kind === 'confirm' && item.actionId === actionId ? { ...item, status: 'resolving' } : item
+        )
+      );
+      try {
+        const res = await fetch('/api/agent/confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ actionId, approve }),
+        });
+        setItems((prev) =>
+          prev.map((item) =>
+            item.kind === 'confirm' && item.actionId === actionId
+              ? { ...item, status: approve ? 'confirmed' : 'declined' }
+              : item
+          )
+        );
+        await consumeStream(res);
+      } finally {
+        setBusy(false);
+        onTurnComplete?.();
+      }
+    },
+    [busy, consumeStream, onTurnComplete]
+  );
 
   const send = useCallback(
     async (text: string) => {
@@ -136,40 +229,13 @@ export function AgentChatPanel({
             conversationId: conversationIdRef.current ?? undefined,
           }),
         });
-        if (!res.ok || !res.body) {
-          handleEvent({ type: 'error', message: 'I could not reach the planner just now — please try again.' });
-          return;
-        }
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const frames = buffer.split('\n\n');
-          buffer = frames.pop() ?? '';
-          for (const frame of frames) {
-            const line = frame.trim();
-            if (!line.startsWith('data: ')) continue;
-            try {
-              const event = JSON.parse(line.slice(6)) as AgentStreamEvent;
-              if (event.type === 'conversation') {
-                conversationIdRef.current = event.conversationId;
-              } else {
-                handleEvent(event);
-              }
-            } catch {
-              // Ignore malformed frames
-            }
-          }
-        }
+        await consumeStream(res);
       } finally {
         setBusy(false);
         onTurnComplete?.();
       }
     },
-    [busy, weddingSlug, handleEvent, onTurnComplete]
+    [busy, weddingSlug, consumeStream, onTurnComplete]
   );
 
   return (
@@ -204,7 +270,49 @@ export function AgentChatPanel({
         ) : (
           <Stack spacing={1.5}>
             {items.map((item, index) =>
-              item.kind === 'tool' ? (
+              item.kind === 'confirm' ? (
+                <Box
+                  key={index}
+                  sx={{
+                    alignSelf: 'flex-start',
+                    border: `1px solid ${COLORS.brand.primaryBorder}`,
+                    bgcolor: COLORS.brand.primaryWash,
+                    borderRadius: `${RADII.md}px`,
+                    px: 2,
+                    py: 1.5,
+                    maxWidth: '85%',
+                  }}
+                >
+                  <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 600, mb: 1 }}>
+                    Confirm: {item.label}
+                  </Typography>
+                  {item.status === 'pending' || item.status === 'resolving' ? (
+                    <Stack direction="row" spacing={1}>
+                      <PrimaryActionButton
+                        size="small"
+                        loading={item.status === 'resolving'}
+                        disabled={busy}
+                        onClick={() => resolveAction(item.actionId, true)}
+                      >
+                        Confirm
+                      </PrimaryActionButton>
+                      <SecondaryActionButton
+                        size="small"
+                        disabled={busy}
+                        onClick={() => resolveAction(item.actionId, false)}
+                      >
+                        Decline
+                      </SecondaryActionButton>
+                    </Stack>
+                  ) : (
+                    <PheraChip
+                      size="small"
+                      tone={item.status === 'confirmed' ? 'success' : 'neutral'}
+                      label={item.status === 'confirmed' ? 'Confirmed ✓' : 'Declined'}
+                    />
+                  )}
+                </Box>
+              ) : item.kind === 'tool' ? (
                 <Box key={index} sx={{ alignSelf: 'flex-start' }}>
                   <PheraChip
                     tone={item.status === 'failed' ? 'danger' : 'neutral'}
