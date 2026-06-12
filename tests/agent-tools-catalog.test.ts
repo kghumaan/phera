@@ -22,6 +22,7 @@ describe('agent tool catalog', () => {
       'get_rsvp_summary',
       'add_guest',
       'update_guest',
+      'record_rsvp',
       'list_rooms',
       'assign_guests_to_room',
       'get_schedule',

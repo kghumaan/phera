@@ -235,6 +235,69 @@ export const guestTools: AgentToolDefinition[] = [
     },
   },
   {
+    name: 'record_rsvp',
+    label: 'Recording an RSVP',
+    risk: 'write',
+    description:
+      'Record or change a guest\'s RSVP on the couple\'s behalf — e.g. when the user says someone confirmed, cancelled, or is unsure. attending is yes/no/maybe; guest_count is how many people from their party are coming (defaults to their party size for yes, 0 for no). Use list_guests first if you only have a name.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        guest_id: { type: 'string' },
+        attending: { type: 'string', enum: ['yes', 'no', 'maybe'] },
+        guest_count: { type: 'integer', description: 'People attending from this party' },
+        event_id: { type: 'string', description: "Event identifier; omit for the wedding overall ('general')" },
+      },
+      required: ['guest_id', 'attending'],
+      additionalProperties: false,
+    },
+    execute: async (input, ctx) => {
+      const eventId = (input.event_id as string) || 'general';
+      const { data: guest } = await ctx.supabase
+        .from('guests')
+        .select('id, name, logistics_data')
+        .eq('wedding_id', ctx.weddingSlug)
+        .eq('id', input.guest_id as string)
+        .single();
+      if (!guest) throw new Error('Guest not found');
+
+      const partySize =
+        Number((guest.logistics_data as Record<string, unknown> | null)?.party_size) || 1;
+      const guestCount =
+        input.guest_count !== undefined
+          ? Number(input.guest_count)
+          : input.attending === 'yes'
+            ? partySize
+            : 0;
+
+      const { data: existing } = await ctx.supabase
+        .from('rsvps')
+        .select('id')
+        .eq('wedding_id', ctx.weddingSlug)
+        .eq('guest_id', guest.id)
+        .eq('event_id', eventId)
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await ctx.supabase
+          .from('rsvps')
+          .update({ attending: input.attending as string, guest_count: guestCount })
+          .eq('id', existing.id);
+        if (error) throw new Error(error.message);
+      } else {
+        const { error } = await ctx.supabase.from('rsvps').insert({
+          wedding_id: ctx.weddingSlug,
+          guest_id: guest.id,
+          event_id: eventId,
+          attending: input.attending as string,
+          guest_count: guestCount,
+        });
+        if (error) throw new Error(error.message);
+      }
+      return { guest: guest.name, attending: input.attending, guest_count: guestCount, event_id: eventId };
+    },
+  },
+  {
     name: 'update_guest',
     label: 'Updating a guest',
     risk: 'write',
