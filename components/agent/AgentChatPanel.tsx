@@ -3,7 +3,10 @@
 import { Box, Stack, Typography, CircularProgress } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import MicRoundedIcon from '@mui/icons-material/MicRounded';
+import StopRoundedIcon from '@mui/icons-material/StopRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import { useVoiceInput } from './useVoiceInput';
 import { PheraCard } from '@/components/shared/Card';
 import { PheraTextField } from '@/components/shared/TextField';
 import { PheraChip } from '@/components/shared/Chip';
@@ -238,6 +241,13 @@ export function AgentChatPanel({
     [busy, weddingSlug, consumeStream, onTurnComplete]
   );
 
+  const voice = useVoiceInput(
+    useCallback((text: string) => {
+      // Transcript lands in the input for review — the user still hits send.
+      setInput((prev) => (prev ? `${prev} ${text}` : text));
+    }, [])
+  );
+
   const startNewConversation = useCallback(() => {
     // Fresh thread: the next send creates a new conversation server-side.
     // (Reloading before sending restores the previous thread — by design.)
@@ -377,26 +387,46 @@ export function AgentChatPanel({
         )}
       </Box>
 
-      <Box
-        component="form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          send(input);
-        }}
-        sx={{ display: 'flex', gap: 1, p: 2, borderTop: `1px solid ${COLORS.border.faint}` }}
-      >
-        <PheraTextField
-          fullWidth
-          size="small"
-          placeholder="Tell me what's happening — e.g. “Uncle Raj can't make it anymore”"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={busy}
-          autoComplete="off"
-        />
-        <IconActionButton type="submit" disabled={busy || !input.trim()} aria-label="Send message">
-          <SendRoundedIcon fontSize="small" />
-        </IconActionButton>
+      <Box sx={{ borderTop: `1px solid ${COLORS.border.faint}` }}>
+        {voice.error && (
+          <Typography variant="caption" sx={{ color: COLORS.text.subtle, px: 2, pt: 1, display: 'block' }}>
+            {voice.error}
+          </Typography>
+        )}
+        <Box
+          component="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            send(input);
+          }}
+          sx={{ display: 'flex', gap: 1, p: 2 }}
+        >
+          <PheraTextField
+            fullWidth
+            size="small"
+            placeholder={
+              voice.state === 'recording'
+                ? 'Listening… tap the mic again when you’re done'
+                : 'Tell me what’s happening — e.g. “Uncle Raj can’t make it anymore”'
+            }
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={busy}
+            autoComplete="off"
+          />
+          <IconActionButton
+            onClick={() => voice.toggle()}
+            disabled={busy || voice.state === 'transcribing'}
+            loading={voice.state === 'transcribing'}
+            aria-label={voice.state === 'recording' ? 'Stop recording' : 'Record a voice message'}
+            sx={voice.state === 'recording' ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : undefined}
+          >
+            {voice.state === 'recording' ? <StopRoundedIcon fontSize="small" /> : <MicRoundedIcon fontSize="small" />}
+          </IconActionButton>
+          <IconActionButton type="submit" disabled={busy || !input.trim()} aria-label="Send message">
+            <SendRoundedIcon fontSize="small" />
+          </IconActionButton>
+        </Box>
       </Box>
     </PheraCard>
   );

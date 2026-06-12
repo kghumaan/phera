@@ -120,7 +120,11 @@ async function acquireTurnLock(supabase: SupabaseClient, conversationId: string)
       .eq('id', conversationId)
       .or(`turn_started_at.is.null,turn_started_at.lt.${staleBefore}`)
       .select('id');
-    if (error) return true; // column missing pre-migration — fail open
+    if (error) {
+      // Pre-migration (missing column) or filter error — fail open, loudly.
+      console.error('[agent] turn lock acquire failed open:', error.message);
+      return true;
+    }
     return (data ?? []).length > 0;
   } catch {
     return true;
