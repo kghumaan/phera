@@ -14,7 +14,8 @@
     "setup-gif": "node scripts/download-wedding-gif.js",
     "gif-help": "node scripts/download-wedding-gif.js --manual",
     "optimize-images": "node scripts/optimize-images.mjs",
-    "prepare": "husky"
+    "prepare": "husky",
+    "evals": "node scripts/agent-evals.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
