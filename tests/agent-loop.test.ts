@@ -7,9 +7,9 @@ vi.mock('@/lib/supabase/client', () => ({
 
 import { runAgentTurn } from '@/lib/agent/loop';
 import type { AgentProvider, AgentStreamEvent, ProviderTurnResult } from '@/lib/agent/types';
-import { createFakeSupabase } from './mocks/fake-supabase';
+import { createFakeSupabase, type TableResult } from './mocks/fake-supabase';
 
-const SNAPSHOT_TABLES = {
+const SNAPSHOT_TABLES: Record<string, TableResult> = {
   weddings: {
     data: {
       couple_name: 'Priya & Rahul',
@@ -111,6 +111,37 @@ describe('runAgentTurn', () => {
     const toolResultBlock = (persisted[2].content as Array<{ type: string; is_error?: boolean }>)[0];
     expect(toolResultBlock.type).toBe('tool_result');
     expect(toolResultBlock.is_error).toBe(true);
+    expect(events.at(-1)?.type).toBe('done');
+  });
+
+  it('emits confirmation_required when a gated tool is parked', async () => {
+    const provider = scriptedProvider([
+      {
+        content: [
+          {
+            type: 'tool_use',
+            id: 'tu-g',
+            name: 'assign_guests_to_room',
+            input: { room_id: 'r-204', guest_ids: ['g1'] },
+          },
+        ],
+        stopReason: 'tool_use',
+      },
+      { content: [{ type: 'text', text: 'Awaiting your confirmation.' }], stopReason: 'end_turn' },
+    ]);
+    const { events } = await run(provider, {
+      ...SNAPSHOT_TABLES,
+      agent_actions: { data: { id: 'pending-1' } },
+    });
+
+    const confirmEvent = events.find((e) => e.type === 'confirmation_required');
+    expect(confirmEvent).toEqual({
+      type: 'confirmation_required',
+      actionId: 'pending-1',
+      name: 'assign_guests_to_room',
+      label: 'Reassigning a room',
+      input: { room_id: 'r-204', guest_ids: ['g1'] },
+    });
     expect(events.at(-1)?.type).toBe('done');
   });
 

@@ -10,7 +10,9 @@ import type { AgentToolContext, AgentToolDefinition } from '@/lib/agent/types';
 import { createFakeSupabase } from './mocks/fake-supabase';
 
 function makeCtx() {
-  const fake = createFakeSupabase({});
+  const fake = createFakeSupabase({
+    agent_actions: { data: { id: 'action-1' } },
+  });
   const ctx: AgentToolContext = {
     supabase: fake.client as never,
     weddingSlug: 'test-wedding',
@@ -89,7 +91,7 @@ describe('agent tool registry', () => {
     expect((fake.inserts['agent_actions'][0] as Record<string, unknown>).status).toBe('failed');
   });
 
-  it('refuses gated tools until confirmation flow exists, and audit-logs the refusal', async () => {
+  it('parks gated tools as pending actions instead of executing them', async () => {
     let executed = false;
     registerTools([
       makeTool({
@@ -101,11 +103,16 @@ describe('agent tool registry', () => {
       }),
     ]);
     const { ctx, fake } = makeCtx();
-    const result = await dispatchTool('echo', {}, ctx);
-    expect(result.ok).toBe(false);
-    expect(result.content).toMatch(/confirmation/i);
+    const result = await dispatchTool('echo', { room_id: 'r1' }, ctx);
     expect(executed).toBe(false);
-    expect((fake.inserts['agent_actions'][0] as Record<string, unknown>).status).toBe('declined');
+    expect(result.ok).toBe(true);
+    expect(result.pendingActionId).toBe('action-1');
+    expect(result.content).toMatch(/PENDING/);
+    expect(result.content).toMatch(/NOT executed/);
+    const pendingRow = fake.inserts['agent_actions'][0] as Record<string, unknown>;
+    expect(pendingRow.status).toBe('pending');
+    expect(pendingRow.tool_name).toBe('echo');
+    expect(pendingRow.input).toEqual({ room_id: 'r1' });
   });
 
   it('truncates oversized results', async () => {
