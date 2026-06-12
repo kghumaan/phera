@@ -1,3 +1,4 @@
+import { generateFallbackColor } from '@/lib/utils/avatar-generator';
 import type { AgentToolContext, AgentToolDefinition } from '../types';
 
 type GuestRow = {
@@ -224,6 +225,7 @@ export const guestTools: AgentToolDefinition[] = [
           email: (input.email as string) ?? null,
           phone: (input.phone as string) ?? null,
           wedding_side: (input.side as string) ?? null,
+          avatar_color: generateFallbackColor(input.name as string),
           ...(Object.keys(logistics).length > 0 ? { logistics_data: logistics } : {}),
         })
         .select('id, name')

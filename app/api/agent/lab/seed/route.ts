@@ -6,6 +6,22 @@ export const runtime = 'nodejs';
 export const maxDuration = 60;
 
 /**
+ * GET /api/agent/lab/seed
+ * Lists existing lab weddings (for cleanup and the lab UI).
+ */
+export async function GET(request: NextRequest) {
+  const access = await requireLabAccess(request);
+  if (!isLabAccess(access)) return access;
+
+  const { data } = await access.supabase
+    .from('weddings')
+    .select('slug, couple_name, created_at')
+    .like('slug', 'agent-lab-%')
+    .order('created_at', { ascending: false });
+  return NextResponse.json({ weddings: data ?? [] });
+}
+
+/**
  * POST /api/agent/lab/seed   Body: { scenario: 'blank' | 'populated' }
  * Creates a disposable agent-lab-* wedding with mock data.
  */

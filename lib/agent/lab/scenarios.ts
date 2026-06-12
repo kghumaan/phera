@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { generateFallbackColor } from '@/lib/utils/avatar-generator';
 
 /**
  * Agent Lab — disposable mock weddings for end-to-end agent testing.
@@ -190,6 +191,7 @@ export async function seedLabWedding(
     email: `${g.name.toLowerCase().replace(/[^a-z]+/g, '.')}@example.com`,
     phone: `+1415555${String(1000 + i)}`,
     wedding_side: g.side,
+    avatar_color: generateFallbackColor(g.name),
     logistics_data: { party_size: g.party, tags: g.tags },
   }));
   const { data: guests, error: guestsError } = await supabase
