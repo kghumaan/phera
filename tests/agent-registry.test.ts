@@ -89,7 +89,7 @@ describe('agent tool registry', () => {
     expect((fake.inserts['agent_actions'][0] as Record<string, unknown>).status).toBe('failed');
   });
 
-  it('refuses gated tools until confirmation flow exists', async () => {
+  it('refuses gated tools until confirmation flow exists, and audit-logs the refusal', async () => {
     let executed = false;
     registerTools([
       makeTool({
@@ -100,11 +100,12 @@ describe('agent tool registry', () => {
         },
       }),
     ]);
-    const { ctx } = makeCtx();
+    const { ctx, fake } = makeCtx();
     const result = await dispatchTool('echo', {}, ctx);
     expect(result.ok).toBe(false);
     expect(result.content).toMatch(/confirmation/i);
     expect(executed).toBe(false);
+    expect((fake.inserts['agent_actions'][0] as Record<string, unknown>).status).toBe('declined');
   });
 
   it('truncates oversized results', async () => {

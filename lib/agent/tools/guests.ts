@@ -222,7 +222,8 @@ export const guestTools: AgentToolDefinition[] = [
         .insert({
           wedding_id: ctx.weddingSlug,
           name: input.name as string,
-          email: (input.email as string) ?? null,
+          // guests.email is NOT NULL — the app convention for "no email" is ''
+          email: (input.email as string) ?? '',
           phone: (input.phone as string) ?? null,
           wedding_side: (input.side as string) ?? null,
           avatar_color: generateFallbackColor(input.name as string),

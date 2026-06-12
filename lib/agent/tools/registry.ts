@@ -60,11 +60,17 @@ export async function dispatchTool(
     return { ok: false, content: `Unknown tool: ${name}` };
   }
   if (tool.risk === 'gated') {
-    return {
-      ok: false,
-      content:
-        'This action requires user confirmation, which is not available yet. Tell the user to make this change in the admin UI for now.',
-    };
+    const content =
+      'This action requires user confirmation, which is not available yet. Tell the user to make this change in the admin UI for now.';
+    await logAction(ctx, {
+      name,
+      input,
+      risk: tool.risk,
+      status: 'declined',
+      result: content,
+      startedAt: new Date().toISOString(),
+    });
+    return { ok: false, content };
   }
 
   const startedAt = new Date().toISOString();
@@ -86,7 +92,7 @@ async function logAction(
     name: string;
     input: Record<string, unknown>;
     risk: string;
-    status: 'executed' | 'failed';
+    status: 'executed' | 'failed' | 'declined';
     result: string;
     startedAt: string;
   }
