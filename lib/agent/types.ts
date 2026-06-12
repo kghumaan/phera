@@ -65,9 +65,17 @@ export type AgentStreamEvent =
   | { type: 'done' }
   | { type: 'error'; message: string };
 
+export interface ProviderUsage {
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_input_tokens: number;
+  cache_creation_input_tokens: number;
+}
+
 export interface ProviderTurnResult {
   content: AgentContentBlock[];
   stopReason: string; // 'end_turn' | 'tool_use' | 'max_tokens' | 'refusal' | ...
+  usage?: ProviderUsage;
 }
 
 export interface AgentProvider {

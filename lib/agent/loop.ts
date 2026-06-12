@@ -78,6 +78,8 @@ export async function runAgentTurn(args: RunAgentTurnArgs): Promise<void> {
   await persistMessage(supabase, conversationId, userMessage);
   const messages: AgentChatMessage[] = [...history, userMessage];
 
+  const usageTotals = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, rounds: 0 };
+
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const result = await provider.streamTurn({
       system: AGENT_SYSTEM_PROMPT,
@@ -86,6 +88,14 @@ export async function runAgentTurn(args: RunAgentTurnArgs): Promise<void> {
       tools,
       onText: (text) => onEvent({ type: 'text_delta', text }),
     });
+
+    if (result.usage) {
+      usageTotals.input += result.usage.input_tokens;
+      usageTotals.output += result.usage.output_tokens;
+      usageTotals.cacheRead += result.usage.cache_read_input_tokens;
+      usageTotals.cacheWrite += result.usage.cache_creation_input_tokens;
+      usageTotals.rounds += 1;
+    }
 
     if (result.stopReason === 'refusal') {
       onEvent({ type: 'error', message: 'The assistant declined to answer that request.' });
@@ -133,6 +143,12 @@ export async function runAgentTurn(args: RunAgentTurnArgs): Promise<void> {
     .from('agent_conversations')
     .update({ last_message_at: new Date().toISOString() })
     .eq('id', conversationId);
+
+  // Cost/caching telemetry — cacheRead ≈ 0 on repeat turns means the prompt
+  // cache is being invalidated somewhere (see lib/agent/providers/anthropic.ts).
+  console.log(
+    `[agent] turn ${conversationId.slice(0, 8)} rounds=${usageTotals.rounds} in=${usageTotals.input} out=${usageTotals.output} cacheRead=${usageTotals.cacheRead} cacheWrite=${usageTotals.cacheWrite}`
+  );
 
   onEvent({ type: 'done' });
 }

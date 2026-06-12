@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
 import { verifyWeddingAccess } from '@/lib/utils/verify-wedding-access';
 import { resolveAgentAction } from '@/lib/agent/confirm';
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
         });
       } catch (error) {
         console.error('Confirm resolution failed:', error);
+        Sentry.captureException(error, { tags: { surface: 'agent-confirm' } });
         send({ type: 'error', message: 'Something went wrong resolving that action — please try again.' });
       } finally {
         controller.close();

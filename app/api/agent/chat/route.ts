@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
 import { verifyWeddingAccess } from '@/lib/utils/verify-wedding-access';
+import { checkRateLimit } from '@/lib/utils/rate-limiter';
 import { runAgentTurn } from '@/lib/agent/loop';
 import { anthropicProvider } from '@/lib/agent/providers/anthropic';
 import type { AgentStreamEvent } from '@/lib/agent/types';
@@ -14,6 +16,10 @@ export const maxDuration = 120;
  * Streams AgentStreamEvent objects as SSE (`data: {...}\n\n`).
  */
 export async function POST(request: NextRequest) {
+  // Each turn costs real model tokens — cap bursts per IP before any work.
+  const limited = checkRateLimit(request, { maxRequests: 20, windowMs: 60_000, keyPrefix: 'agent-chat' });
+  if (limited) return limited;
+
   const { supabase, user } = await getAuthenticatedClient();
   if (!supabase || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -90,6 +96,7 @@ export async function POST(request: NextRequest) {
         });
       } catch (error) {
         console.error('Agent turn failed:', error);
+        Sentry.captureException(error, { tags: { surface: 'agent-chat' } });
         send({
           type: 'error',
           message: 'Something went wrong on my end — please try that again.',

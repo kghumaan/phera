@@ -91,6 +91,12 @@ export const anthropicProvider: AgentProvider = {
     return {
       content: fromAnthropicContent(finalMessage.content),
       stopReason: finalMessage.stop_reason ?? 'end_turn',
+      usage: {
+        input_tokens: finalMessage.usage.input_tokens,
+        output_tokens: finalMessage.usage.output_tokens,
+        cache_read_input_tokens: finalMessage.usage.cache_read_input_tokens ?? 0,
+        cache_creation_input_tokens: finalMessage.usage.cache_creation_input_tokens ?? 0,
+      },
     };
   },
 };
