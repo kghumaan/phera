@@ -103,13 +103,19 @@ export async function runAgentTurn(args: RunAgentTurnArgs): Promise<void> {
 
     const toolResults: AgentContentBlock[] = [];
     for (const use of toolUses) {
-      onEvent({
-        type: 'tool_start',
-        name: use.name,
-        label: tools.find((t) => t.name === use.name)?.label ?? use.name,
-      });
+      const label = tools.find((t) => t.name === use.name)?.label ?? use.name;
+      onEvent({ type: 'tool_start', name: use.name, label });
       const dispatched = await dispatchTool(use.name, use.input, toolCtx);
       onEvent({ type: 'tool_done', name: use.name, ok: dispatched.ok });
+      if (dispatched.pendingActionId) {
+        onEvent({
+          type: 'confirmation_required',
+          actionId: dispatched.pendingActionId,
+          name: use.name,
+          label,
+          input: use.input,
+        });
+      }
       toolResults.push({
         type: 'tool_result',
         tool_use_id: use.id,

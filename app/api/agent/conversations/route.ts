@@ -45,12 +45,24 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ conversation: null, messages: [] });
   }
 
-  const { data: messages } = await supabase
-    .from('agent_messages')
-    .select('id, role, content, created_at')
-    .eq('conversation_id', conversation.id)
-    .order('created_at', { ascending: true })
-    .limit(200);
+  const [{ data: messages }, { data: pendingActions }] = await Promise.all([
+    supabase
+      .from('agent_messages')
+      .select('id, role, content, created_at')
+      .eq('conversation_id', conversation.id)
+      .order('created_at', { ascending: true })
+      .limit(200),
+    supabase
+      .from('agent_actions')
+      .select('id, tool_name, input, created_at')
+      .eq('conversation_id', conversation.id)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true }),
+  ]);
 
-  return NextResponse.json({ conversation, messages: messages ?? [] });
+  return NextResponse.json({
+    conversation,
+    messages: messages ?? [],
+    pendingActions: pendingActions ?? [],
+  });
 }

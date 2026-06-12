@@ -35,6 +35,8 @@ export interface DispatchResult {
   ok: boolean;
   /** JSON-stringified payload handed back to the model as the tool_result. */
   content: string;
+  /** Set when a gated tool was parked as a pending agent_actions row. */
+  pendingActionId?: string;
 }
 
 const MAX_RESULT_CHARS = 12_000;
@@ -60,17 +62,29 @@ export async function dispatchTool(
     return { ok: false, content: `Unknown tool: ${name}` };
   }
   if (tool.risk === 'gated') {
-    const content =
-      'This action requires user confirmation, which is not available yet. Tell the user to make this change in the admin UI for now.';
-    await logAction(ctx, {
-      name,
-      input,
-      risk: tool.risk,
-      status: 'declined',
-      result: content,
-      startedAt: new Date().toISOString(),
-    });
-    return { ok: false, content };
+    // Park the call as a pending action; the chat client renders a
+    // Confirm/Decline card and /api/agent/confirm resolves it.
+    const { data: pending, error } = await ctx.supabase
+      .from('agent_actions')
+      .insert({
+        conversation_id: ctx.conversationId,
+        wedding_id: ctx.weddingSlug,
+        tool_name: name,
+        input,
+        status: 'pending',
+        risk: tool.risk,
+      })
+      .select('id')
+      .single();
+    if (error || !pending) {
+      return { ok: false, content: `Could not queue the action for confirmation: ${error?.message}` };
+    }
+    return {
+      ok: true,
+      pendingActionId: pending.id as string,
+      content:
+        'PENDING — this action now awaits the user\'s confirmation via a Confirm button shown in the chat. It has NOT executed yet. Briefly tell the user what will happen when they confirm; do not assume or claim it is done.',
+    };
   }
 
   const startedAt = new Date().toISOString();

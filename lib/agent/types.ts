@@ -53,6 +53,15 @@ export type AgentStreamEvent =
   | { type: 'text_delta'; text: string }
   | { type: 'tool_start'; name: string; label: string }
   | { type: 'tool_done'; name: string; ok: boolean }
+  /** A gated tool call is parked as a pending agent_actions row — the client
+   *  must render Confirm/Decline and call /api/agent/confirm to resolve it. */
+  | {
+      type: 'confirmation_required';
+      actionId: string;
+      name: string;
+      label: string;
+      input: Record<string, unknown>;
+    }
   | { type: 'done' }
   | { type: 'error'; message: string };
 
