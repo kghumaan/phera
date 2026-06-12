@@ -238,11 +238,29 @@ export function AgentChatPanel({
     [busy, weddingSlug, consumeStream, onTurnComplete]
   );
 
+  const startNewConversation = useCallback(() => {
+    // Fresh thread: the next send creates a new conversation server-side.
+    // (Reloading before sending restores the previous thread — by design.)
+    conversationIdRef.current = null;
+    setItems([]);
+  }, []);
+
   return (
     <PheraCard
       variant="default"
       sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight, overflow: 'hidden', p: 0 }}
     >
+      {items.length > 0 && (
+        <Stack
+          direction="row"
+          justifyContent="flex-end"
+          sx={{ px: 1.5, py: 0.75, borderBottom: `1px solid ${COLORS.border.faint}` }}
+        >
+          <SecondaryActionButton size="small" disabled={busy} onClick={startNewConversation}>
+            New conversation
+          </SecondaryActionButton>
+        </Stack>
+      )}
       <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
         {loadingHistory ? (
           <Stack alignItems="center" py={6}>
