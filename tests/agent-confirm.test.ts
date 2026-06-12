@@ -89,6 +89,8 @@ describe('resolveAgentAction', () => {
     const turnArgs = mockRunAgentTurn.mock.calls[0][0] as { userMessage: string };
     expect(turnArgs.userMessage).toMatch(/DECLINED/);
     expect(turnArgs.userMessage).toMatch(/Do not retry/);
+    // Input must be echoed so the model can disambiguate same-tool actions
+    expect(turnArgs.userMessage).toContain('r-204');
   });
 
   it('marks failed when execution throws, and reports the failure to the agent', async () => {

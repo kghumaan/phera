@@ -44,6 +44,9 @@ export async function resolveAgentAction(args: ResolveActionArgs): Promise<void>
 
   const tool = getTool(action.tool_name);
   const label = tool?.label ?? action.tool_name;
+  // Several pending actions can share a tool — always identify the resolved
+  // one by its exact input so the model never acknowledges the wrong action.
+  const inputSummary = JSON.stringify(action.input ?? {}).slice(0, 600);
   let note: string;
 
   if (!approve) {
@@ -51,7 +54,7 @@ export async function resolveAgentAction(args: ResolveActionArgs): Promise<void>
       .from('agent_actions')
       .update({ status: 'declined', resolved_at: new Date().toISOString() })
       .eq('id', actionId);
-    note = `${CONFIRMATION_NOTE_PREFIX} The user DECLINED the pending action "${label}" (${action.tool_name}). It was not executed. Do not retry it unless they ask again; if their intent is unclear, ask what they'd like instead.`;
+    note = `${CONFIRMATION_NOTE_PREFIX} The user DECLINED the pending action "${label}" (${action.tool_name}) with input ${inputSummary}. It was not executed and the data is unchanged. Do not retry it unless they ask again; acknowledge the specific action that was declined.`;
   } else if (!tool) {
     await supabase
       .from('agent_actions')
@@ -77,7 +80,7 @@ export async function resolveAgentAction(args: ResolveActionArgs): Promise<void>
           resolved_at: new Date().toISOString(),
         })
         .eq('id', actionId);
-      note = `${CONFIRMATION_NOTE_PREFIX} The user CONFIRMED the pending action "${label}" (${action.tool_name}) and it has now executed successfully. Result: ${serialized.slice(0, 1500)}. Acknowledge briefly — do not re-run the tool.`;
+      note = `${CONFIRMATION_NOTE_PREFIX} The user CONFIRMED the pending action "${label}" (${action.tool_name}) with input ${inputSummary} and it has now executed successfully. Result: ${serialized.slice(0, 1500)}. Acknowledge briefly — do not re-run the tool.`;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await supabase
@@ -88,7 +91,7 @@ export async function resolveAgentAction(args: ResolveActionArgs): Promise<void>
           resolved_at: new Date().toISOString(),
         })
         .eq('id', actionId);
-      note = `${CONFIRMATION_NOTE_PREFIX} The user CONFIRMED the pending action "${label}" (${action.tool_name}) but execution FAILED: ${message}. Tell the user plainly and suggest what to do next.`;
+      note = `${CONFIRMATION_NOTE_PREFIX} The user CONFIRMED the pending action "${label}" (${action.tool_name}) with input ${inputSummary} but execution FAILED: ${message}. Tell the user plainly and suggest what to do next.`;
     }
   }
 
