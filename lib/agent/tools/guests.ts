@@ -29,6 +29,13 @@ function compactGuest(g: GuestRow) {
   };
 }
 
+/** rsvps.attending is 'yes' | 'no' | 'maybe' today, but legacy rows may hold booleans. */
+export function normalizeAttending(value: unknown): 'yes' | 'no' | 'maybe' | null {
+  if (typeof value === 'boolean') return value ? 'yes' : 'no';
+  if (value === 'yes' || value === 'no' || value === 'maybe') return value;
+  return null;
+}
+
 async function fetchGuestRsvps(ctx: AgentToolContext, guestIds: string[]) {
   if (guestIds.length === 0) return new Map<string, unknown[]>();
   const { data } = await ctx.supabase
@@ -41,7 +48,7 @@ async function fetchGuestRsvps(ctx: AgentToolContext, guestIds: string[]) {
     const list = byGuest.get(r.guest_id) ?? [];
     list.push({
       event_id: r.event_id,
-      attending: r.attending,
+      attending: normalizeAttending(r.attending),
       guest_count: r.guest_count,
       dietary: r.dietary_restrictions,
       song_request: r.song_request,
@@ -65,7 +72,7 @@ export const guestTools: AgentToolDefinition[] = [
         side: { type: 'string', enum: ['bride', 'groom', 'both'] },
         rsvp_status: {
           type: 'string',
-          enum: ['attending', 'not_attending', 'no_response'],
+          enum: ['attending', 'not_attending', 'maybe', 'no_response'],
           description: 'Filter by overall RSVP state',
         },
         limit: { type: 'integer', description: 'Max guests to return (default 40, max 100)' },
@@ -90,13 +97,15 @@ export const guestTools: AgentToolDefinition[] = [
       const guests = (data ?? []) as GuestRow[];
       const rsvps = await fetchGuestRsvps(ctx, guests.map((g) => g.id));
       let rows = guests.map((g) => {
-        const guestRsvps = (rsvps.get(g.id) ?? []) as Array<{ attending: boolean | null }>;
-        const attending = guestRsvps.some((r) => r.attending === true)
+        const guestRsvps = (rsvps.get(g.id) ?? []) as Array<{ attending: string | null }>;
+        const status = guestRsvps.some((r) => r.attending === 'yes')
           ? 'attending'
-          : guestRsvps.some((r) => r.attending === false)
-            ? 'not_attending'
-            : 'no_response';
-        return { ...compactGuest(g), rsvp_status: attending };
+          : guestRsvps.some((r) => r.attending === 'maybe')
+            ? 'maybe'
+            : guestRsvps.some((r) => r.attending === 'no')
+              ? 'not_attending'
+              : 'no_response';
+        return { ...compactGuest(g), rsvp_status: status };
       });
       if (input.rsvp_status) rows = rows.filter((r) => r.rsvp_status === input.rsvp_status);
       return { total: count ?? rows.length, returned: rows.length, guests: rows };
@@ -161,17 +170,19 @@ export const guestTools: AgentToolDefinition[] = [
       if (error) throw new Error(error.message);
       const byEvent = new Map<
         string,
-        { yes: number; no: number; headcount: number }
+        { yes: number; no: number; maybe: number; headcount: number }
       >();
       const responded = new Set<string>();
       for (const r of rsvps ?? []) {
         if (r.guest_id) responded.add(r.guest_id);
         const key = r.event_id ?? 'general';
-        const entry = byEvent.get(key) ?? { yes: 0, no: 0, headcount: 0 };
-        if (r.attending === true) {
+        const entry = byEvent.get(key) ?? { yes: 0, no: 0, maybe: 0, headcount: 0 };
+        const attending = normalizeAttending(r.attending);
+        if (attending === 'yes') {
           entry.yes += 1;
           entry.headcount += r.guest_count ?? 1;
-        } else if (r.attending === false) entry.no += 1;
+        } else if (attending === 'no') entry.no += 1;
+        else if (attending === 'maybe') entry.maybe += 1;
         byEvent.set(key, entry);
       }
       return {

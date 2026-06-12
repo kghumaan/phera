@@ -57,6 +57,13 @@ export async function buildWeddingSnapshot(
   const wedding = weddingRes.data;
   if (!wedding) throw new Error('Wedding not found for snapshot');
 
+  // Onboarding stores placeholders for "to be decided": wedding_date = epoch,
+  // venue_name = 'Venue TBD', wedding_date_display = 'Dates TBD', rsvp_deadline = ''.
+  const dateSet = !!wedding.wedding_date && new Date(wedding.wedding_date).getTime() > 0;
+  const venueName = wedding.venue_name && !/\bTBD\b/i.test(wedding.venue_name) ? wedding.venue_name : null;
+  const venueLocation = wedding.venue_location || null;
+  const rsvpDeadline = wedding.rsvp_deadline || null;
+
   const guestCount = guestCountRes.count ?? 0;
   const respondedGuests = new Set((respondedRes.data ?? []).map((r) => r.guest_id).filter(Boolean)).size;
   const roomCount = roomCountRes.count ?? 0;
@@ -67,12 +74,12 @@ export async function buildWeddingSnapshot(
   const openTasks = openTaskRes.count ?? 0;
 
   const completeness: CompletenessItem[] = [
-    { key: 'date', label: 'Wedding date set', done: !!wedding.wedding_date, detail: wedding.wedding_date ?? undefined },
+    { key: 'date', label: 'Wedding date set', done: dateSet, detail: dateSet ? wedding.wedding_date : undefined },
     {
       key: 'venue',
       label: 'Venue / location set',
-      done: !!(wedding.venue_name || wedding.venue_location),
-      detail: [wedding.venue_name, wedding.venue_location].filter(Boolean).join(', ') || undefined,
+      done: !!(venueName || venueLocation),
+      detail: [venueName, venueLocation].filter(Boolean).join(', ') || undefined,
     },
     { key: 'events', label: 'Ceremony events created', done: eventCount > 0, detail: `${eventCount} events` },
     { key: 'schedule', label: 'Day-by-day schedule started', done: scheduleDays > 0, detail: `${scheduleDays} days` },
@@ -83,25 +90,25 @@ export async function buildWeddingSnapshot(
       done: respondedGuests > 0,
       detail: guestCount > 0 ? `${respondedGuests}/${guestCount} responded` : undefined,
     },
-    { key: 'rsvp_deadline', label: 'RSVP deadline set', done: !!wedding.rsvp_deadline, detail: wedding.rsvp_deadline ?? undefined },
+    { key: 'rsvp_deadline', label: 'RSVP deadline set', done: !!rsvpDeadline, detail: rsvpDeadline ?? undefined },
     { key: 'rooms', label: 'Room block entered', done: roomCount > 0, detail: `${roomCount} rooms` },
     { key: 'vendors', label: 'Vendors tracked', done: vendorCount > 0, detail: `${vendorCount} vendors` },
     { key: 'faqs', label: 'Guest FAQs written', done: faqCount > 0, detail: `${faqCount} FAQs` },
   ];
 
   const today = new Date().toISOString().slice(0, 10);
-  const daysToWedding = wedding.wedding_date
+  const daysToWedding = dateSet
     ? Math.round((new Date(wedding.wedding_date).getTime() - Date.now()) / 86_400_000)
     : null;
 
   const lines = [
     `Today's date: ${today}`,
     `Couple: ${wedding.couple_name ?? [wedding.partner1_name, wedding.partner2_name].filter(Boolean).join(' & ') ?? 'not set'}`,
-    `Wedding date: ${wedding.wedding_date ?? 'NOT SET'}${wedding.wedding_date_end ? ` to ${wedding.wedding_date_end}` : ''}${
+    `Wedding date: ${dateSet ? wedding.wedding_date : 'NOT SET'}${dateSet && wedding.wedding_date_end ? ` to ${wedding.wedding_date_end}` : ''}${
       daysToWedding !== null ? ` (${daysToWedding} days away)` : ''
     }`,
-    `Venue: ${wedding.venue_name ?? 'NOT SET'}${wedding.venue_location ? ` — ${wedding.venue_location}` : ''}`,
-    `RSVP deadline: ${wedding.rsvp_deadline ?? 'not set'}`,
+    `Venue: ${venueName ?? 'NOT SET'}${venueLocation ? ` — ${venueLocation}` : ''}`,
+    `RSVP deadline: ${rsvpDeadline ?? 'not set'}`,
     `Guests: ${guestCount} (${respondedGuests} responded) | Events: ${eventCount} | Schedule days: ${scheduleDays}`,
     `Rooms: ${roomCount} | Vendors: ${vendorCount} | FAQs: ${faqCount} | Open tasks: ${openTasks}`,
     '',

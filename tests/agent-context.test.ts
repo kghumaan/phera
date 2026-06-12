@@ -71,6 +71,37 @@ describe('buildWeddingSnapshot', () => {
     expect(snapshot.text).toContain('days away');
   });
 
+  it('treats onboarding TBD placeholders as not set', async () => {
+    const fake = createFakeSupabase({
+      weddings: {
+        data: {
+          ...BARE_WEDDING,
+          // Exactly what the onboarding wizard stores when date/venue are TBD
+          wedding_date: new Date(0).toISOString(),
+          venue_name: 'Venue TBD',
+          venue_location: '',
+          rsvp_deadline: '',
+        },
+      },
+      guests: { count: 0 },
+      rsvps: { data: [] },
+      wedding_rooms: { count: 0 },
+      vendors: { count: 0 },
+      wedding_events: { count: 0 },
+      wedding_schedule: { count: 0 },
+      wedding_faqs: { count: 0 },
+      wedding_tasks: { count: 0 },
+    });
+    const snapshot = await buildWeddingSnapshot(fake.client as never, 'slug', 'uuid');
+    const byKey = Object.fromEntries(snapshot.completeness.map((c) => [c.key, c.done]));
+    expect(byKey.date).toBe(false);
+    expect(byKey.venue).toBe(false);
+    expect(byKey.rsvp_deadline).toBe(false);
+    expect(snapshot.text).toContain('Wedding date: NOT SET');
+    expect(snapshot.text).toContain('Venue: NOT SET');
+    expect(snapshot.text).not.toContain('days away');
+  });
+
   it('throws when the wedding row is missing', async () => {
     const fake = createFakeSupabase({ weddings: { data: null } });
     await expect(buildWeddingSnapshot(fake.client as never, 'slug', 'uuid')).rejects.toThrow(
