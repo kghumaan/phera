@@ -1,0 +1,113 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+export interface CompletenessItem {
+  key: string;
+  label: string;
+  done: boolean;
+  detail?: string;
+}
+
+export interface WeddingSnapshot {
+  text: string;
+  completeness: CompletenessItem[];
+}
+
+/**
+ * Build the dynamic context block injected after the cached system prompt:
+ * a compact factual snapshot of the wedding plus a completeness checklist the
+ * agent uses to drive onboarding questions and proactive suggestions.
+ */
+export async function buildWeddingSnapshot(
+  supabase: SupabaseClient,
+  weddingSlug: string,
+  weddingUuid: string
+): Promise<WeddingSnapshot> {
+  const [
+    weddingRes,
+    guestCountRes,
+    respondedRes,
+    roomCountRes,
+    vendorCountRes,
+    eventCountRes,
+    scheduleDayRes,
+    faqCountRes,
+    openTaskRes,
+  ] = await Promise.all([
+    supabase
+      .from('weddings')
+      .select(
+        'couple_name, partner1_name, partner2_name, wedding_date, wedding_date_end, venue_name, venue_location, rsvp_deadline, status'
+      )
+      .eq('id', weddingUuid)
+      .single(),
+    supabase.from('guests').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingSlug),
+    supabase.from('rsvps').select('guest_id').eq('wedding_id', weddingSlug),
+    supabase.from('wedding_rooms').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingSlug),
+    supabase.from('vendors').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingUuid),
+    supabase.from('wedding_events').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingUuid),
+    supabase.from('wedding_schedule').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingUuid),
+    supabase.from('wedding_faqs').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingUuid),
+    supabase
+      .from('wedding_tasks')
+      .select('id', { count: 'exact', head: true })
+      .eq('wedding_id', weddingUuid)
+      .neq('column', 'done'),
+  ]);
+
+  const wedding = weddingRes.data;
+  if (!wedding) throw new Error('Wedding not found for snapshot');
+
+  const guestCount = guestCountRes.count ?? 0;
+  const respondedGuests = new Set((respondedRes.data ?? []).map((r) => r.guest_id).filter(Boolean)).size;
+  const roomCount = roomCountRes.count ?? 0;
+  const vendorCount = vendorCountRes.count ?? 0;
+  const eventCount = eventCountRes.count ?? 0;
+  const scheduleDays = scheduleDayRes.count ?? 0;
+  const faqCount = faqCountRes.count ?? 0;
+  const openTasks = openTaskRes.count ?? 0;
+
+  const completeness: CompletenessItem[] = [
+    { key: 'date', label: 'Wedding date set', done: !!wedding.wedding_date, detail: wedding.wedding_date ?? undefined },
+    {
+      key: 'venue',
+      label: 'Venue / location set',
+      done: !!(wedding.venue_name || wedding.venue_location),
+      detail: [wedding.venue_name, wedding.venue_location].filter(Boolean).join(', ') || undefined,
+    },
+    { key: 'events', label: 'Ceremony events created', done: eventCount > 0, detail: `${eventCount} events` },
+    { key: 'schedule', label: 'Day-by-day schedule started', done: scheduleDays > 0, detail: `${scheduleDays} days` },
+    { key: 'guests', label: 'Guest list started', done: guestCount > 0, detail: `${guestCount} guests` },
+    {
+      key: 'rsvps',
+      label: 'RSVPs coming in',
+      done: respondedGuests > 0,
+      detail: guestCount > 0 ? `${respondedGuests}/${guestCount} responded` : undefined,
+    },
+    { key: 'rsvp_deadline', label: 'RSVP deadline set', done: !!wedding.rsvp_deadline, detail: wedding.rsvp_deadline ?? undefined },
+    { key: 'rooms', label: 'Room block entered', done: roomCount > 0, detail: `${roomCount} rooms` },
+    { key: 'vendors', label: 'Vendors tracked', done: vendorCount > 0, detail: `${vendorCount} vendors` },
+    { key: 'faqs', label: 'Guest FAQs written', done: faqCount > 0, detail: `${faqCount} FAQs` },
+  ];
+
+  const today = new Date().toISOString().slice(0, 10);
+  const daysToWedding = wedding.wedding_date
+    ? Math.round((new Date(wedding.wedding_date).getTime() - Date.now()) / 86_400_000)
+    : null;
+
+  const lines = [
+    `Today's date: ${today}`,
+    `Couple: ${wedding.couple_name ?? [wedding.partner1_name, wedding.partner2_name].filter(Boolean).join(' & ') ?? 'not set'}`,
+    `Wedding date: ${wedding.wedding_date ?? 'NOT SET'}${wedding.wedding_date_end ? ` to ${wedding.wedding_date_end}` : ''}${
+      daysToWedding !== null ? ` (${daysToWedding} days away)` : ''
+    }`,
+    `Venue: ${wedding.venue_name ?? 'NOT SET'}${wedding.venue_location ? ` — ${wedding.venue_location}` : ''}`,
+    `RSVP deadline: ${wedding.rsvp_deadline ?? 'not set'}`,
+    `Guests: ${guestCount} (${respondedGuests} responded) | Events: ${eventCount} | Schedule days: ${scheduleDays}`,
+    `Rooms: ${roomCount} | Vendors: ${vendorCount} | FAQs: ${faqCount} | Open tasks: ${openTasks}`,
+    '',
+    'Setup checklist:',
+    ...completeness.map((c) => `- [${c.done ? 'x' : ' '}] ${c.label}${c.detail ? ` (${c.detail})` : ''}`),
+  ];
+
+  return { text: lines.join('\n'), completeness };
+}
