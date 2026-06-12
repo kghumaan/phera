@@ -31,6 +31,83 @@ export const scheduleTools: AgentToolDefinition[] = [
     },
   },
   {
+    name: 'create_schedule_day',
+    label: 'Adding a schedule day',
+    risk: 'write',
+    description:
+      'Create a day on the day-by-day schedule (e.g. "Day 1 — Mehndi & Sangeet" on 2027-03-12). Call this when sketching out a multi-day wedding before adding items to each day. Check get_schedule first to avoid duplicate days.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        day_name: { type: 'string', description: 'e.g. "Day 1 — Mehndi & Sangeet"' },
+        date: { type: 'string', description: 'YYYY-MM-DD' },
+      },
+      required: ['day_name', 'date'],
+      additionalProperties: false,
+    },
+    execute: async (input, ctx) => {
+      const { count } = await ctx.supabase
+        .from('wedding_schedule')
+        .select('id', { count: 'exact', head: true })
+        .eq('wedding_id', ctx.weddingUuid);
+      const { data, error } = await ctx.supabase
+        .from('wedding_schedule')
+        .insert({
+          wedding_id: ctx.weddingUuid,
+          day_name: input.day_name as string,
+          date: input.date as string,
+          order_index: count ?? 0,
+        })
+        .select('id, day_name, date')
+        .single();
+      if (error || !data) throw new Error(error?.message ?? 'Failed to create schedule day');
+      return { created: { schedule_id: data.id, day_name: data.day_name, date: data.date } };
+    },
+  },
+  {
+    name: 'create_event',
+    label: 'Adding a ceremony event',
+    risk: 'write',
+    description:
+      'Create a ceremony event (the headline multi-day events shown on the wedding website: Mehndi, Sangeet, Pheras, Reception, etc.). Call this when the user describes which big events their wedding will have. Use get_wedding_overview first to avoid duplicates.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        date: { type: 'string', description: 'YYYY-MM-DD' },
+        time: { type: 'string', description: 'e.g. "4:00 PM"' },
+        dress_code: { type: 'string', description: 'Short dress-code line; use "To be decided" if unknown' },
+      },
+      required: ['name', 'date', 'time'],
+      additionalProperties: false,
+    },
+    execute: async (input, ctx) => {
+      const slug = String(input.name)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      const { count } = await ctx.supabase
+        .from('wedding_events')
+        .select('id', { count: 'exact', head: true })
+        .eq('wedding_id', ctx.weddingUuid);
+      const { data, error } = await ctx.supabase
+        .from('wedding_events')
+        .insert({
+          wedding_id: ctx.weddingUuid,
+          name: input.name as string,
+          slug,
+          date: input.date as string,
+          time: input.time as string,
+          dress_code: (input.dress_code as string) ?? 'To be decided',
+          order_index: count ?? 0,
+        })
+        .select('id, name, date, time')
+        .single();
+      if (error || !data) throw new Error(error?.message ?? 'Failed to create event');
+      return { created: data };
+    },
+  },
+  {
     name: 'create_schedule_item',
     label: 'Adding a schedule item',
     risk: 'write',

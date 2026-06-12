@@ -26,6 +26,8 @@ describe('agent tool catalog', () => {
       'list_rooms',
       'assign_guests_to_room',
       'get_schedule',
+      'create_schedule_day',
+      'create_event',
       'create_schedule_item',
       'get_site_content',
       'add_faq',
