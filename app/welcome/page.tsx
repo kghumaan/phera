@@ -46,12 +46,11 @@ export default function WelcomePage() {
     >
       <Box sx={{ width: '100%', maxWidth: 760 }}>
         <Stack spacing={1} alignItems="center" mb={4} textAlign="center">
-          <Typography variant="h1" sx={{ fontSize: '2.5rem' }}>
-            Congratulations 🎉
+          <Typography variant="h1" sx={{ fontSize: '2.5rem', color: COLORS.text.strong }}>
+            Let&apos;s get started
           </Typography>
           <Typography variant="body1" sx={{ color: COLORS.text.muted, maxWidth: 520 }}>
-            Let&apos;s set up your wedding. The easiest way is to just talk to your AI
-            planner — by voice or chat — and it handles the rest.
+            Two ways to set up your wedding. Talk to your AI planner, or fill it out yourself.
           </Typography>
         </Stack>
 
@@ -72,7 +71,9 @@ export default function WelcomePage() {
               <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary }} />
               <MicRoundedIcon sx={{ color: COLORS.brand.primary }} />
             </Stack>
-            <Typography variant="h6">Set up with your AI planner</Typography>
+            <Typography variant="h6" sx={{ color: COLORS.text.strong }}>
+              Set up with your AI planner
+            </Typography>
             <Typography variant="body2" sx={{ color: COLORS.text.muted, flex: 1 }}>
               Tell it your names, dates, and venue out loud or by typing. It builds your
               schedule, guest list, and more as you talk — and asks the smart questions a
