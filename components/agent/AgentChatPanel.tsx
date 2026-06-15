@@ -479,13 +479,21 @@ export function AgentChatPanel({
           <PheraTextField
             fullWidth
             size="small"
+            multiline
+            maxRows={6}
             placeholder={
               voice.state === 'recording'
                 ? 'Listening… tap the mic again when you’re done'
-                : 'Tell me what’s happening — e.g. “Uncle Raj can’t make it anymore”'
+                : 'Tell me what’s happening — Enter to send, Shift+Enter for a new line'
             }
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                send(input);
+              }
+            }}
             disabled={busy}
             autoComplete="off"
           />
