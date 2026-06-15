@@ -9,6 +9,7 @@ import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import { useVoiceInput } from './useVoiceInput';
+import { MarkdownText } from './MarkdownText';
 import { PheraCard } from '@/components/shared/Card';
 import { PheraTextField } from '@/components/shared/TextField';
 import { PheraChip } from '@/components/shared/Chip';
@@ -436,12 +437,16 @@ export function AgentChatPanel({
                     border: `1px solid ${item.kind === 'user' ? COLORS.brand.primaryBorder : COLORS.border.faint}`,
                   }}
                 >
-                  <Typography
-                    variant="body2"
-                    sx={{ color: COLORS.text.strong, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
-                  >
-                    {item.text}
-                  </Typography>
+                  {item.kind === 'assistant' ? (
+                    <MarkdownText text={item.text} />
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      sx={{ color: COLORS.text.strong, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+                    >
+                      {item.text}
+                    </Typography>
+                  )}
                 </Box>
               )
             )}
