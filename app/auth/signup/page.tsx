@@ -56,8 +56,8 @@ export default function SignupPage() {
           // User has a wedding, redirect to admin dashboard
           router.push(`/admin/${weddings[0].slug}/overview`);
         } else {
-          // User doesn't have a wedding, redirect to onboarding
-          router.push('/onboarding');
+          // User doesn't have a wedding, send to the setup fork
+          router.push('/welcome');
         }
       } else {
         setCheckingAuth(false);
@@ -96,8 +96,8 @@ export default function SignupPage() {
         return;
       }
 
-      // Redirect to onboarding
-      router.push('/onboarding');
+      // Redirect to the setup fork
+      router.push('/welcome');
     } catch (err) {
       console.error('Signup error:', err);
       toast.error('An unexpected error occurred');
@@ -113,9 +113,9 @@ export default function SignupPage() {
     setGoogleLoading(true);
 
     try {
-      // Build the callback URL with redirect to onboarding
+      // Build the callback URL with redirect to the setup fork
       const callbackUrl = new URL('/auth/callback', window.location.origin);
-      callbackUrl.searchParams.set('redirect', '/onboarding');
+      callbackUrl.searchParams.set('redirect', '/welcome');
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

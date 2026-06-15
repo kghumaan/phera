@@ -107,7 +107,7 @@ export default function AdminPage() {
 
         if (!settings?.onboarding_completed) {
           console.log('[Admin] Onboarding not completed, redirecting...');
-          router.replace('/onboarding');
+          router.replace('/welcome');
           return;
         }
 
@@ -144,7 +144,7 @@ export default function AdminPage() {
           return;
         } else {
           console.log('[Admin] No wedding found, redirecting to onboarding...');
-          router.replace('/onboarding');
+          router.replace('/welcome');
           return;
         }
       } catch (err) {
