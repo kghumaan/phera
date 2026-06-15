@@ -63,8 +63,6 @@ export default function FinalCTASection() {
               href="/auth/login"
               variant="contained"
               className="btn btn-primary"
-              keepBackgroundOnLoad
-              spinnerColor={COLORS.text.inverse}
               sx={{
                 fontSize: { xs: 15, sm: 17 },
                 padding: { xs: '13px 24px', sm: '18px 32px' },

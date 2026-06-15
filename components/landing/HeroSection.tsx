@@ -127,8 +127,6 @@ export default function HeroSection() {
               href="/auth/login"
               variant="contained"
               className="btn btn-primary"
-              keepBackgroundOnLoad
-              spinnerColor={COLORS.text.inverse}
               sx={{
                 fontSize: { xs: 15, sm: 17 },
                 padding: { xs: '13px 22px', sm: '18px 30px' },
