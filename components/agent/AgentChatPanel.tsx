@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import StopRoundedIcon from '@mui/icons-material/StopRounded';
+import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
+import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import { useVoiceInput } from './useVoiceInput';
 import { PheraCard } from '@/components/shared/Card';
@@ -50,12 +52,16 @@ function itemsFromPersisted(messages: Array<{ role: string; content: AgentConten
   return items;
 }
 
+const SPEAK_STORAGE_KEY = 'phera-agent-speak';
+
 export interface AgentChatPanelProps {
   weddingSlug: string;
   starters?: string[];
   /** Fired after each completed turn (done or error) — lets hosts refresh inspectors. */
   onTurnComplete?: () => void;
   minHeight?: number;
+  /** Optional message auto-sent once on mount (e.g. onboarding kickoff). */
+  autoGreet?: string;
 }
 
 export function AgentChatPanel({
@@ -63,13 +69,55 @@ export function AgentChatPanel({
   starters = DEFAULT_STARTERS,
   onTurnComplete,
   minHeight = 480,
+  autoGreet,
 }: AgentChatPanelProps) {
   const [items, setItems] = useState<ChatItem[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [speak, setSpeak] = useState(false);
   const conversationIdRef = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    setSpeak(window.localStorage.getItem(SPEAK_STORAGE_KEY) === '1');
+  }, []);
+
+  const toggleSpeak = useCallback(() => {
+    setSpeak((prev) => {
+      const next = !prev;
+      window.localStorage.setItem(SPEAK_STORAGE_KEY, next ? '1' : '0');
+      if (!next && audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      return next;
+    });
+  }, []);
+
+  const speakRef = useRef(speak);
+  speakRef.current = speak;
+
+  const playReply = useCallback(async (text: string) => {
+    if (!speakRef.current || !text.trim()) return;
+    try {
+      const res = await fetch('/api/agent/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) return;
+      const url = URL.createObjectURL(await res.blob());
+      audioRef.current?.pause();
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => URL.revokeObjectURL(url);
+      void audio.play().catch(() => URL.revokeObjectURL(url));
+    } catch {
+      /* speech is best-effort */
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -159,6 +207,7 @@ export function AgentChatPanel({
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+      let spokenText = '';
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -173,6 +222,7 @@ export function AgentChatPanel({
             if (event.type === 'conversation') {
               conversationIdRef.current = event.conversationId;
             } else {
+              if (event.type === 'text_delta') spokenText += event.text;
               handleEvent(event);
             }
           } catch {
@@ -180,8 +230,10 @@ export function AgentChatPanel({
           }
         }
       }
+      // Speak the assistant's reply once the turn is fully streamed.
+      void playReply(spokenText);
     },
-    [handleEvent]
+    [handleEvent, playReply]
   );
 
   const resolveAction = useCallback(
@@ -255,22 +307,40 @@ export function AgentChatPanel({
     setItems([]);
   }, []);
 
+  // One-shot onboarding kickoff so the agent greets first.
+  const greetedRef = useRef(false);
+  useEffect(() => {
+    if (autoGreet && !greetedRef.current && !loadingHistory && items.length === 0) {
+      greetedRef.current = true;
+      void send(autoGreet);
+    }
+  }, [autoGreet, loadingHistory, items.length, send]);
+
   return (
     <PheraCard
       variant="default"
       sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight, overflow: 'hidden', p: 0 }}
     >
-      {items.length > 0 && (
-        <Stack
-          direction="row"
-          justifyContent="flex-end"
-          sx={{ px: 1.5, py: 0.75, borderBottom: `1px solid ${COLORS.border.faint}` }}
+      <Stack
+        direction="row"
+        justifyContent="flex-end"
+        alignItems="center"
+        spacing={0.5}
+        sx={{ px: 1.5, py: 0.75, borderBottom: `1px solid ${COLORS.border.faint}` }}
+      >
+        <IconActionButton
+          onClick={toggleSpeak}
+          aria-label={speak ? 'Mute spoken replies' : 'Hear spoken replies'}
+          sx={speak ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : undefined}
         >
+          {speak ? <VolumeUpRoundedIcon fontSize="small" /> : <VolumeOffRoundedIcon fontSize="small" />}
+        </IconActionButton>
+        {items.length > 0 && (
           <SecondaryActionButton size="small" disabled={busy} onClick={startNewConversation}>
             New conversation
           </SecondaryActionButton>
-        </Stack>
-      )}
+        )}
+      </Stack>
       <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
         {loadingHistory ? (
           <Stack alignItems="center" py={6}>
