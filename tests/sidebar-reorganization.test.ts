@@ -149,10 +149,11 @@ describe('Sidebar Reorganization', () => {
       expect(ids).toContain('task-manager');
       expect(ids).toContain('coordinator');
       expect(ids).toContain('knowledge-bank');
+      expect(ids).toContain('vendor-marketplace');
     });
 
-    it('should have 3 items', () => {
-      expect(planning!.items).toHaveLength(3);
+    it('should have 4 items', () => {
+      expect(planning!.items).toHaveLength(4);
     });
 
     it('Knowledge Bank should be Pro-gated', () => {
