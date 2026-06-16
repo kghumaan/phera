@@ -19,6 +19,7 @@ function makeCtx() {
     weddingUuid: 'uuid-123',
     userId: 'user-1',
     conversationId: 'conv-1',
+    isPro: true,
   };
   return { ctx, fake };
 }
@@ -113,6 +114,41 @@ describe('agent tool registry', () => {
     expect(pendingRow.status).toBe('pending');
     expect(pendingRow.tool_name).toBe('echo');
     expect(pendingRow.input).toEqual({ room_id: 'r1' });
+  });
+
+  it('blocks Pro tools for Basic users with an upgrade prompt', async () => {
+    let executed = false;
+    registerTools([
+      makeTool({
+        proFeature: 'Room assignments',
+        execute: async () => {
+          executed = true;
+          return null;
+        },
+      }),
+    ]);
+    const fake = createFakeSupabase({});
+    const ctx: AgentToolContext = {
+      supabase: fake.client as never,
+      weddingSlug: 'w',
+      weddingUuid: 'u',
+      userId: 'user-1',
+      conversationId: 'conv-1',
+      isPro: false,
+    };
+    const result = await dispatchTool('echo', {}, ctx);
+    expect(executed).toBe(false);
+    expect(result.ok).toBe(false);
+    expect(result.upgradeRequiredFeature).toBe('Room assignments');
+    expect(result.content).toMatch(/UPGRADE REQUIRED/);
+  });
+
+  it('allows Pro tools for Pro users', async () => {
+    registerTools([makeTool({ proFeature: 'Room assignments' })]);
+    const { ctx } = makeCtx(); // isPro: true
+    const result = await dispatchTool('echo', { x: 1 }, ctx);
+    expect(result.ok).toBe(true);
+    expect(result.upgradeRequiredFeature).toBeUndefined();
   });
 
   it('truncates oversized results', async () => {

@@ -5,6 +5,7 @@ export const vendorTools: AgentToolDefinition[] = [
     name: 'get_vendors',
     label: 'Reading vendors',
     risk: 'read',
+    proFeature: 'Vendor coordination',
     description:
       'List the wedding\'s vendors (name, category, status, contact) and any open action items from vendor conversations. Call this for questions like "have we sorted the caterer?" or "what vendors are missing?".',
     inputSchema: {
@@ -55,6 +56,7 @@ export const vendorTools: AgentToolDefinition[] = [
     name: 'add_vendor',
     label: 'Adding a vendor',
     risk: 'write',
+    proFeature: 'Vendor coordination',
     description:
       'Add a vendor to track (name + category, optional contact). Call this when the user mentions hiring or talking to a vendor not yet in the list.',
     inputSchema: {

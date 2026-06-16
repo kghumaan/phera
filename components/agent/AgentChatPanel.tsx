@@ -3,14 +3,26 @@
 import { Box, Stack, Typography, CircularProgress } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import MicRoundedIcon from '@mui/icons-material/MicRounded';
+import StopRoundedIcon from '@mui/icons-material/StopRounded';
+import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
+import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import AttachFileRoundedIcon from '@mui/icons-material/AttachFileRounded';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
+import UpgradeModal from '@/components/admin/UpgradeModal';
+import { useVoiceInput } from './useVoiceInput';
+import { MarkdownText } from './MarkdownText';
+import { importGuestsFromFile, importRoomsFromFile } from '@/lib/agent/chat-uploads';
 import { PheraCard } from '@/components/shared/Card';
 import { PheraTextField } from '@/components/shared/TextField';
 import { PheraChip } from '@/components/shared/Chip';
 import { IconActionButton, PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { CONFIRMATION_NOTE_PREFIX } from '@/lib/agent/confirm';
-import type { AgentStreamEvent, AgentContentBlock } from '@/lib/agent/types';
+import { ANSWERS_NOTE_PREFIX } from '@/lib/agent/answer';
+import { QuestionFlow } from './QuestionFlow';
+import type { AgentStreamEvent, AgentContentBlock, AgentQuestion } from '@/lib/agent/types';
 
 type ChatItem =
   | { kind: 'user'; text: string }
@@ -21,7 +33,28 @@ type ChatItem =
       actionId: string;
       label: string;
       status: 'pending' | 'resolving' | 'confirmed' | 'declined';
-    };
+    }
+  | {
+      kind: 'questions';
+      actionId: string;
+      questions: AgentQuestion[];
+      status: 'pending' | 'resolving' | 'done';
+    }
+  | { kind: 'upgrade'; feature: string };
+
+/** Compact one-line summary of what the user answered, for the right-side bubble. */
+function summarizeAnswers(questions: AgentQuestion[], answers: Record<string, string | string[]>): string {
+  const parts = questions
+    .map((q) => {
+      const v = answers[q.id];
+      return Array.isArray(v) ? v.join(', ') : (v ?? '');
+    })
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (parts.length === 0) return 'Skipped';
+  const joined = parts.join(' · ');
+  return joined.length > 160 ? `${joined.slice(0, 157)}…` : joined;
+}
 
 const DEFAULT_STARTERS = [
   'How is our planning going so far?',
@@ -35,9 +68,11 @@ function itemsFromPersisted(messages: Array<{ role: string; content: AgentConten
   for (const message of messages) {
     for (const block of message.content ?? []) {
       if (block.type === 'text' && block.text.trim()) {
-        // Confirmation-outcome notes are internal plumbing — the agent's
-        // acknowledgment that follows them carries the user-facing content.
+        // Internal plumbing notes — the agent's reply that follows carries
+        // the user-facing content.
         if (block.text.startsWith(CONFIRMATION_NOTE_PREFIX)) continue;
+        if (block.text.startsWith(ANSWERS_NOTE_PREFIX)) continue;
+        if (block.text.startsWith(HIDDEN_USER_PREFIX)) continue;
         items.push({ kind: message.role === 'user' ? 'user' : 'assistant', text: block.text });
       } else if (block.type === 'tool_use') {
         items.push({ kind: 'tool', label: block.name.replace(/_/g, ' '), status: 'ok' });
@@ -47,12 +82,22 @@ function itemsFromPersisted(messages: Array<{ role: string; content: AgentConten
   return items;
 }
 
+const SPEAK_STORAGE_KEY = 'phera-agent-speak';
+
+/** Hidden kickoff sent on onboarding — never rendered as a user bubble. */
+const HIDDEN_USER_PREFIX = '⟦kickoff⟧';
+const ONBOARDING_KICKOFF =
+  `${HIDDEN_USER_PREFIX} I just signed up and I'm setting up my wedding from scratch. ` +
+  'Greet me in ONE short line, then immediately use ask_user to collect the essentials. Do not write anything after the ask_user call.';
+
 export interface AgentChatPanelProps {
   weddingSlug: string;
   starters?: string[];
   /** Fired after each completed turn (done or error) — lets hosts refresh inspectors. */
   onTurnComplete?: () => void;
   minHeight?: number;
+  /** When true, fire the hidden onboarding kickoff once on mount. */
+  onboarding?: boolean;
 }
 
 export function AgentChatPanel({
@@ -60,13 +105,77 @@ export function AgentChatPanel({
   starters = DEFAULT_STARTERS,
   onTurnComplete,
   minHeight = 480,
+  onboarding,
 }: AgentChatPanelProps) {
   const [items, setItems] = useState<ChatItem[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [busyLabel, setBusyLabel] = useState('Thinking…');
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [speak, setSpeak] = useState(false);
   const conversationIdRef = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const guestFileRef = useRef<HTMLInputElement | null>(null);
+  const roomFileRef = useRef<HTMLInputElement | null>(null);
+  const [attachAnchor, setAttachAnchor] = useState<HTMLElement | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+
+  useEffect(() => {
+    setSpeak(window.localStorage.getItem(SPEAK_STORAGE_KEY) === '1');
+  }, []);
+
+  const toggleSpeak = useCallback(() => {
+    setSpeak((prev) => {
+      const next = !prev;
+      window.localStorage.setItem(SPEAK_STORAGE_KEY, next ? '1' : '0');
+      if (!next && audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      return next;
+    });
+  }, []);
+
+  const speakRef = useRef(speak);
+  speakRef.current = speak;
+
+  // Once the model starts streaming, stop cycling the "saving" labels.
+  const streamingRef = useRef(false);
+
+  // Keep a changing loading label while we work (before the stream starts),
+  // so the user never stares at a frozen/blank state.
+  useEffect(() => {
+    if (!busy) return;
+    const phases = ['Saving…', 'Working…', 'Almost there…'];
+    let i = 0;
+    const id = setInterval(() => {
+      if (streamingRef.current) return; // 'Thinking…' has taken over
+      i = (i + 1) % phases.length;
+      setBusyLabel(phases[i]);
+    }, 1400);
+    return () => clearInterval(id);
+  }, [busy]);
+
+  const playReply = useCallback(async (text: string) => {
+    if (!speakRef.current || !text.trim()) return;
+    try {
+      const res = await fetch('/api/agent/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) return;
+      const url = URL.createObjectURL(await res.blob());
+      audioRef.current?.pause();
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => URL.revokeObjectURL(url);
+      void audio.play().catch(() => URL.revokeObjectURL(url));
+    } catch {
+      /* speech is best-effort */
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -82,12 +191,21 @@ export function AgentChatPanel({
         if (data.conversation) conversationIdRef.current = data.conversation.id;
         const restored = data.messages?.length ? itemsFromPersisted(data.messages) : [];
         for (const pending of data.pendingActions ?? []) {
-          restored.push({
-            kind: 'confirm',
-            actionId: pending.id,
-            label: String(pending.tool_name).replace(/_/g, ' '),
-            status: 'pending',
-          });
+          if (pending.tool_name === 'ask_user') {
+            restored.push({
+              kind: 'questions',
+              actionId: pending.id,
+              questions: (pending.input?.questions ?? []) as AgentQuestion[],
+              status: 'pending',
+            });
+          } else {
+            restored.push({
+              kind: 'confirm',
+              actionId: pending.id,
+              label: String(pending.tool_name).replace(/_/g, ' '),
+              status: 'pending',
+            });
+          }
         }
         if (restored.length) setItems(restored);
       } finally {
@@ -137,6 +255,17 @@ export function AgentChatPanel({
             status: 'pending',
           });
           return next;
+        case 'questions_required':
+          next.push({
+            kind: 'questions',
+            actionId: event.actionId,
+            questions: event.questions,
+            status: 'pending',
+          });
+          return next;
+        case 'upgrade_required':
+          next.push({ kind: 'upgrade', feature: event.feature });
+          return next;
         case 'error':
           next.push({ kind: 'assistant', text: event.message });
           return next;
@@ -156,6 +285,7 @@ export function AgentChatPanel({
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+      let spokenText = '';
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -170,6 +300,12 @@ export function AgentChatPanel({
             if (event.type === 'conversation') {
               conversationIdRef.current = event.conversationId;
             } else {
+              // Once the agent actually starts working, move past "Saving…".
+              if (event.type === 'tool_start' || event.type === 'text_delta') {
+                streamingRef.current = true;
+                setBusyLabel('Thinking…');
+              }
+              if (event.type === 'text_delta') spokenText += event.text;
               handleEvent(event);
             }
           } catch {
@@ -177,13 +313,17 @@ export function AgentChatPanel({
           }
         }
       }
+      // Speak the assistant's reply once the turn is fully streamed.
+      void playReply(spokenText);
     },
-    [handleEvent]
+    [handleEvent, playReply]
   );
 
   const resolveAction = useCallback(
     async (actionId: string, approve: boolean) => {
       if (busy) return;
+      streamingRef.current = false;
+      setBusyLabel('Saving…');
       setBusy(true);
       setItems((prev) =>
         prev.map((item) =>
@@ -212,13 +352,74 @@ export function AgentChatPanel({
     [busy, consumeStream, onTurnComplete]
   );
 
+  const resolveAnswers = useCallback(
+    async (actionId: string, answers: Record<string, string | string[]>, questions: AgentQuestion[]) => {
+      if (busy) return;
+      streamingRef.current = false;
+      setBusyLabel('Saving…');
+      setBusy(true);
+      // Show what the user answered as a right-side bubble (summarized).
+      const summary = summarizeAnswers(questions, answers);
+      setItems((prev) => [
+        ...prev.map((item) =>
+          item.kind === 'questions' && item.actionId === actionId ? { ...item, status: 'done' as const } : item
+        ),
+        ...(summary ? [{ kind: 'user' as const, text: summary }] : []),
+      ]);
+      try {
+        const res = await fetch('/api/agent/answer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ actionId, answers }),
+        });
+        await consumeStream(res);
+      } finally {
+        setBusy(false);
+        onTurnComplete?.();
+      }
+    },
+    [busy, consumeStream, onTurnComplete]
+  );
+
+  const handleUpload = useCallback(
+    async (kind: 'guests' | 'rooms', file: File | undefined) => {
+      if (!file) return;
+      streamingRef.current = true; // fixed label, no SSE stream
+      setBusyLabel(kind === 'guests' ? 'Importing guests…' : 'Reading floor plan…');
+      setBusy(true);
+      try {
+        if (kind === 'guests') {
+          const r = await importGuestsFromFile(file, weddingSlug);
+          const dupes = r.duplicates ? `, ${r.duplicates} duplicate${r.duplicates === 1 ? '' : 's'} skipped` : '';
+          setItems((prev) => [...prev, { kind: 'assistant', text: `Imported **${r.imported}** guest${r.imported === 1 ? '' : 's'}${dupes}.` }]);
+        } else {
+          const r = await importRoomsFromFile(file, weddingSlug);
+          setItems((prev) => [...prev, { kind: 'assistant', text: `Added **${r.count}** room${r.count === 1 ? '' : 's'} from your floor plan.` }]);
+        }
+      } catch (error) {
+        setItems((prev) => [
+          ...prev,
+          { kind: 'assistant', text: error instanceof Error ? error.message : 'That upload failed — please try again.' },
+        ]);
+      } finally {
+        setBusy(false);
+        onTurnComplete?.();
+      }
+    },
+    [weddingSlug, onTurnComplete]
+  );
+
   const send = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || busy) return;
-      setInput('');
+      // Hidden kickoff messages drive the agent without showing a user bubble.
+      const hidden = trimmed.startsWith(HIDDEN_USER_PREFIX);
+      if (!hidden) setInput('');
+      streamingRef.current = true; // a plain message goes straight to thinking
+      setBusyLabel('Thinking…');
       setBusy(true);
-      setItems((prev) => [...prev, { kind: 'user', text: trimmed }]);
+      if (!hidden) setItems((prev) => [...prev, { kind: 'user', text: trimmed }]);
       try {
         const res = await fetch('/api/agent/chat', {
           method: 'POST',
@@ -238,11 +439,61 @@ export function AgentChatPanel({
     [busy, weddingSlug, consumeStream, onTurnComplete]
   );
 
+  const voice = useVoiceInput(
+    useCallback((text: string) => {
+      // Transcript lands in the input for review — the user still hits send.
+      setInput((prev) => (prev ? `${prev} ${text}` : text));
+    }, [])
+  );
+
+  const startNewConversation = useCallback(() => {
+    // Fresh thread: the next send creates a new conversation server-side.
+    // (Reloading before sending restores the previous thread — by design.)
+    conversationIdRef.current = null;
+    setItems([]);
+  }, []);
+
+  // While the agent is waiting on a structured-question answer, the user
+  // answers via the QuestionFlow at the bottom — not the free-text composer.
+  const pendingQuestions = [...items]
+    .reverse()
+    .find((i): i is Extract<ChatItem, { kind: 'questions' }> => i.kind === 'questions' && i.status !== 'done');
+  const awaitingQuestions = !!pendingQuestions;
+
+  // One-shot onboarding kickoff so the agent greets first (hidden message).
+  const greetedRef = useRef(false);
+  useEffect(() => {
+    if (onboarding && !greetedRef.current && !loadingHistory && items.length === 0) {
+      greetedRef.current = true;
+      void send(ONBOARDING_KICKOFF);
+    }
+  }, [onboarding, loadingHistory, items.length, send]);
+
   return (
     <PheraCard
       variant="default"
       sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight, overflow: 'hidden', p: 0 }}
     >
+      <Stack
+        direction="row"
+        justifyContent="flex-end"
+        alignItems="center"
+        spacing={0.5}
+        sx={{ px: 1.5, py: 0.75, borderBottom: `1px solid ${COLORS.border.faint}` }}
+      >
+        <IconActionButton
+          onClick={toggleSpeak}
+          aria-label={speak ? 'Mute spoken replies' : 'Hear spoken replies'}
+          sx={speak ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : undefined}
+        >
+          {speak ? <VolumeUpRoundedIcon fontSize="small" /> : <VolumeOffRoundedIcon fontSize="small" />}
+        </IconActionButton>
+        {items.length > 0 && (
+          <SecondaryActionButton size="small" disabled={busy} onClick={startNewConversation}>
+            New conversation
+          </SecondaryActionButton>
+        )}
+      </Stack>
       <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
         {loadingHistory ? (
           <Stack alignItems="center" py={6}>
@@ -312,19 +563,43 @@ export function AgentChatPanel({
                     />
                   )}
                 </Box>
-              ) : item.kind === 'tool' ? (
-                <Box key={index} sx={{ alignSelf: 'flex-start' }}>
-                  <PheraChip
-                    tone={item.status === 'failed' ? 'danger' : 'neutral'}
-                    size="small"
-                    label={item.status === 'running' ? `${item.label}…` : item.label}
-                    icon={
-                      item.status === 'running' ? (
-                        <CircularProgress size={12} sx={{ color: COLORS.text.subtle }} />
-                      ) : undefined
-                    }
-                  />
+              ) : item.kind === 'upgrade' ? (
+                <Box
+                  key={index}
+                  sx={{
+                    alignSelf: 'flex-start',
+                    maxWidth: '85%',
+                    border: `1px solid ${COLORS.brand.primaryBorder}`,
+                    bgcolor: COLORS.brand.primaryWash,
+                    borderRadius: `${RADII.md}px`,
+                    px: 2,
+                    py: 1.75,
+                  }}
+                >
+                  <Stack direction="row" spacing={0.75} alignItems="center" mb={0.5}>
+                    <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 18 }} />
+                    <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 700 }}>
+                      {item.feature} is a Premium feature
+                    </Typography>
+                  </Stack>
+                  <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 1.5 }}>
+                    {item.feature} isn&apos;t on the free plan. Upgrade to unlock it — and everything
+                    else — and we&apos;ll keep going right here.
+                  </Typography>
+                  <PrimaryActionButton size="small" onClick={() => setUpgradeOpen(true)}>
+                    Upgrade to continue
+                  </PrimaryActionButton>
                 </Box>
+              ) : item.kind === 'questions' ? (
+                // Rendered in the bottom composer while pending; nothing inline.
+                null
+              ) : item.kind === 'tool' ? (
+                // Only surface failures — successful tool runs are noise.
+                item.status === 'failed' ? (
+                  <Box key={index} sx={{ alignSelf: 'flex-start' }}>
+                    <PheraChip tone="danger" size="small" label={`${item.label} failed`} />
+                  </Box>
+                ) : null
               ) : (
                 <Box
                   key={index}
@@ -338,12 +613,16 @@ export function AgentChatPanel({
                     border: `1px solid ${item.kind === 'user' ? COLORS.brand.primaryBorder : COLORS.border.faint}`,
                   }}
                 >
-                  <Typography
-                    variant="body2"
-                    sx={{ color: COLORS.text.strong, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
-                  >
-                    {item.text}
-                  </Typography>
+                  {item.kind === 'assistant' ? (
+                    <MarkdownText text={item.text} />
+                  ) : (
+                    <Typography
+                      variant="body2"
+                      sx={{ color: COLORS.text.strong, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+                    >
+                      {item.text}
+                    </Typography>
+                  )}
                 </Box>
               )
             )}
@@ -351,7 +630,7 @@ export function AgentChatPanel({
               <Stack direction="row" spacing={1} alignItems="center" sx={{ pl: 0.5 }}>
                 <CircularProgress size={14} sx={{ color: COLORS.brand.primary }} />
                 <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
-                  Thinking…
+                  {busyLabel}
                 </Typography>
               </Stack>
             )}
@@ -359,27 +638,118 @@ export function AgentChatPanel({
         )}
       </Box>
 
-      <Box
-        component="form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          send(input);
-        }}
-        sx={{ display: 'flex', gap: 1, p: 2, borderTop: `1px solid ${COLORS.border.faint}` }}
-      >
-        <PheraTextField
-          fullWidth
-          size="small"
-          placeholder="Tell me what's happening — e.g. “Uncle Raj can't make it anymore”"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={busy}
-          autoComplete="off"
-        />
-        <IconActionButton type="submit" disabled={busy || !input.trim()} aria-label="Send message">
-          <SendRoundedIcon fontSize="small" />
-        </IconActionButton>
+      <Box sx={{ borderTop: `1px solid ${COLORS.border.faint}` }}>
+        {/* When the agent asked structured questions, the composer becomes the
+            question collector so the user always answers from the bottom. */}
+        {pendingQuestions ? (
+          <Box sx={{ p: 2 }}>
+            <QuestionFlow
+              key={pendingQuestions.actionId}
+              questions={pendingQuestions.questions}
+              disabled={busy}
+              onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
+            />
+          </Box>
+        ) : (
+        <>
+        {voice.error && (
+          <Typography variant="caption" sx={{ color: COLORS.text.subtle, px: 2, pt: 1, display: 'block' }}>
+            {voice.error}
+          </Typography>
+        )}
+        <Box
+          component="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            send(input);
+          }}
+          sx={{ display: 'flex', gap: 1, p: 2 }}
+        >
+          <PheraTextField
+            fullWidth
+            size="small"
+            multiline
+            maxRows={6}
+            placeholder={
+              awaitingQuestions
+                ? 'Answer the questions above to continue…'
+                : voice.state === 'recording'
+                  ? 'Listening… tap the mic again when you’re done'
+                  : 'Tell me what’s happening — Enter to send, Shift+Enter for a new line'
+            }
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                send(input);
+              }
+            }}
+            disabled={busy || awaitingQuestions}
+            autoComplete="off"
+          />
+          <input
+            ref={guestFileRef}
+            type="file"
+            accept=".csv,.tsv,.txt,.xlsx,.xls,.vcf,.vcard"
+            hidden
+            onChange={(e) => {
+              void handleUpload('guests', e.target.files?.[0]);
+              e.target.value = '';
+            }}
+          />
+          <input
+            ref={roomFileRef}
+            type="file"
+            accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.xlsx,.xls"
+            hidden
+            onChange={(e) => {
+              void handleUpload('rooms', e.target.files?.[0]);
+              e.target.value = '';
+            }}
+          />
+          <IconActionButton
+            onClick={(e) => setAttachAnchor(e.currentTarget)}
+            disabled={busy || awaitingQuestions}
+            aria-label="Upload a guest list or floor plan"
+          >
+            <AttachFileRoundedIcon fontSize="small" />
+          </IconActionButton>
+          <PheraMenu anchorEl={attachAnchor} open={!!attachAnchor} onClose={() => setAttachAnchor(null)}>
+            <PheraMenuItem
+              onClick={() => {
+                setAttachAnchor(null);
+                guestFileRef.current?.click();
+              }}
+            >
+              Upload guest list (CSV, Excel, vCard)
+            </PheraMenuItem>
+            <PheraMenuItem
+              onClick={() => {
+                setAttachAnchor(null);
+                roomFileRef.current?.click();
+              }}
+            >
+              Upload room floor plan (PDF, image, CSV)
+            </PheraMenuItem>
+          </PheraMenu>
+          <IconActionButton
+            onClick={() => voice.toggle()}
+            disabled={busy || awaitingQuestions || voice.state === 'transcribing'}
+            loading={voice.state === 'transcribing'}
+            aria-label={voice.state === 'recording' ? 'Stop recording' : 'Record a voice message'}
+            sx={voice.state === 'recording' ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : undefined}
+          >
+            {voice.state === 'recording' ? <StopRoundedIcon fontSize="small" /> : <MicRoundedIcon fontSize="small" />}
+          </IconActionButton>
+          <IconActionButton type="submit" disabled={busy || awaitingQuestions || !input.trim()} aria-label="Send message">
+            <SendRoundedIcon fontSize="small" />
+          </IconActionButton>
+        </Box>
+        </>
+        )}
       </Box>
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} tier="base" />
     </PheraCard>
   );
 }

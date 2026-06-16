@@ -117,7 +117,7 @@ export default function HeroSection() {
               lineHeight: 1.5,
             }}
           >
-            The wedding operations platform you wish you had. We handle every guest: RSVPs, travel, rooms, midnight WhatsApps. So you can actually enjoy your wedding.
+            One AI wedding planner that runs it all — just talk to it. Guest list, RSVPs, rooms, shuttles, vendors, and the midnight WhatsApps, handled by chat or voice.
           </p>
         </Reveal>
 
@@ -127,8 +127,6 @@ export default function HeroSection() {
               href="/auth/login"
               variant="contained"
               className="btn btn-primary"
-              keepBackgroundOnLoad
-              spinnerColor={COLORS.text.inverse}
               sx={{
                 fontSize: { xs: 15, sm: 17 },
                 padding: { xs: '13px 22px', sm: '18px 30px' },

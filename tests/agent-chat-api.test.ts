@@ -11,8 +11,12 @@ vi.mock('@/lib/utils/auth-helpers', () => ({
 vi.mock('@/lib/utils/verify-wedding-access', () => ({
   verifyWeddingAccess: (...args: unknown[]) => mockVerifyWeddingAccess(...args),
 }));
+const { MockTurnInProgressError } = vi.hoisted(() => ({
+  MockTurnInProgressError: class MockTurnInProgressError extends Error {},
+}));
 vi.mock('@/lib/agent/loop', () => ({
   runAgentTurn: (...args: unknown[]) => mockRunAgentTurn(...args),
+  TurnInProgressError: MockTurnInProgressError,
 }));
 vi.mock('@/lib/agent/providers/anthropic', () => ({
   anthropicProvider: { streamTurn: vi.fn() },
@@ -106,6 +110,19 @@ describe('POST /api/agent/chat', () => {
         userMessage: 'hello',
       })
     );
+  });
+
+  it('emits a friendly busy message when a turn is already in progress', async () => {
+    authedClient({
+      weddings: { data: { id: 'uuid-1', slug: 'priya-rahul-2027' } },
+      agent_conversations: { data: { id: 'conv-9' } },
+    });
+    mockVerifyWeddingAccess.mockResolvedValue(true);
+    mockRunAgentTurn.mockRejectedValue(new MockTurnInProgressError());
+
+    const res = await POST(makeRequest(VALID_BODY));
+    const text = await new Response(res.body).text();
+    expect(text).toContain('still working');
   });
 
   it('emits an SSE error event when the agent turn throws', async () => {

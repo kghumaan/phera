@@ -17,7 +17,8 @@
     "vendors:seed": "npx tsx scripts/seed-vendors.ts",
     "vendors:ingest": "npx tsx scripts/ingest-vendors.ts",
     "vendors:enrich": "npx tsx scripts/enrich-vendors.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "evals": "node scripts/agent-evals.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

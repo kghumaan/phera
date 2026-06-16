@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
 
         // Special handling: If redirecting to /admin, check onboarding first
         if (redirectParam.startsWith('/admin') && !onboardingCompleted) {
-          redirectUrl = new URL('/onboarding', origin);
+          redirectUrl = new URL('/welcome', origin);
           console.log('[Callback] Onboarding not completed, redirecting to /onboarding instead of admin');
         } else if (redirectParam === '/admin/new/overview' && data.session?.user?.id) {
           // Check if user has any existing weddings
@@ -204,7 +204,7 @@ export async function GET(request: NextRequest) {
       // Priority 3: Default behavior based on onboarding status
       else {
         if (!onboardingCompleted) {
-          redirectUrl = new URL('/onboarding', origin);
+          redirectUrl = new URL('/welcome', origin);
         } else {
           redirectUrl = new URL('/admin', origin);
         }

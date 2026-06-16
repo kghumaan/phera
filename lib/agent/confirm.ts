@@ -68,6 +68,8 @@ export async function resolveAgentAction(args: ResolveActionArgs): Promise<void>
       weddingUuid: wedding.id,
       userId,
       conversationId: action.conversation_id,
+      // Confirming a parked Pro action means they already passed the gate.
+      isPro: true,
     };
     try {
       const result = await tool.execute((action.input ?? {}) as Record<string, unknown>, ctx);

@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/nextjs';
 import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
 import { verifyWeddingAccess } from '@/lib/utils/verify-wedding-access';
 import { checkRateLimit } from '@/lib/utils/rate-limiter';
-import { runAgentTurn } from '@/lib/agent/loop';
+import { runAgentTurn, TurnInProgressError } from '@/lib/agent/loop';
 import { anthropicProvider } from '@/lib/agent/providers/anthropic';
 import type { AgentStreamEvent } from '@/lib/agent/types';
 
@@ -95,6 +95,10 @@ export async function POST(request: NextRequest) {
           onEvent: send,
         });
       } catch (error) {
+        if (error instanceof TurnInProgressError) {
+          send({ type: 'error', message: 'I\'m still working on your last message — give me a few seconds and try again.' });
+          return; // finally closes the stream
+        }
         console.error('Agent turn failed:', error);
         Sentry.captureException(error, { tags: { surface: 'agent-chat' } });
         send({

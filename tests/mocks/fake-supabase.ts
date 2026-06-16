@@ -13,11 +13,13 @@ export interface FakeSupabase {
   client: { from: (table: string) => unknown };
   inserts: Record<string, unknown[]>;
   updates: Record<string, unknown[]>;
+  upserts: Record<string, unknown[]>;
 }
 
 export function createFakeSupabase(tableResults: Record<string, TableResult>): FakeSupabase {
   const inserts: Record<string, unknown[]> = {};
   const updates: Record<string, unknown[]> = {};
+  const upserts: Record<string, unknown[]> = {};
 
   function from(table: string) {
     const result: TableResult = tableResults[table] ?? { data: [], count: 0, error: null };
@@ -51,6 +53,12 @@ export function createFakeSupabase(tableResults: Record<string, TableResult>): F
               return proxy;
             };
           }
+          if (prop === 'upsert') {
+            return (row: unknown) => {
+              (upserts[table] ??= []).push(row);
+              return proxy;
+            };
+          }
           return () => proxy;
         },
       }
@@ -58,5 +66,5 @@ export function createFakeSupabase(tableResults: Record<string, TableResult>): F
     return proxy;
   }
 
-  return { client: { from }, inserts, updates };
+  return { client: { from }, inserts, updates, upserts };
 }

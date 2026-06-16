@@ -11,6 +11,7 @@
 
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { SectionHeader, ImagePlaceholder } from './design-primitives';
+import AgentPlannerMock from './feature-mocks/AgentPlannerMock';
 import GuestListImportMock from './feature-mocks/GuestListImportMock';
 import WeddingWebsiteMock from './feature-mocks/WeddingWebsiteMock';
 import WhatsAppBotMock from './feature-mocks/WhatsAppBotMock';
@@ -33,19 +34,33 @@ interface Step {
   customMock?: () => React.ReactNode;
 }
 
-/** Compact six-step overview chips rendered above the stepper grid. */
+/** Compact overview chips rendered above the stepper grid. */
 const OVERVIEW_STEPS = [
-  { n: '01', t: 'Bring your guest list' },
-  { n: '02', t: 'Spin up your site' },
-  { n: '03', t: 'Switch on the bot' },
-  { n: '04', t: 'Sort rooms & shuttles' },
-  { n: '05', t: 'Vendors — find & coordinate' },
-  { n: '06', t: 'Show up, celebrate' },
+  { n: '01', t: 'Just talk to your planner' },
+  { n: '02', t: 'Bring your guest list' },
+  { n: '03', t: 'Spin up your site' },
+  { n: '04', t: 'Switch on the bot' },
+  { n: '05', t: 'Sort rooms & shuttles' },
+  { n: '06', t: 'Vendors — find & coordinate' },
+  { n: '07', t: 'Show up, celebrate' },
 ];
 
 const STEPS: Step[] = [
   {
-    tag: 'STEP 01  ·  Guest list',
+    tag: 'STEP 01  ·  AI planner',
+    title: 'One AI planner that runs it all. Just talk to it.',
+    copy: "The heart of Phera: a single AI wedding planner you drive by chat or voice. Tell it your dates, your guests, who just cancelled - and it updates everything across your wedding instantly. It asks the questions a real planner would, flags what you'd forget, and never sleeps. Everything below, you can do just by talking to it.",
+    bullet: [
+      'Chat or voice - set up your whole wedding by talking',
+      'It reads and updates your real data: guests, RSVPs, rooms, schedule, vendors',
+      'Proactive: spots gaps, suggests next steps, confirms before big changes',
+    ],
+    mockLabel: 'AI planner - chat & voice',
+    tint: 'rgba(222,63,94,0.07)',
+    customMock: () => <AgentPlannerMock />,
+  },
+  {
+    tag: 'STEP 02  ·  Guest list',
     title: 'Bring your guest list. We take it from there.',
     copy: "Drop in a spreadsheet, paste from Google Contacts, or send us a photo of your handwritten list. Once it's in, we know who to reach out to, who's coming, who's asking the same question for the third time - and how to seat their family across the weekend.",
     bullet: [
@@ -58,7 +73,7 @@ const STEPS: Step[] = [
     customMock: () => <GuestListImportMock />,
   },
   {
-    tag: 'STEP 02  ·  Wedding website',
+    tag: 'STEP 03  ·  Wedding website',
     title: 'A site that actually gets used.',
     copy: "The digital invitation for this generation - schedule, venues, RSVP, registry, and a built-in cultural guide for the friends flying in from abroad. So when a non-desi friend asks what to wear to the sangeet, the answer is already on their phone.",
     bullet: [
@@ -71,7 +86,7 @@ const STEPS: Step[] = [
     customMock: () => <WeddingWebsiteMock />,
   },
   {
-    tag: 'STEP 03  ·  WhatsApp bot',
+    tag: 'STEP 04  ·  WhatsApp bot',
     title: 'Save-the-dates, invites, and a 24/7 reply bot.',
     copy: "Flip it on and we WhatsApp every guest on a timeline we tuned by living through it. Behind the scenes, we auto-build a knowledge bank for your dates and city - weather, hotels, restaurants, dress codes - so the bot answers like a local who's been to your wedding twice already.",
     bullet: [
@@ -84,7 +99,7 @@ const STEPS: Step[] = [
     customMock: () => <WhatsAppBotMock />,
   },
   {
-    tag: 'STEP 04  ·  Rooms',
+    tag: 'STEP 05  ·  Rooms',
     title: 'Room assignments, without the politics.',
     copy: "Upload a floor plan or hotel block and we help place every guest - siblings together, the loud cousins on a different floor than your in-laws, the late arrivals near the lobby. The puzzle that usually eats a Sunday afternoon, solved before lunch.",
     bullet: [
@@ -97,7 +112,7 @@ const STEPS: Step[] = [
     customMock: () => <RoomAssignmentsMock />,
   },
   {
-    tag: 'STEP 05  ·  Transportation',
+    tag: 'STEP 06  ·  Transportation',
     title: 'Shuttles, airport pickups, venue transfers.',
     copy: "We collect every flight, optimize shuttle routes, and ping pickups before guests even land. Uncle Raj at 4 AM is no longer your problem - he gets a WhatsApp with his driver's name, license plate, and a real-time map.",
     bullet: [
@@ -110,7 +125,7 @@ const STEPS: Step[] = [
     customMock: () => <TransportationMock />,
   },
   {
-    tag: 'STEP 06  ·  Vendors',
+    tag: 'STEP 07  ·  Vendors',
     title: 'Find them. Book them. We handle the rest.',
     copy: "Not sure where to start? Browse 1,200+ photographers, DJs, mehendi artists, and planners across Goa, Udaipur, Bali, Dubai, and more — filtered by city, budget, and NRI experience. Once you've got your team, add us to the group chats and we'll read every thread, surface action items, and chase the things you'd forget at 11 PM.",
     bullet: [
@@ -223,8 +238,8 @@ export default function FeatureStepper() {
           singleLine
         />
 
-        {/* "Six steps" overview — six numbered chips with a dashed
-            connector behind. Hidden on mobile. */}
+        {/* Overview — numbered chips with a dashed connector behind.
+            Hidden on mobile. */}
         <div
           className="feature-steps-overview"
           style={{

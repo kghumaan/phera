@@ -1,4 +1,4 @@
-import type { AgentToolContext, AgentToolDefinition } from '../types';
+import type { AgentQuestion, AgentToolContext, AgentToolDefinition } from '../types';
 
 /**
  * Central tool registry. Every capability the agent has lives here as one
@@ -37,6 +37,10 @@ export interface DispatchResult {
   content: string;
   /** Set when a gated tool was parked as a pending agent_actions row. */
   pendingActionId?: string;
+  /** Set when ask_user parked questions for the client to render. */
+  questions?: AgentQuestion[];
+  /** Set when a Pro tool was blocked for a Basic user — the feature name. */
+  upgradeRequiredFeature?: string;
 }
 
 const MAX_RESULT_CHARS = 12_000;
@@ -61,6 +65,48 @@ export async function dispatchTool(
   if (!tool) {
     return { ok: false, content: `Unknown tool: ${name}` };
   }
+
+  // Pro gate: Basic users can't use paid features. Surface an upgrade card
+  // instead of executing — the agent explains it's the feature they wanted.
+  if (tool.proFeature && !ctx.isPro) {
+    return {
+      ok: false,
+      upgradeRequiredFeature: tool.proFeature,
+      content: `UPGRADE REQUIRED — "${tool.proFeature}" is a paid (Premium) feature and this account is on the free Basic plan. An upgrade card is now shown in the chat. Tell the user, in one warm line, that ${tool.proFeature} is a Premium feature (one they asked for) and they can upgrade via the card to unlock it and continue. Do NOT retry this tool.`,
+    };
+  }
+
+  // ask_user: park the questions; the chat renders inputs and the answers
+  // come back via /api/agent/answer as the next user message.
+  if (name === 'ask_user') {
+    const questions = (input?.questions ?? []) as AgentQuestion[];
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return { ok: false, content: 'ask_user needs a non-empty "questions" array.' };
+    }
+    const { data: pending, error } = await ctx.supabase
+      .from('agent_actions')
+      .insert({
+        conversation_id: ctx.conversationId,
+        wedding_id: ctx.weddingSlug,
+        tool_name: 'ask_user',
+        input,
+        status: 'pending',
+        risk: 'read',
+      })
+      .select('id')
+      .single();
+    if (error || !pending) {
+      return { ok: false, content: `Could not queue the questions: ${error?.message}` };
+    }
+    return {
+      ok: true,
+      pendingActionId: pending.id as string,
+      questions,
+      content:
+        'ASKED — the questions are now shown to the user as input fields. Stop here and wait; their answers arrive as the next message. Do not re-ask in prose.',
+    };
+  }
+
   if (tool.risk === 'gated') {
     // Park the call as a pending action; the chat client renders a
     // Confirm/Decline card and /api/agent/confirm resolves it.

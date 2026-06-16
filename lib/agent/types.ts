@@ -18,6 +18,8 @@ export interface AgentToolContext {
   weddingUuid: string;
   userId: string;
   conversationId: string;
+  /** Whether the account is on a paid plan — gates Pro-only tools. */
+  isPro: boolean;
 }
 
 export interface AgentToolDefinition {
@@ -29,6 +31,10 @@ export interface AgentToolDefinition {
   inputSchema: Record<string, unknown>;
   /** Short human label streamed to the chat UI while the tool runs. */
   label: string;
+  /** If set, this tool belongs to a paid ("Pro") feature. For Basic users the
+   *  call is blocked and an in-chat upgrade card is shown. The string is the
+   *  user-facing feature name, e.g. "Room assignments". */
+  proFeature?: string;
   execute: (input: Record<string, unknown>, ctx: AgentToolContext) => Promise<unknown>;
 }
 
@@ -62,8 +68,30 @@ export type AgentStreamEvent =
       label: string;
       input: Record<string, unknown>;
     }
+  /** The agent asked structured questions — the client renders inputs and
+   *  resolves via /api/agent/answer. */
+  | { type: 'questions_required'; actionId: string; questions: AgentQuestion[] }
+  /** The user reached a Pro-only feature on a Basic plan — render an upgrade card. */
+  | { type: 'upgrade_required'; feature: string }
   | { type: 'done' }
   | { type: 'error'; message: string };
+
+/** A single question the agent asks via the ask_user tool. The chat renders
+ *  the right input per type and collects answers one at a time. */
+export type AgentQuestionType = 'text' | 'textarea' | 'date' | 'time' | 'single_select' | 'multi_select';
+
+export interface AgentQuestion {
+  id: string;
+  prompt: string;
+  /** Optional secondary line shown under the prompt (e.g. "I need help with…"). */
+  hint?: string;
+  type: AgentQuestionType;
+  options?: string[];
+  /** For select types: let the user add their own option(s) too. */
+  allowOther?: boolean;
+  placeholder?: string;
+  optional?: boolean;
+}
 
 export interface ProviderUsage {
   input_tokens: number;

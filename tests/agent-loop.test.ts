@@ -5,8 +5,8 @@ vi.mock('@/lib/supabase/client', () => ({
   publicSupabase: { from: vi.fn() },
 }));
 
-import { runAgentTurn } from '@/lib/agent/loop';
-import type { AgentProvider, AgentStreamEvent, ProviderTurnResult } from '@/lib/agent/types';
+import { runAgentTurn, TurnInProgressError, sanitizeHistoryWindow } from '@/lib/agent/loop';
+import type { AgentChatMessage, AgentProvider, AgentStreamEvent, ProviderTurnResult } from '@/lib/agent/types';
 import { createFakeSupabase, type TableResult } from './mocks/fake-supabase';
 
 const SNAPSHOT_TABLES: Record<string, TableResult> = {
@@ -32,8 +32,12 @@ const SNAPSHOT_TABLES: Record<string, TableResult> = {
   wedding_faqs: { count: 0 },
   wedding_tasks: { count: 0 },
   agent_messages: { data: [] },
-  agent_conversations: { data: [] },
+  // Non-empty: the turn-lock acquire must see an updatable row.
+  agent_conversations: { data: [{ id: 'conv-1', summary: null, summary_through: null }] },
   agent_actions: { data: [] },
+  // Pro account so gated Pro tools reach the confirmation path, not the gate.
+  user_settings: { data: { subscription_tier: 'pro' } },
+  agent_knowledge: { data: null },
 };
 
 function scriptedProvider(turns: ProviderTurnResult[]): AgentProvider & { calls: number } {
@@ -82,7 +86,10 @@ describe('runAgentTurn', () => {
 
     const persisted = fake.inserts['agent_messages'] as Array<{ role: string }>;
     expect(persisted.map((m) => m.role)).toEqual(['user', 'assistant']);
-    expect(fake.updates['agent_conversations']).toHaveLength(1);
+    // lock acquire + last_message_at + lock release
+    const convUpdates = fake.updates['agent_conversations'] as Array<Record<string, unknown>>;
+    expect(convUpdates.some((u) => 'last_message_at' in u)).toBe(true);
+    expect(convUpdates.at(-1)).toEqual({ turn_started_at: null });
   });
 
   it('runs a tool round-trip and feeds the result back to the model', async () => {
@@ -156,11 +163,75 @@ describe('runAgentTurn', () => {
     expect(events.at(-1)?.type).toBe('done');
   });
 
+  it('throws TurnInProgressError when the conversation lock is held', async () => {
+    const provider = scriptedProvider([
+      { content: [{ type: 'text', text: 'never reached' }], stopReason: 'end_turn' },
+    ]);
+    // Empty result from the conditional lock update = lock held by another turn
+    await expect(
+      run(provider, { ...SNAPSHOT_TABLES, agent_conversations: { data: [] } })
+    ).rejects.toThrow(TurnInProgressError);
+    expect(provider.calls).toBe(0);
+  });
+
+  it('prepends the rolling summary as context when one exists', async () => {
+    let seenMessages: AgentChatMessage[] = [];
+    const provider: AgentProvider = {
+      async streamTurn({ messages }) {
+        seenMessages = messages;
+        return { content: [{ type: 'text', text: 'ok' }], stopReason: 'end_turn' };
+      },
+    };
+    await run(provider, {
+      ...SNAPSHOT_TABLES,
+      agent_conversations: {
+        data: [{ id: 'conv-1', summary: 'Venue is the Leela; Raj cancelled.', summary_through: '2026-01-01' }],
+      },
+    });
+    const first = seenMessages[0];
+    expect(first.role).toBe('user');
+    expect((first.content[0] as { text: string }).text).toContain('⟦summary⟧');
+    expect((first.content[0] as { text: string }).text).toContain('Raj cancelled');
+  });
+
   it('surfaces refusals as an error event without persisting an assistant turn', async () => {
     const provider = scriptedProvider([{ content: [], stopReason: 'refusal' }]);
     const { fake, events } = await run(provider);
     expect(events.some((e) => e.type === 'error')).toBe(true);
     const persisted = fake.inserts['agent_messages'] as Array<{ role: string }>;
     expect(persisted.map((m) => m.role)).toEqual(['user']);
+  });
+});
+
+describe('sanitizeHistoryWindow', () => {
+  const text = (t: string) => ({ type: 'text' as const, text: t });
+
+  it('drops leading tool_result messages whose tool_use was truncated away', () => {
+    const window = sanitizeHistoryWindow([
+      { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'x', content: 'orphan' }] },
+      { role: 'assistant', content: [text('reply')] },
+      { role: 'user', content: [text('hello')] },
+      { role: 'assistant', content: [text('hi')] },
+    ]);
+    expect(window).toHaveLength(2);
+    expect(window[0].role).toBe('user');
+    expect((window[0].content[0] as { text: string }).text).toBe('hello');
+  });
+
+  it('drops a trailing assistant message with an unanswered tool_use (crashed turn)', () => {
+    const window = sanitizeHistoryWindow([
+      { role: 'user', content: [text('hello')] },
+      { role: 'assistant', content: [{ type: 'tool_use', id: 't1', name: 'list_guests', input: {} }] },
+    ]);
+    expect(window).toHaveLength(1);
+    expect(window[0].role).toBe('user');
+  });
+
+  it('keeps an already-consistent window unchanged', () => {
+    const input = [
+      { role: 'user' as const, content: [text('hello')] },
+      { role: 'assistant' as const, content: [text('hi')] },
+    ];
+    expect(sanitizeHistoryWindow(input)).toEqual(input);
   });
 });

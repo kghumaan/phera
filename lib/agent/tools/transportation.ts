@@ -5,6 +5,7 @@ export const transportationTools: AgentToolDefinition[] = [
     name: 'get_transportation',
     label: 'Reading transportation',
     risk: 'read',
+    proFeature: 'Transportation',
     description:
       'Get shuttle/transportation state: vehicles with capacity, pickup locations, and reservation counts per vehicle. Call this for questions about shuttles, pickups, or whether guests have reserved seats.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
