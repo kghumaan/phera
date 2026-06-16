@@ -12,7 +12,7 @@ export const askTools: AgentToolDefinition[] = [
     label: 'Asking for details',
     risk: 'read',
     description:
-      'Use this to ask the user one or more specific questions and collect typed answers via proper input fields (shown one at a time). ALWAYS prefer calling this over asking for structured info in prose — names, dates, a choice from options, etc. Group related questions into one call. Types: "text" (short answer), "textarea" (long answer), "date" (date picker), "single_select" (pick one of options), "multi_select" (pick several of options). Provide "options" for the select types.',
+      'Use this to ask the user one or more specific questions and collect typed answers via proper input fields (shown one at a time). ALWAYS prefer calling this over asking for structured info in prose — names, dates, times, a choice from options, etc. Group related questions into one call. Types: "text" (short answer), "textarea" (long answer), "date" (date picker), "time" (time picker), "single_select" (pick one of options), "multi_select" (pick several of options). Provide "options" for the select types. Keep date/time prompts neutral — do not name specific events in them.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -24,7 +24,7 @@ export const askTools: AgentToolDefinition[] = [
             properties: {
               id: { type: 'string', description: 'Short stable key, e.g. "couple_names"' },
               prompt: { type: 'string', description: 'The question shown to the user' },
-              type: { type: 'string', enum: ['text', 'textarea', 'date', 'single_select', 'multi_select'] },
+              type: { type: 'string', enum: ['text', 'textarea', 'date', 'time', 'single_select', 'multi_select'] },
               options: { type: 'array', items: { type: 'string' }, description: 'Choices for select types' },
               allowOther: { type: 'boolean', description: 'For select types: let the user add their own option(s) too' },
               placeholder: { type: 'string' },

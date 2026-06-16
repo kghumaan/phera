@@ -53,6 +53,7 @@ function itemsFromPersisted(messages: Array<{ role: string; content: AgentConten
         // the user-facing content.
         if (block.text.startsWith(CONFIRMATION_NOTE_PREFIX)) continue;
         if (block.text.startsWith(ANSWERS_NOTE_PREFIX)) continue;
+        if (block.text.startsWith(HIDDEN_USER_PREFIX)) continue;
         items.push({ kind: message.role === 'user' ? 'user' : 'assistant', text: block.text });
       } else if (block.type === 'tool_use') {
         items.push({ kind: 'tool', label: block.name.replace(/_/g, ' '), status: 'ok' });
@@ -64,14 +65,20 @@ function itemsFromPersisted(messages: Array<{ role: string; content: AgentConten
 
 const SPEAK_STORAGE_KEY = 'phera-agent-speak';
 
+/** Hidden kickoff sent on onboarding — never rendered as a user bubble. */
+const HIDDEN_USER_PREFIX = '⟦kickoff⟧';
+const ONBOARDING_KICKOFF =
+  `${HIDDEN_USER_PREFIX} I just signed up and I'm setting up my wedding from scratch. ` +
+  'Greet me in ONE short line, then immediately use ask_user to collect the essentials. Do not write anything after the ask_user call.';
+
 export interface AgentChatPanelProps {
   weddingSlug: string;
   starters?: string[];
   /** Fired after each completed turn (done or error) — lets hosts refresh inspectors. */
   onTurnComplete?: () => void;
   minHeight?: number;
-  /** Optional message auto-sent once on mount (e.g. onboarding kickoff). */
-  autoGreet?: string;
+  /** When true, fire the hidden onboarding kickoff once on mount. */
+  onboarding?: boolean;
 }
 
 export function AgentChatPanel({
@@ -79,11 +86,12 @@ export function AgentChatPanel({
   starters = DEFAULT_STARTERS,
   onTurnComplete,
   minHeight = 480,
-  autoGreet,
+  onboarding,
 }: AgentChatPanelProps) {
   const [items, setItems] = useState<ChatItem[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [busyLabel, setBusyLabel] = useState('Thinking…');
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [speak, setSpeak] = useState(false);
   const conversationIdRef = useRef<string | null>(null);
@@ -249,6 +257,10 @@ export function AgentChatPanel({
             if (event.type === 'conversation') {
               conversationIdRef.current = event.conversationId;
             } else {
+              // Once the agent actually starts working, move past "Saving…".
+              if (event.type === 'tool_start' || event.type === 'text_delta') {
+                setBusyLabel('Thinking…');
+              }
               if (event.type === 'text_delta') spokenText += event.text;
               handleEvent(event);
             }
@@ -297,6 +309,7 @@ export function AgentChatPanel({
   const resolveAnswers = useCallback(
     async (actionId: string, answers: Record<string, string | string[]>) => {
       if (busy) return;
+      setBusyLabel('Saving…');
       setBusy(true);
       setItems((prev) =>
         prev.map((item) =>
@@ -322,9 +335,12 @@ export function AgentChatPanel({
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || busy) return;
-      setInput('');
+      // Hidden kickoff messages drive the agent without showing a user bubble.
+      const hidden = trimmed.startsWith(HIDDEN_USER_PREFIX);
+      if (!hidden) setInput('');
+      setBusyLabel('Thinking…');
       setBusy(true);
-      setItems((prev) => [...prev, { kind: 'user', text: trimmed }]);
+      if (!hidden) setItems((prev) => [...prev, { kind: 'user', text: trimmed }]);
       try {
         const res = await fetch('/api/agent/chat', {
           method: 'POST',
@@ -365,14 +381,14 @@ export function AgentChatPanel({
     .find((i): i is Extract<ChatItem, { kind: 'questions' }> => i.kind === 'questions' && i.status !== 'done');
   const awaitingQuestions = !!pendingQuestions;
 
-  // One-shot onboarding kickoff so the agent greets first.
+  // One-shot onboarding kickoff so the agent greets first (hidden message).
   const greetedRef = useRef(false);
   useEffect(() => {
-    if (autoGreet && !greetedRef.current && !loadingHistory && items.length === 0) {
+    if (onboarding && !greetedRef.current && !loadingHistory && items.length === 0) {
       greetedRef.current = true;
-      void send(autoGreet);
+      void send(ONBOARDING_KICKOFF);
     }
-  }, [autoGreet, loadingHistory, items.length, send]);
+  }, [onboarding, loadingHistory, items.length, send]);
 
   return (
     <PheraCard
@@ -508,7 +524,7 @@ export function AgentChatPanel({
               <Stack direction="row" spacing={1} alignItems="center" sx={{ pl: 0.5 }}>
                 <CircularProgress size={14} sx={{ color: COLORS.brand.primary }} />
                 <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
-                  Thinking…
+                  {busyLabel}
                 </Typography>
               </Stack>
             )}

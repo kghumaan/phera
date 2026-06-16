@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
-import { format, parseISO } from 'date-fns';
+import { MobileTimePicker } from '@mui/x-date-pickers/MobileTimePicker';
+import { format, parse, parseISO } from 'date-fns';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { PheraTextField } from '@/components/shared/TextField';
 import { PheraChip } from '@/components/shared/Chip';
@@ -93,7 +94,11 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
       Array.isArray(prior) ? prior.filter((p) => !(q.options ?? []).includes(p)) : []
     );
     setOtherText('');
-    setDate(typeof prior === 'string' && prior ? safeParse(prior) : null);
+    if (typeof prior === 'string' && prior) {
+      setDate(q.type === 'time' ? safeParseTime(prior) : safeParse(prior));
+    } else {
+      setDate(null);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
@@ -169,6 +174,18 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
         {q.type === 'date' && (
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <MobileDatePicker
+              value={date}
+              onChange={(v) => setDate(v)}
+              enableAccessibleFieldDOMStructure={false}
+              slots={{ textField: TextField }}
+              slotProps={DATE_SLOT_PROPS}
+            />
+          </LocalizationProvider>
+        )}
+
+        {q.type === 'time' && (
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <MobileTimePicker
               value={date}
               onChange={(v) => setDate(v)}
               enableAccessibleFieldDOMStructure={false}
@@ -257,13 +274,14 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
 
   function canSubmit(): boolean {
     if (q.optional) return true;
-    if (q.type === 'date') return !!date;
+    if (q.type === 'date' || q.type === 'time') return !!date;
     if (q.type === 'multi_select') return multi.length > 0;
     return !!text.trim();
   }
 
   function submitCurrent() {
     if (q.type === 'date') commit(date ? format(date, 'yyyy-MM-dd') : '');
+    else if (q.type === 'time') commit(date ? format(date, 'h:mm a') : '');
     else if (q.type === 'multi_select') commit(multi);
     else commit(text.trim());
   }
@@ -277,6 +295,15 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
 function safeParse(value: string): Date | null {
   try {
     const d = parseISO(value);
+    return isNaN(d.getTime()) ? null : d;
+  } catch {
+    return null;
+  }
+}
+
+function safeParseTime(value: string): Date | null {
+  try {
+    const d = parse(value, 'h:mm a', new Date());
     return isNaN(d.getTime()) ? null : d;
   } catch {
     return null;
