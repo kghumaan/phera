@@ -495,7 +495,9 @@ export function AgentChatPanel({
         )}
       </Stack>
       <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
-        {loadingHistory ? (
+        {loadingHistory || (onboarding && items.length === 0) ? (
+          // During onboarding the kickoff fires immediately — show a spinner,
+          // not the generic starter prompts, so we land straight on the greeting.
           <Stack alignItems="center" py={6}>
             <CircularProgress size={22} sx={{ color: COLORS.brand.primary }} />
           </Stack>
@@ -712,6 +714,7 @@ export function AgentChatPanel({
             onClick={(e) => setAttachAnchor(e.currentTarget)}
             disabled={busy || awaitingQuestions}
             aria-label="Upload a guest list or floor plan"
+            sx={{ color: COLORS.text.subtle }}
           >
             <AttachFileRoundedIcon fontSize="small" />
           </IconActionButton>
@@ -738,11 +741,16 @@ export function AgentChatPanel({
             disabled={busy || awaitingQuestions || voice.state === 'transcribing'}
             loading={voice.state === 'transcribing'}
             aria-label={voice.state === 'recording' ? 'Stop recording' : 'Record a voice message'}
-            sx={voice.state === 'recording' ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : undefined}
+            sx={voice.state === 'recording' ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : { color: COLORS.text.subtle }}
           >
             {voice.state === 'recording' ? <StopRoundedIcon fontSize="small" /> : <MicRoundedIcon fontSize="small" />}
           </IconActionButton>
-          <IconActionButton type="submit" disabled={busy || awaitingQuestions || !input.trim()} aria-label="Send message">
+          <IconActionButton
+            type="submit"
+            disabled={busy || awaitingQuestions || !input.trim()}
+            aria-label="Send message"
+            sx={{ color: COLORS.brand.primary, '&.Mui-disabled': { color: COLORS.border.strong } }}
+          >
             <SendRoundedIcon fontSize="small" />
           </IconActionButton>
         </Box>

@@ -17,6 +17,14 @@ import type { AgentQuestion } from '@/lib/agent/types';
 
 const INPUT_MAX_WIDTH = 460;
 
+/** Larger, tappable select chips. */
+const SELECT_CHIP_SX = {
+  cursor: 'pointer',
+  height: 'auto',
+  borderRadius: '12px',
+  '& .MuiChip-label': { px: 1.75, py: 1.1, fontSize: '0.95rem', lineHeight: 1.2 },
+} as const;
+
 /** Black-on-white calendar styling (the picker defaults render near-invisible
  *  on our white surfaces). Mirrors the build-ai ChatDateForm treatment. */
 const DATE_SLOT_PROPS = {
@@ -122,6 +130,27 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
 
   const options = [...(q.options ?? []), ...extraOptions];
 
+  // Back / Next-or-Done / Skip — placed to the right of single-line inputs.
+  const actionButtons = (
+    <>
+      {step > 0 && (
+        <SecondaryActionButton size="small" onClick={goBack} disabled={disabled} sx={{ height: '100%' }}>
+          Back
+        </SecondaryActionButton>
+      )}
+      {q.type !== 'single_select' && (
+        <PrimaryActionButton size="small" disabled={disabled || !canSubmit()} onClick={submitCurrent} sx={{ height: '100%' }}>
+          {isLastUnanswered() ? 'Done' : 'Next'}
+        </PrimaryActionButton>
+      )}
+      {q.optional && q.type !== 'single_select' && (
+        <SecondaryActionButton size="small" onClick={skip} disabled={disabled} sx={{ height: '100%' }}>
+          Skip
+        </SecondaryActionButton>
+      )}
+    </>
+  );
+
   return (
     <Stack spacing={1.25} sx={{ width: '100%' }}>
       {/* Answers so far — click to revisit */}
@@ -154,81 +183,113 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
         )}
       </Box>
 
-      <Box sx={{ width: '100%', maxWidth: INPUT_MAX_WIDTH }}>
-        {(q.type === 'text' || q.type === 'textarea') && (
+      {/* Single-line inputs: control + action buttons on one height-matched row */}
+      {q.type === 'text' && (
+        <Stack direction="row" spacing={1} alignItems="stretch" sx={{ width: '100%' }}>
           <PheraTextField
-            fullWidth
             size="small"
             autoFocus
-            multiline={q.type === 'textarea'}
-            minRows={q.type === 'textarea' ? 3 : undefined}
-            maxRows={q.type === 'textarea' ? 8 : undefined}
             placeholder={q.placeholder}
             value={text}
             disabled={disabled}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && q.type === 'text' && text.trim()) {
+              if (e.key === 'Enter' && !e.shiftKey && text.trim()) {
                 e.preventDefault();
                 commit(text.trim());
               }
             }}
+            sx={{ flex: 1, maxWidth: INPUT_MAX_WIDTH }}
           />
-        )}
+          {actionButtons}
+        </Stack>
+      )}
 
-        {q.type === 'date' && (
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <MobileDatePicker
-              value={date}
-              onChange={(v) => setDate(v)}
-              enableAccessibleFieldDOMStructure={false}
-              slots={{ textField: TextField }}
-              slotProps={DATE_SLOT_PROPS}
-            />
-          </LocalizationProvider>
-        )}
+      {(q.type === 'date' || q.type === 'time') && (
+        <Stack direction="row" spacing={1} alignItems="stretch" sx={{ width: '100%' }}>
+          <Box sx={{ flex: 1, maxWidth: INPUT_MAX_WIDTH }}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              {q.type === 'date' ? (
+                <MobileDatePicker
+                  value={date}
+                  onChange={(v) => setDate(v)}
+                  enableAccessibleFieldDOMStructure={false}
+                  slots={{ textField: TextField }}
+                  slotProps={DATE_SLOT_PROPS}
+                />
+              ) : (
+                <MobileTimePicker
+                  value={date}
+                  onChange={(v) => setDate(v)}
+                  enableAccessibleFieldDOMStructure={false}
+                  slots={{ textField: TextField }}
+                  slotProps={DATE_SLOT_PROPS}
+                />
+              )}
+            </LocalizationProvider>
+          </Box>
+          {actionButtons}
+        </Stack>
+      )}
 
-        {q.type === 'time' && (
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <MobileTimePicker
-              value={date}
-              onChange={(v) => setDate(v)}
-              enableAccessibleFieldDOMStructure={false}
-              slots={{ textField: TextField }}
-              slotProps={DATE_SLOT_PROPS}
-            />
-          </LocalizationProvider>
-        )}
+      {q.type === 'textarea' && (
+        <>
+          <PheraTextField
+            fullWidth
+            size="small"
+            autoFocus
+            multiline
+            minRows={3}
+            maxRows={8}
+            placeholder={q.placeholder}
+            value={text}
+            disabled={disabled}
+            onChange={(e) => setText(e.target.value)}
+            sx={{ maxWidth: INPUT_MAX_WIDTH }}
+          />
+          <Stack direction="row" spacing={1}>{actionButtons}</Stack>
+        </>
+      )}
 
-        {(q.type === 'single_select' || q.type === 'multi_select') && (
-          <Stack spacing={1}>
-            <Stack direction="row" flexWrap="wrap" gap={1}>
-              {options.map((opt) => {
-                const on = q.type === 'multi_select' ? multi.includes(opt) : false;
-                return (
-                  <PheraChip
-                    key={opt}
-                    tone={on ? 'brand' : 'neutral'}
-                    label={on ? `✓ ${opt}` : opt}
-                    onClick={() => {
-                      if (disabled) return;
-                      if (q.type === 'single_select') commit(opt);
-                      else setMulti((m) => (on ? m.filter((x) => x !== opt) : [...m, opt]));
-                    }}
-                    sx={{
-                      cursor: 'pointer',
-                      height: 'auto',
-                      borderRadius: '12px',
-                      '& .MuiChip-label': { px: 1.75, py: 1.1, fontSize: '0.95rem', lineHeight: 1.2 },
-                    }}
-                  />
-                );
-              })}
-            </Stack>
+      {q.type === 'single_select' && (
+        <Stack spacing={1}>
+          <Stack direction="row" flexWrap="wrap" gap={1}>
+            {options.map((opt) => (
+              <PheraChip
+                key={opt}
+                tone="neutral"
+                label={opt}
+                onClick={() => !disabled && commit(opt)}
+                sx={SELECT_CHIP_SX}
+              />
+            ))}
+          </Stack>
+          {step > 0 && (
+            <Stack direction="row" spacing={1}>{actionButtons}</Stack>
+          )}
+        </Stack>
+      )}
+
+      {q.type === 'multi_select' && (
+        <Stack spacing={1}>
+          <Stack direction="row" flexWrap="wrap" gap={1}>
+            {options.map((opt) => {
+              const on = multi.includes(opt);
+              return (
+                <PheraChip
+                  key={opt}
+                  tone={on ? 'brand' : 'neutral'}
+                  label={on ? `✓ ${opt}` : opt}
+                  onClick={() => !disabled && setMulti((m) => (on ? m.filter((x) => x !== opt) : [...m, opt]))}
+                  sx={SELECT_CHIP_SX}
+                />
+              );
+            })}
+          </Stack>
+          <Stack direction="row" spacing={1} alignItems="stretch" sx={{ width: '100%' }}>
             {q.allowOther && (
-              <Stack direction="row" spacing={0.75} sx={{ maxWidth: 320 }}>
+              <Stack direction="row" spacing={0.75} alignItems="stretch" sx={{ flex: 1, maxWidth: 280 }}>
                 <PheraTextField
-                  fullWidth
                   size="small"
                   placeholder="Add another…"
                   value={otherText}
@@ -240,37 +301,22 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
                       addOther();
                     }
                   }}
+                  sx={{ flex: 1 }}
                 />
-                <IconActionButton onClick={addOther} disabled={disabled || !otherText.trim()} aria-label="Add option">
+                <IconActionButton
+                  onClick={addOther}
+                  disabled={disabled || !otherText.trim()}
+                  aria-label="Add option"
+                  sx={{ color: COLORS.brand.primary }}
+                >
                   <AddRoundedIcon fontSize="small" />
                 </IconActionButton>
               </Stack>
             )}
+            {actionButtons}
           </Stack>
-        )}
-      </Box>
-
-      <Stack direction="row" spacing={1}>
-        {step > 0 && (
-          <SecondaryActionButton size="small" onClick={goBack} disabled={disabled}>
-            Back
-          </SecondaryActionButton>
-        )}
-        {q.type !== 'single_select' && (
-          <PrimaryActionButton
-            size="small"
-            disabled={disabled || !canSubmit()}
-            onClick={submitCurrent}
-          >
-            {isLastUnanswered() ? 'Done' : 'Next'}
-          </PrimaryActionButton>
-        )}
-        {q.optional && q.type !== 'single_select' && (
-          <SecondaryActionButton size="small" onClick={skip} disabled={disabled}>
-            Skip
-          </SecondaryActionButton>
-        )}
-      </Stack>
+        </Stack>
+      )}
     </Stack>
   );
 
