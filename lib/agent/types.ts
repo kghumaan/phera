@@ -75,6 +75,8 @@ export type AgentQuestionType = 'text' | 'textarea' | 'date' | 'time' | 'single_
 export interface AgentQuestion {
   id: string;
   prompt: string;
+  /** Optional secondary line shown under the prompt (e.g. "I need help with…"). */
+  hint?: string;
   type: AgentQuestionType;
   options?: string[];
   /** For select types: let the user add their own option(s) too. */

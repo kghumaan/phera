@@ -24,6 +24,7 @@ export const askTools: AgentToolDefinition[] = [
             properties: {
               id: { type: 'string', description: 'Short stable key, e.g. "couple_names"' },
               prompt: { type: 'string', description: 'The question shown to the user' },
+              hint: { type: 'string', description: 'Optional secondary line under the prompt, e.g. "I need help with…"' },
               type: { type: 'string', enum: ['text', 'textarea', 'date', 'time', 'single_select', 'multi_select'] },
               options: { type: 'array', items: { type: 'string' }, description: 'Choices for select types' },
               allowOther: { type: 'boolean', description: 'For select types: let the user add their own option(s) too' },

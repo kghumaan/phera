@@ -147,6 +147,11 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
         <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
           {q.prompt}
         </Typography>
+        {q.hint && (
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.25 }}>
+            {q.hint}
+          </Typography>
+        )}
       </Box>
 
       <Box sx={{ width: '100%', maxWidth: INPUT_MAX_WIDTH }}>
