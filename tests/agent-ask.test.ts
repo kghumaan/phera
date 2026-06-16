@@ -34,6 +34,7 @@ describe('ask_user dispatch', () => {
       weddingUuid: 'uuid-1',
       userId: 'u1',
       conversationId: 'conv-1',
+    isPro: true,
     };
     const result = await dispatchTool('ask_user', { questions: QUESTIONS }, ctx);
     expect(result.ok).toBe(true);
@@ -53,6 +54,7 @@ describe('ask_user dispatch', () => {
       weddingUuid: 'uuid-1',
       userId: 'u1',
       conversationId: 'conv-1',
+    isPro: true,
     };
     const result = await dispatchTool('ask_user', { questions: [] }, ctx);
     expect(result.ok).toBe(false);

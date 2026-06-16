@@ -39,6 +39,8 @@ export interface DispatchResult {
   pendingActionId?: string;
   /** Set when ask_user parked questions for the client to render. */
   questions?: AgentQuestion[];
+  /** Set when a Pro tool was blocked for a Basic user — the feature name. */
+  upgradeRequiredFeature?: string;
 }
 
 const MAX_RESULT_CHARS = 12_000;
@@ -62,6 +64,16 @@ export async function dispatchTool(
   const tool = registry.get(name);
   if (!tool) {
     return { ok: false, content: `Unknown tool: ${name}` };
+  }
+
+  // Pro gate: Basic users can't use paid features. Surface an upgrade card
+  // instead of executing — the agent explains it's the feature they wanted.
+  if (tool.proFeature && !ctx.isPro) {
+    return {
+      ok: false,
+      upgradeRequiredFeature: tool.proFeature,
+      content: `UPGRADE REQUIRED — "${tool.proFeature}" is a paid (Premium) feature and this account is on the free Basic plan. An upgrade card is now shown in the chat. Tell the user, in one warm line, that ${tool.proFeature} is a Premium feature (one they asked for) and they can upgrade via the card to unlock it and continue. Do NOT retry this tool.`,
+    };
   }
 
   // ask_user: park the questions; the chat renders inputs and the answers

@@ -10,6 +10,7 @@ import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import AttachFileRoundedIcon from '@mui/icons-material/AttachFileRounded';
 import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
+import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useVoiceInput } from './useVoiceInput';
 import { MarkdownText } from './MarkdownText';
 import { importGuestsFromFile, importRoomsFromFile } from '@/lib/agent/chat-uploads';
@@ -38,7 +39,8 @@ type ChatItem =
       actionId: string;
       questions: AgentQuestion[];
       status: 'pending' | 'resolving' | 'done';
-    };
+    }
+  | { kind: 'upgrade'; feature: string };
 
 const DEFAULT_STARTERS = [
   'How is our planning going so far?',
@@ -103,6 +105,7 @@ export function AgentChatPanel({
   const guestFileRef = useRef<HTMLInputElement | null>(null);
   const roomFileRef = useRef<HTMLInputElement | null>(null);
   const [attachAnchor, setAttachAnchor] = useState<HTMLElement | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   useEffect(() => {
     setSpeak(window.localStorage.getItem(SPEAK_STORAGE_KEY) === '1');
@@ -228,6 +231,9 @@ export function AgentChatPanel({
             questions: event.questions,
             status: 'pending',
           });
+          return next;
+        case 'upgrade_required':
+          next.push({ kind: 'upgrade', feature: event.feature });
           return next;
         case 'error':
           next.push({ kind: 'assistant', text: event.message });
@@ -517,6 +523,33 @@ export function AgentChatPanel({
                     />
                   )}
                 </Box>
+              ) : item.kind === 'upgrade' ? (
+                <Box
+                  key={index}
+                  sx={{
+                    alignSelf: 'flex-start',
+                    maxWidth: '85%',
+                    border: `1px solid ${COLORS.brand.primaryBorder}`,
+                    bgcolor: COLORS.brand.primaryWash,
+                    borderRadius: `${RADII.md}px`,
+                    px: 2,
+                    py: 1.75,
+                  }}
+                >
+                  <Stack direction="row" spacing={0.75} alignItems="center" mb={0.5}>
+                    <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 18 }} />
+                    <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 700 }}>
+                      {item.feature} is a Premium feature
+                    </Typography>
+                  </Stack>
+                  <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 1.5 }}>
+                    {item.feature} isn&apos;t on the free plan. Upgrade to unlock it — and everything
+                    else — and we&apos;ll keep going right here.
+                  </Typography>
+                  <PrimaryActionButton size="small" onClick={() => setUpgradeOpen(true)}>
+                    Upgrade to continue
+                  </PrimaryActionButton>
+                </Box>
               ) : item.kind === 'questions' ? (
                 // Rendered in the bottom composer while pending; nothing inline.
                 null
@@ -676,6 +709,7 @@ export function AgentChatPanel({
         </>
         )}
       </Box>
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} tier="base" />
     </PheraCard>
   );
 }

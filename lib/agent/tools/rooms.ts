@@ -5,6 +5,7 @@ export const roomTools: AgentToolDefinition[] = [
     name: 'list_rooms',
     label: 'Reading room assignments',
     risk: 'read',
+    proFeature: 'Room assignments',
     description:
       'List hotel rooms with capacity and the names of guests assigned to each, plus which rooms have open spots. Call this for any question about rooms, hotel blocks, or who sleeps where.',
     inputSchema: {
@@ -62,6 +63,7 @@ export const roomTools: AgentToolDefinition[] = [
     name: 'update_room',
     label: 'Updating a room',
     risk: 'write',
+    proFeature: 'Room assignments',
     description:
       'Update one room\'s details: capacity, bed type, floor, hotel name, or notes. Does NOT change guest assignments — use assign_guests_to_room for that.',
     inputSchema: {
@@ -98,6 +100,7 @@ export const roomTools: AgentToolDefinition[] = [
     name: 'assign_guests_to_room',
     label: 'Reassigning a room',
     risk: 'gated',
+    proFeature: 'Room assignments',
     description:
       'Replace the set of guests assigned to a room (pass the full new list of guest IDs). Use after list_rooms and list_guests to know the IDs. This is a sensitive change and requires user confirmation.',
     inputSchema: {

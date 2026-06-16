@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { buildWeddingSnapshot } from './context';
+import { getUserIsPro } from './plan';
 import { maybeCompactConversation } from './compact';
 import { AGENT_SYSTEM_PROMPT } from './system-prompt';
 import { getAllTools, dispatchTool } from './tools';
@@ -176,13 +177,15 @@ export async function runAgentTurn(args: RunAgentTurnArgs): Promise<void> {
 async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
   const { supabase, weddingSlug, weddingUuid, userId, conversationId, provider, onEvent } = args;
 
-  const toolCtx: AgentToolContext = { supabase, weddingSlug, weddingUuid, userId, conversationId };
-  const tools = getAllTools();
-
-  const [history, snapshot] = await Promise.all([
+  const [history, snapshot, isPro] = await Promise.all([
     loadHistory(supabase, conversationId),
     buildWeddingSnapshot(supabase, weddingSlug, weddingUuid),
+    getUserIsPro(supabase, userId),
   ]);
+  snapshot.text += `\nPlan: ${isPro ? 'Pro (all features unlocked)' : 'Basic / free — Room assignments, Transportation, and Vendor coordination require an upgrade'}`;
+
+  const toolCtx: AgentToolContext = { supabase, weddingSlug, weddingUuid, userId, conversationId, isPro };
+  const tools = getAllTools();
 
   const userMessage: AgentChatMessage = {
     role: 'user',
@@ -230,7 +233,9 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       onEvent({ type: 'tool_start', name: use.name, label });
       const dispatched = await dispatchTool(use.name, use.input, toolCtx);
       onEvent({ type: 'tool_done', name: use.name, ok: dispatched.ok });
-      if (dispatched.pendingActionId && dispatched.questions) {
+      if (dispatched.upgradeRequiredFeature) {
+        onEvent({ type: 'upgrade_required', feature: dispatched.upgradeRequiredFeature });
+      } else if (dispatched.pendingActionId && dispatched.questions) {
         onEvent({
           type: 'questions_required',
           actionId: dispatched.pendingActionId,
