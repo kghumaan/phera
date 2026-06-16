@@ -9,6 +9,7 @@ import { transportationTools } from './transportation';
 import { vendorTools } from './vendors';
 import { knowledgeTools } from './knowledge';
 import { askTools } from './ask';
+import { goalsTools } from './goals';
 
 let registered = false;
 
@@ -27,6 +28,7 @@ export function ensureToolsRegistered() {
     ...vendorTools,
     ...knowledgeTools,
     ...askTools,
+    ...goalsTools,
   ]);
 }
 

@@ -96,6 +96,22 @@ export async function buildWeddingSnapshot(
     { key: 'faqs', label: 'Guest FAQs written', done: faqCount > 0, detail: `${faqCount} FAQs` },
   ];
 
+  // Planning goals (what the couple actually wants help with) — stored as a
+  // wedding-scoped agent_knowledge row. Fail-open if missing.
+  let goals: string | null = null;
+  try {
+    const { data } = await supabase
+      .from('agent_knowledge')
+      .select('content')
+      .eq('wedding_id', weddingSlug)
+      .eq('scope', 'wedding')
+      .eq('title', 'Planning goals')
+      .maybeSingle();
+    goals = data?.content ?? null;
+  } catch {
+    /* knowledge table not available */
+  }
+
   const today = new Date().toISOString().slice(0, 10);
   const daysToWedding = dateSet
     ? Math.round((new Date(wedding.wedding_date).getTime() - Date.now()) / 86_400_000)
@@ -103,6 +119,7 @@ export async function buildWeddingSnapshot(
 
   const lines = [
     `Today's date: ${today}`,
+    `Planning goals: ${goals || 'NOT SET — first ask what they want help with'}`,
     `Couple: ${wedding.couple_name ?? [wedding.partner1_name, wedding.partner2_name].filter(Boolean).join(' & ') ?? 'not set'}`,
     `Wedding date: ${dateSet ? wedding.wedding_date : 'NOT SET'}${dateSet && wedding.wedding_date_end ? ` to ${wedding.wedding_date_end}` : ''}${
       daysToWedding !== null ? ` (${daysToWedding} days away)` : ''

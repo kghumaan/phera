@@ -197,7 +197,7 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
 
         {(q.type === 'single_select' || q.type === 'multi_select') && (
           <Stack spacing={1}>
-            <Stack direction="row" flexWrap="wrap" gap={0.75}>
+            <Stack direction="row" flexWrap="wrap" gap={1}>
               {options.map((opt) => {
                 const on = q.type === 'multi_select' ? multi.includes(opt) : false;
                 return (
@@ -210,7 +210,12 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
                       if (q.type === 'single_select') commit(opt);
                       else setMulti((m) => (on ? m.filter((x) => x !== opt) : [...m, opt]));
                     }}
-                    sx={{ cursor: 'pointer' }}
+                    sx={{
+                      cursor: 'pointer',
+                      height: 'auto',
+                      borderRadius: '12px',
+                      '& .MuiChip-label': { px: 1.75, py: 1.1, fontSize: '0.95rem', lineHeight: 1.2 },
+                    }}
                   />
                 );
               })}
