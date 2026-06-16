@@ -228,11 +228,13 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
     if (result.stopReason !== 'tool_use' || toolUses.length === 0) break;
 
     const toolResults: AgentContentBlock[] = [];
+    let parkedQuestions = false;
     for (const use of toolUses) {
       const label = tools.find((t) => t.name === use.name)?.label ?? use.name;
       onEvent({ type: 'tool_start', name: use.name, label });
       const dispatched = await dispatchTool(use.name, use.input, toolCtx);
       onEvent({ type: 'tool_done', name: use.name, ok: dispatched.ok });
+      if (dispatched.questions) parkedQuestions = true;
       if (dispatched.upgradeRequiredFeature) {
         onEvent({ type: 'upgrade_required', feature: dispatched.upgradeRequiredFeature });
       } else if (dispatched.pendingActionId && dispatched.questions) {
@@ -261,6 +263,10 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
     const toolMessage: AgentChatMessage = { role: 'user', content: toolResults };
     messages.push(toolMessage);
     await persistMessage(supabase, conversationId, toolMessage);
+
+    // Questions are now in front of the user — end the turn instead of letting
+    // the model add a redundant "I'll wait for your answers" line.
+    if (parkedQuestions) break;
   }
 
   await supabase

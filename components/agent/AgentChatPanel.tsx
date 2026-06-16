@@ -42,6 +42,20 @@ type ChatItem =
     }
   | { kind: 'upgrade'; feature: string };
 
+/** Compact one-line summary of what the user answered, for the right-side bubble. */
+function summarizeAnswers(questions: AgentQuestion[], answers: Record<string, string | string[]>): string {
+  const parts = questions
+    .map((q) => {
+      const v = answers[q.id];
+      return Array.isArray(v) ? v.join(', ') : (v ?? '');
+    })
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (parts.length === 0) return 'Skipped';
+  const joined = parts.join(' · ');
+  return joined.length > 160 ? `${joined.slice(0, 157)}…` : joined;
+}
+
 const DEFAULT_STARTERS = [
   'How is our planning going so far?',
   "What's still missing from our setup?",
@@ -125,6 +139,23 @@ export function AgentChatPanel({
 
   const speakRef = useRef(speak);
   speakRef.current = speak;
+
+  // Once the model starts streaming, stop cycling the "saving" labels.
+  const streamingRef = useRef(false);
+
+  // Keep a changing loading label while we work (before the stream starts),
+  // so the user never stares at a frozen/blank state.
+  useEffect(() => {
+    if (!busy) return;
+    const phases = ['Saving…', 'Working…', 'Almost there…'];
+    let i = 0;
+    const id = setInterval(() => {
+      if (streamingRef.current) return; // 'Thinking…' has taken over
+      i = (i + 1) % phases.length;
+      setBusyLabel(phases[i]);
+    }, 1400);
+    return () => clearInterval(id);
+  }, [busy]);
 
   const playReply = useCallback(async (text: string) => {
     if (!speakRef.current || !text.trim()) return;
@@ -271,6 +302,7 @@ export function AgentChatPanel({
             } else {
               // Once the agent actually starts working, move past "Saving…".
               if (event.type === 'tool_start' || event.type === 'text_delta') {
+                streamingRef.current = true;
                 setBusyLabel('Thinking…');
               }
               if (event.type === 'text_delta') spokenText += event.text;
@@ -290,6 +322,8 @@ export function AgentChatPanel({
   const resolveAction = useCallback(
     async (actionId: string, approve: boolean) => {
       if (busy) return;
+      streamingRef.current = false;
+      setBusyLabel('Saving…');
       setBusy(true);
       setItems((prev) =>
         prev.map((item) =>
@@ -319,15 +353,19 @@ export function AgentChatPanel({
   );
 
   const resolveAnswers = useCallback(
-    async (actionId: string, answers: Record<string, string | string[]>) => {
+    async (actionId: string, answers: Record<string, string | string[]>, questions: AgentQuestion[]) => {
       if (busy) return;
+      streamingRef.current = false;
       setBusyLabel('Saving…');
       setBusy(true);
-      setItems((prev) =>
-        prev.map((item) =>
-          item.kind === 'questions' && item.actionId === actionId ? { ...item, status: 'done' } : item
-        )
-      );
+      // Show what the user answered as a right-side bubble (summarized).
+      const summary = summarizeAnswers(questions, answers);
+      setItems((prev) => [
+        ...prev.map((item) =>
+          item.kind === 'questions' && item.actionId === actionId ? { ...item, status: 'done' as const } : item
+        ),
+        ...(summary ? [{ kind: 'user' as const, text: summary }] : []),
+      ]);
       try {
         const res = await fetch('/api/agent/answer', {
           method: 'POST',
@@ -346,6 +384,7 @@ export function AgentChatPanel({
   const handleUpload = useCallback(
     async (kind: 'guests' | 'rooms', file: File | undefined) => {
       if (!file) return;
+      streamingRef.current = true; // fixed label, no SSE stream
       setBusyLabel(kind === 'guests' ? 'Importing guests…' : 'Reading floor plan…');
       setBusy(true);
       try {
@@ -377,6 +416,7 @@ export function AgentChatPanel({
       // Hidden kickoff messages drive the agent without showing a user bubble.
       const hidden = trimmed.startsWith(HIDDEN_USER_PREFIX);
       if (!hidden) setInput('');
+      streamingRef.current = true; // a plain message goes straight to thinking
       setBusyLabel('Thinking…');
       setBusy(true);
       if (!hidden) setItems((prev) => [...prev, { kind: 'user', text: trimmed }]);
@@ -607,7 +647,7 @@ export function AgentChatPanel({
               key={pendingQuestions.actionId}
               questions={pendingQuestions.questions}
               disabled={busy}
-              onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers)}
+              onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
             />
           </Box>
         ) : (
