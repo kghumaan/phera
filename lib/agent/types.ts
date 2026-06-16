@@ -73,6 +73,8 @@ export type AgentStreamEvent =
   | { type: 'questions_required'; actionId: string; questions: AgentQuestion[] }
   /** The user reached a Pro-only feature on a Basic plan — render an upgrade card. */
   | { type: 'upgrade_required'; feature: string }
+  /** The agent asked the user to upload a file — render an upload card with format help. */
+  | { type: 'upload_requested'; uploadKind: 'guests' | 'rooms' }
   | { type: 'done' }
   | { type: 'error'; message: string };
 

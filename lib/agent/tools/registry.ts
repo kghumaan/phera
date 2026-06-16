@@ -41,6 +41,8 @@ export interface DispatchResult {
   questions?: AgentQuestion[];
   /** Set when a Pro tool was blocked for a Basic user — the feature name. */
   upgradeRequiredFeature?: string;
+  /** Set when request_upload asked the client to render an upload card. */
+  uploadKind?: 'guests' | 'rooms';
 }
 
 const MAX_RESULT_CHARS = 12_000;
@@ -73,6 +75,18 @@ export async function dispatchTool(
       ok: false,
       upgradeRequiredFeature: tool.proFeature,
       content: `UPGRADE REQUIRED — "${tool.proFeature}" is a paid (Premium) feature and this account is on the free Basic plan. An upgrade card is now shown in the chat. Tell the user, in one warm line, that ${tool.proFeature} is a Premium feature (one they asked for) and they can upgrade via the card to unlock it and continue. Do NOT retry this tool.`,
+    };
+  }
+
+  // request_upload: show an inline upload card (with format help) in the chat.
+  if (name === 'request_upload') {
+    const kind = input?.kind === 'rooms' ? 'rooms' : 'guests';
+    return {
+      ok: true,
+      uploadKind: kind,
+      content: `An upload card for the ${
+        kind === 'guests' ? 'guest list (with the recommended columns)' : 'hotel floor plan'
+      } is now shown in the chat. The user attaches their file there and the import result arrives as a message. Add one short line inviting them to upload; do not retry.`,
     };
   }
 

@@ -10,6 +10,7 @@ import { vendorTools } from './vendors';
 import { knowledgeTools } from './knowledge';
 import { askTools } from './ask';
 import { goalsTools } from './goals';
+import { uploadTools } from './upload';
 
 let registered = false;
 
@@ -29,6 +30,7 @@ export function ensureToolsRegistered() {
     ...knowledgeTools,
     ...askTools,
     ...goalsTools,
+    ...uploadTools,
   ]);
 }
 

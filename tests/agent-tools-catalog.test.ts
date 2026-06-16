@@ -39,6 +39,7 @@ describe('agent tool catalog', () => {
       'search_knowledge',
       'ask_user',
       'set_planning_goals',
+      'request_upload',
     ]) {
       expect(names).toContain(expected);
     }

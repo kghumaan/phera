@@ -235,7 +235,9 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       const dispatched = await dispatchTool(use.name, use.input, toolCtx);
       onEvent({ type: 'tool_done', name: use.name, ok: dispatched.ok });
       if (dispatched.questions) parkedQuestions = true;
-      if (dispatched.upgradeRequiredFeature) {
+      if (dispatched.uploadKind) {
+        onEvent({ type: 'upload_requested', uploadKind: dispatched.uploadKind });
+      } else if (dispatched.upgradeRequiredFeature) {
         onEvent({ type: 'upgrade_required', feature: dispatched.upgradeRequiredFeature });
       } else if (dispatched.pendingActionId && dispatched.questions) {
         onEvent({

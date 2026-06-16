@@ -1,8 +1,9 @@
 'use client';
 
-import { Box, Stack, Typography, CircularProgress } from '@mui/material';
+import { Box, Stack, Typography, CircularProgress, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import StopRoundedIcon from '@mui/icons-material/StopRounded';
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
@@ -40,7 +41,89 @@ type ChatItem =
       questions: AgentQuestion[];
       status: 'pending' | 'resolving' | 'done';
     }
-  | { kind: 'upgrade'; feature: string };
+  | { kind: 'upgrade'; feature: string }
+  | { kind: 'upload'; uploadKind: 'guests' | 'rooms' };
+
+const GUEST_SCHEMA_COLUMNS = ['Name', 'Email', 'Phone', 'Plus One', 'Party Size', 'Tags'];
+const GUEST_SCHEMA_EXAMPLE = ['Arjun Mehta', 'arjun@example.com', '+1 415 555 0200', 'Aisha Mehta', '2', 'groom-side, family'];
+
+/** Inline upload card with format guidance, triggered by the agent. */
+function UploadCard({ uploadKind, onPick }: { uploadKind: 'guests' | 'rooms'; onPick: () => void }) {
+  if (uploadKind === 'rooms') {
+    return (
+      <Box
+        sx={{
+          alignSelf: 'flex-start',
+          maxWidth: '92%',
+          border: `1px solid ${COLORS.border.faint}`,
+          bgcolor: COLORS.bg.subtle,
+          borderRadius: `${RADII.md}px`,
+          p: 2,
+        }}
+      >
+        <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 600, mb: 0.5 }}>
+          Upload your hotel floor plan
+        </Typography>
+        <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 1.5 }}>
+          A PDF, image, or spreadsheet of your room block — I&apos;ll read the room numbers, floors, and
+          bed types automatically.
+        </Typography>
+        <PrimaryActionButton size="small" onClick={onPick} startIcon={<UploadFileRoundedIcon fontSize="small" />}>
+          Upload floor plan
+        </PrimaryActionButton>
+      </Box>
+    );
+  }
+  return (
+    <Box
+      sx={{
+        alignSelf: 'flex-start',
+        maxWidth: '92%',
+        border: `1px solid ${COLORS.border.faint}`,
+        bgcolor: COLORS.bg.subtle,
+        borderRadius: `${RADII.md}px`,
+        p: 2,
+      }}
+    >
+      <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 600, mb: 0.5 }}>
+        Upload your guest list
+      </Typography>
+      <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 1.5 }}>
+        CSV, Excel, or vCard. Here&apos;s the ideal layout — but don&apos;t worry about matching it exactly,
+        if your columns are close I&apos;ll map them automatically.
+      </Typography>
+      <Box sx={{ overflowX: 'auto', mb: 1.5, border: `1px solid ${COLORS.border.faint}`, borderRadius: `${RADII.sm}px` }}>
+        <Table size="small" sx={{ minWidth: 520 }}>
+          <TableHead>
+            <TableRow>
+              {GUEST_SCHEMA_COLUMNS.map((c) => (
+                <TableCell key={c} sx={{ fontWeight: 700, color: COLORS.text.strong, fontSize: '0.8rem', py: 0.75 }}>
+                  {c}
+                  {c === 'Name' && <Box component="span" sx={{ color: COLORS.brand.primary }}> *</Box>}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              {GUEST_SCHEMA_EXAMPLE.map((v, i) => (
+                <TableCell key={i} sx={{ color: COLORS.text.muted, fontSize: '0.8rem', py: 0.75 }}>
+                  {v}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableBody>
+        </Table>
+      </Box>
+      <Typography variant="caption" sx={{ color: COLORS.text.subtle, display: 'block', mb: 1.5 }}>
+        Only <strong>Name</strong> is required. Email and/or phone let guests RSVP and get WhatsApp updates.
+      </Typography>
+      <PrimaryActionButton size="small" onClick={onPick} startIcon={<UploadFileRoundedIcon fontSize="small" />}>
+        Upload guest list
+      </PrimaryActionButton>
+    </Box>
+  );
+}
 
 /** Compact one-line summary of what the user answered, for the right-side bubble. */
 function summarizeAnswers(questions: AgentQuestion[], answers: Record<string, string | string[]>): string {
@@ -265,6 +348,9 @@ export function AgentChatPanel({
           return next;
         case 'upgrade_required':
           next.push({ kind: 'upgrade', feature: event.feature });
+          return next;
+        case 'upload_requested':
+          next.push({ kind: 'upload', uploadKind: event.uploadKind });
           return next;
         case 'error':
           next.push({ kind: 'assistant', text: event.message });
@@ -592,6 +678,16 @@ export function AgentChatPanel({
                     Upgrade to continue
                   </PrimaryActionButton>
                 </Box>
+              ) : item.kind === 'upload' ? (
+                <UploadCard
+                  key={index}
+                  uploadKind={item.uploadKind}
+                  onPick={() =>
+                    item.uploadKind === 'guests'
+                      ? guestFileRef.current?.click()
+                      : roomFileRef.current?.click()
+                  }
+                />
               ) : item.kind === 'questions' ? (
                 // Rendered in the bottom composer while pending; nothing inline.
                 null
