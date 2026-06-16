@@ -16,7 +16,9 @@ import { PheraChip } from '@/components/shared/Chip';
 import { IconActionButton, PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { CONFIRMATION_NOTE_PREFIX } from '@/lib/agent/confirm';
-import type { AgentStreamEvent, AgentContentBlock } from '@/lib/agent/types';
+import { ANSWERS_NOTE_PREFIX } from '@/lib/agent/answer';
+import { QuestionFlow } from './QuestionFlow';
+import type { AgentStreamEvent, AgentContentBlock, AgentQuestion } from '@/lib/agent/types';
 
 type ChatItem =
   | { kind: 'user'; text: string }
@@ -27,6 +29,12 @@ type ChatItem =
       actionId: string;
       label: string;
       status: 'pending' | 'resolving' | 'confirmed' | 'declined';
+    }
+  | {
+      kind: 'questions';
+      actionId: string;
+      questions: AgentQuestion[];
+      status: 'pending' | 'resolving' | 'done';
     };
 
 const DEFAULT_STARTERS = [
@@ -41,9 +49,10 @@ function itemsFromPersisted(messages: Array<{ role: string; content: AgentConten
   for (const message of messages) {
     for (const block of message.content ?? []) {
       if (block.type === 'text' && block.text.trim()) {
-        // Confirmation-outcome notes are internal plumbing — the agent's
-        // acknowledgment that follows them carries the user-facing content.
+        // Internal plumbing notes — the agent's reply that follows carries
+        // the user-facing content.
         if (block.text.startsWith(CONFIRMATION_NOTE_PREFIX)) continue;
+        if (block.text.startsWith(ANSWERS_NOTE_PREFIX)) continue;
         items.push({ kind: message.role === 'user' ? 'user' : 'assistant', text: block.text });
       } else if (block.type === 'tool_use') {
         items.push({ kind: 'tool', label: block.name.replace(/_/g, ' '), status: 'ok' });
@@ -134,12 +143,21 @@ export function AgentChatPanel({
         if (data.conversation) conversationIdRef.current = data.conversation.id;
         const restored = data.messages?.length ? itemsFromPersisted(data.messages) : [];
         for (const pending of data.pendingActions ?? []) {
-          restored.push({
-            kind: 'confirm',
-            actionId: pending.id,
-            label: String(pending.tool_name).replace(/_/g, ' '),
-            status: 'pending',
-          });
+          if (pending.tool_name === 'ask_user') {
+            restored.push({
+              kind: 'questions',
+              actionId: pending.id,
+              questions: (pending.input?.questions ?? []) as AgentQuestion[],
+              status: 'pending',
+            });
+          } else {
+            restored.push({
+              kind: 'confirm',
+              actionId: pending.id,
+              label: String(pending.tool_name).replace(/_/g, ' '),
+              status: 'pending',
+            });
+          }
         }
         if (restored.length) setItems(restored);
       } finally {
@@ -186,6 +204,14 @@ export function AgentChatPanel({
             kind: 'confirm',
             actionId: event.actionId,
             label: event.label,
+            status: 'pending',
+          });
+          return next;
+        case 'questions_required':
+          next.push({
+            kind: 'questions',
+            actionId: event.actionId,
+            questions: event.questions,
             status: 'pending',
           });
           return next;
@@ -268,6 +294,30 @@ export function AgentChatPanel({
     [busy, consumeStream, onTurnComplete]
   );
 
+  const resolveAnswers = useCallback(
+    async (actionId: string, answers: Record<string, string | string[]>) => {
+      if (busy) return;
+      setBusy(true);
+      setItems((prev) =>
+        prev.map((item) =>
+          item.kind === 'questions' && item.actionId === actionId ? { ...item, status: 'done' } : item
+        )
+      );
+      try {
+        const res = await fetch('/api/agent/answer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ actionId, answers }),
+        });
+        await consumeStream(res);
+      } finally {
+        setBusy(false);
+        onTurnComplete?.();
+      }
+    },
+    [busy, consumeStream, onTurnComplete]
+  );
+
   const send = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
@@ -307,6 +357,10 @@ export function AgentChatPanel({
     conversationIdRef.current = null;
     setItems([]);
   }, []);
+
+  // While the agent is waiting on a structured-question answer, the user
+  // answers via the QuestionFlow — lock the free-text composer.
+  const awaitingQuestions = items.some((i) => i.kind === 'questions' && i.status !== 'done');
 
   // One-shot onboarding kickoff so the agent greets first.
   const greetedRef = useRef(false);
@@ -411,6 +465,19 @@ export function AgentChatPanel({
                     />
                   )}
                 </Box>
+              ) : item.kind === 'questions' ? (
+                item.status === 'done' ? (
+                  <Box key={index} sx={{ alignSelf: 'flex-start' }}>
+                    <PheraChip size="small" tone="success" label="Answers submitted ✓" />
+                  </Box>
+                ) : (
+                  <QuestionFlow
+                    key={index}
+                    questions={item.questions}
+                    disabled={busy}
+                    onComplete={(answers) => resolveAnswers(item.actionId, answers)}
+                  />
+                )
               ) : item.kind === 'tool' ? (
                 <Box key={index} sx={{ alignSelf: 'flex-start' }}>
                   <PheraChip
@@ -482,9 +549,11 @@ export function AgentChatPanel({
             multiline
             maxRows={6}
             placeholder={
-              voice.state === 'recording'
-                ? 'Listening… tap the mic again when you’re done'
-                : 'Tell me what’s happening — Enter to send, Shift+Enter for a new line'
+              awaitingQuestions
+                ? 'Answer the questions above to continue…'
+                : voice.state === 'recording'
+                  ? 'Listening… tap the mic again when you’re done'
+                  : 'Tell me what’s happening — Enter to send, Shift+Enter for a new line'
             }
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -494,19 +563,19 @@ export function AgentChatPanel({
                 send(input);
               }
             }}
-            disabled={busy}
+            disabled={busy || awaitingQuestions}
             autoComplete="off"
           />
           <IconActionButton
             onClick={() => voice.toggle()}
-            disabled={busy || voice.state === 'transcribing'}
+            disabled={busy || awaitingQuestions || voice.state === 'transcribing'}
             loading={voice.state === 'transcribing'}
             aria-label={voice.state === 'recording' ? 'Stop recording' : 'Record a voice message'}
             sx={voice.state === 'recording' ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : undefined}
           >
             {voice.state === 'recording' ? <StopRoundedIcon fontSize="small" /> : <MicRoundedIcon fontSize="small" />}
           </IconActionButton>
-          <IconActionButton type="submit" disabled={busy || !input.trim()} aria-label="Send message">
+          <IconActionButton type="submit" disabled={busy || awaitingQuestions || !input.trim()} aria-label="Send message">
             <SendRoundedIcon fontSize="small" />
           </IconActionButton>
         </Box>

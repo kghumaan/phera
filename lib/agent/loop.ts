@@ -230,7 +230,13 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       onEvent({ type: 'tool_start', name: use.name, label });
       const dispatched = await dispatchTool(use.name, use.input, toolCtx);
       onEvent({ type: 'tool_done', name: use.name, ok: dispatched.ok });
-      if (dispatched.pendingActionId) {
+      if (dispatched.pendingActionId && dispatched.questions) {
+        onEvent({
+          type: 'questions_required',
+          actionId: dispatched.pendingActionId,
+          questions: dispatched.questions,
+        });
+      } else if (dispatched.pendingActionId) {
         onEvent({
           type: 'confirmation_required',
           actionId: dispatched.pendingActionId,

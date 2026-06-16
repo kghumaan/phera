@@ -37,6 +37,7 @@ describe('agent tool catalog', () => {
       'get_transportation',
       'get_vendors',
       'search_knowledge',
+      'ask_user',
     ]) {
       expect(names).toContain(expected);
     }

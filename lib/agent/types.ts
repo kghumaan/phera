@@ -62,8 +62,24 @@ export type AgentStreamEvent =
       label: string;
       input: Record<string, unknown>;
     }
+  /** The agent asked structured questions — the client renders inputs and
+   *  resolves via /api/agent/answer. */
+  | { type: 'questions_required'; actionId: string; questions: AgentQuestion[] }
   | { type: 'done' }
   | { type: 'error'; message: string };
+
+/** A single question the agent asks via the ask_user tool. The chat renders
+ *  the right input per type and collects answers one at a time. */
+export type AgentQuestionType = 'text' | 'textarea' | 'date' | 'single_select' | 'multi_select';
+
+export interface AgentQuestion {
+  id: string;
+  prompt: string;
+  type: AgentQuestionType;
+  options?: string[];
+  placeholder?: string;
+  optional?: boolean;
+}
 
 export interface ProviderUsage {
   input_tokens: number;
