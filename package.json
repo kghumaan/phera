@@ -14,6 +14,9 @@
     "setup-gif": "node scripts/download-wedding-gif.js",
     "gif-help": "node scripts/download-wedding-gif.js --manual",
     "optimize-images": "node scripts/optimize-images.mjs",
+    "vendors:seed": "npx tsx scripts/seed-vendors.ts",
+    "vendors:ingest": "npx tsx scripts/ingest-vendors.ts",
+    "vendors:enrich": "npx tsx scripts/enrich-vendors.ts",
     "prepare": "husky",
     "evals": "node scripts/agent-evals.mjs"
   },

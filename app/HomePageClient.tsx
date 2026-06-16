@@ -45,6 +45,7 @@ import PricingSection from '@/components/landing/PricingSection';
 import OriginSection from '@/components/landing/OriginSection';
 import FAQSection from '@/components/landing/FAQSection';
 import FinalCTASection from '@/components/landing/FinalCTASection';
+import VendorSpotlightSection from '@/components/landing/VendorSpotlightSection';
 import { COLORS } from '@/lib/theme/tokens';
 
 const FAQS_FOR_SCHEMA = [
@@ -291,6 +292,8 @@ function LandingPageContent() {
 
         <FAQSection />
 
+        <VendorSpotlightSection />
+
         <FinalCTASection />
 
         {/* FOOTER — kept from prior iteration; copyright row updated to
@@ -336,6 +339,7 @@ function LandingPageContent() {
                   <Link href="#service" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">Features</Link>
                   <Link href="#pricing" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">Pricing</Link>
                   <Link href="/demo" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">Demo</Link>
+                  <Link href="/vendors/join" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">For Vendors</Link>
                 </Stack>
               </Grid>
               <Grid size={{ xs: 6, md: 2 }}>
