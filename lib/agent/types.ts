@@ -77,6 +77,8 @@ export interface AgentQuestion {
   prompt: string;
   type: AgentQuestionType;
   options?: string[];
+  /** For select types: let the user add their own option(s) too. */
+  allowOther?: boolean;
   placeholder?: string;
   optional?: boolean;
 }

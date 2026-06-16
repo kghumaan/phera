@@ -359,8 +359,11 @@ export function AgentChatPanel({
   }, []);
 
   // While the agent is waiting on a structured-question answer, the user
-  // answers via the QuestionFlow — lock the free-text composer.
-  const awaitingQuestions = items.some((i) => i.kind === 'questions' && i.status !== 'done');
+  // answers via the QuestionFlow at the bottom — not the free-text composer.
+  const pendingQuestions = [...items]
+    .reverse()
+    .find((i): i is Extract<ChatItem, { kind: 'questions' }> => i.kind === 'questions' && i.status !== 'done');
+  const awaitingQuestions = !!pendingQuestions;
 
   // One-shot onboarding kickoff so the agent greets first.
   const greetedRef = useRef(false);
@@ -466,31 +469,15 @@ export function AgentChatPanel({
                   )}
                 </Box>
               ) : item.kind === 'questions' ? (
-                item.status === 'done' ? (
-                  <Box key={index} sx={{ alignSelf: 'flex-start' }}>
-                    <PheraChip size="small" tone="success" label="Answers submitted ✓" />
-                  </Box>
-                ) : (
-                  <QuestionFlow
-                    key={index}
-                    questions={item.questions}
-                    disabled={busy}
-                    onComplete={(answers) => resolveAnswers(item.actionId, answers)}
-                  />
-                )
+                // Rendered in the bottom composer while pending; nothing inline.
+                null
               ) : item.kind === 'tool' ? (
-                <Box key={index} sx={{ alignSelf: 'flex-start' }}>
-                  <PheraChip
-                    tone={item.status === 'failed' ? 'danger' : 'neutral'}
-                    size="small"
-                    label={item.status === 'running' ? `${item.label}…` : item.label}
-                    icon={
-                      item.status === 'running' ? (
-                        <CircularProgress size={12} sx={{ color: COLORS.text.subtle }} />
-                      ) : undefined
-                    }
-                  />
-                </Box>
+                // Only surface failures — successful tool runs are noise.
+                item.status === 'failed' ? (
+                  <Box key={index} sx={{ alignSelf: 'flex-start' }}>
+                    <PheraChip tone="danger" size="small" label={`${item.label} failed`} />
+                  </Box>
+                ) : null
               ) : (
                 <Box
                   key={index}
@@ -530,6 +517,19 @@ export function AgentChatPanel({
       </Box>
 
       <Box sx={{ borderTop: `1px solid ${COLORS.border.faint}` }}>
+        {/* When the agent asked structured questions, the composer becomes the
+            question collector so the user always answers from the bottom. */}
+        {pendingQuestions ? (
+          <Box sx={{ p: 2 }}>
+            <QuestionFlow
+              key={pendingQuestions.actionId}
+              questions={pendingQuestions.questions}
+              disabled={busy}
+              onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers)}
+            />
+          </Box>
+        ) : (
+        <>
         {voice.error && (
           <Typography variant="caption" sx={{ color: COLORS.text.subtle, px: 2, pt: 1, display: 'block' }}>
             {voice.error}
@@ -579,6 +579,8 @@ export function AgentChatPanel({
             <SendRoundedIcon fontSize="small" />
           </IconActionButton>
         </Box>
+        </>
+        )}
       </Box>
     </PheraCard>
   );

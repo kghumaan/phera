@@ -26,6 +26,7 @@ export const askTools: AgentToolDefinition[] = [
               prompt: { type: 'string', description: 'The question shown to the user' },
               type: { type: 'string', enum: ['text', 'textarea', 'date', 'single_select', 'multi_select'] },
               options: { type: 'array', items: { type: 'string' }, description: 'Choices for select types' },
+              allowOther: { type: 'boolean', description: 'For select types: let the user add their own option(s) too' },
               placeholder: { type: 'string' },
               optional: { type: 'boolean', description: 'If true, the user may skip it' },
             },
