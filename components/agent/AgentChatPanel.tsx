@@ -8,8 +8,11 @@ import StopRoundedIcon from '@mui/icons-material/StopRounded';
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import AttachFileRoundedIcon from '@mui/icons-material/AttachFileRounded';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { useVoiceInput } from './useVoiceInput';
 import { MarkdownText } from './MarkdownText';
+import { importGuestsFromFile, importRoomsFromFile } from '@/lib/agent/chat-uploads';
 import { PheraCard } from '@/components/shared/Card';
 import { PheraTextField } from '@/components/shared/TextField';
 import { PheraChip } from '@/components/shared/Chip';
@@ -97,6 +100,9 @@ export function AgentChatPanel({
   const conversationIdRef = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const guestFileRef = useRef<HTMLInputElement | null>(null);
+  const roomFileRef = useRef<HTMLInputElement | null>(null);
+  const [attachAnchor, setAttachAnchor] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     setSpeak(window.localStorage.getItem(SPEAK_STORAGE_KEY) === '1');
@@ -329,6 +335,33 @@ export function AgentChatPanel({
       }
     },
     [busy, consumeStream, onTurnComplete]
+  );
+
+  const handleUpload = useCallback(
+    async (kind: 'guests' | 'rooms', file: File | undefined) => {
+      if (!file) return;
+      setBusyLabel(kind === 'guests' ? 'Importing guests…' : 'Reading floor plan…');
+      setBusy(true);
+      try {
+        if (kind === 'guests') {
+          const r = await importGuestsFromFile(file, weddingSlug);
+          const dupes = r.duplicates ? `, ${r.duplicates} duplicate${r.duplicates === 1 ? '' : 's'} skipped` : '';
+          setItems((prev) => [...prev, { kind: 'assistant', text: `Imported **${r.imported}** guest${r.imported === 1 ? '' : 's'}${dupes}.` }]);
+        } else {
+          const r = await importRoomsFromFile(file, weddingSlug);
+          setItems((prev) => [...prev, { kind: 'assistant', text: `Added **${r.count}** room${r.count === 1 ? '' : 's'} from your floor plan.` }]);
+        }
+      } catch (error) {
+        setItems((prev) => [
+          ...prev,
+          { kind: 'assistant', text: error instanceof Error ? error.message : 'That upload failed — please try again.' },
+        ]);
+      } finally {
+        setBusy(false);
+        onTurnComplete?.();
+      }
+    },
+    [weddingSlug, onTurnComplete]
   );
 
   const send = useCallback(
@@ -582,6 +615,51 @@ export function AgentChatPanel({
             disabled={busy || awaitingQuestions}
             autoComplete="off"
           />
+          <input
+            ref={guestFileRef}
+            type="file"
+            accept=".csv,.tsv,.txt,.xlsx,.xls,.vcf,.vcard"
+            hidden
+            onChange={(e) => {
+              void handleUpload('guests', e.target.files?.[0]);
+              e.target.value = '';
+            }}
+          />
+          <input
+            ref={roomFileRef}
+            type="file"
+            accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.xlsx,.xls"
+            hidden
+            onChange={(e) => {
+              void handleUpload('rooms', e.target.files?.[0]);
+              e.target.value = '';
+            }}
+          />
+          <IconActionButton
+            onClick={(e) => setAttachAnchor(e.currentTarget)}
+            disabled={busy || awaitingQuestions}
+            aria-label="Upload a guest list or floor plan"
+          >
+            <AttachFileRoundedIcon fontSize="small" />
+          </IconActionButton>
+          <PheraMenu anchorEl={attachAnchor} open={!!attachAnchor} onClose={() => setAttachAnchor(null)}>
+            <PheraMenuItem
+              onClick={() => {
+                setAttachAnchor(null);
+                guestFileRef.current?.click();
+              }}
+            >
+              Upload guest list (CSV, Excel, vCard)
+            </PheraMenuItem>
+            <PheraMenuItem
+              onClick={() => {
+                setAttachAnchor(null);
+                roomFileRef.current?.click();
+              }}
+            >
+              Upload room floor plan (PDF, image, CSV)
+            </PheraMenuItem>
+          </PheraMenu>
           <IconActionButton
             onClick={() => voice.toggle()}
             disabled={busy || awaitingQuestions || voice.state === 'transcribing'}
