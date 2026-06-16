@@ -39,7 +39,7 @@ const OVERVIEW_STEPS = [
   { n: '02', t: 'Spin up your site' },
   { n: '03', t: 'Switch on the bot' },
   { n: '04', t: 'Sort rooms & shuttles' },
-  { n: '05', t: 'Loop us into vendors' },
+  { n: '05', t: 'Vendors — find & coordinate' },
   { n: '06', t: 'Show up, celebrate' },
 ];
 
@@ -110,15 +110,15 @@ const STEPS: Step[] = [
     customMock: () => <TransportationMock />,
   },
   {
-    tag: 'STEP 06  ·  Vendor agent',
-    title: 'We sit in your vendor chats.',
-    copy: "Add us as a member of your caterer, florist, decor, and DJ groups. We summarize every thread, surface the action items, and chase the things you'd otherwise forget at 11pm. Nothing falls through the cracks because nobody's the project manager.",
+    tag: 'STEP 06  ·  Vendors',
+    title: 'Find them. Book them. We handle the rest.',
+    copy: "Not sure where to start? Browse 1,200+ photographers, DJs, mehendi artists, and planners across Goa, Udaipur, Bali, Dubai, and more — filtered by city, budget, and NRI experience. Once you've got your team, add us to the group chats and we'll read every thread, surface action items, and chase the things you'd forget at 11 PM.",
     bullet: [
-      'Reads your vendor WhatsApp groups for you',
-      'Daily digest, action items, blockers',
-      'Flags risks before they become disasters',
+      '1,200+ vendors across 9 destination wedding cities',
+      'Filter by city, budget, category, and NRI experience',
+      'Already have vendors? We sit in their WhatsApp groups for you',
     ],
-    mockLabel: 'Vendor digest + action items',
+    mockLabel: 'Vendor discovery + coordinator',
     tint: 'rgba(212,175,55,0.08)',
     customMock: () => <VendorAgentMock />,
   },

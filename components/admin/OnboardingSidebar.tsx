@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Typography, useTheme, useMediaQuery, IconButton, alpha, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Typography, useTheme, useMediaQuery, IconButton, alpha } from '@mui/material';
 import Image from 'next/image';
 import NextLink from 'next/link';
 import {
@@ -31,6 +31,7 @@ import {
   Settings,
   Hotel,
   AutoAwesome,
+  StorefrontOutlined,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
@@ -116,6 +117,7 @@ export const groups: SidebarGroup[] = [
     icon: <ViewKanban />,
     items: [
       { id: 'task-manager', label: 'Task Manager', path: '/task-manager', isPro: true },
+      { id: 'vendor-marketplace', label: 'Vendor Marketplace', path: '/vendor-marketplace', isPro: true },
       { id: 'coordinator', label: 'Vendor Management', path: '/vendor-management', isPro: true },
       { id: 'knowledge-bank', label: 'Knowledge Bank', path: '/knowledge-bank', isPro: true },
     ],
@@ -174,6 +176,7 @@ export default function OnboardingSidebar({
   const { checkGuard } = useNavigationGuard();
   const [arrowPositions, setArrowPositions] = useState<Record<string, number>>({});
   const [sectionComplete, setSectionComplete] = useState<Record<string, boolean>>({});
+  const [loadingPath, setLoadingPath] = useState<string | null>(null);
 
   // Check which sections have content
   useEffect(() => {
@@ -253,6 +256,7 @@ export default function OnboardingSidebar({
       next[g.id] = g.items.some(item => pathname.includes(item.path));
     });
     setExpandedGroups(next);
+    setLoadingPath(null);
   }, [pathname]);
 
   // Measure active item positions for arrow alignment
@@ -308,12 +312,7 @@ export default function OnboardingSidebar({
 
   const handleItemClick = (item: SidebarItem, collapseAll = false, groupId?: string) => {
     if (!checkGuard()) return;
-    // Intentionally NOT calling onNavigating(true): Next.js App Router
-    // preserves this layout across sibling route transitions and the new
-    // page hydrates in a few tens of ms, so triggering the Backdrop spinner
-    // here just flashes a full-page blur + spinner over the content for no
-    // reason. Keep the prop in case we want to re-introduce a slow-route
-    // loading state later.
+    setLoadingPath(item.path);
     router.push(`/admin/${weddingSlug}${item.path}`);
 
     if (collapseAll) {
@@ -422,12 +421,20 @@ export default function OnboardingSidebar({
                   },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>{group.icon}</ListItemIcon>
-                <ListItemText
-                  primary={group.label}
-                  slotProps={{ primary: { variant: 'body3', sx: { fontWeight: 600, color: 'inherit' } } }}
-                />
-                {group.isPro && !isPro && <ProBadge size="small" />}
+                {loadingPath === item.path ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', py: 0.25 }}>
+                    <CircularProgress size={16} sx={{ color: isActive ? 'white' : COLORS.brand.primary }} />
+                  </Box>
+                ) : (
+                  <>
+                    <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>{group.icon}</ListItemIcon>
+                    <ListItemText
+                      primary={group.label}
+                      slotProps={{ primary: { variant: 'body3', sx: { fontWeight: 600, color: 'inherit' } } }}
+                    />
+                    {group.isPro && !isPro && <ProBadge size="small" />}
+                  </>
+                )}
               </ListItemButton>
             );
           }
@@ -519,7 +526,7 @@ export default function OnboardingSidebar({
                     return (
                       <Box key={item.id} data-active={isActive ? 'true' : undefined} sx={{ position: 'relative' }}>
                         <ListItemButton
-                          {...(['pins', 'guests', 'travel', 'rooms', 'transportation', 'whatsapp-bot', 'task-manager', 'coordinator', 'team'].includes(item.id) ? { 'data-tour': `tour-${item.id}` } : {})}
+                          {...(['pins', 'guests', 'travel', 'rooms', 'transportation', 'whatsapp-bot', 'task-manager', 'vendor-marketplace', 'coordinator', 'team'].includes(item.id) ? { 'data-tour': `tour-${item.id}` } : {})}
                           component={NextLink}
                           href={`/admin/${weddingSlug}${item.path}`}
                           onClick={(e: React.MouseEvent) => {
@@ -547,28 +554,36 @@ export default function OnboardingSidebar({
                             },
                           }}
                         >
-                          <ListItemText
-                            primary={
-                              item.required && !isActive && !item.isPro ? (
-                                <Box component="span" sx={{ display: 'inline' }}>
-                                  {item.label}<Box component="span" sx={{ color: 'inherit' }}>*</Box>
-                                </Box>
-                              ) : item.label
-                            }
-                            slotProps={{
-                              primary: {
-                                variant: 'body3',
-                                sx: {
-                                  fontWeight: isActive ? 600 : 400,
-                                  color: 'inherit',
+                          {loadingPath === item.path ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+                              <CircularProgress size={14} sx={{ color: COLORS.brand.primary }} />
+                            </Box>
+                          ) : (
+                            <>
+                              <ListItemText
+                                primary={
+                                  item.required && !isActive && !item.isPro ? (
+                                    <Box component="span" sx={{ display: 'inline' }}>
+                                      {item.label}<Box component="span" sx={{ color: 'inherit' }}>*</Box>
+                                    </Box>
+                                  ) : item.label
                                 }
-                              }
-                            }}
-                          />
-                          {(group.id === 'wedding-website' || item.id === 'guest-list' || item.id === 'knowledge-bank') && sectionComplete[item.id] && (
-                            <CheckCircle sx={{ fontSize: 14, color: COLORS.brand.primary, ml: 0.5, flexShrink: 0 }} />
+                                slotProps={{
+                                  primary: {
+                                    variant: 'body3',
+                                    sx: {
+                                      fontWeight: isActive ? 600 : 400,
+                                      color: 'inherit',
+                                    }
+                                  }
+                                }}
+                              />
+                              {(group.id === 'wedding-website' || item.id === 'guest-list' || item.id === 'knowledge-bank') && sectionComplete[item.id] && (
+                                <CheckCircle sx={{ fontSize: 14, color: COLORS.brand.primary, ml: 0.5, flexShrink: 0 }} />
+                              )}
+                              {item.isPro && !isPro && <ProBadge size="small" />}
+                            </>
                           )}
-                          {item.isPro && !isPro && <ProBadge size="small" />}
                         </ListItemButton>
                       </Box>
                     );
