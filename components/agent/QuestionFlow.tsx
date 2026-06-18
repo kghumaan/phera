@@ -1,13 +1,16 @@
 'use client';
 
-import { Box, Stack, Typography, TextField } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { Box, Stack, Typography, TextField, InputAdornment } from '@mui/material';
+import { forwardRef, useEffect, useState } from 'react';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
 import { MobileTimePicker } from '@mui/x-date-pickers/MobileTimePicker';
 import { format, parse, parseISO } from 'date-fns';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import { PheraTextField } from '@/components/shared/TextField';
 import { PheraChip } from '@/components/shared/Chip';
 import { PrimaryActionButton, SecondaryActionButton, IconActionButton } from '@/components/admin/ActionButton';
@@ -16,6 +19,7 @@ import { COLORS } from '@/lib/theme/tokens';
 import type { AgentQuestion } from '@/lib/agent/types';
 
 const INPUT_MAX_WIDTH = 460;
+const INPUT_HEIGHT = 48;
 
 /** Larger, tappable select chips. */
 const SELECT_CHIP_SX = {
@@ -34,6 +38,7 @@ const DATE_SLOT_PROPS = {
     sx: {
       ...ENHANCED_TEXT_FIELD_SX,
       maxWidth: INPUT_MAX_WIDTH,
+      '& .MuiOutlinedInput-root': { height: INPUT_HEIGHT },
       '& .MuiOutlinedInput-input': { color: '#000 !important', WebkitTextFillColor: '#000 !important' },
       '& .MuiInputAdornment-root .MuiSvgIcon-root': { color: COLORS.brand.primary },
     },
@@ -90,6 +95,8 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
   const [multi, setMulti] = useState<string[]>([]);
   const [extraOptions, setExtraOptions] = useState<string[]>([]);
   const [otherText, setOtherText] = useState('');
+  const [rangeStart, setRangeStart] = useState<Date | null>(null);
+  const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
 
   const q = questions[step];
 
@@ -102,8 +109,15 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
       Array.isArray(prior) ? prior.filter((p) => !(q.options ?? []).includes(p)) : []
     );
     setOtherText('');
+    setRangeStart(null);
+    setRangeEnd(null);
     if (typeof prior === 'string' && prior) {
-      setDate(q.type === 'time' ? safeParseTime(prior) : safeParse(prior));
+      if (q.type === 'time') setDate(safeParseTime(prior));
+      else if (q.type === 'date_range') {
+        const [s, e] = prior.split(' to ');
+        setRangeStart(s ? safeParse(s) : null);
+        setRangeEnd(e ? safeParse(e) : null);
+      } else setDate(safeParse(prior));
     } else {
       setDate(null);
     }
@@ -134,17 +148,17 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
   const actionButtons = (
     <>
       {step > 0 && (
-        <SecondaryActionButton size="small" onClick={goBack} disabled={disabled} sx={{ height: '100%' }}>
+        <SecondaryActionButton size="small" onClick={goBack} disabled={disabled} sx={{ height: INPUT_HEIGHT, flexShrink: 0 }}>
           Back
         </SecondaryActionButton>
       )}
       {q.type !== 'single_select' && (
-        <PrimaryActionButton size="small" disabled={disabled || !canSubmit()} onClick={submitCurrent} sx={{ height: '100%' }}>
+        <PrimaryActionButton size="small" disabled={disabled || !canSubmit()} onClick={submitCurrent} sx={{ height: INPUT_HEIGHT, flexShrink: 0 }}>
           {isLastUnanswered() ? 'Done' : 'Next'}
         </PrimaryActionButton>
       )}
       {q.optional && q.type !== 'single_select' && (
-        <SecondaryActionButton size="small" onClick={skip} disabled={disabled} sx={{ height: '100%' }}>
+        <SecondaryActionButton size="small" onClick={skip} disabled={disabled} sx={{ height: INPUT_HEIGHT, flexShrink: 0 }}>
           Skip
         </SecondaryActionButton>
       )}
@@ -185,7 +199,7 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
 
       {/* Single-line inputs: control + action buttons on one height-matched row */}
       {q.type === 'text' && (
-        <Stack direction="row" spacing={1} alignItems="stretch" sx={{ width: '100%' }}>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%' }}>
           <PheraTextField
             size="small"
             autoFocus
@@ -199,14 +213,36 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
                 commit(text.trim());
               }
             }}
-            sx={{ flex: 1, maxWidth: INPUT_MAX_WIDTH }}
+            sx={{ flex: 1, maxWidth: INPUT_MAX_WIDTH, '& .MuiOutlinedInput-root': { height: INPUT_HEIGHT } }}
           />
           {actionButtons}
         </Stack>
       )}
 
+      {q.type === 'date_range' && (
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%' }}>
+          <Box sx={{ flex: 1, maxWidth: INPUT_MAX_WIDTH }}>
+            <DatePicker
+              selectsRange
+              startDate={rangeStart}
+              endDate={rangeEnd}
+              monthsShown={1}
+              onChange={(dates) => {
+                const [s, e] = dates as [Date | null, Date | null];
+                setRangeStart(s);
+                setRangeEnd(e);
+              }}
+              dateFormat="MMM d, yyyy"
+              placeholderText={q.placeholder ?? 'First day → last day'}
+              customInput={<RangeInput />}
+            />
+          </Box>
+          {actionButtons}
+        </Stack>
+      )}
+
       {(q.type === 'date' || q.type === 'time') && (
-        <Stack direction="row" spacing={1} alignItems="stretch" sx={{ width: '100%' }}>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%' }}>
           <Box sx={{ flex: 1, maxWidth: INPUT_MAX_WIDTH }}>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               {q.type === 'date' ? (
@@ -331,6 +367,7 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
   function canSubmit(): boolean {
     if (q.optional) return true;
     if (q.type === 'date' || q.type === 'time') return !!date;
+    if (q.type === 'date_range') return !!rangeStart;
     if (q.type === 'multi_select') return multi.length > 0;
     return !!text.trim();
   }
@@ -338,7 +375,11 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
   function submitCurrent() {
     if (q.type === 'date') commit(date ? format(date, 'yyyy-MM-dd') : '');
     else if (q.type === 'time') commit(date ? format(date, 'h:mm a') : '');
-    else if (q.type === 'multi_select') commit(multi);
+    else if (q.type === 'date_range') {
+      if (!rangeStart) return commit('');
+      const s = format(rangeStart, 'yyyy-MM-dd');
+      commit(rangeEnd ? `${s} to ${format(rangeEnd, 'yyyy-MM-dd')}` : s);
+    } else if (q.type === 'multi_select') commit(multi);
     else commit(text.trim());
   }
 
@@ -347,6 +388,37 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
     return questions.every((qq) => qq.id === q.id || answers[qq.id] !== undefined);
   }
 }
+
+/** react-datepicker custom input styled to match our other fields. */
+const RangeInput = forwardRef<
+  HTMLInputElement,
+  { value?: string; onClick?: () => void; placeholder?: string }
+>(function RangeInput({ value, onClick, placeholder }, ref) {
+  return (
+    <TextField
+      fullWidth
+      size="small"
+      inputRef={ref}
+      onClick={onClick}
+      value={value ?? ''}
+      placeholder={placeholder}
+      InputProps={{
+        readOnly: true,
+        endAdornment: (
+          <InputAdornment position="end">
+            <CalendarMonthRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 20 }} />
+          </InputAdornment>
+        ),
+      }}
+      sx={{
+        ...ENHANCED_TEXT_FIELD_SX,
+        cursor: 'pointer',
+        '& .MuiOutlinedInput-root': { height: INPUT_HEIGHT, cursor: 'pointer' },
+        '& .MuiOutlinedInput-input': { cursor: 'pointer', color: '#000 !important', WebkitTextFillColor: '#000 !important' },
+      }}
+    />
+  );
+});
 
 function safeParse(value: string): Date | null {
   try {

@@ -223,22 +223,8 @@ export function AgentChatPanel({
   const speakRef = useRef(speak);
   speakRef.current = speak;
 
-  // Once the model starts streaming, stop cycling the "saving" labels.
+  // Tracks whether the model has begun streaming this turn (drives the label).
   const streamingRef = useRef(false);
-
-  // Keep a changing loading label while we work (before the stream starts),
-  // so the user never stares at a frozen/blank state.
-  useEffect(() => {
-    if (!busy) return;
-    const phases = ['Saving…', 'Working…', 'Almost there…'];
-    let i = 0;
-    const id = setInterval(() => {
-      if (streamingRef.current) return; // 'Thinking…' has taken over
-      i = (i + 1) % phases.length;
-      setBusyLabel(phases[i]);
-    }, 1400);
-    return () => clearInterval(id);
-  }, [busy]);
 
   const playReply = useCallback(async (text: string) => {
     if (!speakRef.current || !text.trim()) return;
@@ -470,18 +456,23 @@ export function AgentChatPanel({
   const handleUpload = useCallback(
     async (kind: 'guests' | 'rooms', file: File | undefined) => {
       if (!file) return;
-      streamingRef.current = true; // fixed label, no SSE stream
+      streamingRef.current = true; // fixed label during the import itself
       setBusyLabel(kind === 'guests' ? 'Importing guests…' : 'Reading floor plan…');
       setBusy(true);
       try {
+        let note: string;
         if (kind === 'guests') {
           const r = await importGuestsFromFile(file, weddingSlug);
           const dupes = r.duplicates ? `, ${r.duplicates} duplicate${r.duplicates === 1 ? '' : 's'} skipped` : '';
-          setItems((prev) => [...prev, { kind: 'assistant', text: `Imported **${r.imported}** guest${r.imported === 1 ? '' : 's'}${dupes}.` }]);
+          note = `${HIDDEN_USER_PREFIX} I just imported my guest list — ${r.imported} guests added${dupes}. Confirm in one short line and continue with the next step for my goals.`;
         } else {
           const r = await importRoomsFromFile(file, weddingSlug);
-          setItems((prev) => [...prev, { kind: 'assistant', text: `Added **${r.count}** room${r.count === 1 ? '' : 's'} from your floor plan.` }]);
+          note = `${HIDDEN_USER_PREFIX} I just uploaded my hotel floor plan — ${r.count} rooms added. Confirm in one short line and continue with the next step.`;
         }
+        // Hand off to the agent so it confirms + keeps moving (no dead end).
+        streamingRef.current = false;
+        setBusyLabel('Thinking…');
+        await streamChatRef.current(note);
       } catch (error) {
         setItems((prev) => [
           ...prev,
@@ -495,6 +486,25 @@ export function AgentChatPanel({
     [weddingSlug, onTurnComplete]
   );
 
+  // Core POST → SSE consume. No busy/UI bookkeeping — callers own that.
+  const streamChat = useCallback(
+    async (message: string) => {
+      const res = await fetch('/api/agent/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          weddingSlug,
+          message,
+          conversationId: conversationIdRef.current ?? undefined,
+        }),
+      });
+      await consumeStream(res);
+    },
+    [weddingSlug, consumeStream]
+  );
+  const streamChatRef = useRef(streamChat);
+  streamChatRef.current = streamChat;
+
   const send = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
@@ -507,22 +517,13 @@ export function AgentChatPanel({
       setBusy(true);
       if (!hidden) setItems((prev) => [...prev, { kind: 'user', text: trimmed }]);
       try {
-        const res = await fetch('/api/agent/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            weddingSlug,
-            message: trimmed,
-            conversationId: conversationIdRef.current ?? undefined,
-          }),
-        });
-        await consumeStream(res);
+        await streamChat(trimmed);
       } finally {
         setBusy(false);
         onTurnComplete?.();
       }
     },
-    [busy, weddingSlug, consumeStream, onTurnComplete]
+    [busy, streamChat, onTurnComplete]
   );
 
   const voice = useVoiceInput(

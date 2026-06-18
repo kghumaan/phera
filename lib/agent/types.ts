@@ -80,7 +80,14 @@ export type AgentStreamEvent =
 
 /** A single question the agent asks via the ask_user tool. The chat renders
  *  the right input per type and collects answers one at a time. */
-export type AgentQuestionType = 'text' | 'textarea' | 'date' | 'time' | 'single_select' | 'multi_select';
+export type AgentQuestionType =
+  | 'text'
+  | 'textarea'
+  | 'date'
+  | 'date_range'
+  | 'time'
+  | 'single_select'
+  | 'multi_select';
 
 export interface AgentQuestion {
   id: string;
