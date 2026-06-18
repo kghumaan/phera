@@ -55,7 +55,7 @@ function scriptedProvider(turns: ProviderTurnResult[]): AgentProvider & { calls:
   return provider as AgentProvider & { calls: number };
 }
 
-async function run(provider: AgentProvider, fakeTables = SNAPSHOT_TABLES) {
+async function run(provider: AgentProvider, fakeTables = SNAPSHOT_TABLES, opts: { voice?: boolean } = {}) {
   const fake = createFakeSupabase(fakeTables);
   const events: AgentStreamEvent[] = [];
   await runAgentTurn({
@@ -66,6 +66,7 @@ async function run(provider: AgentProvider, fakeTables = SNAPSHOT_TABLES) {
     conversationId: 'conv-1',
     userMessage: 'How is planning going?',
     provider,
+    voice: opts.voice,
     onEvent: (e) => events.push(e),
   });
   return { fake, events };
@@ -192,6 +193,23 @@ describe('runAgentTurn', () => {
     expect(first.role).toBe('user');
     expect((first.content[0] as { text: string }).text).toContain('⟦summary⟧');
     expect((first.content[0] as { text: string }).text).toContain('Raj cancelled');
+  });
+
+  it('adds a hands-free voice note to the snapshot only when voice is set', async () => {
+    let plainSnapshot = '';
+    let voiceSnapshot = '';
+    const capture = (sink: (s: string) => void): AgentProvider => ({
+      async streamTurn({ snapshot }) {
+        sink(snapshot);
+        return { content: [{ type: 'text', text: 'ok' }], stopReason: 'end_turn' };
+      },
+    });
+    await run(capture((s) => (plainSnapshot = s)));
+    await run(capture((s) => (voiceSnapshot = s)), SNAPSHOT_TABLES, { voice: true });
+
+    expect(plainSnapshot).not.toContain('HANDS-FREE VOICE');
+    expect(voiceSnapshot).toContain('HANDS-FREE VOICE');
+    expect(voiceSnapshot).toContain('do NOT use ask_user');
   });
 
   it('surfaces refusals as an error event without persisting an assistant turn', async () => {

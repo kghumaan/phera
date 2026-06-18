@@ -10,9 +10,12 @@ import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
 import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import AttachFileRoundedIcon from '@mui/icons-material/AttachFileRounded';
+import GraphicEqRoundedIcon from '@mui/icons-material/GraphicEqRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useVoiceInput } from './useVoiceInput';
+import { useVoiceMode } from './useVoiceMode';
 import { MarkdownText } from './MarkdownText';
 import { importGuestsFromFile, importRoomsFromFile } from '@/lib/agent/chat-uploads';
 import { PheraCard } from '@/components/shared/Card';
@@ -125,6 +128,57 @@ function UploadCard({ uploadKind, onPick }: { uploadKind: 'guests' | 'rooms'; on
   );
 }
 
+/** Hands-free voice surface: pulsing orb + live status + an exit button. */
+function VoicePanel({
+  status,
+  animate,
+  onStop,
+}: {
+  status: string;
+  animate: boolean;
+  onStop: () => void;
+}) {
+  return (
+    <Stack alignItems="center" spacing={1.5} sx={{ p: 3 }}>
+      <Box sx={{ position: 'relative', width: 72, height: 72, display: 'grid', placeItems: 'center' }}>
+        {animate && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              bgcolor: COLORS.brand.primarySubtle,
+              animation: 'phera-voice-pulse 1.6s ease-out infinite',
+              '@keyframes phera-voice-pulse': {
+                '0%': { transform: 'scale(0.75)', opacity: 0.7 },
+                '100%': { transform: 'scale(1.7)', opacity: 0 },
+              },
+            }}
+          />
+        )}
+        <Box
+          sx={{
+            width: 56,
+            height: 56,
+            borderRadius: '50%',
+            bgcolor: COLORS.brand.primary,
+            display: 'grid',
+            placeItems: 'center',
+          }}
+        >
+          <GraphicEqRoundedIcon sx={{ color: COLORS.text.inverse, fontSize: 26 }} />
+        </Box>
+      </Box>
+      <Typography variant="body2" sx={{ color: COLORS.text.muted, fontWeight: 600 }}>
+        {status}
+      </Typography>
+      <SecondaryActionButton size="small" startIcon={<CloseRoundedIcon fontSize="small" />} onClick={onStop}>
+        End voice
+      </SecondaryActionButton>
+    </Stack>
+  );
+}
+
 /** Compact one-line summary of what the user answered, for the right-side bubble. */
 function summarizeAnswers(questions: AgentQuestion[], answers: Record<string, string | string[]>): string {
   const parts = questions
@@ -203,6 +257,13 @@ export function AgentChatPanel({
   const roomFileRef = useRef<HTMLInputElement | null>(null);
   const [attachAnchor, setAttachAnchor] = useState<HTMLElement | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  // Hands-free voice mode: agent replies are spoken and the mic auto-listens.
+  const [voiceSpeaking, setVoiceSpeaking] = useState(false);
+  const busyRef = useRef(busy);
+  busyRef.current = busy;
+  const voiceActiveRef = useRef(false);
+  const voiceListenAgainRef = useRef<() => void>(() => {});
+  const sendRef = useRef<(text: string) => void>(() => {});
 
   useEffect(() => {
     setSpeak(window.localStorage.getItem(SPEAK_STORAGE_KEY) === '1');
@@ -227,22 +288,43 @@ export function AgentChatPanel({
   const streamingRef = useRef(false);
 
   const playReply = useCallback(async (text: string) => {
-    if (!speakRef.current || !text.trim()) return;
+    const wantSpeech = speakRef.current || voiceActiveRef.current;
+    // In voice mode, resume listening even when there's nothing to speak so the
+    // hands-free loop never stalls.
+    const resume = () => {
+      if (voiceActiveRef.current) voiceListenAgainRef.current();
+    };
+    if (!wantSpeech || !text.trim()) {
+      resume();
+      return;
+    }
     try {
       const res = await fetch('/api/agent/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        resume();
+        return;
+      }
       const url = URL.createObjectURL(await res.blob());
       audioRef.current?.pause();
       const audio = new Audio(url);
       audioRef.current = audio;
-      audio.onended = () => URL.revokeObjectURL(url);
-      void audio.play().catch(() => URL.revokeObjectURL(url));
+      setVoiceSpeaking(true);
+      const finish = () => {
+        URL.revokeObjectURL(url);
+        setVoiceSpeaking(false);
+        resume();
+      };
+      audio.onended = finish;
+      audio.onerror = finish;
+      void audio.play().catch(finish);
     } catch {
-      /* speech is best-effort */
+      // speech is best-effort — keep the loop alive
+      setVoiceSpeaking(false);
+      resume();
     }
   }, []);
 
@@ -496,6 +578,7 @@ export function AgentChatPanel({
           weddingSlug,
           message,
           conversationId: conversationIdRef.current ?? undefined,
+          voice: voiceActiveRef.current,
         }),
       });
       await consumeStream(res);
@@ -525,6 +608,7 @@ export function AgentChatPanel({
     },
     [busy, streamChat, onTurnComplete]
   );
+  sendRef.current = send;
 
   const voice = useVoiceInput(
     useCallback((text: string) => {
@@ -532,6 +616,26 @@ export function AgentChatPanel({
       setInput((prev) => (prev ? `${prev} ${text}` : text));
     }, [])
   );
+
+  // Hands-free voice mode: spoken utterances are auto-sent; the agent's reply is
+  // spoken back, then the mic re-opens — a continuous loop like ChatGPT voice.
+  const voiceMode = useVoiceMode({
+    onUtterance: useCallback((text: string) => sendRef.current(text), []),
+    getBusy: useCallback(() => busyRef.current, []),
+  });
+  voiceActiveRef.current = voiceMode.active;
+  voiceListenAgainRef.current = voiceMode.listenAgain;
+
+  const toggleVoiceMode = useCallback(() => {
+    if (voiceMode.active) {
+      voiceMode.stop();
+      audioRef.current?.pause();
+      setVoiceSpeaking(false);
+    } else {
+      if (voice.state === 'recording') voice.toggle(); // free the mic from push-to-talk
+      voiceMode.start();
+    }
+  }, [voiceMode, voice]);
 
   const startNewConversation = useCallback(() => {
     // Fresh thread: the next send creates a new conversation server-side.
@@ -606,6 +710,13 @@ export function AgentChatPanel({
                 />
               ))}
             </Stack>
+            <SecondaryActionButton
+              size="small"
+              startIcon={<GraphicEqRoundedIcon fontSize="small" />}
+              onClick={toggleVoiceMode}
+            >
+              Or talk to me — start voice mode
+            </SecondaryActionButton>
           </Stack>
         ) : (
           <Stack spacing={1.5}>
@@ -749,11 +860,25 @@ export function AgentChatPanel({
               onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
             />
           </Box>
+        ) : voiceMode.active ? (
+          <VoicePanel
+            status={
+              busy
+                ? 'Thinking…'
+                : voiceSpeaking
+                  ? 'Speaking…'
+                  : voiceMode.state === 'transcribing'
+                    ? 'Got that…'
+                    : 'Listening…'
+            }
+            animate={busy || voiceSpeaking || voiceMode.state === 'listening'}
+            onStop={toggleVoiceMode}
+          />
         ) : (
         <>
-        {voice.error && (
+        {(voice.error || voiceMode.error) && (
           <Typography variant="caption" sx={{ color: COLORS.text.subtle, px: 2, pt: 1, display: 'block' }}>
-            {voice.error}
+            {voice.error || voiceMode.error}
           </Typography>
         )}
         <Box
@@ -833,6 +958,14 @@ export function AgentChatPanel({
               Upload room floor plan (PDF, image, CSV)
             </PheraMenuItem>
           </PheraMenu>
+          <IconActionButton
+            onClick={toggleVoiceMode}
+            disabled={busy || awaitingQuestions}
+            aria-label="Start hands-free voice mode"
+            sx={{ color: COLORS.text.subtle }}
+          >
+            <GraphicEqRoundedIcon fontSize="small" />
+          </IconActionButton>
           <IconActionButton
             onClick={() => voice.toggle()}
             disabled={busy || awaitingQuestions || voice.state === 'transcribing'}

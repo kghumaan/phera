@@ -32,6 +32,8 @@ export interface RunAgentTurnArgs {
   conversationId: string;
   userMessage: string;
   provider: AgentProvider;
+  /** Hands-free voice mode — agent should reply conversationally, no cards. */
+  voice?: boolean;
   onEvent: (event: AgentStreamEvent) => void;
 }
 
@@ -183,6 +185,10 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
     getUserIsPro(supabase, userId),
   ]);
   snapshot.text += `\nPlan: ${isPro ? 'Pro (all features unlocked)' : 'Basic / free — Room assignments, Transportation, and Vendor coordination require an upgrade'}`;
+  if (args.voice) {
+    snapshot.text +=
+      `\n\nMODALITY: The user is in HANDS-FREE VOICE mode — your reply is read aloud and they answer by speaking. Ask questions conversationally in plain prose, ONE at a time; do NOT use ask_user, request_upload, or any on-screen cards. Keep replies short and natural to hear. Avoid bullet lists, tables, and long enumerations — say the few items that matter.`;
+  }
 
   const toolCtx: AgentToolContext = { supabase, weddingSlug, weddingUuid, userId, conversationId, isPro };
   const tools = getAllTools();

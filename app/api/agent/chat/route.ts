@@ -25,13 +25,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  let body: { weddingSlug?: string; message?: string; conversationId?: string };
+  let body: { weddingSlug?: string; message?: string; conversationId?: string; voice?: boolean };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
-  const { weddingSlug, message, conversationId } = body;
+  const { weddingSlug, message, conversationId, voice } = body;
   if (!weddingSlug || !message?.trim()) {
     return NextResponse.json({ error: 'Missing weddingSlug or message' }, { status: 400 });
   }
@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
           conversationId: convId as string,
           userMessage: message.trim(),
           provider: anthropicProvider,
+          voice: voice === true,
           onEvent: send,
         });
       } catch (error) {
