@@ -260,6 +260,13 @@ export function AgentChatPanel({
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   // Hands-free voice mode: agent replies are spoken and the mic auto-listens.
   const [voiceSpeaking, setVoiceSpeaking] = useState(false);
+  // Voice is the default, but a cold reload has no user gesture, so the browser
+  // blocks audio (the opener would be silent) and the mic prompt is unexpected.
+  // We show a "tap to start" gate first; the tap unlocks audio + starts the loop.
+  // Initialized from defaultVoice (a prop — same on server & client, so no
+  // hydration mismatch) so the gate paints on the first frame with no flash;
+  // an effect drops it if the browser can't actually do speech.
+  const [voicePending, setVoicePending] = useState<boolean>(!!defaultVoice);
   const busyRef = useRef(busy);
   busyRef.current = busy;
   // One-shot guard for the opener/resume decision; reset per wedding.
@@ -452,43 +459,47 @@ export function AgentChatPanel({
   /** Shared SSE consumer for chat + confirm responses. */
   const consumeStream = useCallback(
     async (res: Response) => {
-      if (!res.ok || !res.body) {
-        handleEvent({ type: 'error', message: 'I could not reach the planner just now — please try again.' });
-        return;
-      }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
       let spokenText = '';
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const frames = buffer.split('\n\n');
-        buffer = frames.pop() ?? '';
-        for (const frame of frames) {
-          const line = frame.trim();
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const event = JSON.parse(line.slice(6)) as AgentStreamEvent;
-            if (event.type === 'conversation') {
-              conversationIdRef.current = event.conversationId;
-            } else {
-              // Once the agent actually starts working, move past "Saving…".
-              if (event.type === 'tool_start' || event.type === 'text_delta') {
-                streamingRef.current = true;
-                setBusyLabel('Thinking…');
+      try {
+        if (!res.ok || !res.body) {
+          handleEvent({ type: 'error', message: 'I could not reach the planner just now — please try again.' });
+          return;
+        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const frames = buffer.split('\n\n');
+          buffer = frames.pop() ?? '';
+          for (const frame of frames) {
+            const line = frame.trim();
+            if (!line.startsWith('data: ')) continue;
+            try {
+              const event = JSON.parse(line.slice(6)) as AgentStreamEvent;
+              if (event.type === 'conversation') {
+                conversationIdRef.current = event.conversationId;
+              } else {
+                // Once the agent actually starts working, move past "Saving…".
+                if (event.type === 'tool_start' || event.type === 'text_delta') {
+                  streamingRef.current = true;
+                  setBusyLabel('Thinking…');
+                }
+                if (event.type === 'text_delta') spokenText += event.text;
+                handleEvent(event);
               }
-              if (event.type === 'text_delta') spokenText += event.text;
-              handleEvent(event);
+            } catch {
+              // Ignore malformed frames
             }
-          } catch {
-            // Ignore malformed frames
           }
         }
+      } finally {
+        // Always speak the reply (if any) AND, in voice mode, resume listening —
+        // even on a failed/aborted turn — so the hands-free loop never stalls.
+        void playReply(spokenText);
       }
-      // Speak the assistant's reply once the turn is fully streamed.
-      void playReply(spokenText);
     },
     [handleEvent, playReply]
   );
@@ -650,13 +661,30 @@ export function AgentChatPanel({
 
   const enterVoiceMode = useCallback(() => {
     if (voice.state === 'recording') voice.toggle(); // free the mic from push-to-talk
+    // An explicit click is already a user gesture, so audio is unlocked — start
+    // the loop directly (no tap-to-start gate needed).
+    setVoicePending(false);
     voiceMode.start();
   }, [voiceMode, voice]);
+
+  // Begin the auto-defaulted voice session from the tap-to-start gate. The tap
+  // is the user gesture that unlocks audio playback for the session, so the
+  // spoken opener/resume is actually heard.
+  const beginVoiceSession = useCallback(() => {
+    try {
+      window.speechSynthesis?.resume();
+    } catch {
+      /* noop */
+    }
+    setVoicePending(false);
+    voiceMode.start();
+  }, [voiceMode]);
 
   // Switch to the typed chat. Session-only — a reload re-opens in voice, since
   // voice is the default modality of the planner.
   const exitVoiceMode = useCallback(() => {
     voiceMode.stop();
+    setVoicePending(false);
     audioRef.current?.pause();
     try {
       window.speechSynthesis?.cancel();
@@ -667,17 +695,18 @@ export function AgentChatPanel({
   }, [voiceMode]);
 
   const toggleVoiceMode = useCallback(() => {
-    if (voiceMode.active) exitVoiceMode();
+    if (voiceMode.active || voicePending) exitVoiceMode();
     else enterVoiceMode();
-  }, [voiceMode.active, enterVoiceMode, exitVoiceMode]);
+  }, [voiceMode.active, voicePending, enterVoiceMode, exitVoiceMode]);
 
-  // Voice is the default experience: open straight into it on every load,
-  // skipped only when the browser can't do speech recognition.
+  // Voice is the default experience: the tap-to-start gate is shown from the
+  // first paint (voicePending initialized from defaultVoice). Here we just drop
+  // the gate to the typed surface when the browser can't do speech recognition.
   const autoVoiceRef = useRef(false);
   useEffect(() => {
-    if (autoVoiceRef.current || !defaultVoice || !voiceMode.supported) return;
+    if (autoVoiceRef.current) return;
     autoVoiceRef.current = true;
-    voiceMode.start();
+    if (!defaultVoice || !voiceMode.supported) setVoicePending(false);
   }, [defaultVoice, voiceMode]);
 
   const startNewConversation = useCallback(() => {
@@ -694,12 +723,11 @@ export function AgentChatPanel({
     .find((i): i is Extract<ChatItem, { kind: 'questions' }> => i.kind === 'questions' && i.status !== 'done');
   const awaitingQuestions = !!pendingQuestions;
 
-  // Question cards can't be answered by voice — if one appears while in voice
-  // mode (a restored pending question, or the agent using ask_user anyway),
-  // drop to the typed surface so the user can actually respond.
+  // Question cards can't be answered by voice — if one appears while in (or
+  // about to enter) voice mode, drop to the typed surface so the user can respond.
   useEffect(() => {
-    if (voiceMode.active && awaitingQuestions) exitVoiceMode();
-  }, [voiceMode.active, awaitingQuestions, exitVoiceMode]);
+    if ((voiceMode.active || voicePending) && awaitingQuestions) exitVoiceMode();
+  }, [voiceMode.active, voicePending, awaitingQuestions, exitVoiceMode]);
 
   // One-shot opener once history has loaded:
   //  - returning with real work in progress (hasExistingData) → resume: a spoken
@@ -707,7 +735,8 @@ export function AgentChatPanel({
   //  - otherwise (welcome flow, or a pristine wedding) → fresh opener, but only
   //    if nothing's on screen yet (avoid re-greeting a restored stale greeting).
   useEffect(() => {
-    if (greetedRef.current || loadingHistory) return;
+    // Wait for the tap-to-start gate before greeting, so the opener is audible.
+    if (greetedRef.current || loadingHistory || voicePending) return;
     greetedRef.current = true;
     // A restored pending question needs answering — no opener/resume; the
     // safety-net effect drops voice to the card surface so the user can respond.
@@ -722,7 +751,7 @@ export function AgentChatPanel({
     if (items.length === 0) {
       void send(voiceActiveRef.current ? ONBOARDING_KICKOFF_VOICE : ONBOARDING_KICKOFF);
     }
-  }, [loadingHistory, onboarding, hasExistingData, awaitingQuestions, items.length, send, playReply]);
+  }, [loadingHistory, voicePending, onboarding, hasExistingData, awaitingQuestions, items.length, send, playReply]);
 
   const voiceOrbState: OrbState = busy
     ? 'thinking'
@@ -741,6 +770,9 @@ export function AgentChatPanel({
   const lastAssistant = [...items]
     .reverse()
     .find((i): i is Extract<ChatItem, { kind: 'assistant' }> => i.kind === 'assistant');
+  // Show the voice surface (live loop or the tap-to-start gate) unless a
+  // question card is pending — those can only be answered on the typed surface.
+  const showVoice = (voiceMode.active || voicePending) && !awaitingQuestions;
 
   return (
     <PheraCard
@@ -771,7 +803,43 @@ export function AgentChatPanel({
           </SecondaryActionButton>
         )}
       </Stack>
-      {voiceMode.active ? (
+      {showVoice ? (
+        !voiceMode.active ? (
+        // Tap-to-start gate: the tap unlocks audio so the opener is heard, and
+        // the mic isn't requested until the user opts in.
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 3,
+            p: 3,
+          }}
+        >
+          <Box aria-hidden>
+            <VoiceOrb state="idle" size={188} />
+          </Box>
+          <Stack spacing={0.75} sx={{ alignItems: 'center', textAlign: 'center', maxWidth: 460 }}>
+            <Typography variant="body1" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
+              Talk with your planner
+            </Typography>
+            <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
+              Tap start, then just speak — I&apos;ll listen and reply out loud. You can switch to
+              typing anytime.
+            </Typography>
+          </Stack>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <PrimaryActionButton startIcon={<MicRoundedIcon fontSize="small" />} onClick={beginVoiceSession}>
+              Start
+            </PrimaryActionButton>
+            <SecondaryActionButton startIcon={<KeyboardRoundedIcon fontSize="small" />} onClick={exitVoiceMode}>
+              Switch to chat
+            </SecondaryActionButton>
+          </Stack>
+        </Box>
+        ) : (
         <Box
           sx={{
             flex: 1,
@@ -858,6 +926,7 @@ export function AgentChatPanel({
             </Stack>
           </Stack>
         </Box>
+        )
       ) : (
       <>
       <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: 3 }}>

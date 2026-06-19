@@ -66,17 +66,16 @@ export function useVoiceMode({
   const [listening, setListening] = useState(false);
   const [interim, setInterim] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [supported, setSupported] = useState(true);
+  // Resolved synchronously on first render so callers see the real value
+  // immediately (no post-mount flip). On the server it's false (no window),
+  // but `supported` isn't rendered, so there's no hydration mismatch.
+  const [supported, setSupported] = useState<boolean>(() => getRecognitionCtor() !== null);
 
   const activeRef = useRef(false);
   const speakingRef = useRef(false);
   const runningRef = useRef(false);
   const finalRef = useRef('');
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
-
-  useEffect(() => {
-    setSupported(getRecognitionCtor() !== null);
-  }, []);
 
   const beginListening = useCallback(() => {
     if (!activeRef.current || speakingRef.current || runningRef.current) return;
