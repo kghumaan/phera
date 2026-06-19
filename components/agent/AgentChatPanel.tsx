@@ -11,7 +11,7 @@ import VolumeOffRoundedIcon from '@mui/icons-material/VolumeOffRounded';
 import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import AttachFileRoundedIcon from '@mui/icons-material/AttachFileRounded';
 import GraphicEqRoundedIcon from '@mui/icons-material/GraphicEqRounded';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import KeyboardRoundedIcon from '@mui/icons-material/KeyboardRounded';
 import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useVoiceInput } from './useVoiceInput';
@@ -26,6 +26,7 @@ import { IconActionButton, PrimaryActionButton, SecondaryActionButton } from '@/
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { CONFIRMATION_NOTE_PREFIX } from '@/lib/agent/confirm';
 import { ANSWERS_NOTE_PREFIX } from '@/lib/agent/answer';
+import { HIDDEN_KICKOFF_PREFIX } from '@/lib/agent/message-prefixes';
 import { QuestionFlow } from './QuestionFlow';
 import type { AgentStreamEvent, AgentContentBlock, AgentQuestion } from '@/lib/agent/types';
 
@@ -132,21 +133,33 @@ function UploadCard({ uploadKind, onPick }: { uploadKind: 'guests' | 'rooms'; on
 /** Browser speech-synthesis fallback so replies are always audible even when
  *  the high-quality TTS service is unavailable. */
 function speakViaBrowser(text: string, onDone: () => void) {
+  let settled = false;
+  let watchdog: ReturnType<typeof setTimeout> | undefined;
+  const finish = () => {
+    if (settled) return;
+    settled = true;
+    if (watchdog) clearTimeout(watchdog);
+    onDone();
+  };
   try {
     const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
     if (!synth) {
-      onDone();
+      finish();
       return;
     }
     synth.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
-    utterance.onend = onDone;
-    utterance.onerror = onDone;
+    utterance.onend = finish;
+    utterance.onerror = finish;
+    // Watchdog: browsers sometimes drop onend/onerror (cancel races, long text,
+    // backgrounded tab). Without this the hands-free loop would never re-open
+    // the mic. ~90ms/char + buffer, capped, so we always resume.
+    watchdog = setTimeout(finish, Math.min(30_000, 4_000 + text.length * 90));
     synth.speak(utterance);
   } catch {
-    onDone();
+    finish();
   }
 }
 
@@ -191,10 +204,12 @@ function itemsFromPersisted(messages: Array<{ role: string; content: AgentConten
 }
 
 const SPEAK_STORAGE_KEY = 'phera-agent-speak';
-const MODALITY_STORAGE_KEY = 'phera-agent-modality'; // 'voice' | 'text'
+
+/** Spoken when reopening the planner with work already in progress. */
+const RESUME_GREETING = "Let's pick up where we left off — what would you like to tackle next?";
 
 /** Hidden kickoff sent on onboarding — never rendered as a user bubble. */
-const HIDDEN_USER_PREFIX = '⟦kickoff⟧';
+const HIDDEN_USER_PREFIX = HIDDEN_KICKOFF_PREFIX;
 const ONBOARDING_OPENER =
   "Hi — I'm here to be your wedding planner and help you wherever you are in the process so far. Let's get started and tell me more about the details…";
 const ONBOARDING_KICKOFF =
@@ -232,6 +247,9 @@ export function AgentChatPanel({
   const [busy, setBusy] = useState(false);
   const [busyLabel, setBusyLabel] = useState('Thinking…');
   const [loadingHistory, setLoadingHistory] = useState(true);
+  // True once history loads if the couple has already provided anything (chat,
+  // goals, guests, date/venue) — drives resume-vs-fresh on open.
+  const [hasExistingData, setHasExistingData] = useState(false);
   const [speak, setSpeak] = useState(false);
   const conversationIdRef = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -244,6 +262,8 @@ export function AgentChatPanel({
   const [voiceSpeaking, setVoiceSpeaking] = useState(false);
   const busyRef = useRef(busy);
   busyRef.current = busy;
+  // One-shot guard for the opener/resume decision; reset per wedding.
+  const greetedRef = useRef(false);
   const voiceActiveRef = useRef(false);
   const voiceRestartRef = useRef<() => void>(() => {});
   const voiceSetSpeakingRef = useRef<(v: boolean) => void>(() => {});
@@ -274,8 +294,12 @@ export function AgentChatPanel({
   const playReply = useCallback(async (text: string) => {
     const wantSpeech = speakRef.current || voiceActiveRef.current;
     // In voice mode: resume listening once we're done (even with nothing to
-    // speak) so the hands-free loop never stalls.
+    // speak) so the hands-free loop never stalls. Idempotent — playback end and
+    // the speech watchdog may both call it.
+    let settled = false;
     const done = () => {
+      if (settled) return;
+      settled = true;
       setVoiceSpeaking(false);
       voiceSetSpeakingRef.current(false);
       if (voiceActiveRef.current) voiceRestartRef.current();
@@ -325,6 +349,8 @@ export function AgentChatPanel({
     let cancelled = false;
     setItems([]);
     setLoadingHistory(true);
+    setHasExistingData(false);
+    greetedRef.current = false; // each wedding gets its opener decision once
     conversationIdRef.current = null;
     (async () => {
       try {
@@ -332,6 +358,7 @@ export function AgentChatPanel({
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled) return;
+        setHasExistingData(!!data.hasData);
         if (data.conversation) conversationIdRef.current = data.conversation.id;
         const restored = data.messages?.length ? itemsFromPersisted(data.messages) : [];
         for (const pending of data.pendingActions ?? []) {
@@ -623,10 +650,11 @@ export function AgentChatPanel({
 
   const enterVoiceMode = useCallback(() => {
     if (voice.state === 'recording') voice.toggle(); // free the mic from push-to-talk
-    window.localStorage.setItem(MODALITY_STORAGE_KEY, 'voice');
     voiceMode.start();
   }, [voiceMode, voice]);
 
+  // Switch to the typed chat. Session-only — a reload re-opens in voice, since
+  // voice is the default modality of the planner.
   const exitVoiceMode = useCallback(() => {
     voiceMode.stop();
     audioRef.current?.pause();
@@ -636,7 +664,6 @@ export function AgentChatPanel({
       /* noop */
     }
     setVoiceSpeaking(false);
-    window.localStorage.setItem(MODALITY_STORAGE_KEY, 'text');
   }, [voiceMode]);
 
   const toggleVoiceMode = useCallback(() => {
@@ -644,16 +671,14 @@ export function AgentChatPanel({
     else enterVoiceMode();
   }, [voiceMode.active, enterVoiceMode, exitVoiceMode]);
 
-  // Voice is the default experience. Open straight into it — always for
-  // onboarding; for returning users honour a saved 'text' choice. Skipped only
-  // when the browser can't do speech recognition.
+  // Voice is the default experience: open straight into it on every load,
+  // skipped only when the browser can't do speech recognition.
   const autoVoiceRef = useRef(false);
   useEffect(() => {
     if (autoVoiceRef.current || !defaultVoice || !voiceMode.supported) return;
-    if (!onboarding && window.localStorage.getItem(MODALITY_STORAGE_KEY) === 'text') return;
     autoVoiceRef.current = true;
     voiceMode.start();
-  }, [defaultVoice, onboarding, voiceMode]);
+  }, [defaultVoice, voiceMode]);
 
   const startNewConversation = useCallback(() => {
     // Fresh thread: the next send creates a new conversation server-side.
@@ -669,14 +694,35 @@ export function AgentChatPanel({
     .find((i): i is Extract<ChatItem, { kind: 'questions' }> => i.kind === 'questions' && i.status !== 'done');
   const awaitingQuestions = !!pendingQuestions;
 
-  // One-shot onboarding kickoff so the agent greets first (hidden message).
-  const greetedRef = useRef(false);
+  // Question cards can't be answered by voice — if one appears while in voice
+  // mode (a restored pending question, or the agent using ask_user anyway),
+  // drop to the typed surface so the user can actually respond.
   useEffect(() => {
-    if (onboarding && !greetedRef.current && !loadingHistory && items.length === 0) {
-      greetedRef.current = true;
+    if (voiceMode.active && awaitingQuestions) exitVoiceMode();
+  }, [voiceMode.active, awaitingQuestions, exitVoiceMode]);
+
+  // One-shot opener once history has loaded:
+  //  - returning with real work in progress (hasExistingData) → resume: a spoken
+  //    "let's pick up where we left off" in voice (text mode restores silently).
+  //  - otherwise (welcome flow, or a pristine wedding) → fresh opener, but only
+  //    if nothing's on screen yet (avoid re-greeting a restored stale greeting).
+  useEffect(() => {
+    if (greetedRef.current || loadingHistory) return;
+    greetedRef.current = true;
+    // A restored pending question needs answering — no opener/resume; the
+    // safety-net effect drops voice to the card surface so the user can respond.
+    if (awaitingQuestions) return;
+    if (!onboarding && hasExistingData) {
+      if (voiceActiveRef.current) {
+        setItems((prev) => [...prev, { kind: 'assistant', text: RESUME_GREETING }]);
+        void playReply(RESUME_GREETING);
+      }
+      return;
+    }
+    if (items.length === 0) {
       void send(voiceActiveRef.current ? ONBOARDING_KICKOFF_VOICE : ONBOARDING_KICKOFF);
     }
-  }, [onboarding, loadingHistory, items.length, send]);
+  }, [loadingHistory, onboarding, hasExistingData, awaitingQuestions, items.length, send, playReply]);
 
   const voiceOrbState: OrbState = busy
     ? 'thinking'
@@ -708,13 +754,17 @@ export function AgentChatPanel({
         spacing={0.5}
         sx={{ px: 1.5, py: 0.75, borderBottom: `1px solid ${COLORS.border.faint}` }}
       >
-        <IconActionButton
-          onClick={toggleSpeak}
-          aria-label={speak ? 'Mute spoken replies' : 'Hear spoken replies'}
-          sx={speak ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : undefined}
-        >
-          {speak ? <VolumeUpRoundedIcon fontSize="small" /> : <VolumeOffRoundedIcon fontSize="small" />}
-        </IconActionButton>
+        {/* Mute toggle only applies to the typed surface — in voice mode replies
+            are always spoken, so hide it there to avoid a no-op control. */}
+        {!voiceMode.active && (
+          <IconActionButton
+            onClick={toggleSpeak}
+            aria-label={speak ? 'Mute spoken replies' : 'Hear spoken replies'}
+            sx={speak ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : undefined}
+          >
+            {speak ? <VolumeUpRoundedIcon fontSize="small" /> : <VolumeOffRoundedIcon fontSize="small" />}
+          </IconActionButton>
+        )}
         {items.length > 0 && (
           <SecondaryActionButton size="small" disabled={busy} onClick={startNewConversation}>
             New conversation
@@ -744,7 +794,12 @@ export function AgentChatPanel({
               px: 2,
             }}
           >
-            <Typography variant="body1" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
+            <Typography
+              variant="body1"
+              role="status"
+              aria-live="polite"
+              sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}
+            >
               {voiceMode.listening && voiceMode.interim
                 ? voiceMode.interim
                 : voiceSpeaking && lastAssistant
@@ -765,13 +820,20 @@ export function AgentChatPanel({
             )}
           </Stack>
 
-          <VoiceOrb state={voiceOrbState} size={208} />
+          <Box aria-hidden>
+            <VoiceOrb state={voiceOrbState} size={208} />
+          </Box>
 
           <Stack alignItems="center" spacing={2} sx={{ mt: 1 }}>
-            <Typography variant="caption" sx={{ color: COLORS.text.subtle, letterSpacing: '0.04em' }}>
+            <Typography
+              variant="caption"
+              role="status"
+              aria-live="polite"
+              sx={{ color: COLORS.text.subtle, letterSpacing: '0.04em' }}
+            >
               {voiceStatus}
             </Typography>
-            <Stack direction="row" spacing={4} alignItems="center">
+            <Stack direction="row" spacing={2} alignItems="center">
               <IconActionButton
                 onClick={() => voiceMode.restart()}
                 disabled={busy || voiceSpeaking || voiceMode.listening}
@@ -782,23 +844,17 @@ export function AgentChatPanel({
                   bgcolor: COLORS.bg.subtle,
                   color: COLORS.text.strong,
                   '&:hover': { bgcolor: COLORS.bg.muted },
+                  '&.Mui-disabled': { bgcolor: COLORS.bg.muted, color: COLORS.text.placeholder },
                 }}
               >
                 <MicRoundedIcon />
               </IconActionButton>
-              <IconActionButton
+              <SecondaryActionButton
                 onClick={exitVoiceMode}
-                aria-label="End voice mode"
-                sx={{
-                  width: 56,
-                  height: 56,
-                  bgcolor: COLORS.bg.subtle,
-                  color: COLORS.text.strong,
-                  '&:hover': { bgcolor: COLORS.bg.muted },
-                }}
+                startIcon={<KeyboardRoundedIcon fontSize="small" />}
               >
-                <CloseRoundedIcon />
-              </IconActionButton>
+                Switch to chat
+              </SecondaryActionButton>
             </Stack>
           </Stack>
         </Box>

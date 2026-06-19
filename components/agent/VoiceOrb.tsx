@@ -1,7 +1,7 @@
 'use client';
 
 import { Box } from '@mui/material';
-import { COLORS } from '@/lib/theme/tokens';
+import { COLORS, SHADOWS } from '@/lib/theme/tokens';
 
 export type OrbState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
@@ -69,6 +69,10 @@ export function VoiceOrb({ state = 'idle', size = 220 }: { state?: OrbState; siz
           '66%': { transform: 'translate(-14%, 12%) scale(0.9)' },
           '100%': { transform: 'translate(0%, 0%) scale(1)' },
         },
+        // Respect reduced-motion: hold the orb still (WCAG 2.3.3).
+        '@media (prefers-reduced-motion: reduce)': {
+          '& *': { animation: 'none !important' },
+        },
       }}
     >
       {/* Outer breathing glow */}
@@ -91,7 +95,9 @@ export function VoiceOrb({ state = 'idle', size = 220 }: { state?: OrbState; siz
           borderRadius: '50%',
           overflow: 'hidden',
           background: COLORS.bg.white,
-          boxShadow: `inset 0 0 ${size * 0.18}px ${COLORS.bg.white}`,
+          // Crisp brand outline that hugs the orb, plus a soft lift.
+          border: `1.5px solid ${COLORS.brand.primaryBorder}`,
+          boxShadow: `inset 0 0 ${size * 0.16}px ${COLORS.bg.white}, ${SHADOWS.popover}`,
           animation: `phera-orb-breathe ${motion.breathe} ease-in-out infinite`,
         }}
       >
