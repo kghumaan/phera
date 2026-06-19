@@ -1,28 +1,59 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-export type VoiceModeState = 'idle' | 'listening' | 'transcribing';
+// --- Minimal Web Speech API typings (not in the standard DOM lib) ---------
+interface SpeechRecognitionAlternativeLike {
+  transcript: string;
+}
+interface SpeechRecognitionResultLike {
+  readonly isFinal: boolean;
+  readonly length: number;
+  [index: number]: SpeechRecognitionAlternativeLike;
+}
+interface SpeechRecognitionResultListLike {
+  readonly length: number;
+  [index: number]: SpeechRecognitionResultLike;
+}
+interface SpeechRecognitionEventLike extends Event {
+  readonly resultIndex: number;
+  readonly results: SpeechRecognitionResultListLike;
+}
+interface SpeechRecognitionErrorEventLike extends Event {
+  readonly error: string;
+}
+interface SpeechRecognitionLike {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: ((e: SpeechRecognitionEventLike) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((e: SpeechRecognitionErrorEventLike) => void) | null;
+  onstart: (() => void) | null;
+}
+type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
 
-interface VoiceRefs {
-  stream?: MediaStream;
-  rec?: MediaRecorder;
-  ctx?: AudioContext;
-  raf?: number;
-  chunks: Blob[];
-  spoke: boolean;
-  silenceStart?: number;
+function getRecognitionCtor(): SpeechRecognitionCtor | null {
+  if (typeof window === 'undefined') return null;
+  const w = window as unknown as {
+    SpeechRecognition?: SpeechRecognitionCtor;
+    webkitSpeechRecognition?: SpeechRecognitionCtor;
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
-// Silence detection tuning.
-const SPEAK_THRESHOLD = 0.018; // RMS above this counts as speech
-const SILENCE_MS = 1400; // stop this long after speech ends
-const MAX_UTTERANCE_MS = 20_000; // hard cap per turn
-
 /**
- * Hands-free voice loop: listen with silence detection → transcribe (Groq
- * Whisper) → hand the text to onUtterance. The caller resumes the loop by
- * calling listenAgain() once it's done responding (e.g. after TTS playback).
+ * Hands-free voice loop built on the browser Web Speech API.
+ *
+ * Recognition runs one utterance at a time with interim results, so the live
+ * partial transcript is available immediately (no server round-trip) and the
+ * end of speech is detected automatically. When the user finishes, the final
+ * text is handed to onUtterance; the caller responds (and speaks the reply),
+ * then calls restart() to listen again. Recognition is paused while the agent
+ * is speaking so it never hears its own voice.
  */
 export function useVoiceMode({
   onUtterance,
@@ -32,148 +63,138 @@ export function useVoiceMode({
   getBusy: () => boolean;
 }) {
   const [active, setActive] = useState(false);
-  const [state, setState] = useState<VoiceModeState>('idle');
+  const [listening, setListening] = useState(false);
+  const [interim, setInterim] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const activeRef = useRef(false);
-  const refs = useRef<VoiceRefs>({ chunks: [], spoke: false });
+  const [supported, setSupported] = useState(true);
 
-  const cleanupAudio = useCallback(() => {
-    const r = refs.current;
-    if (r.raf) cancelAnimationFrame(r.raf);
-    r.raf = undefined;
-    try {
-      r.ctx?.close();
-    } catch {
-      /* already closed */
-    }
-    r.ctx = undefined;
-    r.stream?.getTracks().forEach((t) => t.stop());
-    r.stream = undefined;
+  const activeRef = useRef(false);
+  const speakingRef = useRef(false);
+  const runningRef = useRef(false);
+  const finalRef = useRef('');
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+
+  useEffect(() => {
+    setSupported(getRecognitionCtor() !== null);
   }, []);
 
-  const listen = useCallback(async () => {
-    if (!activeRef.current) return;
-    // Don't open the mic while the agent is responding; poll back shortly.
+  const beginListening = useCallback(() => {
+    if (!activeRef.current || speakingRef.current || runningRef.current) return;
     if (getBusy()) {
-      window.setTimeout(() => void listen(), 400);
+      // Agent is still responding — try again shortly.
+      window.setTimeout(beginListening, 300);
       return;
     }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      if (!activeRef.current) {
-        stream.getTracks().forEach((t) => t.stop());
-        return;
-      }
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-        ? 'audio/webm;codecs=opus'
-        : MediaRecorder.isTypeSupported('audio/webm')
-          ? 'audio/webm'
-          : 'audio/mp4';
-      const rec = new MediaRecorder(stream, { mimeType });
-      const ctx = new AudioContext();
-      const source = ctx.createMediaStreamSource(stream);
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 512;
-      source.connect(analyser);
-      const data = new Uint8Array(analyser.frequencyBinCount);
-
-      refs.current = { stream, rec, ctx, chunks: [], spoke: false };
-      rec.ondataavailable = (e) => {
-        if (e.data.size > 0) refs.current.chunks.push(e.data);
-      };
-      rec.onstop = async () => {
-        cleanupAudio();
-        const blob = new Blob(refs.current.chunks, { type: mimeType });
-        if (!activeRef.current) return;
-        // No speech captured — just listen again.
-        if (!refs.current.spoke || blob.size < 1200) {
-          void listen();
-          return;
-        }
-        setState('transcribing');
-        try {
-          const form = new FormData();
-          const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-          form.append('audio', new File([blob], `voice.${ext}`, { type: mimeType }));
-          const res = await fetch('/api/concierge/transcribe', { method: 'POST', body: form });
-          const json = await res.json();
-          const text = (json.transcript ?? '').trim();
-          if (text && activeRef.current) {
-            setState('idle');
-            onUtterance(text); // caller responds, then calls listenAgain()
-          } else if (activeRef.current) {
-            void listen();
-          }
-        } catch {
-          if (activeRef.current) void listen();
-        }
-      };
-
-      rec.start();
-      setState('listening');
-      setError(null);
-      const startedAt = Date.now();
-      const tick = () => {
-        if (!activeRef.current || refs.current.rec !== rec || rec.state !== 'recording') return;
-        analyser.getByteTimeDomainData(data);
-        let sum = 0;
-        for (let i = 0; i < data.length; i++) {
-          const x = (data[i] - 128) / 128;
-          sum += x * x;
-        }
-        const rms = Math.sqrt(sum / data.length);
-        const now = Date.now();
-        if (rms > SPEAK_THRESHOLD) {
-          refs.current.spoke = true;
-          refs.current.silenceStart = undefined;
-        } else if (refs.current.spoke) {
-          if (!refs.current.silenceStart) refs.current.silenceStart = now;
-          else if (now - refs.current.silenceStart > SILENCE_MS) {
-            rec.stop();
-            return;
-          }
-        }
-        if (now - startedAt > MAX_UTTERANCE_MS) {
-          rec.stop();
-          return;
-        }
-        refs.current.raf = requestAnimationFrame(tick);
-      };
-      refs.current.raf = requestAnimationFrame(tick);
-    } catch (err) {
-      activeRef.current = false;
-      setActive(false);
-      setState('idle');
-      setError(
-        err instanceof DOMException && err.name === 'NotAllowedError'
-          ? 'Microphone access denied — allow it to use voice mode.'
-          : 'Could not start voice mode.'
-      );
+    const Ctor = getRecognitionCtor();
+    if (!Ctor) {
+      setSupported(false);
+      return;
     }
-  }, [cleanupAudio, getBusy, onUtterance]);
+    const recognition = new Ctor();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+    recognitionRef.current = recognition;
+    finalRef.current = '';
+
+    recognition.onstart = () => {
+      runningRef.current = true;
+      setListening(true);
+      setError(null);
+    };
+    recognition.onresult = (e) => {
+      let interimText = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const result = e.results[i];
+        const chunk = result[0]?.transcript ?? '';
+        if (result.isFinal) finalRef.current += chunk;
+        else interimText += chunk;
+      }
+      setInterim((finalRef.current + interimText).trim());
+    };
+    recognition.onerror = (e) => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        activeRef.current = false;
+        setActive(false);
+        setError('Microphone access denied — allow it to use voice mode.');
+      }
+      // 'no-speech' / 'aborted' / 'network' fall through to onend → restart.
+    };
+    recognition.onend = () => {
+      runningRef.current = false;
+      setListening(false);
+      recognitionRef.current = null;
+      const text = finalRef.current.trim();
+      finalRef.current = '';
+      if (!activeRef.current) return;
+      if (text) {
+        setInterim('');
+        onUtterance(text); // caller responds, then calls restart()
+      } else if (!speakingRef.current && !getBusy()) {
+        // Nothing captured — keep the mic open.
+        beginListening();
+      }
+    };
+
+    try {
+      recognition.start();
+    } catch {
+      // start() throws if a prior instance is mid-teardown — retry once.
+      runningRef.current = false;
+      window.setTimeout(beginListening, 250);
+    }
+  }, [getBusy, onUtterance]);
+
+  const start = useCallback(() => {
+    if (!getRecognitionCtor()) {
+      setSupported(false);
+      setError('Voice mode needs a browser with speech recognition (Chrome, Edge, or Safari).');
+      return;
+    }
+    activeRef.current = true;
+    setActive(true);
+    setInterim('');
+    beginListening();
+  }, [beginListening]);
 
   const stop = useCallback(() => {
     activeRef.current = false;
+    speakingRef.current = false;
     setActive(false);
-    setState('idle');
+    setListening(false);
+    setInterim('');
+    const recognition = recognitionRef.current;
+    recognitionRef.current = null;
+    runningRef.current = false;
     try {
-      refs.current.rec?.stop();
+      recognition?.abort();
     } catch {
-      /* not recording */
+      /* already stopped */
     }
-    cleanupAudio();
-  }, [cleanupAudio]);
-
-  const start = useCallback(() => {
-    activeRef.current = true;
-    setActive(true);
-    void listen();
-  }, [listen]);
+  }, []);
 
   // Resume listening after the caller finishes responding (e.g. TTS ended).
-  const listenAgain = useCallback(() => {
-    if (activeRef.current) void listen();
-  }, [listen]);
+  const restart = useCallback(() => {
+    if (activeRef.current) beginListening();
+  }, [beginListening]);
 
-  return { active, state, error, start, stop, listenAgain };
+  // Pause/resume recognition around spoken replies so it doesn't transcribe
+  // the agent's own voice.
+  const setSpeaking = useCallback((value: boolean) => {
+    speakingRef.current = value;
+    if (value) {
+      try {
+        recognitionRef.current?.abort();
+      } catch {
+        /* noop */
+      }
+      recognitionRef.current = null;
+      runningRef.current = false;
+      setListening(false);
+    }
+  }, []);
+
+  useEffect(() => () => stop(), [stop]);
+
+  return { active, listening, interim, error, supported, start, stop, restart, setSpeaking };
 }

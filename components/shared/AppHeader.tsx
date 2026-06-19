@@ -264,27 +264,6 @@ export default function AppHeader({
               </Link>
             </Box>
 
-            {/* For Vendors nav link — landing page only, desktop */}
-            {isLandingPage && (
-              <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-                <Button
-                  component={Link}
-                  href="/vendors/join"
-                  variant="text"
-                  sx={{
-                    color: COLORS.text.strong,
-                    fontWeight: 500,
-                    fontSize: '0.875rem',
-                    textTransform: 'none',
-                    px: 2,
-                    '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' },
-                  }}
-                >
-                  For Vendors
-                </Button>
-              </Box>
-            )}
-
             {/* Right side — on landing page, hide on mobile and render as floating bottom-right element below.
                 When `hideAuthControls` is set, the entire right cluster is
                 suppressed (the consuming page renders auth controls itself,

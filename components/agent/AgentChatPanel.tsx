@@ -16,6 +16,7 @@ import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useVoiceInput } from './useVoiceInput';
 import { useVoiceMode } from './useVoiceMode';
+import { VoiceOrb, type OrbState } from './VoiceOrb';
 import { MarkdownText } from './MarkdownText';
 import { importGuestsFromFile, importRoomsFromFile } from '@/lib/agent/chat-uploads';
 import { PheraCard } from '@/components/shared/Card';
@@ -128,55 +129,25 @@ function UploadCard({ uploadKind, onPick }: { uploadKind: 'guests' | 'rooms'; on
   );
 }
 
-/** Hands-free voice surface: pulsing orb + live status + an exit button. */
-function VoicePanel({
-  status,
-  animate,
-  onStop,
-}: {
-  status: string;
-  animate: boolean;
-  onStop: () => void;
-}) {
-  return (
-    <Stack alignItems="center" spacing={1.5} sx={{ p: 3 }}>
-      <Box sx={{ position: 'relative', width: 72, height: 72, display: 'grid', placeItems: 'center' }}>
-        {animate && (
-          <Box
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              borderRadius: '50%',
-              bgcolor: COLORS.brand.primarySubtle,
-              animation: 'phera-voice-pulse 1.6s ease-out infinite',
-              '@keyframes phera-voice-pulse': {
-                '0%': { transform: 'scale(0.75)', opacity: 0.7 },
-                '100%': { transform: 'scale(1.7)', opacity: 0 },
-              },
-            }}
-          />
-        )}
-        <Box
-          sx={{
-            width: 56,
-            height: 56,
-            borderRadius: '50%',
-            bgcolor: COLORS.brand.primary,
-            display: 'grid',
-            placeItems: 'center',
-          }}
-        >
-          <GraphicEqRoundedIcon sx={{ color: COLORS.text.inverse, fontSize: 26 }} />
-        </Box>
-      </Box>
-      <Typography variant="body2" sx={{ color: COLORS.text.muted, fontWeight: 600 }}>
-        {status}
-      </Typography>
-      <SecondaryActionButton size="small" startIcon={<CloseRoundedIcon fontSize="small" />} onClick={onStop}>
-        End voice
-      </SecondaryActionButton>
-    </Stack>
-  );
+/** Browser speech-synthesis fallback so replies are always audible even when
+ *  the high-quality TTS service is unavailable. */
+function speakViaBrowser(text: string, onDone: () => void) {
+  try {
+    const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
+    if (!synth) {
+      onDone();
+      return;
+    }
+    synth.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.onend = onDone;
+    utterance.onerror = onDone;
+    synth.speak(utterance);
+  } catch {
+    onDone();
+  }
 }
 
 /** Compact one-line summary of what the user answered, for the right-side bubble. */
@@ -220,12 +191,16 @@ function itemsFromPersisted(messages: Array<{ role: string; content: AgentConten
 }
 
 const SPEAK_STORAGE_KEY = 'phera-agent-speak';
+const MODALITY_STORAGE_KEY = 'phera-agent-modality'; // 'voice' | 'text'
 
 /** Hidden kickoff sent on onboarding — never rendered as a user bubble. */
 const HIDDEN_USER_PREFIX = '⟦kickoff⟧';
 const ONBOARDING_KICKOFF =
   `${HIDDEN_USER_PREFIX} I just signed up and I'm setting up my wedding from scratch. ` +
   'Greet me in ONE short line, then immediately use ask_user to collect the essentials. Do not write anything after the ask_user call.';
+const ONBOARDING_KICKOFF_VOICE =
+  `${HIDDEN_USER_PREFIX} I just signed up and I'm setting up my wedding from scratch — we're talking by voice. ` +
+  'Greet me warmly in ONE short line, then ask me conversationally (in prose, one question) what I want help with and where I am in planning. Do not use ask_user or any on-screen cards.';
 
 export interface AgentChatPanelProps {
   weddingSlug: string;
@@ -235,6 +210,8 @@ export interface AgentChatPanelProps {
   minHeight?: number;
   /** When true, fire the hidden onboarding kickoff once on mount. */
   onboarding?: boolean;
+  /** When true, open straight into hands-free voice mode (the default experience). */
+  defaultVoice?: boolean;
 }
 
 export function AgentChatPanel({
@@ -243,6 +220,7 @@ export function AgentChatPanel({
   onTurnComplete,
   minHeight = 480,
   onboarding,
+  defaultVoice,
 }: AgentChatPanelProps) {
   const [items, setItems] = useState<ChatItem[]>([]);
   const [input, setInput] = useState('');
@@ -262,7 +240,8 @@ export function AgentChatPanel({
   const busyRef = useRef(busy);
   busyRef.current = busy;
   const voiceActiveRef = useRef(false);
-  const voiceListenAgainRef = useRef<() => void>(() => {});
+  const voiceRestartRef = useRef<() => void>(() => {});
+  const voiceSetSpeakingRef = useRef<(v: boolean) => void>(() => {});
   const sendRef = useRef<(text: string) => void>(() => {});
 
   useEffect(() => {
@@ -289,15 +268,20 @@ export function AgentChatPanel({
 
   const playReply = useCallback(async (text: string) => {
     const wantSpeech = speakRef.current || voiceActiveRef.current;
-    // In voice mode, resume listening even when there's nothing to speak so the
-    // hands-free loop never stalls.
-    const resume = () => {
-      if (voiceActiveRef.current) voiceListenAgainRef.current();
+    // In voice mode: resume listening once we're done (even with nothing to
+    // speak) so the hands-free loop never stalls.
+    const done = () => {
+      setVoiceSpeaking(false);
+      voiceSetSpeakingRef.current(false);
+      if (voiceActiveRef.current) voiceRestartRef.current();
     };
     if (!wantSpeech || !text.trim()) {
-      resume();
+      done();
       return;
     }
+    // Pause recognition so the mic doesn't transcribe the agent's own voice.
+    voiceSetSpeakingRef.current(true);
+    setVoiceSpeaking(true);
     try {
       const res = await fetch('/api/agent/tts', {
         method: 'POST',
@@ -305,26 +289,30 @@ export function AgentChatPanel({
         body: JSON.stringify({ text }),
       });
       if (!res.ok) {
-        resume();
+        // High-quality TTS unavailable (e.g. terms not yet accepted) — fall
+        // back to the browser voice so the reply is still spoken.
+        speakViaBrowser(text, done);
         return;
       }
       const url = URL.createObjectURL(await res.blob());
       audioRef.current?.pause();
       const audio = new Audio(url);
       audioRef.current = audio;
-      setVoiceSpeaking(true);
       const finish = () => {
         URL.revokeObjectURL(url);
-        setVoiceSpeaking(false);
-        resume();
+        done();
       };
       audio.onended = finish;
-      audio.onerror = finish;
-      void audio.play().catch(finish);
+      audio.onerror = () => {
+        URL.revokeObjectURL(url);
+        speakViaBrowser(text, done);
+      };
+      void audio.play().catch(() => {
+        URL.revokeObjectURL(url);
+        speakViaBrowser(text, done);
+      });
     } catch {
-      // speech is best-effort — keep the loop alive
-      setVoiceSpeaking(false);
-      resume();
+      speakViaBrowser(text, done);
     }
   }, []);
 
@@ -617,25 +605,49 @@ export function AgentChatPanel({
     }, [])
   );
 
-  // Hands-free voice mode: spoken utterances are auto-sent; the agent's reply is
-  // spoken back, then the mic re-opens — a continuous loop like ChatGPT voice.
+  // Hands-free voice mode: spoken utterances (with a live transcript) are
+  // auto-sent; the agent's reply is spoken back, then the mic re-opens — a
+  // continuous loop like ChatGPT/Claude voice.
   const voiceMode = useVoiceMode({
     onUtterance: useCallback((text: string) => sendRef.current(text), []),
     getBusy: useCallback(() => busyRef.current, []),
   });
   voiceActiveRef.current = voiceMode.active;
-  voiceListenAgainRef.current = voiceMode.listenAgain;
+  voiceRestartRef.current = voiceMode.restart;
+  voiceSetSpeakingRef.current = voiceMode.setSpeaking;
+
+  const enterVoiceMode = useCallback(() => {
+    if (voice.state === 'recording') voice.toggle(); // free the mic from push-to-talk
+    window.localStorage.setItem(MODALITY_STORAGE_KEY, 'voice');
+    voiceMode.start();
+  }, [voiceMode, voice]);
+
+  const exitVoiceMode = useCallback(() => {
+    voiceMode.stop();
+    audioRef.current?.pause();
+    try {
+      window.speechSynthesis?.cancel();
+    } catch {
+      /* noop */
+    }
+    setVoiceSpeaking(false);
+    window.localStorage.setItem(MODALITY_STORAGE_KEY, 'text');
+  }, [voiceMode]);
 
   const toggleVoiceMode = useCallback(() => {
-    if (voiceMode.active) {
-      voiceMode.stop();
-      audioRef.current?.pause();
-      setVoiceSpeaking(false);
-    } else {
-      if (voice.state === 'recording') voice.toggle(); // free the mic from push-to-talk
-      voiceMode.start();
-    }
-  }, [voiceMode, voice]);
+    if (voiceMode.active) exitVoiceMode();
+    else enterVoiceMode();
+  }, [voiceMode.active, enterVoiceMode, exitVoiceMode]);
+
+  // Open straight into voice mode when it's the default experience — unless the
+  // user has previously chosen text, or the browser can't do speech.
+  const autoVoiceRef = useRef(false);
+  useEffect(() => {
+    if (autoVoiceRef.current || !defaultVoice || !voiceMode.supported) return;
+    if (window.localStorage.getItem(MODALITY_STORAGE_KEY) === 'text') return;
+    autoVoiceRef.current = true;
+    voiceMode.start();
+  }, [defaultVoice, voiceMode]);
 
   const startNewConversation = useCallback(() => {
     // Fresh thread: the next send creates a new conversation server-side.
@@ -656,9 +668,27 @@ export function AgentChatPanel({
   useEffect(() => {
     if (onboarding && !greetedRef.current && !loadingHistory && items.length === 0) {
       greetedRef.current = true;
-      void send(ONBOARDING_KICKOFF);
+      void send(voiceActiveRef.current ? ONBOARDING_KICKOFF_VOICE : ONBOARDING_KICKOFF);
     }
   }, [onboarding, loadingHistory, items.length, send]);
+
+  const voiceOrbState: OrbState = busy
+    ? 'thinking'
+    : voiceSpeaking
+      ? 'speaking'
+      : voiceMode.listening
+        ? 'listening'
+        : 'idle';
+  const voiceStatus = busy
+    ? 'Thinking…'
+    : voiceSpeaking
+      ? 'Speaking…'
+      : voiceMode.listening
+        ? 'Listening…'
+        : 'Tap the mic to talk';
+  const lastAssistant = [...items]
+    .reverse()
+    .find((i): i is Extract<ChatItem, { kind: 'assistant' }> => i.kind === 'assistant');
 
   return (
     <PheraCard
@@ -685,6 +715,81 @@ export function AgentChatPanel({
           </SecondaryActionButton>
         )}
       </Stack>
+      {voiceMode.active ? (
+        <Box
+          sx={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: 3,
+          }}
+        >
+          {/* Recent reply / live transcript area */}
+          <Box
+            sx={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              maxWidth: 520,
+              px: 2,
+            }}
+          >
+            <Typography variant="body1" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
+              {voiceMode.listening && voiceMode.interim
+                ? voiceMode.interim
+                : voiceSpeaking && lastAssistant
+                  ? lastAssistant.text
+                  : busy
+                    ? '…'
+                    : lastAssistant
+                      ? lastAssistant.text
+                      : 'Say hello to your planner whenever you’re ready.'}
+            </Typography>
+          </Box>
+
+          <VoiceOrb state={voiceOrbState} size={208} />
+
+          <Stack alignItems="center" spacing={2} sx={{ mt: 1 }}>
+            <Typography variant="caption" sx={{ color: COLORS.text.subtle, letterSpacing: '0.04em' }}>
+              {voiceStatus}
+            </Typography>
+            <Stack direction="row" spacing={4} alignItems="center">
+              <IconActionButton
+                onClick={() => voiceMode.restart()}
+                disabled={busy || voiceSpeaking || voiceMode.listening}
+                aria-label="Talk now"
+                sx={{
+                  width: 56,
+                  height: 56,
+                  bgcolor: COLORS.bg.subtle,
+                  color: COLORS.text.strong,
+                  '&:hover': { bgcolor: COLORS.bg.muted },
+                }}
+              >
+                <MicRoundedIcon />
+              </IconActionButton>
+              <IconActionButton
+                onClick={exitVoiceMode}
+                aria-label="End voice mode"
+                sx={{
+                  width: 56,
+                  height: 56,
+                  bgcolor: COLORS.bg.subtle,
+                  color: COLORS.text.strong,
+                  '&:hover': { bgcolor: COLORS.bg.muted },
+                }}
+              >
+                <CloseRoundedIcon />
+              </IconActionButton>
+            </Stack>
+          </Stack>
+        </Box>
+      ) : (
+      <>
       <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
         {loadingHistory || (onboarding && items.length === 0) ? (
           // During onboarding the kickoff fires immediately — show a spinner,
@@ -860,20 +965,6 @@ export function AgentChatPanel({
               onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
             />
           </Box>
-        ) : voiceMode.active ? (
-          <VoicePanel
-            status={
-              busy
-                ? 'Thinking…'
-                : voiceSpeaking
-                  ? 'Speaking…'
-                  : voiceMode.state === 'transcribing'
-                    ? 'Got that…'
-                    : 'Listening…'
-            }
-            animate={busy || voiceSpeaking || voiceMode.state === 'listening'}
-            onStop={toggleVoiceMode}
-          />
         ) : (
         <>
         {(voice.error || voiceMode.error) && (
@@ -987,6 +1078,8 @@ export function AgentChatPanel({
         </>
         )}
       </Box>
+      </>
+      )}
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} tier="base" />
     </PheraCard>
   );

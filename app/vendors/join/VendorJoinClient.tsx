@@ -5,6 +5,7 @@ import { Box, Chip, FormControl, Grid, InputLabel, MenuItem, OutlinedInput, Sele
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import Link from 'next/link'
 import AppHeader from '@/components/shared/AppHeader'
+import HomeNavLinks from '@/components/landing/HomeNavLinks'
 import { PheraCard } from '@/components/shared/Card'
 import { PheraTextField } from '@/components/shared/TextField'
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton'
@@ -90,15 +91,15 @@ export default function VendorJoinClient() {
 
   if (status === 'success') {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: '#FBF7F1' }}>
-        <AppHeader variant="solid" />
+      <Box sx={{ minHeight: '100vh', bgcolor: COLORS.bg.paper }}>
+        <AppHeader variant="solid" rightSlot={<HomeNavLinks />} />
         <Box sx={{ maxWidth: 520, mx: 'auto', px: 3, py: 12, textAlign: 'center' }}>
           <CheckCircleIcon sx={{ fontSize: 56, color: COLORS.brand.primary, mb: 2 }} />
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 1.5, fontFamily: FONTS.body }}>
-            You're listed!
+            You&apos;re listed!
           </Typography>
           <Typography variant="body1" sx={{ color: COLORS.text.muted, mb: 4, lineHeight: 1.6 }}>
-            Your listing is now live on Phera. Couples can discover you right away. We'll follow up at{' '}
+            Your listing is now live on Phera. Couples can discover you right away. We&apos;ll follow up at{' '}
             <strong>{form.email}</strong> to help you get verified.
           </Typography>
           <SecondaryActionButton component={Link} href="/">
@@ -110,8 +111,8 @@ export default function VendorJoinClient() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#FBF7F1' }}>
-      <AppHeader variant="solid" />
+    <Box sx={{ minHeight: '100vh', bgcolor: COLORS.bg.paper }}>
+      <AppHeader variant="solid" rightSlot={<HomeNavLinks />} />
 
       <Box sx={{ maxWidth: 1000, mx: 'auto', px: { xs: 2, md: 4 }, py: { xs: 6, md: 10 } }}>
         <Grid container spacing={6} alignItems="flex-start">
@@ -239,10 +240,10 @@ export default function VendorJoinClient() {
                                     size="small"
                                     sx={{
                                       bgcolor: COLORS.brand.primary,
-                                      color: 'white',
+                                      color: COLORS.text.inverse,
                                       fontWeight: 500,
-                                      fontSize: '0.75rem',
-                                      height: 22,
+                                      fontSize: '0.875rem',
+                                      height: 26,
                                     }}
                                   />
                                 ))}
