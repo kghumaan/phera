@@ -195,12 +195,17 @@ const MODALITY_STORAGE_KEY = 'phera-agent-modality'; // 'voice' | 'text'
 
 /** Hidden kickoff sent on onboarding — never rendered as a user bubble. */
 const HIDDEN_USER_PREFIX = '⟦kickoff⟧';
+const ONBOARDING_OPENER =
+  "Hi — I'm here to be your wedding planner and help you wherever you are in the process so far. Let's get started and tell me more about the details…";
 const ONBOARDING_KICKOFF =
   `${HIDDEN_USER_PREFIX} I just signed up and I'm setting up my wedding from scratch. ` +
-  'Greet me in ONE short line, then immediately use ask_user to collect the essentials. Do not write anything after the ask_user call.';
+  `Greet me with EXACTLY this line, nothing before it: "${ONBOARDING_OPENER}" ` +
+  'Then immediately use ask_user to collect the essentials. Do not write anything after the ask_user call.';
 const ONBOARDING_KICKOFF_VOICE =
-  `${HIDDEN_USER_PREFIX} I just signed up and I'm setting up my wedding from scratch — we're talking by voice. ` +
-  'Greet me warmly in ONE short line, then ask me conversationally (in prose, one question) what I want help with and where I am in planning. Do not use ask_user or any on-screen cards.';
+  `${HIDDEN_USER_PREFIX} I just signed up — we're talking by VOICE. ` +
+  `Open with EXACTLY this line, nothing before it: "${ONBOARDING_OPENER}" ` +
+  "Then, in ONE short natural sentence, ask where they're currently at — e.g. whether they've booked their venue, sent out invites, or need a wedding website. " +
+  'Keep it brief and conversational: no lists, no on-screen cards, never use ask_user. Once they answer, call set_planning_goals with their goals and stage, then continue.';
 
 export interface AgentChatPanelProps {
   weddingSlug: string;
@@ -639,15 +644,16 @@ export function AgentChatPanel({
     else enterVoiceMode();
   }, [voiceMode.active, enterVoiceMode, exitVoiceMode]);
 
-  // Open straight into voice mode when it's the default experience — unless the
-  // user has previously chosen text, or the browser can't do speech.
+  // Voice is the default experience. Open straight into it — always for
+  // onboarding; for returning users honour a saved 'text' choice. Skipped only
+  // when the browser can't do speech recognition.
   const autoVoiceRef = useRef(false);
   useEffect(() => {
     if (autoVoiceRef.current || !defaultVoice || !voiceMode.supported) return;
-    if (window.localStorage.getItem(MODALITY_STORAGE_KEY) === 'text') return;
+    if (!onboarding && window.localStorage.getItem(MODALITY_STORAGE_KEY) === 'text') return;
     autoVoiceRef.current = true;
     voiceMode.start();
-  }, [defaultVoice, voiceMode]);
+  }, [defaultVoice, onboarding, voiceMode]);
 
   const startNewConversation = useCallback(() => {
     // Fresh thread: the next send creates a new conversation server-side.
@@ -727,14 +733,14 @@ export function AgentChatPanel({
           }}
         >
           {/* Recent reply / live transcript area */}
-          <Box
+          <Stack
+            spacing={1.5}
             sx={{
               flex: 1,
-              display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               textAlign: 'center',
-              maxWidth: 520,
+              maxWidth: 540,
               px: 2,
             }}
           >
@@ -749,7 +755,15 @@ export function AgentChatPanel({
                       ? lastAssistant.text
                       : 'Say hello to your planner whenever you’re ready.'}
             </Typography>
-          </Box>
+            {/* Verbose breadth hint — what they can talk about — shown until they
+                start chatting, so the spoken question can stay short. */}
+            {!items.some((i) => i.kind === 'user') && (
+              <Typography variant="caption" sx={{ color: COLORS.text.subtle, lineHeight: 1.6 }}>
+                Tell me anything — your venue, dates, guest list, RSVPs, a wedding website,
+                room blocks, transportation, vendors, registry, or the day-of schedule.
+              </Typography>
+            )}
+          </Stack>
 
           <VoiceOrb state={voiceOrbState} size={208} />
 
