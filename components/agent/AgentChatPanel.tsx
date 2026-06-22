@@ -366,6 +366,21 @@ export function AgentChatPanel({
         const data = await res.json();
         if (cancelled) return;
         setHasExistingData(!!data.hasData);
+        // A pristine voice-onboarding session that only holds the auto-kickoff
+        // (greeting + a parked onboarding card, no real input yet) should start
+        // clean in voice — restoring that stale ask_user card would eject the
+        // user straight to the typed chat. Abandon it and open a fresh thread.
+        const genuineUserMessage = (data.messages ?? []).some(
+          (m: { role: string; content?: AgentContentBlock[] }) =>
+            m.role === 'user' &&
+            (m.content ?? []).some(
+              (b) => b.type === 'text' && b.text.trim() && !b.text.startsWith(HIDDEN_USER_PREFIX)
+            )
+        );
+        if (defaultVoice && onboarding && !genuineUserMessage) {
+          setLoadingHistory(false);
+          return; // conversationIdRef stays null → next send starts fresh
+        }
         if (data.conversation) conversationIdRef.current = data.conversation.id;
         const restored = data.messages?.length ? itemsFromPersisted(data.messages) : [];
         for (const pending of data.pendingActions ?? []) {
@@ -393,7 +408,7 @@ export function AgentChatPanel({
     return () => {
       cancelled = true;
     };
-  }, [weddingSlug]);
+  }, [weddingSlug, defaultVoice, onboarding]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -712,9 +727,14 @@ export function AgentChatPanel({
   const startNewConversation = useCallback(() => {
     // Fresh thread: the next send creates a new conversation server-side.
     // (Reloading before sending restores the previous thread — by design.)
+    voiceMode.stop();
     conversationIdRef.current = null;
     setItems([]);
-  }, []);
+    setHasExistingData(false);
+    greetedRef.current = false; // let the opener/resume decision run again
+    // Voice is the default, so a fresh thread re-opens the tap-to-start gate.
+    setVoicePending(!!defaultVoice);
+  }, [defaultVoice, voiceMode]);
 
   // While the agent is waiting on a structured-question answer, the user
   // answers via the QuestionFlow at the bottom — not the free-text composer.
