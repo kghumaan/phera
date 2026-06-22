@@ -17,6 +17,13 @@ const CARTESIA_API_KEY = process.env.CARTESIA_API_KEY;
 const CARTESIA_VOICE_ID = process.env.CARTESIA_VOICE_ID || '694f9389-aac1-45b6-b726-9d9369183238';
 const CARTESIA_MODEL = process.env.CARTESIA_MODEL || 'sonic-2';
 const CARTESIA_VERSION = '2025-04-16';
+// Speaking pace. Number in [-1, 1] (positive = faster) or a step like
+// "slow"/"normal"/"fast"/"fastest". Slightly fast by default — the planner
+// should feel brisk and conversational, not languid.
+const CARTESIA_SPEED_RAW = process.env.CARTESIA_SPEED ?? '0.3';
+const CARTESIA_SPEED: string | number = Number.isNaN(Number(CARTESIA_SPEED_RAW))
+  ? CARTESIA_SPEED_RAW
+  : Number(CARTESIA_SPEED_RAW);
 
 // --- Groq Orpheus (fallback) -----------------------------------------------
 // Natural open TTS, ~95ms TTFB. One-time terms acceptance in the Groq console
@@ -38,7 +45,7 @@ async function cartesiaSpeak(text: string): Promise<Buffer> {
     body: JSON.stringify({
       model_id: CARTESIA_MODEL,
       transcript: text,
-      voice: { mode: 'id', id: CARTESIA_VOICE_ID },
+      voice: { mode: 'id', id: CARTESIA_VOICE_ID, __experimental_controls: { speed: CARTESIA_SPEED } },
       language: 'en',
       output_format: { container: 'mp3', sample_rate: 44100, bit_rate: 128000 },
     }),

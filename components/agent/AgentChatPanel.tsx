@@ -178,18 +178,17 @@ const RESUME_GREETING = "Let's pick up where we left off — what would you like
 
 /** Hidden kickoff sent on onboarding — never rendered as a user bubble. */
 const HIDDEN_USER_PREFIX = HIDDEN_KICKOFF_PREFIX;
-const ONBOARDING_OPENER = "Hi! I'm your Phera wedding planner. What can I help you with?";
+const ONBOARDING_OPENER =
+  "Hi! I'm your Phera wedding planner, here to help wherever you are in your wedding journey. " +
+  'I can help with your guest list, RSVPs, transportation, a wedding website, vendors, and more. ' +
+  'What would you like to start with?';
+// Text-onboarding kickoff: the model greets and renders the ask_user card.
+// (Voice onboarding speaks ONBOARDING_OPENER client-side with no model turn, so
+// there's no startup latency — see the greet effect.)
 const ONBOARDING_KICKOFF =
   `${HIDDEN_USER_PREFIX} I just signed up and I'm setting up my wedding from scratch. ` +
   `Greet me with EXACTLY this line, nothing before it: "${ONBOARDING_OPENER}" ` +
   'Then immediately use ask_user to collect the essentials. Do not write anything after the ask_user call.';
-const ONBOARDING_KICKOFF_VOICE =
-  `${HIDDEN_USER_PREFIX} I just signed up — we're talking by VOICE. ` +
-  `Open with EXACTLY this line, nothing before it: "${ONBOARDING_OPENER}" ` +
-  'Keep it that short — introduce yourself and ask what they need, nothing more. No trailing "…", no second sentence. ' +
-  'Whatever they say (transportation, a website, save-the-dates, RSVPs, vendors, guest list, etc.), help with it: ' +
-  'call set_planning_goals with their goals and stage, then continue in short, natural, one-at-a-time questions. ' +
-  'No lists, no on-screen cards, never use ask_user.';
 
 export interface AgentChatPanelProps {
   weddingSlug: string;
@@ -703,7 +702,17 @@ export function AgentChatPanel({
       return;
     }
     if (items.length === 0) {
-      void send(voiceActiveRef.current ? ONBOARDING_KICKOFF_VOICE : ONBOARDING_KICKOFF);
+      if (voiceActiveRef.current) {
+        // Speak the fixed warm opener instantly — no model round-trip, so there's
+        // no ~5s "thinking" silence before the first words. The model only
+        // engages once the user actually responds (their utterance is sent
+        // normally and handles set_planning_goals from there).
+        setItems((prev) => [...prev, { kind: 'assistant', text: ONBOARDING_OPENER }]);
+        speech.enqueue(ONBOARDING_OPENER);
+        speech.end();
+      } else {
+        void send(ONBOARDING_KICKOFF);
+      }
     }
   }, [loadingHistory, voicePending, onboarding, hasExistingData, awaitingQuestions, items.length, send, speech]);
 

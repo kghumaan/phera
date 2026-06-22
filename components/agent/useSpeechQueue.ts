@@ -34,7 +34,7 @@ function speakViaBrowser(text: string, onDone: () => void) {
       return;
     }
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
+    utterance.rate = 1.08; // slightly brisk, matching the Cartesia pace
     utterance.pitch = 1.0;
     utterance.onend = finish;
     utterance.onerror = finish;
