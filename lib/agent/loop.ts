@@ -192,6 +192,7 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       `In voice mode you do NOT use ask_user or request_upload — on-screen cards can't be answered by voice and would eject the user to the typed chat. ` +
       `Ask everything conversationally in plain prose, ONE question at a time. ` +
       `For onboarding specifically: do NOT render the two onboarding questions as a card — instead ask, in ONE short spoken sentence, what they'd like help with and where they are in planning, then call set_planning_goals with their goals and stage. ` +
+      `If something needs a paid upgrade, the on-screen upgrade card isn't visible in voice — so just SAY in one short line that it's a Premium feature they can upgrade for later, then move on. ` +
       `Keep replies short and natural to hear: prefer brief sentences, end each with a normal period (never a "…" ellipsis, which stalls the speech), and avoid bullet lists, tables, and long enumerations — say the few items that matter.`;
   }
 
@@ -214,6 +215,7 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       messages,
       tools,
       onText: (text) => onEvent({ type: 'text_delta', text }),
+      fast: args.voice, // voice = latency-optimized (no extended thinking)
     });
 
     if (result.usage) {

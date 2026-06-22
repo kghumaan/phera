@@ -723,13 +723,6 @@ export function AgentChatPanel({
       : voiceMode.listening
         ? 'listening'
         : 'idle';
-  const voiceStatus = busy
-    ? 'Thinking…'
-    : voiceSpeaking
-      ? 'Speaking…'
-      : voiceMode.listening
-        ? 'Listening…'
-        : 'Tap the mic to talk';
   const lastAssistant = [...items]
     .reverse()
     .find((i): i is Extract<ChatItem, { kind: 'assistant' }> => i.kind === 'assistant');
@@ -803,27 +796,27 @@ export function AgentChatPanel({
           </Stack>
         </Box>
         ) : (
+        // Live surface mirrors the gate's layout (orb on top, centered group) so
+        // the orb stays exactly where it was instead of jumping down.
         <Box
           sx={{
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
+            gap: 3,
             p: 3,
           }}
         >
-          {/* Recent reply / live transcript area */}
+          <Box aria-hidden>
+            <VoiceOrb state={voiceOrbState} size={188} />
+          </Box>
+
+          {/* Recent reply / live transcript / status, all in one place */}
           <Stack
             spacing={1.5}
-            sx={{
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              maxWidth: 540,
-              px: 2,
-            }}
+            sx={{ alignItems: 'center', textAlign: 'center', maxWidth: 540, px: 2 }}
           >
             <Typography
               variant="body1"
@@ -836,7 +829,7 @@ export function AgentChatPanel({
                 : voiceSpeaking && lastAssistant
                   ? lastAssistant.text
                   : busy
-                    ? '…'
+                    ? 'Thinking…'
                     : lastAssistant
                       ? lastAssistant.text
                       : 'Starting…'}
@@ -860,42 +853,28 @@ export function AgentChatPanel({
             )}
           </Stack>
 
-          <Box aria-hidden>
-            <VoiceOrb state={voiceOrbState} size={208} />
-          </Box>
-
-          <Stack alignItems="center" spacing={2} sx={{ mt: 1 }}>
-            <Typography
-              variant="caption"
-              role="status"
-              aria-live="polite"
-              sx={{ color: COLORS.text.subtle, letterSpacing: '0.04em' }}
+          <Stack direction="row" spacing={2} alignItems="center">
+            <IconActionButton
+              onClick={() => voiceMode.restart()}
+              disabled={busy || voiceSpeaking || voiceMode.listening}
+              aria-label="Talk now"
+              sx={{
+                width: 56,
+                height: 56,
+                bgcolor: COLORS.bg.subtle,
+                color: COLORS.text.strong,
+                '&:hover': { bgcolor: COLORS.bg.muted },
+                '&.Mui-disabled': { bgcolor: COLORS.bg.muted, color: COLORS.text.placeholder },
+              }}
             >
-              {voiceStatus}
-            </Typography>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <IconActionButton
-                onClick={() => voiceMode.restart()}
-                disabled={busy || voiceSpeaking || voiceMode.listening}
-                aria-label="Talk now"
-                sx={{
-                  width: 56,
-                  height: 56,
-                  bgcolor: COLORS.bg.subtle,
-                  color: COLORS.text.strong,
-                  '&:hover': { bgcolor: COLORS.bg.muted },
-                  '&.Mui-disabled': { bgcolor: COLORS.bg.muted, color: COLORS.text.placeholder },
-                }}
-              >
-                <MicRoundedIcon />
-              </IconActionButton>
-              <SecondaryActionButton
-                onClick={exitVoiceMode}
-                startIcon={<KeyboardRoundedIcon fontSize="small" />}
-              >
-                Switch to chat
-              </SecondaryActionButton>
-            </Stack>
+              <MicRoundedIcon />
+            </IconActionButton>
+            <SecondaryActionButton
+              onClick={exitVoiceMode}
+              startIcon={<KeyboardRoundedIcon fontSize="small" />}
+            >
+              Switch to chat
+            </SecondaryActionButton>
           </Stack>
         </Box>
         )

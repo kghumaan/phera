@@ -124,5 +124,8 @@ export interface AgentProvider {
     messages: AgentChatMessage[];
     tools: AgentToolDefinition[];
     onText?: (text: string) => void;
+    /** Optimize for latency over deliberation (voice): disable extended
+     *  thinking and allow a faster model. */
+    fast?: boolean;
   }): Promise<ProviderTurnResult>;
 }
