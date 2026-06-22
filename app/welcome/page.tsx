@@ -87,7 +87,7 @@ export default function WelcomePage() {
           {/* Secondary: manual form */}
           <PheraCard
             variant="muted"
-            sx={{ flex: 1, p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
+            sx={{ flex: 1, p: 3, display: 'flex', flexDirection: 'column', gap: 2, border: `1px solid ${COLORS.text.strong}` }}
           >
             <EditNoteRoundedIcon sx={{ color: COLORS.text.subtle }} />
             <Typography variant="h6" sx={{ color: COLORS.text.strong }}>
