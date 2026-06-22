@@ -192,7 +192,7 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       `In voice mode you do NOT use ask_user or request_upload — on-screen cards can't be answered by voice and would eject the user to the typed chat. ` +
       `Ask everything conversationally in plain prose, ONE question at a time. ` +
       `For onboarding specifically: do NOT render the two onboarding questions as a card — instead ask, in ONE short spoken sentence, what they'd like help with and where they are in planning, then call set_planning_goals with their goals and stage. ` +
-      `Keep replies short and natural to hear. Avoid bullet lists, tables, and long enumerations — say the few items that matter.`;
+      `Keep replies short and natural to hear: prefer brief sentences, end each with a normal period (never a "…" ellipsis, which stalls the speech), and avoid bullet lists, tables, and long enumerations — say the few items that matter.`;
   }
 
   const toolCtx: AgentToolContext = { supabase, weddingSlug, weddingUuid, userId, conversationId, isPro };

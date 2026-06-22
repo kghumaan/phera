@@ -178,8 +178,7 @@ const RESUME_GREETING = "Let's pick up where we left off — what would you like
 
 /** Hidden kickoff sent on onboarding — never rendered as a user bubble. */
 const HIDDEN_USER_PREFIX = HIDDEN_KICKOFF_PREFIX;
-const ONBOARDING_OPENER =
-  "Hi — I'm here to be your wedding planner and help you wherever you are in the process so far. Let's get started and tell me more about the details…";
+const ONBOARDING_OPENER = "Hi! I'm your Phera wedding planner. What can I help you with?";
 const ONBOARDING_KICKOFF =
   `${HIDDEN_USER_PREFIX} I just signed up and I'm setting up my wedding from scratch. ` +
   `Greet me with EXACTLY this line, nothing before it: "${ONBOARDING_OPENER}" ` +
@@ -187,8 +186,10 @@ const ONBOARDING_KICKOFF =
 const ONBOARDING_KICKOFF_VOICE =
   `${HIDDEN_USER_PREFIX} I just signed up — we're talking by VOICE. ` +
   `Open with EXACTLY this line, nothing before it: "${ONBOARDING_OPENER}" ` +
-  "Then, in ONE short natural sentence, ask where they're currently at — e.g. whether they've booked their venue, sent out invites, or need a wedding website. " +
-  'Keep it brief and conversational: no lists, no on-screen cards, never use ask_user. Once they answer, call set_planning_goals with their goals and stage, then continue.';
+  'Keep it that short — introduce yourself and ask what they need, nothing more. No trailing "…", no second sentence. ' +
+  'Whatever they say (transportation, a website, save-the-dates, RSVPs, vendors, guest list, etc.), help with it: ' +
+  'call set_planning_goals with their goals and stage, then continue in short, natural, one-at-a-time questions. ' +
+  'No lists, no on-screen cards, never use ask_user.';
 
 export interface AgentChatPanelProps {
   weddingSlug: string;
@@ -829,14 +830,23 @@ export function AgentChatPanel({
                     ? '…'
                     : lastAssistant
                       ? lastAssistant.text
-                      : 'Say hello to your planner whenever you’re ready.'}
+                      : 'Starting…'}
             </Typography>
-            {/* Verbose breadth hint — what they can talk about — shown until they
-                start chatting, so the spoken question can stay short. */}
+            {/* Short "what to say" hint with the keywords emphasized, shown until
+                they start chatting so the spoken question can stay brief. */}
             {!items.some((i) => i.kind === 'user') && (
-              <Typography variant="caption" sx={{ color: COLORS.text.subtle, lineHeight: 1.6 }}>
-                Tell me anything — your venue, dates, guest list, RSVPs, a wedding website,
-                room blocks, transportation, vendors, registry, or the day-of schedule.
+              <Typography variant="caption" sx={{ color: COLORS.text.subtle, lineHeight: 1.7 }}>
+                Say things like{' '}
+                {['transportation help', 'a website', 'save-the-dates', 'collecting RSVPs', 'finding vendors'].map(
+                  (phrase, i, arr) => (
+                    <Box component="span" key={phrase}>
+                      <Box component="span" sx={{ fontWeight: 700, color: COLORS.text.muted }}>
+                        {phrase}
+                      </Box>
+                      {i < arr.length - 1 ? ', ' : ''}
+                    </Box>
+                  )
+                )}
               </Typography>
             )}
           </Stack>
