@@ -16,6 +16,7 @@ import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useVoiceInput } from './useVoiceInput';
 import { useVoiceMode } from './useVoiceMode';
+import { useSpeechQueue, drainSentences, type SpeechQueue } from './useSpeechQueue';
 import { VoiceOrb, type OrbState } from './VoiceOrb';
 import { MarkdownText } from './MarkdownText';
 import { importGuestsFromFile, importRoomsFromFile } from '@/lib/agent/chat-uploads';
@@ -130,39 +131,6 @@ function UploadCard({ uploadKind, onPick }: { uploadKind: 'guests' | 'rooms'; on
   );
 }
 
-/** Browser speech-synthesis fallback so replies are always audible even when
- *  the high-quality TTS service is unavailable. */
-function speakViaBrowser(text: string, onDone: () => void) {
-  let settled = false;
-  let watchdog: ReturnType<typeof setTimeout> | undefined;
-  const finish = () => {
-    if (settled) return;
-    settled = true;
-    if (watchdog) clearTimeout(watchdog);
-    onDone();
-  };
-  try {
-    const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
-    if (!synth) {
-      finish();
-      return;
-    }
-    synth.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    utterance.onend = finish;
-    utterance.onerror = finish;
-    // Watchdog: browsers sometimes drop onend/onerror (cancel races, long text,
-    // backgrounded tab). Without this the hands-free loop would never re-open
-    // the mic. ~90ms/char + buffer, capped, so we always resume.
-    watchdog = setTimeout(finish, Math.min(30_000, 4_000 + text.length * 90));
-    synth.speak(utterance);
-  } catch {
-    finish();
-  }
-}
-
 /** Compact one-line summary of what the user answered, for the right-side bubble. */
 function summarizeAnswers(questions: AgentQuestion[], answers: Record<string, string | string[]>): string {
   const parts = questions
@@ -253,7 +221,7 @@ export function AgentChatPanel({
   const [speak, setSpeak] = useState(false);
   const conversationIdRef = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const speechRef = useRef<SpeechQueue | null>(null);
   const guestFileRef = useRef<HTMLInputElement | null>(null);
   const roomFileRef = useRef<HTMLInputElement | null>(null);
   const [attachAnchor, setAttachAnchor] = useState<HTMLElement | null>(null);
@@ -284,10 +252,7 @@ export function AgentChatPanel({
     setSpeak((prev) => {
       const next = !prev;
       window.localStorage.setItem(SPEAK_STORAGE_KEY, next ? '1' : '0');
-      if (!next && audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      if (!next) speechRef.current?.cancel(); // muting → stop any in-flight speech
       return next;
     });
   }, []);
@@ -298,59 +263,21 @@ export function AgentChatPanel({
   // Tracks whether the model has begun streaming this turn (drives the label).
   const streamingRef = useRef(false);
 
-  const playReply = useCallback(async (text: string) => {
-    const wantSpeech = speakRef.current || voiceActiveRef.current;
-    // In voice mode: resume listening once we're done (even with nothing to
-    // speak) so the hands-free loop never stalls. Idempotent — playback end and
-    // the speech watchdog may both call it.
-    let settled = false;
-    const done = () => {
-      if (settled) return;
-      settled = true;
-      setVoiceSpeaking(false);
-      voiceSetSpeakingRef.current(false);
+  // Streaming TTS: sentences are spoken as they arrive (see consumeStream), so
+  // the agent starts talking on the first sentence instead of after the whole
+  // reply is generated. Pauses the mic while speaking; resumes the hands-free
+  // loop once the queue fully drains.
+  const speech = useSpeechQueue({
+    getEnabled: useCallback(() => speakRef.current || voiceActiveRef.current, []),
+    onSpeakingChange: useCallback((s: boolean) => {
+      setVoiceSpeaking(s);
+      voiceSetSpeakingRef.current(s);
+    }, []),
+    onIdle: useCallback(() => {
       if (voiceActiveRef.current) voiceRestartRef.current();
-    };
-    if (!wantSpeech || !text.trim()) {
-      done();
-      return;
-    }
-    // Pause recognition so the mic doesn't transcribe the agent's own voice.
-    voiceSetSpeakingRef.current(true);
-    setVoiceSpeaking(true);
-    try {
-      const res = await fetch('/api/agent/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      });
-      if (!res.ok) {
-        // High-quality TTS unavailable (e.g. terms not yet accepted) — fall
-        // back to the browser voice so the reply is still spoken.
-        speakViaBrowser(text, done);
-        return;
-      }
-      const url = URL.createObjectURL(await res.blob());
-      audioRef.current?.pause();
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      const finish = () => {
-        URL.revokeObjectURL(url);
-        done();
-      };
-      audio.onended = finish;
-      audio.onerror = () => {
-        URL.revokeObjectURL(url);
-        speakViaBrowser(text, done);
-      };
-      void audio.play().catch(() => {
-        URL.revokeObjectURL(url);
-        speakViaBrowser(text, done);
-      });
-    } catch {
-      speakViaBrowser(text, done);
-    }
-  }, []);
+    }, []),
+  });
+  speechRef.current = speech;
 
   useEffect(() => {
     let cancelled = false;
@@ -474,7 +401,9 @@ export function AgentChatPanel({
   /** Shared SSE consumer for chat + confirm responses. */
   const consumeStream = useCallback(
     async (res: Response) => {
-      let spokenText = '';
+      // Sentences are flushed to the speech queue as they complete, so audio
+      // starts on the first sentence instead of after the full reply.
+      let speechBuf = '';
       try {
         if (!res.ok || !res.body) {
           handleEvent({ type: 'error', message: 'I could not reach the planner just now — please try again.' });
@@ -502,7 +431,12 @@ export function AgentChatPanel({
                   streamingRef.current = true;
                   setBusyLabel('Thinking…');
                 }
-                if (event.type === 'text_delta') spokenText += event.text;
+                if (event.type === 'text_delta') {
+                  speechBuf += event.text;
+                  const { sentences, rest } = drainSentences(speechBuf, false);
+                  for (const s of sentences) speech.enqueue(s);
+                  speechBuf = rest;
+                }
                 handleEvent(event);
               }
             } catch {
@@ -511,12 +445,15 @@ export function AgentChatPanel({
           }
         }
       } finally {
-        // Always speak the reply (if any) AND, in voice mode, resume listening —
-        // even on a failed/aborted turn — so the hands-free loop never stalls.
-        void playReply(spokenText);
+        // Flush any trailing partial sentence, then signal end-of-reply so the
+        // queue resumes the hands-free loop once it drains — even on a
+        // failed/aborted turn, so voice never stalls.
+        const { sentences } = drainSentences(speechBuf, true);
+        for (const s of sentences) speech.enqueue(s);
+        speech.end();
       }
     },
-    [handleEvent, playReply]
+    [handleEvent, speech]
   );
 
   const resolveAction = useCallback(
@@ -700,14 +637,9 @@ export function AgentChatPanel({
   const exitVoiceMode = useCallback(() => {
     voiceMode.stop();
     setVoicePending(false);
-    audioRef.current?.pause();
-    try {
-      window.speechSynthesis?.cancel();
-    } catch {
-      /* noop */
-    }
+    speech.cancel(); // stop any queued/playing speech
     setVoiceSpeaking(false);
-  }, [voiceMode]);
+  }, [voiceMode, speech]);
 
   const toggleVoiceMode = useCallback(() => {
     if (voiceMode.active || voicePending) exitVoiceMode();
@@ -764,14 +696,15 @@ export function AgentChatPanel({
     if (!onboarding && hasExistingData) {
       if (voiceActiveRef.current) {
         setItems((prev) => [...prev, { kind: 'assistant', text: RESUME_GREETING }]);
-        void playReply(RESUME_GREETING);
+        speech.enqueue(RESUME_GREETING);
+        speech.end();
       }
       return;
     }
     if (items.length === 0) {
       void send(voiceActiveRef.current ? ONBOARDING_KICKOFF_VOICE : ONBOARDING_KICKOFF);
     }
-  }, [loadingHistory, voicePending, onboarding, hasExistingData, awaitingQuestions, items.length, send, playReply]);
+  }, [loadingHistory, voicePending, onboarding, hasExistingData, awaitingQuestions, items.length, send, speech]);
 
   const voiceOrbState: OrbState = busy
     ? 'thinking'
