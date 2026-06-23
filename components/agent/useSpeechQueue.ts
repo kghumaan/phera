@@ -54,6 +54,8 @@ function stripForSpeech(text: string): string {
     .replace(/`([^`]+)`/g, '$1') // inline code
     .replace(/!?\[([^\]]+)\]\([^)]+\)/g, '$1') // links / images → label
     .replace(/[*_#>~]/g, '') // emphasis / headings / quotes
+    .replace(/\s*[—–]\s*/g, ', ') // em/en dashes → comma (a dash forces a long TTS pause)
+    .replace(/…/g, '. ') // ellipsis → sentence break, not a long drone
     .replace(/\s+/g, ' ')
     .trim();
 }

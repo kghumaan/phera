@@ -47,8 +47,8 @@ type ChatItem =
       questions: AgentQuestion[];
       status: 'pending' | 'resolving' | 'done';
     }
-  | { kind: 'upgrade'; feature: string }
-  | { kind: 'upload'; uploadKind: 'guests' | 'rooms' };
+  | { kind: 'upgrade'; feature: string; dismissed?: boolean }
+  | { kind: 'upload'; uploadKind: 'guests' | 'rooms'; dismissed?: boolean };
 
 const GUEST_SCHEMA_COLUMNS = ['Name', 'Email', 'Phone', 'Plus One', 'Party Size', 'Tags'];
 const GUEST_SCHEMA_EXAMPLE = ['Arjun Mehta', 'arjun@example.com', '+1 415 555 0200', 'Aisha Mehta', '2', 'groom-side, family'];
@@ -174,7 +174,7 @@ function itemsFromPersisted(messages: Array<{ role: string; content: AgentConten
 const SPEAK_STORAGE_KEY = 'phera-agent-speak';
 
 /** Spoken when reopening the planner with work already in progress. */
-const RESUME_GREETING = "Let's pick up where we left off — what would you like to tackle next?";
+const RESUME_GREETING = "Let's pick up where we left off. What would you like to tackle next?";
 
 /** Hidden kickoff sent on onboarding — never rendered as a user bubble. */
 const HIDDEN_USER_PREFIX = HIDDEN_KICKOFF_PREFIX;
@@ -534,6 +534,8 @@ export function AgentChatPanel({
           const r = await importRoomsFromFile(file, weddingSlug);
           note = `${HIDDEN_USER_PREFIX} I just uploaded my hotel floor plan — ${r.count} rooms added. Confirm in one short line and continue with the next step.`;
         }
+        // Upload done — clear any upload panel so it doesn't linger.
+        setItems((prev) => prev.map((it) => (it.kind === 'upload' ? { ...it, dismissed: true } : it)));
         // Hand off to the agent so it confirms + keeps moving (no dead end).
         streamingRef.current = false;
         setBusyLabel('Thinking…');
@@ -675,6 +677,25 @@ export function AgentChatPanel({
     .find((i): i is Extract<ChatItem, { kind: 'questions' }> => i.kind === 'questions' && i.status !== 'done');
   const awaitingQuestions = !!pendingQuestions;
 
+  // Upload / upgrade actions need a click, so in voice mode they surface as a
+  // big obvious panel (the typed chat renders them inline instead). We show the
+  // most recent one that hasn't been acted on or skipped.
+  const voiceActionIndex = (() => {
+    for (let i = items.length - 1; i >= 0; i--) {
+      const it = items[i];
+      if ((it.kind === 'upload' || it.kind === 'upgrade') && !it.dismissed) return i;
+    }
+    return -1;
+  })();
+  const voiceAction = voiceActionIndex >= 0 ? items[voiceActionIndex] : null;
+  const dismissVoiceAction = useCallback((index: number) => {
+    setItems((prev) =>
+      prev.map((it, i) =>
+        i === index && (it.kind === 'upload' || it.kind === 'upgrade') ? { ...it, dismissed: true } : it
+      )
+    );
+  }, []);
+
   // Question cards can't be answered by voice — if one appears while in (or
   // about to enter) voice mode, drop to the typed surface so the user can respond.
   useEffect(() => {
@@ -759,6 +780,28 @@ export function AgentChatPanel({
           </SecondaryActionButton>
         )}
       </Stack>
+      {/* File pickers live at the card root so they work from both the voice
+          action panel and the typed composer. */}
+      <input
+        ref={guestFileRef}
+        type="file"
+        accept=".csv,.tsv,.txt,.xlsx,.xls,.vcf,.vcard"
+        hidden
+        onChange={(e) => {
+          void handleUpload('guests', e.target.files?.[0]);
+          e.target.value = '';
+        }}
+      />
+      <input
+        ref={roomFileRef}
+        type="file"
+        accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.xlsx,.xls"
+        hidden
+        onChange={(e) => {
+          void handleUpload('rooms', e.target.files?.[0]);
+          e.target.value = '';
+        }}
+      />
       {showVoice ? (
         !voiceMode.active ? (
         // Tap-to-start gate: the tap unlocks audio so the opener is heard, and
@@ -813,45 +856,123 @@ export function AgentChatPanel({
             <VoiceOrb state={voiceOrbState} size={188} />
           </Box>
 
-          {/* Recent reply / live transcript / status, all in one place */}
-          <Stack
-            spacing={1.5}
-            sx={{ alignItems: 'center', textAlign: 'center', maxWidth: 540, px: 2 }}
-          >
-            <Typography
-              variant="body1"
-              role="status"
-              aria-live="polite"
-              sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}
+          {/* Big, obvious action panel for things that need a click (CSV import,
+              upgrade) — these can't be done by voice, so surface them here with a
+              clear primary action and a skip. */}
+          {voiceAction?.kind === 'upload' && (
+            <PheraCard
+              variant="feature"
+              sx={{
+                width: '100%',
+                maxWidth: 480,
+                p: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: 1.25,
+                border: `2px solid ${COLORS.brand.primary}`,
+              }}
             >
-              {voiceMode.listening && voiceMode.interim
-                ? voiceMode.interim
-                : voiceSpeaking && lastAssistant
-                  ? lastAssistant.text
-                  : busy
-                    ? 'Thinking…'
-                    : lastAssistant
-                      ? lastAssistant.text
-                      : 'Starting…'}
-            </Typography>
-            {/* Short "what to say" hint with the keywords emphasized, shown until
-                they start chatting so the spoken question can stay brief. */}
-            {!items.some((i) => i.kind === 'user') && (
-              <Typography variant="caption" sx={{ color: COLORS.text.subtle, lineHeight: 1.7 }}>
-                Say things like{' '}
-                {['transportation help', 'a website', 'save-the-dates', 'collecting RSVPs', 'finding vendors'].map(
-                  (phrase, i, arr) => (
-                    <Box component="span" key={phrase}>
-                      <Box component="span" sx={{ fontWeight: 700, color: COLORS.text.muted }}>
-                        {phrase}
-                      </Box>
-                      {i < arr.length - 1 ? ', ' : ''}
-                    </Box>
-                  )
-                )}
+              <UploadFileRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 34 }} />
+              <Typography variant="h6" sx={{ color: COLORS.text.strong }}>
+                {voiceAction.uploadKind === 'rooms' ? 'Add your room block' : 'Add your guest list'}
               </Typography>
-            )}
-          </Stack>
+              <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
+                {voiceAction.uploadKind === 'rooms'
+                  ? 'Upload a PDF, image, or spreadsheet of your hotel rooms and I’ll read them in.'
+                  : 'Upload a CSV, Excel, or vCard and I’ll import everyone automatically.'}
+              </Typography>
+              <Stack direction="row" spacing={1.5} sx={{ mt: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <PrimaryActionButton
+                  startIcon={<UploadFileRoundedIcon fontSize="small" />}
+                  onClick={() =>
+                    voiceAction.uploadKind === 'rooms'
+                      ? roomFileRef.current?.click()
+                      : guestFileRef.current?.click()
+                  }
+                >
+                  {voiceAction.uploadKind === 'rooms' ? 'Upload floor plan' : 'Upload guest list'}
+                </PrimaryActionButton>
+                <SecondaryActionButton onClick={() => dismissVoiceAction(voiceActionIndex)}>
+                  Skip for now
+                </SecondaryActionButton>
+              </Stack>
+            </PheraCard>
+          )}
+          {voiceAction?.kind === 'upgrade' && (
+            <PheraCard
+              variant="feature"
+              sx={{
+                width: '100%',
+                maxWidth: 480,
+                p: 3,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: 1.25,
+                border: `2px solid ${COLORS.brand.primary}`,
+              }}
+            >
+              <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 34 }} />
+              <Typography variant="h6" sx={{ color: COLORS.text.strong }}>
+                {voiceAction.feature} is a Premium feature
+              </Typography>
+              <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
+                Upgrade to unlock it and everything else. You can do this now or later.
+              </Typography>
+              <Stack direction="row" spacing={1.5} sx={{ mt: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <PrimaryActionButton onClick={() => setUpgradeOpen(true)}>Upgrade</PrimaryActionButton>
+                <SecondaryActionButton onClick={() => dismissVoiceAction(voiceActionIndex)}>
+                  Maybe later
+                </SecondaryActionButton>
+              </Stack>
+            </PheraCard>
+          )}
+
+          {/* Recent reply / live transcript / status — hidden while an action
+              panel is up so the panel stays the clear focus. */}
+          {!voiceAction && (
+            <Stack
+              spacing={1.5}
+              sx={{ alignItems: 'center', textAlign: 'center', maxWidth: 540, px: 2 }}
+            >
+              <Typography
+                variant="body1"
+                role="status"
+                aria-live="polite"
+                sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}
+              >
+                {voiceMode.listening && voiceMode.interim
+                  ? voiceMode.interim
+                  : voiceSpeaking && lastAssistant
+                    ? lastAssistant.text
+                    : busy
+                      ? 'Thinking…'
+                      : lastAssistant
+                        ? lastAssistant.text
+                        : 'Starting…'}
+              </Typography>
+              {/* Short "what to say" hint with the keywords emphasized, shown until
+                  they start chatting so the spoken question can stay brief. */}
+              {!items.some((i) => i.kind === 'user') && (
+                <Typography variant="caption" sx={{ color: COLORS.text.subtle, lineHeight: 1.7 }}>
+                  Say things like{' '}
+                  {['transportation help', 'a website', 'save-the-dates', 'collecting RSVPs', 'finding vendors'].map(
+                    (phrase, i, arr) => (
+                      <Box component="span" key={phrase}>
+                        <Box component="span" sx={{ fontWeight: 700, color: COLORS.text.muted }}>
+                          {phrase}
+                        </Box>
+                        {i < arr.length - 1 ? ', ' : ''}
+                      </Box>
+                    )
+                  )}
+                </Typography>
+              )}
+            </Stack>
+          )}
 
           <Stack direction="row" spacing={2} alignItems="center">
             <IconActionButton
@@ -1092,26 +1213,6 @@ export function AgentChatPanel({
             }}
             disabled={busy || awaitingQuestions}
             autoComplete="off"
-          />
-          <input
-            ref={guestFileRef}
-            type="file"
-            accept=".csv,.tsv,.txt,.xlsx,.xls,.vcf,.vcard"
-            hidden
-            onChange={(e) => {
-              void handleUpload('guests', e.target.files?.[0]);
-              e.target.value = '';
-            }}
-          />
-          <input
-            ref={roomFileRef}
-            type="file"
-            accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.xlsx,.xls"
-            hidden
-            onChange={(e) => {
-              void handleUpload('rooms', e.target.files?.[0]);
-              e.target.value = '';
-            }}
           />
           <IconActionButton
             onClick={(e) => setAttachAnchor(e.currentTarget)}

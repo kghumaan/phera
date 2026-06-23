@@ -209,7 +209,8 @@ describe('runAgentTurn', () => {
 
     expect(plainSnapshot).not.toContain('HANDS-FREE VOICE');
     expect(voiceSnapshot).toContain('HANDS-FREE VOICE');
-    expect(voiceSnapshot).toContain('do NOT use ask_user');
+    expect(voiceSnapshot).toContain('Do NOT use ask_user');
+    expect(voiceSnapshot).toContain('request_upload IS allowed');
   });
 
   it('surfaces refusals as an error event without persisting an assistant turn', async () => {

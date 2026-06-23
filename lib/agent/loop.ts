@@ -148,12 +148,16 @@ async function releaseTurnLock(supabase: SupabaseClient, conversationId: string)
 async function persistMessage(
   supabase: SupabaseClient,
   conversationId: string,
-  message: AgentChatMessage
+  message: AgentChatMessage,
+  // Explicit timestamp keeps reload ordering correct even though these inserts
+  // run concurrently (off the turn's critical path) rather than awaited in turn.
+  createdAt?: string
 ) {
   const { error } = await supabase.from('agent_messages').insert({
     conversation_id: conversationId,
     role: message.role,
     content: message.content,
+    ...(createdAt ? { created_at: createdAt } : {}),
   });
   if (error) console.error('agent_messages insert failed:', error.message);
 }
@@ -187,23 +191,33 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
   snapshot.text += `\nPlan: ${isPro ? 'Pro (all features unlocked)' : 'Basic / free — Room assignments, Transportation, and Vendor coordination require an upgrade'}`;
   if (args.voice) {
     snapshot.text +=
-      `\n\nMODALITY: The user is in HANDS-FREE VOICE mode — your reply is read aloud and they answer by speaking. ` +
-      `This OVERRIDES every instruction above that tells you to use ask_user, request_upload, or on-screen cards — INCLUDING the ONBOARDING rule. ` +
-      `In voice mode you do NOT use ask_user or request_upload — on-screen cards can't be answered by voice and would eject the user to the typed chat. ` +
-      `Ask everything conversationally in plain prose, ONE question at a time. ` +
-      `For onboarding specifically: do NOT render the two onboarding questions as a card — instead ask, in ONE short spoken sentence, what they'd like help with and where they are in planning, then call set_planning_goals with their goals and stage. ` +
-      `If something needs a paid upgrade, the on-screen upgrade card isn't visible in voice — so just SAY in one short line that it's a Premium feature they can upgrade for later, then move on. ` +
-      `Keep replies short and natural to hear: prefer brief sentences, end each with a normal period (never a "…" ellipsis, which stalls the speech), and avoid bullet lists, tables, and long enumerations — say the few items that matter.`;
+      `\n\nMODALITY: The user is in HANDS-FREE VOICE mode. Your reply is read aloud and they answer by speaking. ` +
+      `Do NOT use ask_user. This OVERRIDES the ONBOARDING rule: never render the onboarding questions as a card. ` +
+      `Instead ask, in ONE short spoken sentence, what they'd like help with and where they are in planning, then call set_planning_goals with their goals and stage. ` +
+      `Ask everything else conversationally in plain prose too, ONE question at a time. ` +
+      `request_upload IS allowed: when they want to add many guests or a room block, call it so a big upload panel appears in voice, and say in one line that they can upload now or skip for now. ` +
+      `When something needs a paid upgrade, still call the tool: a big upgrade panel appears in voice. Say in one short line that it's a Premium feature they can upgrade for now or later, then move on. ` +
+      `Keep replies short and natural to hear: prefer brief sentences and end each with a normal period. ` +
+      `Never use a "…" ellipsis or an em dash (it forces a long pause in speech); use separate short sentences or commas instead. ` +
+      `Avoid bullet lists, tables, and long enumerations; say the few items that matter.`;
   }
 
   const toolCtx: AgentToolContext = { supabase, weddingSlug, weddingUuid, userId, conversationId, isPro };
   const tools = getAllTools();
 
+  // DB writes run off the critical path (collected here, flushed before the turn
+  // ends) so the model isn't blocked on Supabase between rounds. Explicit
+  // ordered timestamps preserve reload order despite concurrent inserts.
+  const turnStart = Date.now();
+  let seq = 0;
+  const stamp = () => new Date(turnStart + seq++).toISOString();
+  const pendingWrites: Promise<unknown>[] = [];
+
   const userMessage: AgentChatMessage = {
     role: 'user',
     content: [{ type: 'text', text: args.userMessage }],
   };
-  await persistMessage(supabase, conversationId, userMessage);
+  pendingWrites.push(persistMessage(supabase, conversationId, userMessage, stamp()));
   const messages: AgentChatMessage[] = [...history, userMessage];
 
   const usageTotals = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, rounds: 0 };
@@ -228,12 +242,13 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
 
     if (result.stopReason === 'refusal') {
       onEvent({ type: 'error', message: 'The assistant declined to answer that request.' });
+      await Promise.allSettled(pendingWrites);
       return;
     }
 
     const assistantMessage: AgentChatMessage = { role: 'assistant', content: result.content };
     messages.push(assistantMessage);
-    await persistMessage(supabase, conversationId, assistantMessage);
+    pendingWrites.push(persistMessage(supabase, conversationId, assistantMessage, stamp()));
 
     const toolUses = result.content.filter(
       (b): b is Extract<AgentContentBlock, { type: 'tool_use' }> => b.type === 'tool_use'
@@ -277,12 +292,17 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
 
     const toolMessage: AgentChatMessage = { role: 'user', content: toolResults };
     messages.push(toolMessage);
-    await persistMessage(supabase, conversationId, toolMessage);
+    pendingWrites.push(persistMessage(supabase, conversationId, toolMessage, stamp()));
 
     // Questions are now in front of the user — end the turn instead of letting
     // the model add a redundant "I'll wait for your answers" line.
     if (parkedQuestions) break;
   }
+
+  // Ensure all message writes have landed before compaction reads them back and
+  // before the turn ends. These ran concurrently with the model rounds, so the
+  // user already heard the streamed reply — this tail doesn't delay them.
+  await Promise.allSettled(pendingWrites);
 
   await supabase
     .from('agent_conversations')
