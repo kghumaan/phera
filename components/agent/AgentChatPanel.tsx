@@ -63,7 +63,7 @@ function UploadCard({ uploadKind, onPick }: { uploadKind: 'guests' | 'rooms'; on
           maxWidth: '92%',
           border: `1px solid ${COLORS.border.faint}`,
           bgcolor: COLORS.bg.subtle,
-          borderRadius: `${RADII.md}px`,
+          borderRadius: `${RADII.lg}px`,
           p: 2,
         }}
       >
@@ -87,7 +87,7 @@ function UploadCard({ uploadKind, onPick }: { uploadKind: 'guests' | 'rooms'; on
         maxWidth: '92%',
         border: `1px solid ${COLORS.border.faint}`,
         bgcolor: COLORS.bg.subtle,
-        borderRadius: `${RADII.md}px`,
+        borderRadius: `${RADII.lg}px`,
         p: 2,
       }}
     >
@@ -1044,7 +1044,7 @@ export function AgentChatPanel({
                     alignSelf: 'flex-start',
                     border: `1px solid ${COLORS.brand.primaryBorder}`,
                     bgcolor: COLORS.brand.primaryWash,
-                    borderRadius: `${RADII.md}px`,
+                    borderRadius: `${RADII.lg}px`,
                     px: 2,
                     py: 1.5,
                     maxWidth: '85%',
@@ -1087,7 +1087,7 @@ export function AgentChatPanel({
                     maxWidth: '85%',
                     border: `1px solid ${COLORS.brand.primaryBorder}`,
                     bgcolor: COLORS.brand.primaryWash,
-                    borderRadius: `${RADII.md}px`,
+                    borderRadius: `${RADII.lg}px`,
                     px: 2,
                     py: 1.75,
                   }}
@@ -1134,7 +1134,7 @@ export function AgentChatPanel({
                     maxWidth: '85%',
                     px: 2,
                     py: 1.25,
-                    borderRadius: `${RADII.md}px`,
+                    borderRadius: `${RADII.lg}px`,
                     bgcolor: item.kind === 'user' ? COLORS.brand.primarySubtle : COLORS.bg.subtle,
                     border: `1px solid ${item.kind === 'user' ? COLORS.brand.primaryBorder : COLORS.border.faint}`,
                   }}

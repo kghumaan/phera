@@ -7,30 +7,37 @@ import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import EditNoteRoundedIcon from '@mui/icons-material/EditNoteRounded';
 import { PheraCard } from '@/components/shared/Card';
+import { PheraChip } from '@/components/shared/Chip';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
 import { COLORS } from '@/lib/theme/tokens';
 
 export default function WelcomePage() {
   const router = useRouter();
-  const [starting, setStarting] = useState(false);
+  // Which path is being set up — drives the in-button "Setting up…" state.
+  const [pending, setPending] = useState<null | 'ai' | 'manual'>(null);
   const [error, setError] = useState<string | null>(null);
 
   const startWithAI = async () => {
-    setStarting(true);
+    setPending('ai');
     setError(null);
     try {
       const res = await fetch('/api/agent/onboard/start', { method: 'POST' });
       const data = await res.json();
       if (!res.ok || !data.slug) {
         setError(data.error ?? 'Something went wrong — try again.');
-        setStarting(false);
+        setPending(null);
         return;
       }
       router.push(`/admin/${data.slug}/assistant?welcome=1`);
     } catch {
       setError('Something went wrong — try again.');
-      setStarting(false);
+      setPending(null);
     }
+  };
+
+  const startManual = () => {
+    setPending('manual');
+    router.push('/onboarding');
   };
 
   return (
@@ -50,7 +57,7 @@ export default function WelcomePage() {
             Let&apos;s get started
           </Typography>
           <Typography variant="body1" sx={{ color: COLORS.text.muted, maxWidth: 520 }}>
-            Two ways to set up your wedding. Talk to your AI planner, or fill it out yourself.
+            Want to chat with our AI planner over voice, or prefer to set things up yourself?
           </Typography>
         </Stack>
 
@@ -67,20 +74,31 @@ export default function WelcomePage() {
               border: `2px solid ${COLORS.brand.primary}`,
             }}
           >
-            <Stack direction="row" spacing={1} alignItems="center">
-              <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary }} />
-              <MicRoundedIcon sx={{ color: COLORS.brand.primary }} />
+            <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+              <Stack direction="row" spacing={1} alignItems="center">
+                <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary }} />
+                <MicRoundedIcon sx={{ color: COLORS.brand.primary }} />
+              </Stack>
+              <PheraChip tone="brand" size="small" label="Recommended" />
             </Stack>
             <Typography variant="h6" sx={{ color: COLORS.text.strong }}>
               Set up with your AI planner
             </Typography>
             <Typography variant="body2" sx={{ color: COLORS.text.muted, flex: 1 }}>
-              Tell it your names, dates, and venue out loud or by typing. It builds your
-              schedule, guest list, and more as you talk — and asks the smart questions a
-              real planner would. <strong>Recommended.</strong>
+              Tell us where you are so far — your venue, vendors, and what you still need. We&apos;ll
+              fill the gaps, from RSVPs and your guest list to room assignments, transportation, and
+              your wedding website, and flag things you might not have thought of. Think of it as your
+              personal planner in your pocket.
             </Typography>
-            <PrimaryActionButton onClick={startWithAI} loading={starting} disabled={starting} fullWidth>
-              Start with AI
+            <PrimaryActionButton
+              onClick={startWithAI}
+              disabled={pending !== null}
+              startIcon={
+                pending === 'ai' ? <CircularProgress size={16} sx={{ color: COLORS.text.inverse }} /> : undefined
+              }
+              fullWidth
+            >
+              {pending === 'ai' ? 'Setting up your wedding…' : 'Start with AI'}
             </PrimaryActionButton>
           </PheraCard>
 
@@ -97,25 +115,31 @@ export default function WelcomePage() {
               Prefer forms? Walk through the classic step-by-step setup and enter
               everything manually. You can switch to the AI planner anytime.
             </Typography>
-            <SecondaryActionButton onClick={() => router.push('/onboarding')} disabled={starting} fullWidth>
-              Use the manual setup
+            <SecondaryActionButton
+              onClick={startManual}
+              disabled={pending !== null}
+              startIcon={
+                pending === 'manual' ? <CircularProgress size={16} sx={{ color: COLORS.brand.primary }} /> : undefined
+              }
+              fullWidth
+            >
+              {pending === 'manual' ? 'Setting up your wedding…' : 'Use the manual setup'}
             </SecondaryActionButton>
           </PheraCard>
         </Stack>
+
+        <Typography
+          variant="caption"
+          sx={{ display: 'block', textAlign: 'center', color: COLORS.text.subtle, mt: 2.5, maxWidth: 560, mx: 'auto' }}
+        >
+          Chatting with your planner is completely free. If something needs a premium upgrade, we&apos;ll
+          let you know up front, before you get deep into it.
+        </Typography>
 
         {error && (
           <Typography variant="body2" sx={{ color: COLORS.accent.dangerText, mt: 2, textAlign: 'center' }}>
             {error}
           </Typography>
-        )}
-
-        {starting && (
-          <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" mt={2}>
-            <CircularProgress size={16} sx={{ color: COLORS.brand.primary }} />
-            <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
-              Setting up your wedding…
-            </Typography>
-          </Stack>
         )}
       </Box>
     </Box>
