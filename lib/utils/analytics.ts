@@ -106,21 +106,6 @@ class Analytics {
 export const analytics = new Analytics();
 
 // Helper functions for easy use
-export const trackAgentCardClick = (agent_id: string) => {
-  analytics.trackAgentInteraction({
-    agent_id,
-    action_type: 'card_click',
-  });
-};
-
-export const trackAgentModalOpen = (agent_id: string, cta_type: 'waitlist' | 'pre-order' | 'learn-more') => {
-  analytics.trackAgentInteraction({
-    agent_id,
-    action_type: 'modal_open',
-    cta_type,
-  });
-};
-
 export const trackWaitlistSignup = (agent_id: string) => {
   analytics.trackAgentInteraction({
     agent_id,

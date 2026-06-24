@@ -191,7 +191,7 @@ export default function AgentPlannerMock() {
               sx={{
                 bgcolor: COLORS.bg.subtle,
                 border: `1px solid ${COLORS.border.faint}`,
-                borderRadius: `${RADII.md}px`,
+                borderRadius: RADII.md,
                 px: 1.25,
                 py: 0.9,
                 display: 'flex',
@@ -251,7 +251,7 @@ function BubbleView({ bubble }: { bubble: Bubble }) {
         maxWidth: '82%',
         px: 1.25,
         py: 0.9,
-        borderRadius: `${RADII.md}px`,
+        borderRadius: RADII.md,
         bgcolor: isUser ? COLORS.brand.primarySubtle : COLORS.bg.subtle,
         border: `1px solid ${isUser ? COLORS.brand.primaryBorder : COLORS.border.faint}`,
       }}
