@@ -14,7 +14,7 @@ import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import { ActionButton } from '@/components/admin/ActionButton';
 import { COLORS, RADII, SHADOWS } from '@/lib/theme/tokens';
 import { VoiceOrb, type OrbState } from '@/components/agent/VoiceOrb';
-import { SectionHeader } from './design-primitives';
+import { Reveal } from './design-primitives';
 
 type Step = { state: OrbState; caption: string; lines: number; chips: number; dur: number };
 
@@ -76,135 +76,171 @@ export default function MeetYourPlannerSection() {
   return (
     <section id="meet-planner" className="section" style={{ background: 'var(--white)' }}>
       <div className="container">
-        <SectionHeader
-          align="center"
-          eyebrow="Meet your planner"
-          title="Say it out loud."
-          kicker="One AI wedding planner you run by voice or chat. Wherever you are — newly engaged or down to the final week — just say what's happening and watch your whole wedding update in real time."
-        />
-
-        <div className="myp-stage">
-          <div className="myp-orb" aria-hidden>
-            <VoiceOrb state={cur.state} size={300} />
-          </div>
-
-          <p className="myp-caption" role="status" aria-live="polite">
-            {cur.caption}
-          </p>
-
-          {/* Scripted proof — desktop only (hidden under 960px to stay minimal). */}
-          <div className="myp-transcript" aria-hidden>
-            {TRANSCRIPT.map((t, i) => {
-              const visible = i < cur.lines;
-              const isPlanner = t.role === 'planner';
-              const chipVisible = !!t.chip && visible && cur.chips >= chipOrdinalAt(i);
-              return (
-                <div
-                  key={i}
-                  className="myp-row"
-                  style={{
-                    alignItems: isPlanner ? 'flex-start' : 'flex-end',
-                    opacity: visible ? 1 : 0,
-                    transform: visible ? 'translateY(0)' : 'translateY(6px)',
+        <div className="myp-grid">
+          {/* LEFT — copy, points, CTAs */}
+          <div className="myp-left">
+            <Reveal>
+              <h2
+                className="display wrap-balance"
+                style={{
+                  fontFamily: 'var(--font-instrument-serif), Georgia, serif',
+                  fontStyle: 'italic',
+                  fontWeight: 400,
+                  letterSpacing: '-0.025em',
+                  lineHeight: 0.98,
+                  fontSize: 'clamp(40px, 4.6vw, 62px)',
+                  color: 'var(--text-strong)',
+                  margin: 0,
+                }}
+              >
+                Meet your planner.
+              </h2>
+            </Reveal>
+            <Reveal delay={1}>
+              <p className="myp-kicker">
+                One AI wedding planner you run by voice or chat. Wherever you are — newly engaged or
+                down to the final week — just say what&apos;s happening and watch your whole wedding
+                update in real time.
+              </p>
+            </Reveal>
+            <Reveal delay={2}>
+              <ul className="myp-points">
+                {BULLETS.map((b) => (
+                  <li key={b}>
+                    <span className="myp-check" aria-hidden>
+                      ✓
+                    </span>
+                    {b}
+                  </li>
+                ))}
+              </ul>
+            </Reveal>
+            <Reveal delay={3}>
+              <div className="myp-ctas">
+                <ActionButton
+                  href="/auth/login"
+                  variant="contained"
+                  className="btn btn-primary"
+                  sx={{
+                    fontSize: { xs: 15, sm: 16 },
+                    padding: { xs: '13px 22px', sm: '16px 28px' },
+                    borderRadius: RADII.pill,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    bgcolor: 'var(--accent)',
+                    color: COLORS.text.inverse,
+                    '&:hover': { bgcolor: 'var(--accent-hover)' },
+                  }}
+                  endIcon={
+                    <span className="btn-arrow" style={{ display: 'inline-block' }}>
+                      →
+                    </span>
+                  }
+                >
+                  Start a conversation
+                </ActionButton>
+                <ActionButton
+                  href="/demo"
+                  variant="outlined"
+                  className="btn btn-ghost"
+                  spinnerColor={COLORS.brand.primary}
+                  sx={{
+                    fontSize: { xs: 15, sm: 16 },
+                    padding: { xs: '13px 22px', sm: '16px 28px' },
+                    borderRadius: RADII.pill,
+                    textTransform: 'none',
+                    fontWeight: 600,
                   }}
                 >
-                  <div
-                    className="myp-bubble"
-                    style={{
-                      alignSelf: isPlanner ? 'flex-start' : 'flex-end',
-                      background: isPlanner ? COLORS.bg.white : COLORS.brand.primaryWash,
-                      border: `1px solid ${isPlanner ? COLORS.border.faint : COLORS.brand.primaryBorder}`,
-                      color: COLORS.text.strong,
-                      boxShadow: SHADOWS.card,
-                    }}
-                  >
-                    {!isPlanner && (
-                      <MicRoundedIcon sx={{ fontSize: 15, color: COLORS.brand.primary, mr: 0.75, verticalAlign: '-2px' }} />
-                    )}
-                    {t.text}
-                  </div>
-                  {t.chip && (
-                    <span
-                      className="myp-chip"
-                      style={{
-                        background: COLORS.accent.successBg,
-                        color: COLORS.accent.successText,
-                        opacity: chipVisible ? 1 : 0,
-                        transform: chipVisible ? 'scale(1)' : 'scale(0.85)',
-                      }}
-                    >
-                      ✓ Updated · {t.chip}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+                  Watch the demo
+                </ActionButton>
+              </div>
+            </Reveal>
           </div>
 
-          <ul className="myp-points">
-            {BULLETS.map((b) => (
-              <li key={b}>
-                <span className="myp-check" aria-hidden>
-                  ✓
-                </span>
-                {b}
-              </li>
-            ))}
-          </ul>
-
-          <div className="myp-ctas">
-            <ActionButton
-              href="/auth/login"
-              variant="contained"
-              className="btn btn-primary"
-              sx={{
-                fontSize: { xs: 15, sm: 16 },
-                padding: { xs: '13px 22px', sm: '16px 28px' },
-                borderRadius: RADII.pill,
-                textTransform: 'none',
-                fontWeight: 600,
-                bgcolor: 'var(--accent)',
-                color: COLORS.text.inverse,
-                '&:hover': { bgcolor: 'var(--accent-hover)' },
-              }}
-              endIcon={
-                <span className="btn-arrow" style={{ display: 'inline-block' }}>
-                  →
-                </span>
-              }
-            >
-              Start a conversation
-            </ActionButton>
-            <ActionButton
-              href="/demo"
-              variant="outlined"
-              className="btn btn-ghost"
-              spinnerColor={COLORS.brand.primary}
-              sx={{
-                fontSize: { xs: 15, sm: 16 },
-                padding: { xs: '13px 22px', sm: '16px 28px' },
-                borderRadius: RADII.pill,
-                textTransform: 'none',
-                fontWeight: 600,
-              }}
-            >
-              Watch the demo
-            </ActionButton>
+          {/* RIGHT — the orb + live conversation */}
+          <div className="myp-right" aria-hidden>
+            <div className="myp-orb">
+              <VoiceOrb state={cur.state} size={190} />
+            </div>
+            <p className="myp-caption" role="status" aria-live="polite">
+              {cur.caption}
+            </p>
+            <div className="myp-transcript">
+              {TRANSCRIPT.map((t, i) => {
+                const visible = i < cur.lines;
+                const isPlanner = t.role === 'planner';
+                const chipVisible = !!t.chip && visible && cur.chips >= chipOrdinalAt(i);
+                return (
+                  <div
+                    key={i}
+                    className="myp-row"
+                    style={{
+                      alignItems: isPlanner ? 'flex-start' : 'flex-end',
+                      opacity: visible ? 1 : 0,
+                      transform: visible ? 'translateY(0)' : 'translateY(6px)',
+                    }}
+                  >
+                    <div
+                      className="myp-bubble"
+                      style={{
+                        alignSelf: isPlanner ? 'flex-start' : 'flex-end',
+                        background: isPlanner ? COLORS.bg.white : COLORS.brand.primaryWash,
+                        border: `1px solid ${isPlanner ? COLORS.border.faint : COLORS.brand.primaryBorder}`,
+                        color: COLORS.text.strong,
+                        boxShadow: SHADOWS.card,
+                      }}
+                    >
+                      {!isPlanner && (
+                        <MicRoundedIcon sx={{ fontSize: 15, color: COLORS.brand.primary, mr: 0.75, verticalAlign: '-2px' }} />
+                      )}
+                      {t.text}
+                    </div>
+                    {t.chip && (
+                      <span
+                        className="myp-chip"
+                        style={{
+                          background: COLORS.accent.successBg,
+                          color: COLORS.accent.successText,
+                          opacity: chipVisible ? 1 : 0,
+                          transform: chipVisible ? 'scale(1)' : 'scale(0.85)',
+                        }}
+                      >
+                        ✓ Updated · {t.chip}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
 
       <style>{`
-        .myp-stage {
+        .myp-grid {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+          gap: 64px;
+          align-items: center;
+        }
+        .myp-left { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+        .myp-kicker {
+          margin: 20px 0 0;
+          font-size: 18px;
+          line-height: 1.55;
+          color: var(--text-muted);
+          max-width: 46ch;
+        }
+        .myp-right {
           display: flex;
           flex-direction: column;
           align-items: center;
-          text-align: center;
-          margin-top: 40px;
+          min-width: 0;
         }
         .myp-orb { transform: scale(1); transform-origin: center; transition: transform 0.3s ease; }
         .myp-caption {
-          margin: 18px 0 0;
+          margin: 14px 0 0;
           font-family: var(--mono);
           font-size: 14px;
           letter-spacing: 0.04em;
@@ -214,8 +250,8 @@ export default function MeetYourPlannerSection() {
         }
         .myp-transcript {
           width: 100%;
-          max-width: 460px;
-          margin: 28px auto 0;
+          max-width: 440px;
+          margin: 22px auto 0;
           display: flex;
           flex-direction: column;
           gap: 12px;
@@ -228,7 +264,7 @@ export default function MeetYourPlannerSection() {
           transition: opacity 0.4s ease, transform 0.4s ease;
         }
         .myp-bubble {
-          max-width: 88%;
+          max-width: 90%;
           padding: 12px 16px;
           border-radius: ${RADII.lg};
           font-size: 15px;
@@ -247,18 +283,18 @@ export default function MeetYourPlannerSection() {
         .myp-points {
           list-style: none;
           padding: 0;
-          margin: 32px auto 0;
+          margin: 28px 0 0;
           display: flex;
           flex-direction: column;
-          gap: 10px;
-          max-width: 520px;
+          gap: 12px;
+          max-width: 46ch;
           text-align: left;
         }
         .myp-points li {
           display: flex;
           align-items: flex-start;
           gap: 10px;
-          font-size: 15px;
+          font-size: 16px;
           line-height: 1.5;
           color: var(--text-strong);
         }
@@ -267,16 +303,18 @@ export default function MeetYourPlannerSection() {
           display: flex;
           gap: 12px;
           margin-top: 36px;
-          justify-content: center;
           flex-wrap: wrap;
         }
         @media (max-width: 960px) {
-          .myp-transcript { display: none; }
-          .myp-orb { transform: scale(0.86); }
+          .myp-grid { grid-template-columns: 1fr; gap: 40px; }
+          .myp-left { align-items: center; text-align: center; }
+          .myp-kicker, .myp-points { margin-left: auto; margin-right: auto; }
+          .myp-points { align-items: flex-start; }
+          .myp-ctas { justify-content: center; }
         }
         @media (max-width: 600px) {
-          .myp-orb { transform: scale(0.66); }
-          .myp-points { margin-top: 24px; }
+          .myp-orb { transform: scale(0.82); }
+          .myp-transcript { max-width: 100%; }
           .myp-ctas { flex-direction: column; width: 100%; max-width: 320px; }
           .myp-ctas > * { width: 100%; }
         }

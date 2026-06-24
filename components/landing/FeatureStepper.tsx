@@ -35,14 +35,14 @@ interface Step {
 }
 
 /** Compact overview chips rendered above the stepper grid. */
+// The glance-able journey — kept to the five things that matter most so it
+// stays on one row (the detailed stepper below still covers everything).
 const OVERVIEW_STEPS = [
   { n: '01', t: 'Just talk to your planner' },
-  { n: '02', t: 'Bring your guest list' },
-  { n: '03', t: 'Spin up your site' },
-  { n: '04', t: 'Switch on the bot' },
-  { n: '05', t: 'Sort rooms & shuttles' },
-  { n: '06', t: 'Vendors — find & coordinate' },
-  { n: '07', t: 'Show up, celebrate' },
+  { n: '02', t: 'Guest list & RSVPs' },
+  { n: '03', t: 'Wedding website' },
+  { n: '04', t: 'Rooms & travel' },
+  { n: '05', t: 'Find & book vendors' },
 ];
 
 const STEPS: Step[] = [
@@ -246,7 +246,7 @@ export default function FeatureStepper() {
           style={{
             marginTop: 56,
             display: 'grid',
-            gridTemplateColumns: 'repeat(6, 1fr)',
+            gridTemplateColumns: 'repeat(5, 1fr)',
             gap: 0,
             position: 'relative',
           }}
