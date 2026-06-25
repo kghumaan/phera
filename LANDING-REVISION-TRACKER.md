@@ -36,9 +36,14 @@ Started 2026-06-25 from a low-level UX/clarity/consistency review of the landing
   - Future extension: also age out `wedding_travel_cards` + WhatsApp logs per the Privacy schedule (12 mo).
 - [x] **Public `/vendors` directory page — SHIPPED + verified (HTTP 200, live data).** `app/vendors/page.tsx` (SSR first page, SEO metadata) + `VendorsDirectoryClient.tsx` (city/category/NRI filters, load-more). No login; contact (phone/email) gated behind signup, website shown. Landing "Browse all vendors" → `/vendors`; footer link added. Design-system clean (token colors, no inline hex). Note: many vendors lack price/specialties/NRI until `enrich-vendors.ts` runs — optional follow-up.
 - [x] **Dedicated planner page — SHIPPED + verified (HTTP 200).** `app/planners/page.tsx`: $249/wedding pay-per-wedding pitch, 3-step "how it works", feature list (from `PLANNER_TIER`), honest no-white-label note, "Start as a planner" → `/auth/login?role=planner` (→ `/onboarding?role=planner`), "Book a call" → WhatsApp. The pricing planner-strip CTA now routes here instead of straight to a $249 Stripe checkout; footer "For Planners" link added.
-- [ ] **Shuttle auto-assignment by arrival.** Logic to take collected flight/arrival times and assign each guest to the best *already-planned* shuttle. Assess what exists in `lib/supabase/transportation-service.ts` + agent `transportation`/`travel` tools; build the assignment step. (This backs the rewritten transportation copy.)
+- [ ] **#4 — Shuttle flight-collection + assignment (IN PROGRESS).** Most infra already exists; this connects it. Slices:
+  1. **Admin "Request flight details from all guests" action** — a clean entry point that fires a broadcast (`targetType:'all'`, `collectsData:true`, dataSchema = airline / flight # / arrival airport / arrival date+time / needs-shuttle?). Reuses `/api/concierge/broadcasts/send` + the existing reply extractor.
+  2. **Land collected replies → `guest_flights`** (map `collected_data` → `upsertGuestFlight` incl. `shuttle_preference_time`).
+  3. **Finalize assignment logic** — assign each guest to the best already-planned shuttle by arrival time, respecting `getVehicleCapacityStatus`.
+  4. **Edge cases → admin tracking** — shuttle full / no sensible shuttle for a party / no flight info → surface to admins (coordination issues / escalations).
+  - Existing pieces: broadcast+collect (`broadcasts-service`, `extract-broadcast-data`), flights (`travel-service`), shuttle capacity/reservations (`transportation-service`).
 - [ ] **Book shuttle services for the couple** (future) — via the vendor marketplace (pick provider → book capacity). Phase 2 of transportation.
-- [ ] **Shared photo album link.** One link every guest uploads memories to; couple does nothing. Not built (only a `photo_sharing` WhatsApp template exists). Build a guest-facing upload + a couple-facing album. Kept OUT of live "shipped" copy until built.
+- [ ] **#5 — Shared album → Google Photos (DEFERRED, simplified per KV).** No custom upload build. Per wedding: store one Google Photos album link + broadcast it to all guests (reuses the broadcast system from #4). Just needs an album-link field + a "share album" broadcast action.
 
 ## Needs KV to run / decide
 - [x] **Confirm live vendor count.** Done — 1,259 live (count-vendors.ts).
