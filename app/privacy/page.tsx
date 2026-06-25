@@ -171,6 +171,7 @@ export default function PrivacyPage() {
                   <tbody>
                     <tr><td>Account &amp; couple-authored content</td><td>Until account deletion + 30-day grace</td></tr>
                     <tr><td>Guest data uploaded by host</td><td>12 months after the wedding date, then purged or anonymized — sooner on request</td></tr>
+                    <tr><td>Guest-submitted responses &amp; comments (RSVP answers, comments)</td><td>90 days after the wedding date, then deleted</td></tr>
                     <tr><td>WhatsApp message logs (in &amp; out)</td><td>12 months</td></tr>
                     <tr><td>Voice notes &amp; Whisper transcripts</td><td>30 days</td></tr>
                     <tr><td>Vendor-group messages (Whapi)</td><td>12 months after the wedding date</td></tr>
