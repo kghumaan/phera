@@ -31,6 +31,15 @@ interface BroadcastComposerProps {
   weddingId: string;
   weddingSlug: string;
   onSent: () => void;
+  /**
+   * Optional pre-fill so callers can open the composer ready to send a
+   * specific broadcast (e.g. a "request flight details" blast). When
+   * `initialDataSchema` is provided we skip AI auto-detect so it doesn't
+   * clobber the pre-declared fields — the admin can still edit before sending.
+   */
+  initialMessage?: string;
+  initialCollectsData?: boolean;
+  initialDataSchema?: BroadcastDataField[];
 }
 
 interface GuestOption {
@@ -59,6 +68,9 @@ export default function BroadcastComposer({
   weddingId,
   weddingSlug,
   onSent,
+  initialMessage,
+  initialCollectsData,
+  initialDataSchema,
 }: BroadcastComposerProps) {
   const [message, setMessage] = useState('');
   const [targetType, setTargetType] = useState<BroadcastTargetType>('all');
@@ -83,16 +95,18 @@ export default function BroadcastComposer({
   const detectReqId = useRef(0);
 
   const resetState = useCallback(() => {
-    setMessage('');
+    setMessage(initialMessage ?? '');
     setTargetType('all');
     setTargetTags([]);
     setTargetGuestIds([]);
-    setCollectsData(false);
-    setDataSchema([]);
+    setCollectsData(initialCollectsData ?? false);
+    setDataSchema(initialDataSchema ?? []);
     setSendResult(null);
-    setManualOverride(false);
+    // Pre-declared fields → manual mode so the debounced AI auto-detect doesn't
+    // overwrite them. Blank composer → auto-detect as before.
+    setManualOverride(!!initialDataSchema?.length);
     setDetecting(false);
-  }, []);
+  }, [initialMessage, initialCollectsData, initialDataSchema]);
 
   useEffect(() => {
     if (!open) return;
