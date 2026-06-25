@@ -124,7 +124,7 @@ export default function HeroSection() {
         <Reveal delay={3}>
           <div className="hero-cta-row">
             <ActionButton
-              href="/auth/login"
+              href="/auth/signup"
               variant="contained"
               className="btn btn-primary"
               sx={{
@@ -139,7 +139,7 @@ export default function HeroSection() {
               }}
               endIcon={<span className="btn-arrow" style={{ display: 'inline-block' }}>→</span>}
             >
-              Get started - it&apos;s free
+              Start free
             </ActionButton>
             <ActionButton
               href="/demo"
@@ -160,9 +160,25 @@ export default function HeroSection() {
                 },
               }}
             >
-              View Demo
+              Try the live demo
             </ActionButton>
           </div>
+          {/* Honest scope line — sets the free-vs-paid expectation right at the
+              CTA so the promise above doesn't read as bait once they reach
+              pricing. Mirrors the /welcome screen's tone. */}
+          <p
+            className="hero-scope-line"
+            style={{
+              marginTop: 16,
+              fontSize: 'clamp(14px, 1vw, 15px)',
+              color: 'var(--text-subtle)',
+              maxWidth: '52ch',
+              lineHeight: 1.5,
+            }}
+          >
+            Free forever for your wedding site, guest list &amp; RSVPs. Full guest
+            ops — outreach, rooms, travel, vendors — from $349, one-time per wedding.
+          </p>
         </Reveal>
       </div>
 

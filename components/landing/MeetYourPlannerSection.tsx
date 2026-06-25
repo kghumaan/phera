@@ -118,7 +118,7 @@ export default function MeetYourPlannerSection() {
             <Reveal delay={3}>
               <div className="myp-ctas">
                 <ActionButton
-                  href="/auth/login"
+                  href="/auth/signup"
                   variant="contained"
                   className="btn btn-primary"
                   sx={{
@@ -137,7 +137,7 @@ export default function MeetYourPlannerSection() {
                     </span>
                   }
                 >
-                  Start a conversation
+                  Start free
                 </ActionButton>
                 <ActionButton
                   href="/demo"
@@ -152,7 +152,7 @@ export default function MeetYourPlannerSection() {
                     fontWeight: 600,
                   }}
                 >
-                  Watch the demo
+                  Try the live demo
                 </ActionButton>
               </div>
             </Reveal>

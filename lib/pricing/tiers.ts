@@ -29,7 +29,7 @@ export const PRICING_TIERS: PricingTier[] = [
       'Task manager',
       'Multi-user collaboration',
     ],
-    buttonText: 'Get Started',
+    buttonText: 'Start free',
     buttonHref: '/auth/signup',
     highlight: false,
   },
@@ -49,7 +49,7 @@ export const PRICING_TIERS: PricingTier[] = [
       'Vendor management',
       // 'AI-assisted website design',
     ],
-    buttonText: 'Get Started',
+    buttonText: 'Get Base — $349',
     highlight: true,
   },
   {
@@ -67,7 +67,7 @@ export const PRICING_TIERS: PricingTier[] = [
       'We manage guest ops for you',
       'Priority support',
     ],
-    buttonText: 'Get Started',
+    buttonText: 'Get White Glove — $599',
     highlight: false,
   },
 ];

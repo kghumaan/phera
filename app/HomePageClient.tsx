@@ -111,7 +111,13 @@ function LandingPageContent() {
 
   const handleBaseAction = (e?: React.MouseEvent) => handleTierAction('base', e);
   const handlePremiumAction = (e?: React.MouseEvent) => handleTierAction('premium', e);
-  const handlePlannerAction = (e?: React.MouseEvent) => handleTierAction('planner_perwedding', e);
+  // Planners get a dedicated page (positioning + book-a-call) instead of being
+  // dropped straight into a $249 Stripe checkout. They start the per-wedding
+  // billing flow from inside the planner onboarding.
+  const handlePlannerAction = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    router.push('/planners');
+  };
 
   return (
     <OptimizedBackground useAppDefault className="min-h-screen flex flex-col">
@@ -233,10 +239,8 @@ function LandingPageContent() {
                     ))}
                   </Box>
                   <ActionButton
-                    onClick={handleBaseAction}
+                    href="/auth/signup"
                     variant="contained"
-                    keepBackgroundOnLoad
-                    spinnerColor={COLORS.text.inverse}
                     className="btn btn-primary"
                     sx={{
                       marginTop: { xs: '28px', md: '36px' },
@@ -251,8 +255,11 @@ function LandingPageContent() {
                     }}
                     endIcon={<span className="btn-arrow" style={{ display: 'inline-block' }}>→</span>}
                   >
-                    Activate concierge
+                    Start free
                   </ActionButton>
+                  <Typography sx={{ marginTop: 1.5, fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
+                    The concierge is part of Base — $349, one-time per wedding.
+                  </Typography>
                 </motion.div>
               </Grid>
               <Grid size={{ xs: 12, md: 5 }} sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -337,7 +344,9 @@ function LandingPageContent() {
                 <Stack spacing={1}>
                   <Link href="#service" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">Features</Link>
                   <Link href="#pricing" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">Pricing</Link>
+                  <Link href="/vendors" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">Vendor Directory</Link>
                   <Link href="/demo" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">Demo</Link>
+                  <Link href="/planners" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">For Planners</Link>
                   <Link href="/vendors/join" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">For Vendors</Link>
                 </Stack>
               </Grid>

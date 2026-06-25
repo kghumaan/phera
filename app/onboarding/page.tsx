@@ -89,7 +89,7 @@ const features: Feature[] = [
     name: 'RSVP Collection',
     description: 'Track attendance and dietary needs',
     icon: <EventNote fontSize="large" />,
-    isPro: true,
+    isPro: false,
   },
   {
     id: 'whatsapp',

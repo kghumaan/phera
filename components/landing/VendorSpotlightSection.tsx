@@ -15,6 +15,7 @@ import StarIcon from '@mui/icons-material/Star';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { COLORS, RADII, FONTS } from '@/lib/theme/tokens';
 import { Reveal, SectionHeader } from './design-primitives';
+import { VENDOR_DIRECTORY_BLURB } from '@/lib/landing/vendor-directory-copy';
 
 /* ─── static highlight cards (hand-picked from seed data) ─────────────────── */
 
@@ -59,6 +60,7 @@ export default function VendorSpotlightSection() {
   return (
     <Box
       component="section"
+      id="vendors"
       sx={{
         py: { xs: 10, md: 14 },
         bgcolor: '#FBF7F1',
@@ -78,7 +80,7 @@ export default function VendorSpotlightSection() {
                 <em>already waiting.</em>
               </>
             }
-            kicker="1,200+ photographers, DJs, mehendi artists, planners, and decorators across India's top destination wedding cities — curated, rated, and filterable by budget and NRI experience."
+            kicker={VENDOR_DIRECTORY_BLURB}
             align="center"
           />
         </Reveal>
@@ -239,10 +241,10 @@ export default function VendorSpotlightSection() {
               justifyContent: 'center',
             }}
           >
-            {/* Primary — browse (links to admin once logged in; for now anchor to feature) */}
+            {/* Primary — public, no-login directory at /vendors. */}
             <Box
-              component="a"
-              href="/auth/login"
+              component={Link}
+              href="/vendors"
               sx={{
                 display: 'inline-flex',
                 alignItems: 'center',

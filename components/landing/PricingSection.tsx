@@ -47,10 +47,10 @@ export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerC
       price: t.price,
       sub: isFree ? 'forever' : 'one-time, per wedding',
       desc: t.description || (isBase
-        ? 'The full ops team. WhatsApp outreach, concierge, travel, rooms.'
+        ? 'The full guest-ops team: WhatsApp outreach, concierge, rooms, travel, and vendors.'
         : isWhiteGlove
-          ? 'Plus reverse-destination, weekend concierge, dedicated coordinator.'
-          : 'Beautiful site, guest list, RSVPs. The basics, on us.'),
+          ? 'Everything in Base, plus a dedicated human coordinator who handles your guests for you.'
+          : 'Your wedding site, guest list, and RSVPs — the essentials, on us.'),
       features: t.features,
       cta: t.buttonText,
       href: isBase || isWhiteGlove ? undefined : (t.buttonHref || '/auth/signup'),
@@ -119,7 +119,7 @@ export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerC
                     background: 'var(--accent)', color: 'white',
                     fontSize: 11, fontWeight: 700, letterSpacing: '0.14em',
                     padding: '5px 12px', borderRadius: 999,
-                  }}>MOST CHOSEN</span>
+                  }}>RECOMMENDED</span>
                 )}
                 <div className="mono" style={{ fontSize: 11, letterSpacing: '0.16em', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>
                   {t.name}

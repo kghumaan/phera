@@ -18,8 +18,9 @@ import { usePathname } from 'next/navigation';
 import { COLORS } from '@/lib/theme/tokens';
 
 const LINKS: { label: string; targetId: string }[] = [
-  { label: 'Service', targetId: 'service' },
+  { label: 'Features', targetId: 'service' },
   { label: 'Pricing', targetId: 'pricing' },
+  { label: 'Vendors', targetId: 'vendors' },
   { label: 'Story', targetId: 'story' },
   { label: 'FAQ', targetId: 'faq' },
 ];

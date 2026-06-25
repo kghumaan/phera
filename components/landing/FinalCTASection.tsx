@@ -60,7 +60,7 @@ export default function FinalCTASection() {
         <Reveal delay={3}>
           <div className="final-cta-row" style={{ marginTop: 32, display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <ActionButton
-              href="/auth/login"
+              href="/auth/signup"
               variant="contained"
               className="btn btn-primary"
               sx={{
@@ -75,16 +75,19 @@ export default function FinalCTASection() {
               }}
               endIcon={<span className="btn-arrow" style={{ display: 'inline-block' }}>→</span>}
             >
-              Get started for free
+              Start free
             </ActionButton>
-            {/* <ActionButton
+            {/* Pre-purchase human path — some couples want to talk to a real
+                person before signing up. WhatsApp works today; swap for a
+                booking link later if we add one. */}
+            <ActionButton
               href="https://wa.me/15558397813"
               variant="outlined"
               className="btn btn-ghost"
               keepBackgroundOnLoad
               sx={{
-                fontSize: 17,
-                padding: '18px 32px',
+                fontSize: { xs: 15, sm: 17 },
+                padding: { xs: '13px 24px', sm: '18px 32px' },
                 borderRadius: '999px',
                 textTransform: 'none',
                 fontWeight: 600,
@@ -97,9 +100,12 @@ export default function FinalCTASection() {
                 },
               }}
             >
-              Talk to us on WhatsApp
-            </ActionButton> */}
+              Talk to a human
+            </ActionButton>
           </div>
+          <p style={{ marginTop: 16, fontSize: 14, color: 'var(--text-subtle)' }}>
+            Questions before you start? We usually reply within the day.
+          </p>
         </Reveal>
       </div>
     </section>

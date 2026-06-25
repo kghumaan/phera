@@ -19,7 +19,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: 'Is there really a free tier?',
-    a: "Yes - really free. Beautiful wedding site, guest list, basic RSVPs without paying us a cent. Base ($349) is when you want the heavier lifting: WhatsApp outreach, concierge, travel, rooms.",
+    a: "Yes - really free. A beautiful wedding site, your guest list, and RSVPs with custom questions and per-event access, without paying us a cent. Base ($349, one-time per wedding) is when you want the heavier lifting: WhatsApp outreach, concierge, travel, and rooms.",
   },
   {
     q: 'How does the guest coordination work?',
@@ -43,6 +43,6 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "Is my guests' data safe?",
-    a: "Yes. Every guest gives explicit consent before we message them, we're DPDPA-2023 compliant, and we delete everything 90 days after the wedding. Guests can pull their data anytime.",
+    a: "Yes. Every guest gives explicit consent before we message them, we're built for DPDPA-2023, and we don't keep guest data longer than your wedding needs — responses, comments, and messages are deleted or anonymized on the retention schedule in our Privacy Policy, and any guest can request their data or its deletion anytime.",
   },
 ];
