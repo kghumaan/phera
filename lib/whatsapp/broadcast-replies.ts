@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@supabase/supabase-js';
 import { extractBroadcastData } from './extract-broadcast-data';
+import { syncGuestFlightFromBroadcast } from '@/lib/transportation/sync-flight-from-broadcast';
 
 interface ReplyContext {
   mediaUrl?: string | null;
@@ -67,7 +68,7 @@ export async function recordBroadcastReplyForGuest(
 
   const { data, error } = await supabase
     .from('concierge_broadcast_recipients')
-    .select('id, broadcast_id, reply_text, collected_data, concierge_broadcasts(collects_data, data_schema)')
+    .select('id, broadcast_id, reply_text, collected_data, wedding_id, concierge_broadcasts(collects_data, data_schema)')
     .eq('guest_id', guestId)
     .gte('created_at', windowIso)
     .order('created_at', { ascending: false })
@@ -157,6 +158,15 @@ export async function recordBroadcastReplyForGuest(
     .from('concierge_broadcast_recipients')
     .update(update)
     .eq('id', row.id);
+
+  // Slice 2: auto-land flight-request replies into guest_flights so the
+  // transportation system can place this guest on a shuttle by arrival time.
+  // Best-effort — a sync failure must never break reply recording.
+  try {
+    await syncGuestFlightFromBroadcast(supabase, guestId, row.wedding_id, merged);
+  } catch (err) {
+    console.error('[broadcast-replies] flight sync failed:', err);
+  }
 
   const filledLabels: string[] = [];
   const missingLabels: string[] = [];
