@@ -98,9 +98,9 @@ export default function MeetYourPlannerSection() {
             </Reveal>
             <Reveal delay={1}>
               <p className="myp-kicker">
-                One AI wedding planner you run by voice or chat. Wherever you are — newly engaged or
-                down to the final week — just say what&apos;s happening and watch your whole wedding
-                update in real time.
+                There&apos;s so much that has to go right on your big day — and you don&apos;t realize how
+                much until you&apos;re in it. We built the wedding planner that lives in your pocket, 24/7,
+                handling whatever comes up so you can stay in the moment.
               </p>
             </Reveal>
             <Reveal delay={2}>

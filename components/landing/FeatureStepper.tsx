@@ -232,7 +232,7 @@ export default function FeatureStepper() {
         <SectionHeader
           eyebrow="Everything it handles"
           title="One platform. Everything coordinated."
-          kicker="Once you've talked to your planner, it runs the rest — here's everything it coordinates for you."
+          kicker="Once you speak with our planner, here's how it handles everything for you."
           singleLine
         />
 

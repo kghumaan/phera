@@ -117,7 +117,7 @@ export default function HeroSection() {
               lineHeight: 1.5,
             }}
           >
-            One AI wedding planner that runs it all — just talk to it. Guest list, RSVPs, rooms, shuttles, vendors, and the midnight WhatsApps, handled by chat or voice.
+            An AI wedding planner that handles it all — guest lists, RSVPs, room assignments, vendors, transportation, and the midnight WhatsApp questions.
           </p>
         </Reveal>
 
@@ -173,11 +173,11 @@ export default function HeroSection() {
               fontSize: 'clamp(14px, 1vw, 15px)',
               color: 'var(--text-subtle)',
               maxWidth: '52ch',
-              lineHeight: 1.5,
+              lineHeight: 1.6,
             }}
           >
-            Free forever for your wedding site, guest list &amp; RSVPs. Full guest
-            ops — outreach, rooms, travel, vendors — from $349, one-time per wedding.
+            Free forever for your wedding site, guest list &amp; RSVPs.<br />
+            Full guest ops from $349 — one-time, per wedding.
           </p>
         </Reveal>
       </div>
