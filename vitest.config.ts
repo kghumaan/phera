@@ -16,4 +16,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './'),
     },
   },
+  // Inline empty PostCSS so transitive `.css` imports (e.g. react-datepicker)
+  // don't try to load the Tailwind v4 PostCSS plugin during tests, which fails
+  // outside Next's build. Tests don't render real CSS (test.css is false).
+  css: { postcss: { plugins: [] } },
 });
