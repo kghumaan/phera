@@ -7,10 +7,16 @@ export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 // lives inside email clients, webviews, and random 3rd-party scripts.
 // Without filters the Issues feed is 90% junk from user environments
 // we can't fix.
+// Only send to Sentry from real production. Local dev and Vercel *preview*
+// deploys are excluded so our own testing never burns the 50/mo replay quota
+// or pollutes the numbers. (NEXT_PUBLIC_VERCEL_ENV is auto-set by Vercel:
+// 'production' | 'preview' | 'development'; undefined locally.)
+const isProd = process.env.NEXT_PUBLIC_VERCEL_ENV === "production";
+
 Sentry.init({
     dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-    enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
-    environment: process.env.NODE_ENV,
+    enabled: isProd && !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+    environment: process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.NODE_ENV,
 
     // Drop perf trace sampling from 10% to 5% — we're on the free tier
     // and tracing data isn't driving decisions right now. Re-raise when
