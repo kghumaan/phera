@@ -1037,13 +1037,15 @@ export function AgentChatPanel({
         }}
       >
         {pendingQuestions ? (
-          <QuestionFlow
-            key={pendingQuestions.actionId}
-            questions={pendingQuestions.questions}
-            disabled={busy}
-            large
-            onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
-          />
+          <Box sx={{ m: 'auto', width: '100%', maxWidth: 540 }}>
+            <QuestionFlow
+              key={pendingQuestions.actionId}
+              questions={pendingQuestions.questions}
+              disabled={busy}
+              large
+              onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
+            />
+          </Box>
         ) : (
           <Stack spacing={1.5} sx={{ m: 'auto', alignItems: 'center', textAlign: 'center', maxWidth: 340, py: 6 }}>
             <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 30 }} />
@@ -1277,11 +1279,12 @@ export function AgentChatPanel({
           sx={{
             display: 'flex',
             gap: 0.5,
-            alignItems: 'flex-end',
+            alignItems: 'center',
             bgcolor: COLORS.bg.white,
             border: `1px solid ${COLORS.border.faint}`,
             borderRadius: RADII.lg,
-            p: 1,
+            px: 1,
+            py: 0.5,
             boxShadow: SHADOWS.card,
           }}
         >

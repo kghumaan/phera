@@ -185,7 +185,8 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
   const applyRef = useRef(applyTranscript);
   applyRef.current = applyTranscript;
   const voice = useVoiceInput(useCallback((t: string) => applyRef.current(t), []));
-  const voiceSupported = !q.inputOnly && ['text', 'textarea', 'single_select', 'multi_select'].includes(q.type);
+  // Voice lives only in the chat (right) pane now — never on the form itself.
+  const voiceSupported = !large && !q.inputOnly && ['text', 'textarea', 'single_select', 'multi_select'].includes(q.type);
 
   const voiceButton = voiceSupported ? (
     <Tooltip
@@ -267,7 +268,7 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
         )}
         {(q.type === 'single_select' || q.type === 'multi_select') && (
           <Typography variant="caption" sx={{ color: COLORS.text.subtle, mt: 0.5, display: 'block' }}>
-            Tap to choose, or use the mic to say them.
+            Tap to choose — or just tell me in the chat.
           </Typography>
         )}
       </Box>
