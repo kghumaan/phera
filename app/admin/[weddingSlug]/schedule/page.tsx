@@ -16,7 +16,8 @@ import {
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { weddingService, ScheduleItem } from '@/lib/supabase/wedding-service';
-import { parseISO, eachDayOfInterval, format } from 'date-fns';
+import { parseISO, format } from 'date-fns';
+import { planScheduleReconciliation } from '@/lib/schedule/reconcile-days';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
@@ -100,9 +101,11 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   const ensureDaysRunning = useRef(false);
 
   // Sync schedule days with the wedding date range.
-  // - Reassigns dates on existing days when the range shifts
+  // - Reassigns dates on existing days when the range shifts (same duration,
+  //   different dates → data is retained, only the dates are remapped)
   // - Creates new days if the range grew
-  // - Never deletes days — extras keep their events
+  // - Deletes trailing days if the range shrank, keeping the first N days
+  //   (and their events) that still fit the new, shorter range
   const ensureDaysExist = useCallback(async (
     wId: string,
     dateStart: Date,
@@ -113,57 +116,51 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     ensureDaysRunning.current = true;
 
     try {
-      const endDate = dateEnd || dateStart;
-      const allDates = eachDayOfInterval({ start: dateStart, end: endDate });
+      const plan = planScheduleReconciliation(
+        dateStart,
+        dateEnd,
+        existingDays.map(d => ({
+          id: d.id,
+          date: d.date,
+          order_index: d.order_index,
+          eventIds: d.events.map(e => e.id),
+        })),
+      );
+      if (plan.inSync) return false;
 
-      // Sort existing days by order_index so we reassign in order
-      const sorted = [...existingDays].sort((a, b) => a.order_index - b.order_index);
-
-      // Check if existing days already match the new date range
-      const existingDateSet = new Set(sorted.map(d => normalizeDateStr(d.date)));
-      const newDateStrs = allDates.map(d => format(d, 'yyyy-MM-dd'));
-      const alreadyInSync = newDateStrs.every(d => existingDateSet.has(d)) && sorted.length >= allDates.length;
-      if (alreadyInSync) return false;
-
-      let changed = false;
-
-      // Reassign dates on existing days that overlap with the new range
-      for (let i = 0; i < Math.min(sorted.length, allDates.length); i++) {
-        const newDateStr = format(allDates[i], 'yyyy-MM-dd');
-        const newDayName = format(allDates[i], 'EEEE');
-        const existingNorm = normalizeDateStr(sorted[i].date);
-
-        if (existingNorm !== newDateStr) {
-          await weddingService.updateSchedule(sorted[i].id, {
-            date: newDateStr,
-            day_name: newDayName,
-            order_index: i,
-          });
-          changed = true;
-        } else if (sorted[i].order_index !== i) {
-          await weddingService.updateSchedule(sorted[i].id, { order_index: i });
-          changed = true;
-        }
+      // Remap overlapping days (data retained).
+      for (const u of plan.updates) {
+        await weddingService.updateSchedule(u.id, {
+          date: u.date,
+          day_name: u.day_name,
+          order_index: u.order_index,
+        });
       }
 
-      // If the range grew, create new days for the extra dates
-      for (let i = sorted.length; i < allDates.length; i++) {
-        const dateStr = format(allDates[i], 'yyyy-MM-dd');
-        const dayName = format(allDates[i], 'EEEE');
+      // Range grew → append new empty days.
+      for (const c of plan.creates) {
         await weddingService.createSchedule({
           wedding_id: wId,
-          day_name: dayName,
-          date: dateStr,
-          order_index: i,
+          day_name: c.day_name,
+          date: c.date,
+          order_index: c.order_index,
         });
-        changed = true;
       }
 
-      return changed;
+      // Range shrank → delete trailing days from the END. Delete each day's
+      // events first in case the FK doesn't cascade (no orphaned schedule_items).
+      for (const del of plan.deletes) {
+        for (const eventId of del.eventIds) {
+          await weddingService.deleteScheduleItem(eventId);
+        }
+        await weddingService.deleteSchedule(del.dayId);
+      }
+
+      return plan.updates.length > 0 || plan.creates.length > 0 || plan.deletes.length > 0;
     } finally {
       ensureDaysRunning.current = false;
     }
-  }, [normalizeDateStr]);
+  }, []);
 
   const loadData = useCallback(async () => {
     try {
