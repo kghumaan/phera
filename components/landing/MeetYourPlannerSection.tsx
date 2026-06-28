@@ -2,43 +2,87 @@
 
 /**
  * "Meet your planner" — the voice-forward centerpiece, sits right after the
- * Hero and before the FeatureStepper. The hero promises "chat or voice"; this
- * section proves the VOICE half: the real VoiceOrb cycles idle → listening →
- * thinking → speaking while a scripted transcript shows the planner updating
- * real wedding data as the couple talks. Reuses VoiceOrb, SectionHeader, and
- * the landing `section`/`container` rails so it matches the rest of the page.
+ * Hero and before the FeatureStepper. The real VoiceOrb cycles idle →
+ * listening → thinking → speaking while a scripted transcript cycles through
+ * several real use-cases (venue/dates, CSV guest-list import, room assignments
+ * from a floor plan, shuttle pickups, vendor coordination), the planner
+ * updating real wedding data as the couple talks. Reuses VoiceOrb, the landing
+ * `section`/`container` rails, and the design tokens.
  */
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import { ActionButton } from '@/components/admin/ActionButton';
-import { COLORS, RADII, SHADOWS } from '@/lib/theme/tokens';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 import { VoiceOrb, type OrbState } from '@/components/agent/VoiceOrb';
 import { Reveal } from './design-primitives';
 
-type Step = { state: OrbState; caption: string; lines: number; chips: number; dur: number };
-
-// One ~14.6s loop. `lines`/`chips` are how much of the transcript is revealed at
-// each beat (bubbles fade in/out by opacity so the loop restart is smooth).
-const SEQUENCE: Step[] = [
-  { state: 'idle', caption: 'Ready when you are', lines: 0, chips: 0, dur: 1300 },
-  { state: 'listening', caption: 'Listening…', lines: 1, chips: 0, dur: 2300 },
-  { state: 'thinking', caption: 'Thinking…', lines: 1, chips: 0, dur: 1100 },
-  { state: 'speaking', caption: 'Speaking…', lines: 2, chips: 1, dur: 2700 },
-  { state: 'listening', caption: 'Listening…', lines: 3, chips: 1, dur: 2300 },
-  { state: 'thinking', caption: 'Thinking…', lines: 3, chips: 1, dur: 1100 },
-  { state: 'speaking', caption: 'Speaking…', lines: 4, chips: 2, dur: 2700 },
-  { state: 'idle', caption: 'All set', lines: 4, chips: 2, dur: 1100 },
-];
-
 type Turn = { role: 'you' | 'planner'; text: string; chip?: string };
+type Scene = { id: string; turns: Turn[]; csv?: boolean };
 
-const TRANSCRIPT: Turn[] = [
-  { role: 'you', text: 'We booked the Leela in Udaipur — April 12–14, about 250 guests.' },
-  { role: 'planner', text: "Gorgeous pick. Dates and venue are in — starting your room blocks now.", chip: 'Venue + dates' },
-  { role: 'you', text: 'My brother and his wife land Wednesday — add them to the shuttle.' },
-  { role: 'planner', text: "Done. When do they land, and from where? I'll set their pickup.", chip: 'Shuttle · +2 guests' },
+// The cycle — each scene is a short exchange that ends with the planner having
+// updated something. When one finishes it clears and the next plays.
+const SCENES: Scene[] = [
+  {
+    id: 'venue',
+    turns: [
+      { role: 'you', text: 'We booked the Leela in Udaipur — April 12–14, about 250 guests.' },
+      { role: 'planner', text: 'Gorgeous pick. Dates and venue are in — starting your room blocks now.', chip: 'Venue + dates' },
+    ],
+  },
+  {
+    id: 'csv',
+    csv: true,
+    turns: [
+      { role: 'you', text: 'Can you import my guest list? I have it as a CSV.' },
+      { role: 'planner', text: 'On it — pulled everyone in, de-duped and grouped by family.', chip: '248 guests imported' },
+    ],
+  },
+  {
+    id: 'rooms',
+    turns: [
+      { role: 'planner', text: 'Got a floor plan from your hotel? I can take the room assignments off your plate.' },
+      { role: 'you', text: 'Just sent the PDF over.' },
+      { role: 'planner', text: 'Perfect — siblings together, in-laws on a quiet floor, late arrivals near the lobby. Draft’s ready.', chip: 'Rooms drafted' },
+    ],
+  },
+  {
+    id: 'shuttle',
+    turns: [
+      { role: 'you', text: 'My brother and his wife land Wednesday — add them to the shuttle.' },
+      { role: 'planner', text: 'Done. When do they land, and from where? I’ll set their pickup.', chip: 'Shuttle · +2 guests' },
+    ],
+  },
+  {
+    id: 'vendors',
+    turns: [
+      { role: 'you', text: 'Add our photographer to the vendor group — Joseph Radhik.' },
+      { role: 'planner', text: 'Added. I’ll watch the thread and flag anything that needs you.', chip: 'Vendor added' },
+    ],
+  },
 ];
+
+// csv: 0 hidden · 1 importing (bar animating) · 2 done.
+type Beat = { sceneIdx: number; visible: number; state: OrbState; caption: string; dur: number; csv: 0 | 1 | 2 };
+
+function buildBeats(scenes: Scene[]): Beat[] {
+  const beats: Beat[] = [];
+  scenes.forEach((scene, sceneIdx) => {
+    beats.push({ sceneIdx, visible: 0, state: 'idle', caption: 'Ready when you are', dur: 900, csv: 0 });
+    scene.turns.forEach((turn, ti) => {
+      if (turn.role === 'you') {
+        beats.push({ sceneIdx, visible: ti + 1, state: 'listening', caption: 'Listening…', dur: 2200, csv: 0 });
+      } else {
+        beats.push({ sceneIdx, visible: ti, state: 'thinking', caption: 'Thinking…', dur: 1100, csv: scene.csv ? 1 : 0 });
+        beats.push({ sceneIdx, visible: ti + 1, state: 'speaking', caption: 'Speaking…', dur: 2700, csv: scene.csv ? 2 : 0 });
+      }
+    });
+    beats.push({ sceneIdx, visible: scene.turns.length, state: 'idle', caption: 'All set', dur: 1500, csv: scene.csv ? 2 : 0 });
+  });
+  return beats;
+}
+
+const BEATS = buildBeats(SCENES);
 
 const BULLETS = [
   'Voice or chat — whichever feels natural in the moment',
@@ -46,32 +90,35 @@ const BULLETS = [
   'Proactive — spots gaps and confirms before any big change',
 ];
 
+// Asymmetric radius = a little speech-bubble "tail" on the bottom corner that
+// faces the speaker (planner = bottom-left, you = bottom-right).
+const plannerRadius = `${RADII.lg} ${RADII.lg} ${RADII.lg} 5px`;
+const youRadius = `${RADII.lg} ${RADII.lg} 5px ${RADII.lg}`;
+
 export default function MeetYourPlannerSection() {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    // Honor reduced-motion: hold the final, fully-revealed state and don't cycle.
+    // Honor reduced-motion: hold the final, fully-revealed beat and don't cycle.
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     if (reduce) {
-      setStep(SEQUENCE.length - 1);
+      setStep(BEATS.length - 1);
       return;
     }
     let i = 0;
     let timer: ReturnType<typeof setTimeout>;
     const tick = () => {
       setStep(i);
-      const dur = SEQUENCE[i].dur;
-      i = (i + 1) % SEQUENCE.length;
+      const dur = BEATS[i].dur;
+      i = (i + 1) % BEATS.length;
       timer = setTimeout(tick, dur);
     };
     tick();
     return () => clearTimeout(timer);
   }, []);
 
-  const cur = SEQUENCE[step];
-  // Pure ordinal for each chip-bearing turn (1st chip = 1, 2nd = 2…) — computed
-  // per item so nothing mutates during render.
-  const chipOrdinalAt = (i: number) => TRANSCRIPT.slice(0, i + 1).filter((t) => t.chip).length;
+  const cur = BEATS[step];
+  const scene = SCENES[cur.sceneIdx];
 
   return (
     <section id="meet-planner" className="section" style={{ background: 'var(--white)' }}>
@@ -161,55 +208,72 @@ export default function MeetYourPlannerSection() {
           {/* RIGHT — the orb + live conversation */}
           <div className="myp-right" aria-hidden>
             <div className="myp-orb">
-              <VoiceOrb state={cur.state} size={190} />
+              <VoiceOrb state={cur.state} size={150} />
             </div>
             <p className="myp-caption" role="status" aria-live="polite">
               {cur.caption}
             </p>
-            <div className="myp-transcript">
-              {TRANSCRIPT.map((t, i) => {
-                const visible = i < cur.lines;
+            {/* Keyed by scene so each scene cleanly swaps in (old bubbles unmount,
+                new ones fade in beat by beat). */}
+            <div className="myp-transcript" key={cur.sceneIdx}>
+              {scene.turns.map((t, i) => {
+                const visible = i < cur.visible;
                 const isPlanner = t.role === 'planner';
-                const chipVisible = !!t.chip && visible && cur.chips >= chipOrdinalAt(i);
                 return (
-                  <div
-                    key={i}
-                    className="myp-row"
-                    style={{
-                      alignItems: isPlanner ? 'flex-start' : 'flex-end',
-                      opacity: visible ? 1 : 0,
-                      transform: visible ? 'translateY(0)' : 'translateY(6px)',
-                    }}
-                  >
+                  <Fragment key={i}>
                     <div
-                      className="myp-bubble"
+                      className="myp-row"
                       style={{
-                        alignSelf: isPlanner ? 'flex-start' : 'flex-end',
-                        background: isPlanner ? COLORS.bg.white : COLORS.brand.primaryWash,
-                        border: `1px solid ${isPlanner ? COLORS.border.faint : COLORS.brand.primaryBorder}`,
-                        color: COLORS.text.strong,
-                        boxShadow: SHADOWS.card,
+                        alignItems: isPlanner ? 'flex-start' : 'flex-end',
+                        opacity: visible ? 1 : 0,
+                        transform: visible ? 'translateY(0)' : 'translateY(6px)',
                       }}
                     >
-                      {!isPlanner && (
-                        <MicRoundedIcon sx={{ fontSize: 15, color: COLORS.brand.primary, mr: 0.75, verticalAlign: '-2px' }} />
-                      )}
-                      {t.text}
-                    </div>
-                    {t.chip && (
-                      <span
-                        className="myp-chip"
+                      <div
+                        className="myp-bubble"
                         style={{
-                          background: COLORS.accent.successBg,
-                          color: COLORS.accent.successText,
-                          opacity: chipVisible ? 1 : 0,
-                          transform: chipVisible ? 'scale(1)' : 'scale(0.85)',
+                          alignSelf: isPlanner ? 'flex-start' : 'flex-end',
+                          background: isPlanner ? COLORS.bg.white : COLORS.brand.primaryWash,
+                          border: `1px solid ${isPlanner ? COLORS.border.faint : COLORS.brand.primaryBorder}`,
+                          color: COLORS.text.strong,
+                          borderRadius: isPlanner ? plannerRadius : youRadius,
                         }}
                       >
-                        ✓ Updated · {t.chip}
-                      </span>
+                        {!isPlanner && (
+                          <MicRoundedIcon sx={{ fontSize: 15, color: COLORS.brand.primary, mr: 0.75, verticalAlign: '-2px' }} />
+                        )}
+                        {t.text}
+                        {/* Update confirmation, themed + tucked inside the bubble. */}
+                        {t.chip && <span className="myp-chip-inline">✓ {t.chip}</span>}
+                      </div>
+                    </div>
+
+                    {/* CSV import card — appears between the ask and the confirmation
+                        in the CSV scene, with a progress bar that fills as it imports. */}
+                    {scene.csv && t.role === 'you' && (
+                      <div
+                        className="myp-csv"
+                        style={{
+                          opacity: cur.csv >= 1 ? 1 : 0,
+                          transform: cur.csv >= 1 ? 'translateY(0)' : 'translateY(6px)',
+                        }}
+                      >
+                        <div className="myp-csv-top">
+                          <span className="myp-csv-file">📄 guests.csv</span>
+                          <span className="myp-csv-status">{cur.csv >= 2 ? '248 rows' : 'importing…'}</span>
+                        </div>
+                        <div className="myp-csv-bar">
+                          <div
+                            className="myp-csv-fill"
+                            style={{ width: cur.csv >= 2 ? '100%' : cur.csv === 1 ? '72%' : '0%' }}
+                          />
+                        </div>
+                        <div className="myp-csv-done" style={{ opacity: cur.csv >= 2 ? 1 : 0 }}>
+                          ✓ De-duped · grouped by family
+                        </div>
+                      </div>
                     )}
-                  </div>
+                  </Fragment>
                 );
               })}
             </div>
@@ -238,7 +302,7 @@ export default function MeetYourPlannerSection() {
           align-items: center;
           min-width: 0;
         }
-        .myp-orb { transform: scale(1); transform-origin: center; transition: transform 0.3s ease; }
+        .myp-orb { transform: scale(1); transform-origin: center; }
         .myp-caption {
           margin: 14px 0 0;
           font-family: var(--mono);
@@ -251,6 +315,7 @@ export default function MeetYourPlannerSection() {
         .myp-transcript {
           width: 100%;
           max-width: 440px;
+          min-height: 196px;
           margin: 22px auto 0;
           display: flex;
           flex-direction: column;
@@ -266,20 +331,43 @@ export default function MeetYourPlannerSection() {
         .myp-bubble {
           max-width: 90%;
           padding: 12px 16px;
-          border-radius: ${RADII.lg};
           font-size: 15px;
           line-height: 1.45;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        .myp-chip {
+        .myp-chip-inline {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
           align-self: flex-start;
+          margin-top: 9px;
           font-family: var(--mono);
-          font-size: 0.875rem;
+          font-size: 0.78rem;
           font-weight: 600;
-          letter-spacing: 0.04em;
-          padding: 5px 11px;
+          letter-spacing: 0.03em;
+          padding: 3px 9px;
           border-radius: ${RADII.pill};
-          transition: opacity 0.28s ease, transform 0.28s ease;
+          background: ${COLORS.brand.primaryWash};
+          color: ${COLORS.brand.primary};
+          border: 1px solid ${COLORS.brand.primaryBorder};
         }
+        .myp-csv {
+          align-self: flex-start;
+          width: 80%;
+          max-width: 300px;
+          padding: 11px 13px;
+          border-radius: ${RADII.lg};
+          background: ${COLORS.bg.white};
+          border: 1px solid ${COLORS.border.faint};
+          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+          transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+        .myp-csv-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .myp-csv-file { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 0.84rem; color: var(--text-strong); }
+        .myp-csv-status { font-family: var(--mono); font-size: 0.74rem; color: var(--text-subtle); }
+        .myp-csv-bar { margin-top: 9px; height: 5px; border-radius: 999px; background: rgba(0,0,0,0.06); overflow: hidden; }
+        .myp-csv-fill { height: 100%; border-radius: 999px; background: ${COLORS.brand.primary}; width: 0%; transition: width 1.7s cubic-bezier(0.22,1,0.36,1); }
+        .myp-csv-done { margin-top: 8px; font-size: 0.76rem; font-weight: 600; color: ${COLORS.brand.primary}; transition: opacity 0.35s ease; }
         .myp-points {
           list-style: none;
           padding: 0;
@@ -313,13 +401,13 @@ export default function MeetYourPlannerSection() {
           .myp-ctas { justify-content: center; }
         }
         @media (max-width: 600px) {
-          .myp-orb { transform: scale(0.82); }
+          .myp-orb { transform: scale(0.9); }
           .myp-transcript { max-width: 100%; }
           .myp-ctas { flex-direction: column; width: 100%; max-width: 320px; }
           .myp-ctas > * { width: 100%; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .myp-row, .myp-chip, .myp-caption, .myp-orb { transition: none; }
+          .myp-row, .myp-caption, .myp-csv, .myp-csv-fill, .myp-csv-done { transition: none; }
         }
       `}</style>
     </section>
