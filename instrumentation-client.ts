@@ -17,9 +17,24 @@ Sentry.init({
     // we need perf answers.
     tracesSampleRate: 0.05,
 
-    // Session replay stays off — quota.
+    // Session Replay — quota-conscious. We do NOT sample general traffic
+    // (replaysSessionSampleRate: 0) to stay inside the free tier. Instead:
+    //   • Every session that hits an error gets a replay (1.0) — cheap
+    //     because errors are rare, and these are the sessions worth watching.
+    //   • High-intent flows (e.g. onboarding) opt in explicitly by calling
+    //     Sentry.getReplay()?.start() — see lib/analytics/onboarding.ts.
+    // Privacy: input VALUES are masked (PII / DPDPA), but on-screen text and
+    // layout stay visible so we can see WHERE a user clicked and stalled.
     replaysSessionSampleRate: 0,
-    replaysOnErrorSampleRate: 0,
+    replaysOnErrorSampleRate: 1.0,
+
+    integrations: [
+        Sentry.replayIntegration({
+            maskAllText: false,
+            maskAllInputs: true,
+            blockAllMedia: false,
+        }),
+    ],
 
     ignoreErrors: [
         // Browser extensions (Grammarly, LastPass, etc.) injecting into the DOM.
