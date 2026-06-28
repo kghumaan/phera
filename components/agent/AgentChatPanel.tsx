@@ -173,6 +173,12 @@ function itemsFromPersisted(messages: Array<{ role: string; content: AgentConten
 
 const SPEAK_STORAGE_KEY = 'phera-agent-speak';
 
+// Hands-free voice mode (the orb surface + spoken replies / TTS) is hidden for
+// now. Everyone stays on the chat surface, where they can SPEAK their messages
+// via the mic (speech-to-text) and READ the agent's text replies. No audio is
+// played back. Flip this to true to bring the hands-free voice agent back.
+const HANDS_FREE_VOICE_ENABLED = false;
+
 /** Spoken when reopening the planner with work already in progress. */
 const RESUME_GREETING = "Let's pick up where we left off. What would you like to tackle next?";
 
@@ -234,7 +240,7 @@ export function AgentChatPanel({
   // Initialized from defaultVoice (a prop — same on server & client, so no
   // hydration mismatch) so the gate paints on the first frame with no flash;
   // an effect drops it if the browser can't actually do speech.
-  const [voicePending, setVoicePending] = useState<boolean>(!!defaultVoice);
+  const [voicePending, setVoicePending] = useState<boolean>(HANDS_FREE_VOICE_ENABLED && !!defaultVoice);
   const busyRef = useRef(busy);
   busyRef.current = busy;
   // One-shot guard for the opener/resume decision; reset per wedding.
@@ -245,7 +251,7 @@ export function AgentChatPanel({
   const sendRef = useRef<(text: string) => void>(() => {});
 
   useEffect(() => {
-    setSpeak(window.localStorage.getItem(SPEAK_STORAGE_KEY) === '1');
+    setSpeak(HANDS_FREE_VOICE_ENABLED && window.localStorage.getItem(SPEAK_STORAGE_KEY) === '1');
   }, []);
 
   const toggleSpeak = useCallback(() => {
@@ -749,7 +755,7 @@ export function AgentChatPanel({
     .find((i): i is Extract<ChatItem, { kind: 'assistant' }> => i.kind === 'assistant');
   // Show the voice surface (live loop or the tap-to-start gate) unless a
   // question card is pending — those can only be answered on the typed surface.
-  const showVoice = (voiceMode.active || voicePending) && !awaitingQuestions;
+  const showVoice = HANDS_FREE_VOICE_ENABLED && (voiceMode.active || voicePending) && !awaitingQuestions;
 
   return (
     <PheraCard
@@ -763,9 +769,9 @@ export function AgentChatPanel({
         spacing={0.5}
         sx={{ px: 1.5, py: 0.75, borderBottom: `1px solid ${COLORS.border.faint}` }}
       >
-        {/* Mute toggle only applies to the typed surface — in voice mode replies
-            are always spoken, so hide it there to avoid a no-op control. */}
-        {!voiceMode.active && (
+        {/* Mute toggle only applies to the typed surface — hidden while the
+            hands-free voice agent is disabled (no spoken replies / TTS at all). */}
+        {HANDS_FREE_VOICE_ENABLED && !voiceMode.active && (
           <IconActionButton
             onClick={toggleSpeak}
             aria-label={speak ? 'Mute spoken replies' : 'Hear spoken replies'}
@@ -1027,13 +1033,15 @@ export function AgentChatPanel({
                 />
               ))}
             </Stack>
-            <SecondaryActionButton
-              size="small"
-              startIcon={<GraphicEqRoundedIcon fontSize="small" />}
-              onClick={toggleVoiceMode}
-            >
-              Or talk to me — start voice mode
-            </SecondaryActionButton>
+            {HANDS_FREE_VOICE_ENABLED && (
+              <SecondaryActionButton
+                size="small"
+                startIcon={<GraphicEqRoundedIcon fontSize="small" />}
+                onClick={toggleVoiceMode}
+              >
+                Or talk to me — start voice mode
+              </SecondaryActionButton>
+            )}
           </Stack>
         ) : (
           <Stack spacing={1.5}>
@@ -1167,7 +1175,7 @@ export function AgentChatPanel({
         {/* Persistent voice-mode toggle — floats at the bottom-right of the
             message area so it's always reachable, never hidden behind the
             question card or composer. */}
-        {(items.length > 0 || !!pendingQuestions) && (
+        {HANDS_FREE_VOICE_ENABLED && (items.length > 0 || !!pendingQuestions) && (
           <Tooltip
             title={awaitingQuestions ? 'Answer the questions below first, then switch to voice' : 'Switch to voice mode'}
             placement="left"
@@ -1282,15 +1290,31 @@ export function AgentChatPanel({
               Upload room floor plan (PDF, image, CSV)
             </PheraMenuItem>
           </PheraMenu>
-          <IconActionButton
-            onClick={() => voice.toggle()}
-            disabled={busy || awaitingQuestions || voice.state === 'transcribing'}
-            loading={voice.state === 'transcribing'}
-            aria-label={voice.state === 'recording' ? 'Stop recording' : 'Record a voice message'}
-            sx={voice.state === 'recording' ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : { color: COLORS.text.subtle }}
+          <Tooltip
+            title={voice.state === 'recording' ? 'Listening… tap to finish' : 'Use your voice to speak to the agent'}
+            placement="top"
+            arrow
+            // Surface the hint without a hover while the chat is fresh/idle, and
+            // while recording — otherwise fall back to normal hover.
+            open={
+              voice.state === 'recording' ||
+              (voice.state === 'idle' && !input.trim() && !awaitingQuestions && !busy)
+                ? true
+                : undefined
+            }
           >
-            {voice.state === 'recording' ? <StopRoundedIcon fontSize="small" /> : <MicRoundedIcon fontSize="small" />}
-          </IconActionButton>
+            <Box component="span" sx={{ display: 'inline-flex' }}>
+              <IconActionButton
+                onClick={() => voice.toggle()}
+                disabled={busy || awaitingQuestions || voice.state === 'transcribing'}
+                loading={voice.state === 'transcribing'}
+                aria-label={voice.state === 'recording' ? 'Stop recording' : 'Record a voice message'}
+                sx={voice.state === 'recording' ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : { color: COLORS.text.subtle }}
+              >
+                {voice.state === 'recording' ? <StopRoundedIcon fontSize="small" /> : <MicRoundedIcon fontSize="small" />}
+              </IconActionButton>
+            </Box>
+          </Tooltip>
           <IconActionButton
             type="submit"
             disabled={busy || awaitingQuestions || !input.trim()}

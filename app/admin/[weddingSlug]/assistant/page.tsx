@@ -18,7 +18,7 @@ export default function AssistantPage({ params }: { params: Promise<{ weddingSlu
         subtitle="Your AI wedding planner — ask anything, change anything. It works with the same data as every page here."
       />
       <Box sx={{ mt: 2, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-        <AgentChatPanel weddingSlug={weddingSlug} onboarding={isWelcome} defaultVoice />
+        <AgentChatPanel weddingSlug={weddingSlug} onboarding={isWelcome} />
       </Box>
     </Box>
   );
