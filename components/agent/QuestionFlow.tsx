@@ -75,6 +75,8 @@ const DATE_SLOT_PROPS = {
 export interface QuestionFlowProps {
   questions: AgentQuestion[];
   disabled?: boolean;
+  /** Render bigger — used when the form sits in its own left-hand pane. */
+  large?: boolean;
   onComplete: (answers: Record<string, string | string[]>) => void;
 }
 
@@ -90,7 +92,7 @@ function shortLabel(answer: string | string[] | undefined): string {
  * chips (click to revisit), and lets the user move forward/back before the
  * batch is submitted.
  */
-export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowProps) {
+export function QuestionFlow({ questions, disabled, large, onComplete }: QuestionFlowProps) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [text, setText] = useState('');
@@ -146,6 +148,10 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
     .filter(({ qq, i }) => i !== step && answers[qq.id] !== undefined);
 
   const options = [...(q.options ?? []), ...extraOptions];
+
+  const chipSx = large
+    ? { ...SELECT_CHIP_SX, '& .MuiChip-label': { px: 2, py: 1.35, fontSize: '1.05rem', lineHeight: 1.25 } }
+    : SELECT_CHIP_SX;
 
   // Speech-to-text: the user can SPEAK an answer instead of tapping. For selects
   // we match the transcript to the options (adding any we don't recognise); for
@@ -251,7 +257,7 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
         <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
           Question {step + 1} of {questions.length}
         </Typography>
-        <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
+        <Typography variant={large ? 'h6' : 'body2'} sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
           {q.prompt}
         </Typography>
         {q.hint && (
@@ -366,7 +372,7 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
                 tone="neutral"
                 label={opt}
                 onClick={() => !disabled && commit(opt)}
-                sx={SELECT_CHIP_SX}
+                sx={chipSx}
               />
             ))}
           </Stack>
@@ -388,7 +394,7 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
                   tone={on ? 'brand' : 'neutral'}
                   label={on ? `✓ ${opt}` : opt}
                   onClick={() => !disabled && setMulti((m) => (on ? m.filter((x) => x !== opt) : [...m, opt]))}
-                  sx={SELECT_CHIP_SX}
+                  sx={chipSx}
                 />
               );
             })}

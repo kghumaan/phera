@@ -682,6 +682,22 @@ export function AgentChatPanel({
     .find((i): i is Extract<ChatItem, { kind: 'questions' }> => i.kind === 'questions' && i.status !== 'done');
   const awaitingQuestions = !!pendingQuestions;
 
+  // In the split layout the chat composer stays usable while a form is open on
+  // the left. If the user types/speaks there instead of using the form, resolve
+  // the parked questions with their message (the form clears and the agent
+  // applies what they said) rather than orphaning the parked ask_user.
+  const handleComposerSend = (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || busy) return;
+    if (pendingQuestions) {
+      const pq = pendingQuestions;
+      setInput('');
+      void resolveAnswers(pq.actionId, { [pq.questions[0]?.id ?? 'response']: trimmed }, pq.questions);
+      return;
+    }
+    void send(trimmed);
+  };
+
   // Upload / upgrade actions need a click, so in voice mode they surface as a
   // big obvious panel (the typed chat renders them inline instead). We show the
   // most recent one that hasn't been acted on or skipped.
@@ -1005,7 +1021,40 @@ export function AgentChatPanel({
         </Box>
         )
       ) : (
-      <>
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+      {/* LEFT — the big structured form. Questions render here, large; when there
+          are none, a light prompt to use the chat on the right. */}
+      <Box
+        sx={{
+          display: { xs: pendingQuestions ? 'flex' : 'none', md: 'flex' },
+          flexDirection: 'column',
+          flex: { md: 1 },
+          minWidth: 0,
+          overflowY: 'auto',
+          p: { xs: 2.5, md: 4 },
+          borderRight: { md: `1px solid ${COLORS.border.faint}` },
+          borderBottom: { xs: `1px solid ${COLORS.border.faint}`, md: 'none' },
+        }}
+      >
+        {pendingQuestions ? (
+          <QuestionFlow
+            key={pendingQuestions.actionId}
+            questions={pendingQuestions.questions}
+            disabled={busy}
+            large
+            onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
+          />
+        ) : (
+          <Stack spacing={1.5} sx={{ m: 'auto', alignItems: 'center', textAlign: 'center', maxWidth: 340, py: 6 }}>
+            <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 30 }} />
+            <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
+              Forms appear here as we go — pick options, dates, and details on this side. Prefer to chat? Just type or talk on the right.
+            </Typography>
+          </Stack>
+        )}
+      </Box>
+      {/* RIGHT — the chat: messages on a soft grey, white voice/text input. */}
+      <Box sx={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: COLORS.bg.subtle }}>
       <Box sx={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
         {loadingHistory || (onboarding && items.length === 0) ? (
@@ -1213,22 +1262,9 @@ export function AgentChatPanel({
         )}
       </Box>
 
-      <Box sx={{ borderTop: `1px solid ${COLORS.border.faint}` }}>
-        {/* When the agent asked structured questions, the composer becomes the
-            question collector so the user always answers from the bottom. */}
-        {pendingQuestions ? (
-          <Box sx={{ p: 2 }}>
-            <QuestionFlow
-              key={pendingQuestions.actionId}
-              questions={pendingQuestions.questions}
-              disabled={busy}
-              onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
-            />
-          </Box>
-        ) : (
-        <>
+      <Box sx={{ p: 2 }}>
         {(voice.error || voiceMode.error) && (
-          <Typography variant="caption" sx={{ color: COLORS.text.subtle, px: 2, pt: 1, display: 'block' }}>
+          <Typography variant="caption" sx={{ color: COLORS.text.subtle, px: 0.5, pb: 1, display: 'block' }}>
             {voice.error || voiceMode.error}
           </Typography>
         )}
@@ -1236,9 +1272,18 @@ export function AgentChatPanel({
           component="form"
           onSubmit={(e) => {
             e.preventDefault();
-            send(input);
+            handleComposerSend(input);
           }}
-          sx={{ display: 'flex', gap: 1, p: 2 }}
+          sx={{
+            display: 'flex',
+            gap: 0.5,
+            alignItems: 'flex-end',
+            bgcolor: COLORS.bg.white,
+            border: `1px solid ${COLORS.border.faint}`,
+            borderRadius: RADII.lg,
+            p: 1,
+            boxShadow: SHADOWS.card,
+          }}
         >
           <PheraTextField
             fullWidth
@@ -1246,26 +1291,27 @@ export function AgentChatPanel({
             multiline
             maxRows={6}
             placeholder={
-              awaitingQuestions
-                ? 'Answer the questions above to continue…'
-                : voice.state === 'recording'
-                  ? 'Listening… tap the mic again when you’re done'
-                  : 'Tell me what’s happening — Enter to send, Shift+Enter for a new line'
+              voice.state === 'recording'
+                ? 'Listening… tap the mic again when you’re done'
+                : awaitingQuestions
+                  ? 'Use the form on the left, or just type / say it here…'
+                  : 'Tell me what’s happening — Enter to send'
             }
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                send(input);
+                handleComposerSend(input);
               }
             }}
-            disabled={busy || awaitingQuestions}
+            disabled={busy}
             autoComplete="off"
+            sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
           />
           <IconActionButton
             onClick={(e) => setAttachAnchor(e.currentTarget)}
-            disabled={busy || awaitingQuestions}
+            disabled={busy}
             aria-label="Upload a guest list or floor plan"
             sx={{ color: COLORS.text.subtle }}
           >
@@ -1293,11 +1339,9 @@ export function AgentChatPanel({
             title={voice.state === 'recording' ? 'Tell us as much as you need' : 'Use voice mode'}
             placement="top"
             arrow
-            // Surface the hint without a hover while the chat is fresh/idle, and
-            // while recording — otherwise fall back to normal hover.
             open={
               voice.state === 'recording' ||
-              (voice.state === 'idle' && !input.trim() && !awaitingQuestions && !busy)
+              (voice.state === 'idle' && !input.trim() && !busy)
                 ? true
                 : undefined
             }
@@ -1305,7 +1349,7 @@ export function AgentChatPanel({
             <Box component="span" sx={{ display: 'inline-flex' }}>
               <IconActionButton
                 onClick={() => voice.toggle()}
-                disabled={busy || awaitingQuestions || voice.state === 'transcribing'}
+                disabled={busy || voice.state === 'transcribing'}
                 loading={voice.state === 'transcribing'}
                 aria-label={voice.state === 'recording' ? 'Stop recording' : 'Record a voice message'}
                 sx={voice.state === 'recording' ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : { color: COLORS.text.subtle }}
@@ -1316,17 +1360,16 @@ export function AgentChatPanel({
           </Tooltip>
           <IconActionButton
             type="submit"
-            disabled={busy || awaitingQuestions || !input.trim()}
+            disabled={busy || !input.trim()}
             aria-label="Send message"
             sx={{ color: COLORS.brand.primary, '&.Mui-disabled': { color: COLORS.border.strong } }}
           >
             <SendRoundedIcon fontSize="small" />
           </IconActionButton>
         </Box>
-        </>
-        )}
       </Box>
-      </>
+      </Box>
+      </Box>
       )}
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} tier="base" />
     </PheraCard>
