@@ -117,7 +117,7 @@ export default function HeroSection() {
               lineHeight: 1.5,
             }}
           >
-            An AI wedding planner that handles it all — guest lists, RSVPs, room assignments, vendors, transportation, and the midnight WhatsApp questions.
+            AI wedding planner that handles it all — guest lists, RSVPs, room assignments, vendors, transportation, and the midnight WhatsApp questions.
           </p>
         </Reveal>
 
