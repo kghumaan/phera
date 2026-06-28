@@ -100,6 +100,9 @@ export interface AgentQuestion {
   allowOther?: boolean;
   placeholder?: string;
   optional?: boolean;
+  /** Hide the speak-to-answer mic for this question (the user must type it).
+   *  Used for the onboarding names question. */
+  inputOnly?: boolean;
 }
 
 export interface ProviderUsage {

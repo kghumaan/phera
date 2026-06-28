@@ -30,6 +30,7 @@ export const askTools: AgentToolDefinition[] = [
               allowOther: { type: 'boolean', description: 'For select types: let the user add their own option(s) too' },
               placeholder: { type: 'string' },
               optional: { type: 'boolean', description: 'If true, the user may skip it' },
+              inputOnly: { type: 'boolean', description: 'If true, hide the speak/mic option so the user must type the answer. Use ONLY for the onboarding names question.' },
             },
             required: ['id', 'prompt', 'type'],
             additionalProperties: false,

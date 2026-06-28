@@ -185,16 +185,15 @@ const RESUME_GREETING = "Let's pick up where we left off. What would you like to
 /** Hidden kickoff sent on onboarding — never rendered as a user bubble. */
 const HIDDEN_USER_PREFIX = HIDDEN_KICKOFF_PREFIX;
 const ONBOARDING_OPENER =
-  "Hi! I'm your Phera wedding planner, here to help wherever you are in your wedding journey. " +
-  'I can help with your guest list, RSVPs, transportation, a wedding website, vendors, and more. ' +
-  'What would you like to start with?';
-// Text-onboarding kickoff: the model greets and renders the ask_user card.
-// (Voice onboarding speaks ONBOARDING_OPENER client-side with no model turn, so
-// there's no startup latency — see the greet effect.)
+  "Congratulations on your engagement! 🎉 I'm your Phera wedding planner, and I'm so excited to be part of your journey — " +
+  "I'll carry the wedding logistics so you can soak up every moment. First, what are your names?";
+// Text-onboarding kickoff: the model greets, asks for names (typed only), then
+// walks the warm onboarding sequence from the system prompt.
 const ONBOARDING_KICKOFF =
-  `${HIDDEN_USER_PREFIX} I just signed up and I'm setting up my wedding from scratch. ` +
+  `${HIDDEN_USER_PREFIX} I just got engaged and I'm setting up my wedding from scratch. ` +
   `Greet me with EXACTLY this line, nothing before it: "${ONBOARDING_OPENER}" ` +
-  'Then immediately use ask_user to collect the essentials. Do not write anything after the ask_user call.';
+  'Then immediately call ask_user with ONE text question (id "couple_names", prompt "Your names", placeholder "e.g. Priya & Rahul", inputOnly true). ' +
+  'Do not write anything after the ask_user call. Follow your onboarding sequence for everything after their names.';
 
 export interface AgentChatPanelProps {
   weddingSlug: string;
@@ -1291,7 +1290,7 @@ export function AgentChatPanel({
             </PheraMenuItem>
           </PheraMenu>
           <Tooltip
-            title={voice.state === 'recording' ? 'Listening… tap to finish' : 'Use your voice to speak to the agent'}
+            title={voice.state === 'recording' ? 'Tell us as much as you need' : 'Use voice mode'}
             placement="top"
             arrow
             // Surface the hint without a hover while the chat is fresh/idle, and

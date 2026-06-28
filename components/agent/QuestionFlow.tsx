@@ -179,11 +179,11 @@ export function QuestionFlow({ questions, disabled, onComplete }: QuestionFlowPr
   const applyRef = useRef(applyTranscript);
   applyRef.current = applyTranscript;
   const voice = useVoiceInput(useCallback((t: string) => applyRef.current(t), []));
-  const voiceSupported = ['text', 'textarea', 'single_select', 'multi_select'].includes(q.type);
+  const voiceSupported = !q.inputOnly && ['text', 'textarea', 'single_select', 'multi_select'].includes(q.type);
 
   const voiceButton = voiceSupported ? (
     <Tooltip
-      title={voice.state === 'recording' ? "We're listening… tap to finish" : 'Or just speak your answer'}
+      title={voice.state === 'recording' ? "We're listening — tell us as much as you need" : 'Or just speak your answer'}
       placement="top"
       arrow
       open={voice.state === 'recording' ? true : undefined}
