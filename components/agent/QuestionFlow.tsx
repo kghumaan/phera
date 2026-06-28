@@ -24,6 +24,22 @@ import type { AgentQuestion } from '@/lib/agent/types';
 const INPUT_MAX_WIDTH = 460;
 const INPUT_HEIGHT = 48;
 
+/**
+ * Outlined-input styling for the form fields. PheraTextField shallow-merges
+ * `{ ...ENHANCED, ...sx }`, so any consumer that overrides
+ * `& .MuiOutlinedInput-root` (e.g. to set a fixed height) wipes ENHANCED's
+ * border/hover/focus block — leaving the field with no visible outline when
+ * unfocused. We re-declare the full root treatment here so every form input
+ * keeps a clear resting outline.
+ */
+const INPUT_ROOT_SX = {
+  height: INPUT_HEIGHT,
+  bgcolor: COLORS.bg.white,
+  '& fieldset': { borderColor: COLORS.border.strong },
+  '&:hover fieldset': { borderColor: COLORS.brand.primary },
+  '&.Mui-focused fieldset': { borderColor: COLORS.brand.primary, borderWidth: '2px' },
+} as const;
+
 /** Larger, tappable select chips. */
 const SELECT_CHIP_SX = {
   cursor: 'pointer',
@@ -41,7 +57,7 @@ const DATE_SLOT_PROPS = {
     sx: {
       ...ENHANCED_TEXT_FIELD_SX,
       maxWidth: INPUT_MAX_WIDTH,
-      '& .MuiOutlinedInput-root': { height: INPUT_HEIGHT },
+      '& .MuiOutlinedInput-root': INPUT_ROOT_SX,
       '& .MuiOutlinedInput-input': { color: '#000 !important', WebkitTextFillColor: '#000 !important' },
       '& .MuiInputAdornment-root .MuiSvgIcon-root': { color: COLORS.brand.primary },
     },
@@ -237,7 +253,7 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
   );
 
   return (
-    <Stack spacing={1.25} sx={{ width: '100%' }}>
+    <Stack spacing={large ? 2.25 : 1.25} sx={{ width: '100%' }}>
       {/* Answers so far — click to revisit */}
       {answeredChips.length > 0 && (
         <Stack direction="row" flexWrap="wrap" gap={0.75}>
@@ -258,16 +274,19 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
         <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
           Question {step + 1} of {questions.length}
         </Typography>
-        <Typography variant={large ? 'h6' : 'body2'} sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
+        <Typography
+          variant={large ? 'h6' : 'body2'}
+          sx={{ color: COLORS.text.strong, fontWeight: 600, mt: large ? 0.75 : 0 }}
+        >
           {q.prompt}
         </Typography>
         {q.hint && (
-          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 0.25 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: large ? 0.75 : 0.25 }}>
             {q.hint}
           </Typography>
         )}
         {(q.type === 'single_select' || q.type === 'multi_select') && (
-          <Typography variant="caption" sx={{ color: COLORS.text.subtle, mt: 0.5, display: 'block' }}>
+          <Typography variant="caption" sx={{ color: COLORS.text.subtle, mt: large ? 1 : 0.5, display: 'block' }}>
             Tap to choose — or just tell me in the chat.
           </Typography>
         )}
@@ -289,7 +308,7 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
                 commit(text.trim());
               }
             }}
-            sx={{ flex: 1, maxWidth: INPUT_MAX_WIDTH, '& .MuiOutlinedInput-root': { height: INPUT_HEIGHT } }}
+            sx={{ flex: 1, maxWidth: INPUT_MAX_WIDTH, '& .MuiOutlinedInput-root': INPUT_ROOT_SX }}
           />
           {voiceButton}
           {actionButtons}
@@ -497,7 +516,7 @@ const RangeInput = forwardRef<
       sx={{
         ...ENHANCED_TEXT_FIELD_SX,
         cursor: 'pointer',
-        '& .MuiOutlinedInput-root': { height: INPUT_HEIGHT, cursor: 'pointer' },
+        '& .MuiOutlinedInput-root': { ...INPUT_ROOT_SX, cursor: 'pointer' },
         '& .MuiOutlinedInput-input': { cursor: 'pointer', color: '#000 !important', WebkitTextFillColor: '#000 !important' },
       }}
     />

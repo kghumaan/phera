@@ -29,6 +29,7 @@ import { CONFIRMATION_NOTE_PREFIX } from '@/lib/agent/confirm';
 import { ANSWERS_NOTE_PREFIX } from '@/lib/agent/answer';
 import { HIDDEN_KICKOFF_PREFIX } from '@/lib/agent/message-prefixes';
 import { QuestionFlow } from './QuestionFlow';
+import { AnimatePresence, motion } from 'framer-motion';
 import type { AgentStreamEvent, AgentContentBlock, AgentQuestion } from '@/lib/agent/types';
 
 type ChatItem =
@@ -145,6 +146,116 @@ function summarizeAnswers(questions: AgentQuestion[], answers: Record<string, st
   return joined.length > 160 ? `${joined.slice(0, 157)}…` : joined;
 }
 
+/**
+ * A captured wedding fact distilled from an answered form question, shown as a
+ * tappable badge under the form ("Names: Priya & Rahul"). Tapping re-asks so
+ * the couple can change it later.
+ */
+interface CapturedFact {
+  label: string;
+  value: string;
+}
+
+// Map a question prompt → a short fact label. Ordered: more specific first
+// (a "venue name" prompt must read as Venue, not Names). Prompts that don't
+// match any rule (per-event times, the schedule-style choice) aren't badged.
+const FACT_RULES: { test: RegExp; label: string }[] = [
+  { test: /venue/i, label: 'Venue' },
+  { test: /\b(city|region|destination|leaning toward)\b/i, label: 'Location' },
+  { test: /(date|when are|timeframe|celebration)/i, label: 'Dates' },
+  { test: /(ceremon|\bevents?\b)/i, label: 'Events' },
+  { test: /(your names|what are your name|partner|couple)/i, label: 'Names' },
+  { test: /(stage|planning process|where are you in)/i, label: 'Stage' },
+  { test: /(help with|would you like help|what would you like)/i, label: 'Helping with' },
+];
+
+// Control/choice questions (e.g. "How should we set up your events?", "lay out
+// a typical schedule or set them yourself?") aren't data points — never badge
+// them even though they mention "events"/"dates".
+const FACT_EXCLUDE = /(how should we|set up your|lay (it|out)|typical schedule|set .* yourself|or set)/i;
+
+function factLabelFor(prompt: string): string | null {
+  if (FACT_EXCLUDE.test(prompt)) return null;
+  for (const rule of FACT_RULES) if (rule.test.test(prompt)) return rule.label;
+  return null;
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function prettyDate(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return iso;
+  return `${MONTHS[Number(m[2]) - 1] ?? ''} ${Number(m[3])}`;
+}
+function formatFactValue(value: string): string {
+  const range = /^(\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2})$/.exec(value);
+  if (range) return `${prettyDate(range[1])} – ${prettyDate(range[2])}`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return prettyDate(value);
+  return value.length > 40 ? `${value.slice(0, 38)}…` : value;
+}
+
+/** Natural-language phrase for the re-ask message a fact badge sends on tap. */
+const FACT_EDIT_PHRASE: Record<string, string> = {
+  Names: 'our names',
+  Stage: 'where we are in planning',
+  Venue: 'the venue',
+  Location: 'the location',
+  Dates: 'the dates',
+  Events: 'the events',
+  'Helping with': "what you're helping me with",
+};
+
+/** Merge new facts into the running list, replacing any with the same label. */
+function mergeFacts(prev: CapturedFact[], incoming: CapturedFact[]): CapturedFact[] {
+  const next = [...prev];
+  for (const fact of incoming) {
+    const i = next.findIndex((p) => p.label === fact.label);
+    if (i >= 0) next[i] = fact;
+    else next.push(fact);
+  }
+  return next;
+}
+
+/** Distill badge-worthy facts from a just-answered ask_user batch. */
+function factsFromAnswers(
+  questions: AgentQuestion[],
+  answers: Record<string, string | string[]>
+): CapturedFact[] {
+  const out: CapturedFact[] = [];
+  for (const q of questions) {
+    const label = factLabelFor(q.prompt);
+    if (!label) continue;
+    const raw = answers[q.id];
+    const value = Array.isArray(raw) ? raw.join(', ') : raw ?? '';
+    if (!value.trim()) continue;
+    out.push({ label, value: formatFactValue(value.trim()) });
+  }
+  return out;
+}
+
+/** Rebuild captured facts from persisted answer-note messages, so the badges
+ *  survive a reload. The note lists "- <prompt> → <answer>" per question. */
+function factsFromMessages(messages: Array<{ content?: AgentContentBlock[] }>): CapturedFact[] {
+  let facts: CapturedFact[] = [];
+  for (const message of messages) {
+    for (const block of message.content ?? []) {
+      if (block.type !== 'text' || !block.text.startsWith(ANSWERS_NOTE_PREFIX)) continue;
+      for (const line of block.text.split('\n')) {
+        const t = line.trim();
+        if (!t.startsWith('- ')) continue;
+        const sep = t.indexOf(' → ');
+        if (sep < 0) continue;
+        const prompt = t.slice(2, sep).trim();
+        const answer = t.slice(sep + 3).trim();
+        if (!answer || answer === '(skipped)') continue;
+        const label = factLabelFor(prompt);
+        if (!label) continue;
+        facts = mergeFacts(facts, [{ label, value: formatFactValue(answer) }]);
+      }
+    }
+  }
+  return facts;
+}
+
 const DEFAULT_STARTERS = [
   'How is our planning going so far?',
   "What's still missing from our setup?",
@@ -185,8 +296,8 @@ const RESUME_GREETING = "Let's pick up where we left off. What would you like to
 /** Hidden kickoff sent on onboarding — never rendered as a user bubble. */
 const HIDDEN_USER_PREFIX = HIDDEN_KICKOFF_PREFIX;
 const ONBOARDING_OPENER =
-  "Congratulations on your engagement! 🎉 I'm your Phera wedding planner, and I'm so excited to be part of your journey — " +
-  "I'll carry the wedding logistics so you can soak up every moment. First, what are your names?";
+  "Congratulations on your engagement! 🎉 I'm your Phera wedding planner — " +
+  "I'll carry the wedding logistics so you can soak up every moment. Let's start with the basics.";
 // Text-onboarding kickoff: the model greets, asks for names (typed only), then
 // walks the warm onboarding sequence from the system prompt.
 const ONBOARDING_KICKOFF =
@@ -216,6 +327,10 @@ export function AgentChatPanel({
   defaultVoice,
 }: AgentChatPanelProps) {
   const [items, setItems] = useState<ChatItem[]>([]);
+  // Captured wedding facts distilled from answered form questions — shown as
+  // tappable badges under the form so the couple sees (and can change) what's
+  // been recorded.
+  const [facts, setFacts] = useState<CapturedFact[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [busyLabel, setBusyLabel] = useState('Thinking…');
@@ -287,6 +402,7 @@ export function AgentChatPanel({
   useEffect(() => {
     let cancelled = false;
     setItems([]);
+    setFacts([]);
     setLoadingHistory(true);
     setHasExistingData(false);
     greetedRef.current = false; // each wedding gets its opener decision once
@@ -314,6 +430,7 @@ export function AgentChatPanel({
           return; // conversationIdRef stays null → next send starts fresh
         }
         if (data.conversation) conversationIdRef.current = data.conversation.id;
+        if (data.messages?.length) setFacts(factsFromMessages(data.messages));
         const restored = data.messages?.length ? itemsFromPersisted(data.messages) : [];
         for (const pending of data.pendingActions ?? []) {
           if (pending.tool_name === 'ask_user') {
@@ -500,6 +617,9 @@ export function AgentChatPanel({
       streamingRef.current = false;
       setBusyLabel('Saving…');
       setBusy(true);
+      // Reveal/refresh the captured-fact badges for anything answered here.
+      const newFacts = factsFromAnswers(questions, answers);
+      if (newFacts.length) setFacts((prev) => mergeFacts(prev, newFacts));
       // Show what the user answered as a right-side bubble (summarized).
       const summary = summarizeAnswers(questions, answers);
       setItems((prev) => [
@@ -663,18 +783,6 @@ export function AgentChatPanel({
     if (!defaultVoice || !voiceMode.supported) setVoicePending(false);
   }, [defaultVoice, voiceMode]);
 
-  const startNewConversation = useCallback(() => {
-    // Fresh thread: the next send creates a new conversation server-side.
-    // (Reloading before sending restores the previous thread — by design.)
-    voiceMode.stop();
-    conversationIdRef.current = null;
-    setItems([]);
-    setHasExistingData(false);
-    greetedRef.current = false; // let the opener/resume decision run again
-    // Voice is the default, so a fresh thread re-opens the tap-to-start gate.
-    setVoicePending(!!defaultVoice);
-  }, [defaultVoice, voiceMode]);
-
   // While the agent is waiting on a structured-question answer, the user
   // answers via the QuestionFlow at the bottom — not the free-text composer.
   const pendingQuestions = [...items]
@@ -773,35 +881,8 @@ export function AgentChatPanel({
   const showVoice = HANDS_FREE_VOICE_ENABLED && (voiceMode.active || voicePending) && !awaitingQuestions;
 
   return (
-    <PheraCard
-      variant="default"
-      sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight, overflow: 'hidden', p: 0 }}
-    >
-      <Stack
-        direction="row"
-        justifyContent="flex-end"
-        alignItems="center"
-        spacing={0.5}
-        sx={{ px: 1.5, py: 0.75, borderBottom: `1px solid ${COLORS.border.faint}` }}
-      >
-        {/* Mute toggle only applies to the typed surface — hidden while the
-            hands-free voice agent is disabled (no spoken replies / TTS at all). */}
-        {HANDS_FREE_VOICE_ENABLED && !voiceMode.active && (
-          <IconActionButton
-            onClick={toggleSpeak}
-            aria-label={speak ? 'Mute spoken replies' : 'Hear spoken replies'}
-            sx={speak ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : undefined}
-          >
-            {speak ? <VolumeUpRoundedIcon fontSize="small" /> : <VolumeOffRoundedIcon fontSize="small" />}
-          </IconActionButton>
-        )}
-        {items.length > 0 && (
-          <SecondaryActionButton size="small" disabled={busy} onClick={startNewConversation}>
-            New conversation
-          </SecondaryActionButton>
-        )}
-      </Stack>
-      {/* File pickers live at the card root so they work from both the voice
+    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight }}>
+      {/* File pickers live at the root so they work from both the voice
           action panel and the typed composer. */}
       <input
         ref={guestFileRef}
@@ -1021,23 +1102,28 @@ export function AgentChatPanel({
         </Box>
         )
       ) : (
-      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
-      {/* LEFT — the big structured form. Questions render here, large; when there
-          are none, a light prompt to use the chat on the right. */}
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 2, md: 3 } }}>
+      {/* FORM — the big structured form, on the RIGHT (order 2 on md). Questions
+          render here, large; the centered block sits above a bottom strip of
+          captured-fact badges. DOM-first so it stacks on top on mobile when a
+          question is pending. */}
       <Box
         sx={{
-          display: { xs: pendingQuestions ? 'flex' : 'none', md: 'flex' },
+          order: { md: 2 },
+          display: { xs: pendingQuestions || facts.length > 0 ? 'flex' : 'none', md: 'flex' },
           flexDirection: 'column',
           flex: { md: 1 },
           minWidth: 0,
           overflowY: 'auto',
-          p: { xs: 2.5, md: 4 },
-          borderRight: { md: `1px solid ${COLORS.border.faint}` },
-          borderBottom: { xs: `1px solid ${COLORS.border.faint}`, md: 'none' },
+          px: { xs: 2, md: 5 },
+          py: { xs: 2.5, md: 4 },
         }}
       >
-        {pendingQuestions ? (
-          <Box sx={{ m: 'auto', width: '100%', maxWidth: 540 }}>
+        {/* Centered question / placeholder. Two `mt: auto` boxes (here + the
+            facts strip) pin the strip to the bottom while keeping this centered;
+            when content overflows, the auto margins collapse and it scrolls. */}
+        <Box sx={{ mt: 'auto', mx: 'auto', width: '100%', maxWidth: 460 }}>
+          {pendingQuestions ? (
             <QuestionFlow
               key={pendingQuestions.actionId}
               questions={pendingQuestions.questions}
@@ -1045,18 +1131,53 @@ export function AgentChatPanel({
               large
               onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
             />
-          </Box>
-        ) : (
-          <Stack spacing={1.5} sx={{ m: 'auto', alignItems: 'center', textAlign: 'center', maxWidth: 340, py: 6 }}>
-            <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 30 }} />
-            <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
-              Forms appear here as we go — pick options, dates, and details on this side. Prefer to chat? Just type or talk on the right.
-            </Typography>
-          </Stack>
-        )}
+          ) : (
+            <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+              <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 30 }} />
+              <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
+                Forms appear here as we go — pick options, dates, and details on this side. Prefer to chat? Just type or talk on the left.
+              </Typography>
+            </Stack>
+          )}
+        </Box>
+        {/* Captured-fact badges — revealed with a spring as each answer lands;
+            tap one to re-open that question and change it. */}
+        <Box sx={{ mt: 'auto', mx: 'auto', width: '100%', maxWidth: 460 }}>
+          {facts.length > 0 && (
+            <Box sx={{ pt: 3, mt: 3, borderTop: `1px solid ${COLORS.border.faint}` }}>
+              <Typography variant="caption" sx={{ color: COLORS.text.subtle, display: 'block', mb: 1 }}>
+                Captured so far — tap to change
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                <AnimatePresence initial={false}>
+                  {facts.map((fact) => (
+                    <motion.div
+                      key={fact.label}
+                      layout
+                      initial={{ opacity: 0, y: 10, scale: 0.85 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.85 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    >
+                      <PheraChip
+                        tone="brand"
+                        label={`${fact.label}: ${fact.value}`}
+                        onClick={() =>
+                          !busy && send(`I'd like to change ${FACT_EDIT_PHRASE[fact.label] ?? `the ${fact.label.toLowerCase()}`}.`)
+                        }
+                        sx={{ cursor: 'pointer', maxWidth: '100%' }}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </Box>
+            </Box>
+          )}
+        </Box>
       </Box>
-      {/* RIGHT — the chat: messages on a soft grey, white voice/text input. */}
-      <Box sx={{ flex: 1, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: COLORS.bg.subtle }}>
+      {/* CHAT — on the LEFT (order 1 on md), wider. Messages on a soft grey
+          rounded panel with a white input. */}
+      <Box sx={{ order: { md: 1 }, flex: { xs: 1, md: 1.6 }, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: COLORS.bg.subtle, borderRadius: RADII.lg, overflow: 'hidden' }}>
       <Box sx={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
         {loadingHistory || (onboarding && items.length === 0) ? (
@@ -1190,12 +1311,14 @@ export function AgentChatPanel({
                   key={index}
                   sx={{
                     alignSelf: item.kind === 'user' ? 'flex-end' : 'flex-start',
-                    maxWidth: '85%',
-                    px: 2,
-                    py: 1.25,
-                    borderRadius: RADII.lg,
-                    bgcolor: item.kind === 'user' ? COLORS.brand.primarySubtle : COLORS.bg.subtle,
-                    border: `1px solid ${item.kind === 'user' ? COLORS.brand.primaryBorder : COLORS.border.faint}`,
+                    // Planner replies are borderless text on the grey panel; the
+                    // couple's messages stay as a soft pink bubble.
+                    maxWidth: item.kind === 'user' ? '85%' : '100%',
+                    px: item.kind === 'user' ? 2 : 0,
+                    py: item.kind === 'user' ? 1.25 : 0.25,
+                    borderRadius: item.kind === 'user' ? RADII.lg : 0,
+                    bgcolor: item.kind === 'user' ? COLORS.brand.primarySubtle : 'transparent',
+                    border: item.kind === 'user' ? `1px solid ${COLORS.brand.primaryBorder}` : 'none',
                   }}
                 >
                   {item.kind === 'assistant' ? (
@@ -1297,7 +1420,7 @@ export function AgentChatPanel({
               voice.state === 'recording'
                 ? 'Listening… tap the mic again when you’re done'
                 : awaitingQuestions
-                  ? 'Use the form on the left, or just type / say it here…'
+                  ? 'Use the form on the right, or just type / say it here…'
                   : 'Tell me what’s happening — Enter to send'
             }
             value={input}
@@ -1312,6 +1435,17 @@ export function AgentChatPanel({
             autoComplete="off"
             sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
           />
+          {/* Mute toggle for spoken replies — only relevant on the typed
+              surface, hidden while the hands-free voice agent is disabled. */}
+          {HANDS_FREE_VOICE_ENABLED && !voiceMode.active && (
+            <IconActionButton
+              onClick={toggleSpeak}
+              aria-label={speak ? 'Mute spoken replies' : 'Hear spoken replies'}
+              sx={speak ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : { color: COLORS.text.subtle }}
+            >
+              {speak ? <VolumeUpRoundedIcon fontSize="small" /> : <VolumeOffRoundedIcon fontSize="small" />}
+            </IconActionButton>
+          )}
           <IconActionButton
             onClick={(e) => setAttachAnchor(e.currentTarget)}
             disabled={busy}
@@ -1375,7 +1509,7 @@ export function AgentChatPanel({
       </Box>
       )}
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} tier="base" />
-    </PheraCard>
+    </Box>
   );
 }
 
