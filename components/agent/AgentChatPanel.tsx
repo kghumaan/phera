@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Stack, Typography, CircularProgress, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { Box, Stack, Typography, CircularProgress, Tooltip, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
@@ -24,7 +24,7 @@ import { PheraCard } from '@/components/shared/Card';
 import { PheraTextField } from '@/components/shared/TextField';
 import { PheraChip } from '@/components/shared/Chip';
 import { IconActionButton, PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, RADII, SHADOWS } from '@/lib/theme/tokens';
 import { CONFIRMATION_NOTE_PREFIX } from '@/lib/agent/confirm';
 import { ANSWERS_NOTE_PREFIX } from '@/lib/agent/answer';
 import { HIDDEN_KICKOFF_PREFIX } from '@/lib/agent/message-prefixes';
@@ -1001,6 +1001,7 @@ export function AgentChatPanel({
         )
       ) : (
       <>
+      <Box sx={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
         {loadingHistory || (onboarding && items.length === 0) ? (
           // During onboarding the kickoff fires immediately — show a spinner,
@@ -1163,6 +1164,47 @@ export function AgentChatPanel({
           </Stack>
         )}
       </Box>
+        {/* Persistent voice-mode toggle — floats at the bottom-right of the
+            message area so it's always reachable, never hidden behind the
+            question card or composer. */}
+        {(items.length > 0 || !!pendingQuestions) && (
+          <Tooltip
+            title={awaitingQuestions ? 'Answer the questions below first, then switch to voice' : 'Switch to voice mode'}
+            placement="left"
+          >
+            <Box component="span" sx={{ position: 'absolute', right: 16, bottom: 16, zIndex: 5 }}>
+              <Box
+                component="button"
+                type="button"
+                onClick={toggleVoiceMode}
+                disabled={busy || awaitingQuestions}
+                aria-label="Switch to voice mode"
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  px: 1.75,
+                  py: 1,
+                  borderRadius: RADII.pill,
+                  border: `1px solid ${COLORS.brand.primaryBorder}`,
+                  bgcolor: COLORS.bg.white,
+                  color: COLORS.brand.primary,
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  boxShadow: SHADOWS.popover,
+                  transition: 'background 0.15s ease, opacity 0.15s ease',
+                  '&:hover': { bgcolor: COLORS.brand.primarySubtle },
+                  '&:disabled': { opacity: 0.45, cursor: 'default' },
+                }}
+              >
+                <GraphicEqRoundedIcon sx={{ fontSize: 18 }} />
+                Voice
+              </Box>
+            </Box>
+          </Tooltip>
+        )}
+      </Box>
 
       <Box sx={{ borderTop: `1px solid ${COLORS.border.faint}` }}>
         {/* When the agent asked structured questions, the composer becomes the
@@ -1240,14 +1282,6 @@ export function AgentChatPanel({
               Upload room floor plan (PDF, image, CSV)
             </PheraMenuItem>
           </PheraMenu>
-          <IconActionButton
-            onClick={toggleVoiceMode}
-            disabled={busy || awaitingQuestions}
-            aria-label="Start hands-free voice mode"
-            sx={{ color: COLORS.text.subtle }}
-          >
-            <GraphicEqRoundedIcon fontSize="small" />
-          </IconActionButton>
           <IconActionButton
             onClick={() => voice.toggle()}
             disabled={busy || awaitingQuestions || voice.state === 'transcribing'}
