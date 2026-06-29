@@ -29,6 +29,7 @@ import {
   Radar,
   ChatBubbleOutline,
   Settings,
+  AccountCircle,
   Hotel,
   AutoAwesome,
   StorefrontOutlined,
@@ -97,6 +98,7 @@ export const groups: SidebarGroup[] = [
       { id: 'registry', label: 'Registry', path: '/registry' },
       { id: 'shopping', label: 'Where to Shop', path: '/where-to-shop' },
       { id: 'pins', label: 'Event Access', path: '/event-access', required: true },
+      { id: 'settings', label: 'Settings & Publish', path: '/settings' },
     ],
   },
   {
@@ -120,6 +122,15 @@ export const groups: SidebarGroup[] = [
       { id: 'vendor-marketplace', label: 'Vendor Marketplace', path: '/vendor-marketplace', isPro: true },
       { id: 'coordinator', label: 'Vendor Management', path: '/vendor-management', isPro: true },
       { id: 'knowledge-bank', label: 'Knowledge Bank', path: '/knowledge-bank', isPro: true },
+    ],
+  },
+  {
+    id: 'account',
+    label: 'Account',
+    icon: <AccountCircle />,
+    standalone: true,
+    items: [
+      { id: 'account', label: 'Account', path: '/account' },
     ],
   },
   {
