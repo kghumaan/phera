@@ -22,6 +22,8 @@ import LocalFloristOutlinedIcon from '@mui/icons-material/LocalFloristOutlined'
 import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined'
 import RestaurantOutlinedIcon from '@mui/icons-material/RestaurantOutlined'
 import StyleOutlinedIcon from '@mui/icons-material/StyleOutlined'
+import CastleOutlinedIcon from '@mui/icons-material/CastleOutlined'
+import HotelOutlinedIcon from '@mui/icons-material/HotelOutlined'
 import { COLORS, RADII, FONTS } from '@/lib/theme/tokens'
 import { PheraCard } from '@/components/shared/Card'
 import { PheraChip } from '@/components/shared/Chip'
@@ -36,6 +38,8 @@ import { VENDOR_CATEGORY_LABELS, VENDOR_CITY_CONFIG } from '@/lib/vendors/direct
 /* ─── constants ──────────────────────────────────────────────────────────────── */
 
 const CATEGORY_COLORS: Record<VendorCategory, string> = {
+  venue:             COLORS.cultural.gold,
+  hotel:             COLORS.accent.info,
   photographer:      '#DE3F5E',
   videographer:      '#7C3AED',
   dj:                '#0E7C5B',
@@ -53,6 +57,8 @@ const COUNTRY_FLAGS: Record<string, string> = {
 }
 
 const CATEGORY_ICONS: Record<VendorCategory, React.ReactNode> = {
+  venue:             <CastleOutlinedIcon sx={{ fontSize: 18 }} />,
+  hotel:             <HotelOutlinedIcon sx={{ fontSize: 18 }} />,
   photographer:      <CameraAltOutlinedIcon sx={{ fontSize: 18 }} />,
   videographer:      <VideocamOutlinedIcon sx={{ fontSize: 18 }} />,
   dj:                <HeadsetOutlinedIcon sx={{ fontSize: 18 }} />,

@@ -1,4 +1,6 @@
 export type VendorCategory =
+  | 'venue'
+  | 'hotel'
   | 'photographer'
   | 'videographer'
   | 'dj'
@@ -81,6 +83,8 @@ export interface VendorFilters {
 }
 
 export const VENDOR_CATEGORY_LABELS: Record<VendorCategory, string> = {
+  venue: 'Wedding Venue',
+  hotel: 'Hotel',
   photographer: 'Photographer',
   videographer: 'Videographer',
   dj: 'DJ',
@@ -107,11 +111,14 @@ export const VENDOR_CITY_CONFIG: Array<{
   { city: 'Rishikesh',country_code: 'IN', country: 'India',     region: 'India',         search_name: 'Rishikesh, Uttarakhand, India' },
   { city: 'Kerala',   country_code: 'IN', country: 'India',     region: 'India',         search_name: 'Kochi, Kerala, India' },
   { city: 'Bangkok',  country_code: 'TH', country: 'Thailand',  region: 'International', search_name: 'Bangkok, Thailand' },
+  { city: 'Hua Hin',  country_code: 'TH', country: 'Thailand',  region: 'International', search_name: 'Hua Hin, Thailand' },
   { city: 'Bali',     country_code: 'ID', country: 'Indonesia', region: 'International', search_name: 'Bali, Indonesia' },
   { city: 'Dubai',    country_code: 'AE', country: 'UAE',       region: 'International', search_name: 'Dubai, UAE' },
 ]
 
 export const GOOGLE_PLACES_SEARCH_TERMS: Record<VendorCategory, string[]> = {
+  venue:              ['wedding venue', 'banquet hall', 'wedding resort'],
+  hotel:              ['luxury hotel', '5 star hotel', 'wedding hotel resort'],
   photographer:       ['Indian wedding photographer', 'wedding photographer'],
   videographer:       ['Indian wedding videographer', 'wedding cinematographer'],
   dj:                 ['DJ for Indian wedding', 'wedding DJ'],

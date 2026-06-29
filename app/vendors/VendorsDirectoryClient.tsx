@@ -31,6 +31,8 @@ const FLAG: Record<string, string> = { IN: '🇮🇳', TH: '🇹🇭', ID: '🇮
 // Stable per-category accent (token-backed) so cards in a category share a
 // color family.
 const CATEGORY_COLOR: Record<VendorCategory, string> = {
+  venue: COLORS.cultural.gold,
+  hotel: COLORS.accent.info,
   photographer: COLORS.brand.primary,
   videographer: COLORS.cultural.purple,
   dj: COLORS.cultural.teal,
@@ -138,7 +140,7 @@ function VendorCard({ v }: { v: VendorRecord }) {
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Stack direction="row" spacing={0.5} alignItems="center">
-            <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', fontFamily: FONTS.body, lineHeight: 1.3 }} noWrap>
+            <Typography sx={{ fontWeight: 600, fontSize: '0.95rem', fontFamily: FONTS.body, lineHeight: 1.3, color: COLORS.text.strong }} noWrap>
               {v.name}
             </Typography>
             {v.is_verified && <VerifiedRoundedIcon sx={{ fontSize: 15, color: COLORS.brand.primary, flexShrink: 0 }} />}
@@ -176,7 +178,7 @@ function VendorCard({ v }: { v: VendorRecord }) {
         {v.rating != null && (
           <Stack direction="row" spacing={0.4} alignItems="center">
             <StarRoundedIcon sx={{ fontSize: 15, color: COLORS.accent.warning }} />
-            <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, fontFamily: FONTS.body }}>
+            <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, fontFamily: FONTS.body, color: COLORS.text.strong }}>
               {v.rating.toFixed(1)}
             </Typography>
             {v.review_count != null && (

@@ -134,10 +134,21 @@ async function upsertVendor(vendor: VendorInsert, dryRun: boolean): Promise<'ins
     .maybeSingle()
 
   if (existing) {
-    // Update existing record (refresh rating, review_count, phone, etc.)
+    // Only refresh volatile fields. NEVER overwrite category/name/city on
+    // re-discovery: a single place (esp. a resort) matches several category
+    // searches, and overwriting would let the last-run category win — e.g. a
+    // venue getting re-tagged as "live_band". Category is set once, on insert.
+    const refresh = {
+      rating: vendor.rating,
+      review_count: vendor.review_count,
+      phone: vendor.phone,
+      website: vendor.website,
+      price_range_min: vendor.price_range_min,
+      price_range_max: vendor.price_range_max,
+    }
     const { error } = await supabase
       .from('vendor_directory')
-      .update(vendor)
+      .update(refresh)
       .eq('id', existing.id)
     if (error) { console.error(`  ✗ ${vendor.name}: ${error.message}`); return 'skipped' }
     return 'updated'
@@ -161,8 +172,15 @@ async function main() {
   }
 
   const args = process.argv.slice(2)
-  const cityFilter = args[args.indexOf('--city') + 1] ?? null
-  const catFilter  = args[args.indexOf('--category') + 1] as VendorCategory | null ?? null
+  // Read the value following a flag, or null if the flag is absent. (Using
+  // indexOf(flag)+1 directly is wrong when the flag is missing: indexOf returns
+  // -1 and args[0] gets misread as the value.)
+  const flagValue = (flag: string): string | null => {
+    const i = args.indexOf(flag)
+    return i >= 0 ? (args[i + 1] ?? null) : null
+  }
+  const cityFilter = flagValue('--city')
+  const catFilter  = flagValue('--category') as VendorCategory | null
   const dryRun     = args.includes('--dry-run')
 
   const cities     = cityFilter ? VENDOR_CITY_CONFIG.filter(c => c.city.toLowerCase() === cityFilter.toLowerCase()) : VENDOR_CITY_CONFIG
@@ -187,6 +205,12 @@ async function main() {
         console.log(`   Found ${places.length} places`)
 
         for (const place of places) {
+          // The "wedding venue" search surfaces planners/event companies too —
+          // they belong in the wedding_planner category, not venue. Skip them.
+          if (category === 'venue' && /\bplanner|weddings by\b/i.test(place.displayName.text)) {
+            if (!dryRun) console.log(`   – skip (planner): ${place.displayName.text}`)
+            continue
+          }
           const vendor = toVendorInsert(place, cityConfig.city, cityConfig.country_code, category)
           const result = await upsertVendor(vendor, dryRun)
           total++
