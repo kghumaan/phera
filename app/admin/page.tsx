@@ -139,8 +139,8 @@ export default function AdminPage() {
         if (error && error.code !== 'PGRST116') {
           console.error('[Admin] Error fetching wedding:', error);
         } else if (weddingData) {
-          console.log('[Admin] Wedding found, redirecting to overview...');
-          router.replace(`/admin/${weddingData.slug}/overview`);
+          console.log('[Admin] Wedding found, redirecting to Planner...');
+          router.replace(`/admin/${weddingData.slug}/assistant`);
           return;
         } else {
           console.log('[Admin] No wedding found, redirecting to onboarding...');

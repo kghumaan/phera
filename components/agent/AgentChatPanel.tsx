@@ -12,6 +12,7 @@ import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 import AttachFileRoundedIcon from '@mui/icons-material/AttachFileRounded';
 import GraphicEqRoundedIcon from '@mui/icons-material/GraphicEqRounded';
 import KeyboardRoundedIcon from '@mui/icons-material/KeyboardRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useVoiceInput } from './useVoiceInput';
@@ -204,6 +205,17 @@ const FACT_EDIT_PHRASE: Record<string, string> = {
   'Helping with': "what you're helping me with",
 };
 
+// Facts woven into the "Planning a wedding for X in Y …" clause, in reading
+// order with their connecting word. Stage and "Helping with" read better as
+// short trailing sentences, so they're handled separately.
+const WEDDING_CLAUSE: { label: string; connector: string }[] = [
+  { label: 'Names', connector: 'for' },
+  { label: 'Location', connector: 'in' },
+  { label: 'Venue', connector: 'at' },
+  { label: 'Dates', connector: 'on' },
+  { label: 'Events', connector: 'with' },
+];
+
 /** Merge new facts into the running list, replacing any with the same label. */
 function mergeFacts(prev: CapturedFact[], incoming: CapturedFact[]): CapturedFact[] {
   const next = [...prev];
@@ -295,9 +307,18 @@ const RESUME_GREETING = "Let's pick up where we left off. What would you like to
 
 /** Hidden kickoff sent on onboarding — never rendered as a user bubble. */
 const HIDDEN_USER_PREFIX = HIDDEN_KICKOFF_PREFIX;
+// Stable signature of the onboarding greeting. We normalize any persisted
+// greeting that starts with this back to the current ONBOARDING_OPENER on
+// restore, so copy tweaks show on reload instead of replaying the stale text
+// the model saved when the conversation began.
+const ONBOARDING_OPENER_PREFIX = 'Congratulations on your engagement';
 const ONBOARDING_OPENER =
-  "Congratulations on your engagement! 🎉 I'm your Phera wedding planner — " +
-  "I'll carry the wedding logistics so you can soak up every moment. Let's start with the basics.";
+  "Congratulations on your engagement! 🎉 I'm your Phera wedding assistant - " +
+  "We understand how hectic wedding planning can be and we're here to make it as fun as possible for you.";
+  
+const ONBOARDING_OPENER2 =
+  "Let's start by gathering as much information about your celebrations so we can personalize your experience. Answer the questions on the right, " +
+  "or just just brain-dump below — share any details, any documentation or notes you may already have. The more you share with us, the better we can help.";
 // Text-onboarding kickoff: the model greets, asks for names (typed only), then
 // walks the warm onboarding sequence from the system prompt.
 const ONBOARDING_KICKOFF =
@@ -320,17 +341,26 @@ export interface AgentChatPanelProps {
 
 export function AgentChatPanel({
   weddingSlug,
-  starters = DEFAULT_STARTERS,
+  starters,
   onTurnComplete,
   minHeight = 480,
   onboarding,
   defaultVoice,
 }: AgentChatPanelProps) {
   const [items, setItems] = useState<ChatItem[]>([]);
+  // Analytical, wedding-specific starter prompts for a returning couple ("41 of
+  // 280 RSVPs are in…"), fetched from /api/agent/summary. A caller-supplied
+  // `starters` wins; otherwise these, then the static defaults.
+  const [dynamicStarters, setDynamicStarters] = useState<string[] | null>(null);
   // Captured wedding facts distilled from answered form questions — shown as
   // tappable badges under the form so the couple sees (and can change) what's
   // been recorded.
   const [facts, setFacts] = useState<CapturedFact[]>([]);
+  // One-time animated "try voice" nudge over the mic, revealed right after the
+  // (typed-only) names question is answered.
+  const [showVoiceHint, setShowVoiceHint] = useState(false);
+  const voiceHintShownRef = useRef(false);
+  const wasAskingNameRef = useRef(false);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [busyLabel, setBusyLabel] = useState('Thinking…');
@@ -430,26 +460,41 @@ export function AgentChatPanel({
           return; // conversationIdRef stays null → next send starts fresh
         }
         if (data.conversation) conversationIdRef.current = data.conversation.id;
-        if (data.messages?.length) setFacts(factsFromMessages(data.messages));
-        const restored = data.messages?.length ? itemsFromPersisted(data.messages) : [];
-        for (const pending of data.pendingActions ?? []) {
-          if (pending.tool_name === 'ask_user') {
-            restored.push({
-              kind: 'questions',
-              actionId: pending.id,
-              questions: (pending.input?.questions ?? []) as AgentQuestion[],
-              status: 'pending',
-            });
-          } else {
-            restored.push({
-              kind: 'confirm',
-              actionId: pending.id,
-              label: String(pending.tool_name).replace(/_/g, ' '),
-              status: 'pending',
-            });
+        const pendingActions = data.pendingActions ?? [];
+        // Returning couples land on a clean, full-width composer (ChatGPT-style)
+        // with analytical starters — continuity is preserved via conversationId,
+        // but we don't replay the old transcript. We DO restore the thread when
+        // onboarding (the kickoff flow) or when something is awaiting them (a
+        // pending question / confirmation), so nothing actionable is stranded.
+        const restoreThread = !!onboarding || pendingActions.length > 0;
+        if (restoreThread) {
+          if (data.messages?.length) setFacts(factsFromMessages(data.messages));
+          const restored = (data.messages?.length ? itemsFromPersisted(data.messages) : []).map((it) =>
+            // Always show the latest onboarding greeting copy, not the stale text
+            // saved when the thread began.
+            it.kind === 'assistant' && it.text.startsWith(ONBOARDING_OPENER_PREFIX)
+              ? { ...it, text: ONBOARDING_OPENER }
+              : it
+          );
+          for (const pending of pendingActions) {
+            if (pending.tool_name === 'ask_user') {
+              restored.push({
+                kind: 'questions',
+                actionId: pending.id,
+                questions: (pending.input?.questions ?? []) as AgentQuestion[],
+                status: 'pending',
+              });
+            } else {
+              restored.push({
+                kind: 'confirm',
+                actionId: pending.id,
+                label: String(pending.tool_name).replace(/_/g, ' '),
+                status: 'pending',
+              });
+            }
           }
+          if (restored.length) setItems(restored);
         }
-        if (restored.length) setItems(restored);
       } finally {
         if (!cancelled) setLoadingHistory(false);
       }
@@ -458,6 +503,28 @@ export function AgentChatPanel({
       cancelled = true;
     };
   }, [weddingSlug, defaultVoice, onboarding]);
+
+  // Fetch analytical starter prompts for a returning couple (skip the onboarding
+  // flow, which has its own scripted kickoff). Fail-open to the static defaults.
+  useEffect(() => {
+    if (onboarding) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/agent/summary?weddingSlug=${encodeURIComponent(weddingSlug)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data.starters) && data.starters.length) {
+          setDynamicStarters(data.starters);
+        }
+      } catch {
+        /* fall back to defaults */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [weddingSlug, onboarding]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -790,6 +857,90 @@ export function AgentChatPanel({
     .find((i): i is Extract<ChatItem, { kind: 'questions' }> => i.kind === 'questions' && i.status !== 'done');
   const awaitingQuestions = !!pendingQuestions;
 
+  // The onboarding names question is the only typed-only (inputOnly) ask. While
+  // it's open we hide the voice nudge (you can't speak that answer); the moment
+  // it's answered we reveal the one-time animated mic hint.
+  const askingForName = !!pendingQuestions && pendingQuestions.questions.some((q) => q.inputOnly);
+  useEffect(() => {
+    if (wasAskingNameRef.current && !askingForName && !voiceHintShownRef.current) {
+      voiceHintShownRef.current = true;
+      setShowVoiceHint(true);
+    }
+    wasAskingNameRef.current = askingForName;
+  }, [askingForName]);
+  useEffect(() => {
+    if (!showVoiceHint) return;
+    const t = setTimeout(() => setShowVoiceHint(false), 3000);
+    return () => clearTimeout(t);
+  }, [showVoiceHint]);
+
+  // Show the couple's fixed framing line (ONBOARDING_OPENER2) as a second chat
+  // bubble, right after the greeting — both live and on reload. The greeting
+  // itself is model-generated and persisted; this derived line is inserted
+  // once, just after it.
+  useEffect(() => {
+    if (busy) return;
+    setItems((prev) => {
+      const openerIdx = prev.findIndex(
+        (it) => it.kind === 'assistant' && it.text.startsWith(ONBOARDING_OPENER_PREFIX)
+      );
+      if (openerIdx < 0) return prev;
+      if (prev.some((it) => it.kind === 'assistant' && it.text === ONBOARDING_OPENER2)) return prev;
+      const next = [...prev];
+      next.splice(openerIdx + 1, 0, { kind: 'assistant', text: ONBOARDING_OPENER2 });
+      return next;
+    });
+  }, [items, busy]);
+
+  // Captured facts rendered as a flowing, lightly-bolded sentence (not pills) —
+  // each detail fades in as it's answered, and stays tappable to change.
+  const renderFactSentence = () => {
+    const byLabel: Record<string, string> = {};
+    for (const f of facts) byLabel[f.label] = f.value;
+    const clause = WEDDING_CLAUSE.filter((c) => byLabel[c.label]);
+    const stage = byLabel['Stage'];
+    const helping = byLabel['Helping with'];
+    const detail = (label: string, value: string) => (
+      <Box
+        component="span"
+        onClick={() =>
+          !busy && send(`I'd like to change ${FACT_EDIT_PHRASE[label] ?? `the ${label.toLowerCase()}`}.`)
+        }
+        sx={{
+          fontWeight: 700,
+          color: COLORS.text.strong,
+          cursor: 'pointer',
+          '&:hover': { textDecoration: 'underline', textDecorationColor: COLORS.brand.primary },
+        }}
+      >
+        {value}
+      </Box>
+    );
+    const fade = { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.4 } };
+    return (
+      <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.75 }}>
+        {clause.length > 0 && 'Planning a wedding'}
+        {clause.map((c) => (
+          <motion.span key={c.label} {...fade}>
+            {` ${c.connector} `}
+            {detail(c.label, byLabel[c.label])}
+          </motion.span>
+        ))}
+        {clause.length > 0 && '. '}
+        {stage && (
+          <motion.span key="Stage" {...fade}>
+            You&apos;re {detail('Stage', stage)}.{' '}
+          </motion.span>
+        )}
+        {helping && (
+          <motion.span key="Helping with" {...fade}>
+            Looking for help with {detail('Helping with', helping)}.
+          </motion.span>
+        )}
+      </Typography>
+    );
+  };
+
   // In the split layout the chat composer stays usable while a form is open on
   // the left. If the user types/speaks there instead of using the form, resolve
   // the parked questions with their message (the form clears and the agent
@@ -879,6 +1030,12 @@ export function AgentChatPanel({
   // Show the voice surface (live loop or the tap-to-start gate) unless a
   // question card is pending — those can only be answered on the typed surface.
   const showVoice = HANDS_FREE_VOICE_ENABLED && (voiceMode.active || voicePending) && !awaitingQuestions;
+  // Caller-supplied starters win; otherwise the analytical (wedding-specific)
+  // ones; otherwise the static defaults.
+  const resolvedStarters = starters ?? dynamicStarters ?? DEFAULT_STARTERS;
+  // Whether the structured right pane is open — a question is pending or facts
+  // have been captured. When closed, the chat runs full-width (ChatGPT-style).
+  const formPaneOpen = !!pendingQuestions || facts.length > 0;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight }}>
@@ -1103,78 +1260,59 @@ export function AgentChatPanel({
         )
       ) : (
       <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 2, md: 3 } }}>
-      {/* FORM — the big structured form, on the RIGHT (order 2 on md). Questions
-          render here, large; the centered block sits above a bottom strip of
-          captured-fact badges. DOM-first so it stacks on top on mobile when a
-          question is pending. */}
-      <Box
-        sx={{
-          order: { md: 2 },
-          display: { xs: pendingQuestions || facts.length > 0 ? 'flex' : 'none', md: 'flex' },
-          flexDirection: 'column',
-          flex: { md: 1 },
-          minWidth: 0,
-          overflowY: 'auto',
-          px: { xs: 2, md: 5 },
-          py: { xs: 2.5, md: 4 },
-        }}
-      >
-        {/* Centered question / placeholder. Two `mt: auto` boxes (here + the
-            facts strip) pin the strip to the bottom while keeping this centered;
-            when content overflows, the auto margins collapse and it scrolls. */}
-        <Box sx={{ mt: 'auto', mx: 'auto', width: '100%', maxWidth: 460 }}>
-          {pendingQuestions ? (
-            <QuestionFlow
-              key={pendingQuestions.actionId}
-              questions={pendingQuestions.questions}
-              disabled={busy}
-              large
-              onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
-            />
-          ) : (
-            <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
-              <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 30 }} />
-              <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
-                Forms appear here as we go — pick options, dates, and details on this side. Prefer to chat? Just type or talk on the left.
-              </Typography>
-            </Stack>
-          )}
-        </Box>
-        {/* Captured-fact badges — revealed with a spring as each answer lands;
-            tap one to re-open that question and change it. */}
-        <Box sx={{ mt: 'auto', mx: 'auto', width: '100%', maxWidth: 460 }}>
-          {facts.length > 0 && (
-            <Box sx={{ pt: 3, mt: 3, borderTop: `1px solid ${COLORS.border.faint}` }}>
-              <Typography variant="caption" sx={{ color: COLORS.text.subtle, display: 'block', mb: 1 }}>
-                Captured so far — tap to change
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                <AnimatePresence initial={false}>
-                  {facts.map((fact) => (
-                    <motion.div
-                      key={fact.label}
-                      layout
-                      initial={{ opacity: 0, y: 10, scale: 0.85 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.85 }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                    >
-                      <PheraChip
-                        tone="brand"
-                        label={`${fact.label}: ${fact.value}`}
-                        onClick={() =>
-                          !busy && send(`I'd like to change ${FACT_EDIT_PHRASE[fact.label] ?? `the ${fact.label.toLowerCase()}`}.`)
-                        }
-                        sx={{ cursor: 'pointer', maxWidth: '100%' }}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </Box>
+      {/* FORM — the big structured form, on the RIGHT (order 2 on md). Hidden
+          until a question is pending or facts have been captured, so the chat
+          runs full-width (ChatGPT-style) on open and the pane slides in on the
+          first form. DOM-first so it stacks on top on mobile when present. */}
+      <AnimatePresence initial={false}>
+        {formPaneOpen && (
+          <Box
+            component={motion.div}
+            key="form-pane"
+            initial={{ opacity: 0, x: 48 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 48 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            sx={{
+              order: { md: 2 },
+              display: 'flex',
+              flexDirection: 'column',
+              flex: { md: 1 },
+              minWidth: 0,
+              overflowY: 'auto',
+              px: { xs: 2, md: 5 },
+              py: { xs: 2.5, md: 4 },
+            }}
+          >
+            {/* Centered question / placeholder. Two `mt: auto` boxes (here + the
+                facts strip) pin the strip to the bottom while keeping this
+                centered; when content overflows, the auto margins collapse. */}
+            <Box sx={{ mt: 'auto', mx: 'auto', width: '100%', maxWidth: 460 }}>
+              {pendingQuestions ? (
+                <QuestionFlow
+                  key={pendingQuestions.actionId}
+                  questions={pendingQuestions.questions}
+                  disabled={busy}
+                  large
+                  onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
+                />
+              ) : (
+                <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+                  <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 30 }} />
+                  <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
+                    Forms appear here as we go — pick options, dates, and details on this side. Prefer to chat? Just type or talk on the left.
+                  </Typography>
+                </Stack>
+              )}
             </Box>
-          )}
-        </Box>
-      </Box>
+            {/* Captured facts woven into a flowing, lightly-bolded sentence —
+                each detail fades in as it's answered; tap a detail to change it. */}
+            <Box sx={{ mt: 'auto', mx: 'auto', width: '100%', maxWidth: 460 }}>
+              {facts.length > 0 && <Box sx={{ pt: 2.5 }}>{renderFactSentence()}</Box>}
+            </Box>
+          </Box>
+        )}
+      </AnimatePresence>
       {/* CHAT — on the LEFT (order 1 on md), wider. Messages on a soft grey
           rounded panel with a white input. */}
       <Box sx={{ order: { md: 1 }, flex: { xs: 1, md: 1.6 }, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: COLORS.bg.subtle, borderRadius: RADII.lg, overflow: 'hidden' }}>
@@ -1187,14 +1325,14 @@ export function AgentChatPanel({
             <CircularProgress size={22} sx={{ color: COLORS.brand.primary }} />
           </Stack>
         ) : items.length === 0 ? (
-          <Stack spacing={2} alignItems="center" py={6}>
+          <Stack spacing={2} alignItems="center" justifyContent="center" sx={{ minHeight: '100%', py: 6 }}>
             <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 32 }} />
             <Typography variant="body1" sx={{ color: COLORS.text.muted, textAlign: 'center', maxWidth: 420 }}>
               I&apos;m your wedding planner. I can read and update your guest list, schedule, rooms,
               vendors, and more — just tell me what&apos;s happening.
             </Typography>
             <Stack direction="row" flexWrap="wrap" justifyContent="center" gap={1}>
-              {starters.map((starter) => (
+              {resolvedStarters.map((starter) => (
                 <PheraChip
                   key={starter}
                   tone="brand"
@@ -1472,29 +1610,72 @@ export function AgentChatPanel({
               Upload room floor plan (PDF, image, CSV)
             </PheraMenuItem>
           </PheraMenu>
-          <Tooltip
-            title={voice.state === 'recording' ? 'Tell us as much as you need' : 'Use voice mode'}
-            placement="top"
-            arrow
-            open={
-              voice.state === 'recording' ||
-              (voice.state === 'idle' && !input.trim() && !busy)
-                ? true
-                : undefined
-            }
-          >
-            <Box component="span" sx={{ display: 'inline-flex' }}>
-              <IconActionButton
-                onClick={() => voice.toggle()}
-                disabled={busy || voice.state === 'transcribing'}
-                loading={voice.state === 'transcribing'}
-                aria-label={voice.state === 'recording' ? 'Stop recording' : 'Record a voice message'}
-                sx={voice.state === 'recording' ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : { color: COLORS.text.subtle }}
-              >
-                {voice.state === 'recording' ? <StopRoundedIcon fontSize="small" /> : <MicRoundedIcon fontSize="small" />}
-              </IconActionButton>
-            </Box>
-          </Tooltip>
+          <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+            <Tooltip
+              title={voice.state === 'recording' ? 'Tell us as much as you need' : 'Use voice mode'}
+              placement="top"
+              arrow
+              // No persistent nudge — only the recording hint forces open. The
+              // post-names "try voice" prompt is the animated callout below.
+              open={voice.state === 'recording' ? true : undefined}
+            >
+              <Box component="span" sx={{ display: 'inline-flex' }}>
+                <IconActionButton
+                  onClick={() => voice.toggle()}
+                  disabled={busy || voice.state === 'transcribing'}
+                  loading={voice.state === 'transcribing'}
+                  aria-label={voice.state === 'recording' ? 'Stop recording' : 'Record a voice message'}
+                  sx={voice.state === 'recording' ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : { color: COLORS.text.subtle }}
+                >
+                  {voice.state === 'recording' ? <StopRoundedIcon fontSize="small" /> : <MicRoundedIcon fontSize="small" />}
+                </IconActionButton>
+              </Box>
+            </Tooltip>
+            {/* One-time "try voice" callout — mild bounce for 3s, dismissable,
+                auto-hides. Revealed right after the typed names question. */}
+            <AnimatePresence>
+              {showVoiceHint && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.9 }}
+                  animate={{ opacity: 1, y: [0, -3, 0], scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{
+                    opacity: { duration: 0.2 },
+                    scale: { duration: 0.2 },
+                    y: { duration: 0.7, repeat: Infinity, ease: 'easeInOut' },
+                  }}
+                  style={{ position: 'absolute', bottom: 'calc(100% + 10px)', right: -4, zIndex: 20 }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      whiteSpace: 'nowrap',
+                      bgcolor: COLORS.bg.white,
+                      border: `1px solid ${COLORS.brand.primaryBorder}`,
+                      borderRadius: RADII.md,
+                      boxShadow: SHADOWS.popover,
+                      pl: 1.25,
+                      pr: 0.5,
+                      py: 0.5,
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
+                      Prefer to talk? Tap the mic to speak your answers.
+                    </Typography>
+                    <IconActionButton
+                      onClick={() => setShowVoiceHint(false)}
+                      aria-label="Dismiss"
+                      sx={{ width: 24, height: 24, color: COLORS.text.subtle }}
+                    >
+                      <CloseRoundedIcon sx={{ fontSize: 16 }} />
+                    </IconActionButton>
+                  </Box>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Box>
           <IconActionButton
             type="submit"
             disabled={busy || !input.trim()}

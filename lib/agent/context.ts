@@ -7,9 +7,28 @@ export interface CompletenessItem {
   detail?: string;
 }
 
+export interface WeddingStats {
+  coupleName: string | null;
+  guestCount: number;
+  respondedGuests: number;
+  daysToWedding: number | null;
+  eventCount: number;
+  scheduleDays: number;
+  roomCount: number;
+  vendorCount: number;
+  faqCount: number;
+  openTasks: number;
+  dateSet: boolean;
+  venueSet: boolean;
+  rsvpDeadlineSet: boolean;
+  goalsSet: boolean;
+}
+
 export interface WeddingSnapshot {
   text: string;
   completeness: CompletenessItem[];
+  /** Structured numbers behind the snapshot — for analytical UI (e.g. Planner starter prompts). */
+  stats: WeddingStats;
 }
 
 /**
@@ -133,5 +152,23 @@ export async function buildWeddingSnapshot(
     ...completeness.map((c) => `- [${c.done ? 'x' : ' '}] ${c.label}${c.detail ? ` (${c.detail})` : ''}`),
   ];
 
-  return { text: lines.join('\n'), completeness };
+  const stats: WeddingStats = {
+    coupleName:
+      wedding.couple_name ?? [wedding.partner1_name, wedding.partner2_name].filter(Boolean).join(' & ') ?? null,
+    guestCount,
+    respondedGuests,
+    daysToWedding,
+    eventCount,
+    scheduleDays,
+    roomCount,
+    vendorCount,
+    faqCount,
+    openTasks,
+    dateSet,
+    venueSet: !!(venueName || venueLocation),
+    rsvpDeadlineSet: !!rsvpDeadline,
+    goalsSet: !!goals,
+  };
+
+  return { text: lines.join('\n'), completeness, stats };
 }

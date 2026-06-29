@@ -189,11 +189,11 @@ export async function GET(request: NextRequest) {
             .order('created_at', { ascending: false })
             .limit(1);
 
-          // If user has existing weddings, redirect to their most recent one
+          // If user has existing weddings, redirect to their most recent one's Planner
           if (weddings && weddings.length > 0) {
             const weddingSlug = weddings[0].slug;
-            redirectUrl = new URL(`/admin/${weddingSlug}/overview`, origin);
-            console.log(`[Callback] User has existing wedding, redirecting to: ${weddingSlug}`);
+            redirectUrl = new URL(`/admin/${weddingSlug}/assistant`, origin);
+            console.log(`[Callback] User has existing wedding, redirecting to Planner: ${weddingSlug}`);
           }
         }
       }
