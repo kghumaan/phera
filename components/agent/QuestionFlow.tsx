@@ -271,12 +271,14 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
       )}
 
       <Box>
-        <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
-          Question {step + 1} of {questions.length}
-        </Typography>
+        {questions.length > 1 && (
+          <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
+            Question {step + 1} of {questions.length}
+          </Typography>
+        )}
         <Typography
-          variant={large ? 'h6' : 'body2'}
-          sx={{ color: COLORS.text.strong, fontWeight: 600, mt: large ? 0.75 : 0 }}
+          variant={large ? 'h5' : 'body2'}
+          sx={{ color: COLORS.text.strong, fontWeight: 600, mt: large && questions.length > 1 ? 0.75 : 0 }}
         >
           {q.prompt}
         </Typography>

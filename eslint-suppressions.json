@@ -42,7 +42,7 @@
   },
   "app/admin/[weddingSlug]/look-and-feel/page.tsx": {
     "no-restricted-syntax": {
-      "count": 11
+      "count": 1
     }
   },
   "app/admin/[weddingSlug]/overview/page.tsx": {

@@ -9,9 +9,16 @@ interface UseAutoSaveOptions {
   onSave: () => Promise<void>;
   debounceMs?: number;
   enabled?: boolean;
+  /**
+   * When this returns true at the moment a save completes, the PREVIEW_REFRESH
+   * broadcast is skipped (CHANGES_SAVED still fires). Used so a saved real-design
+   * edit doesn't trigger a full DB refetch in the preview iframe and clobber an
+   * active, non-destructive template preview overlay.
+   */
+  shouldSkipPreviewRefresh?: () => boolean;
 }
 
-export function useAutoSave({ onSave, debounceMs = 1500, enabled = true }: UseAutoSaveOptions) {
+export function useAutoSave({ onSave, debounceMs = 1500, enabled = true, shouldSkipPreviewRefresh }: UseAutoSaveOptions) {
   const [saveStatus, setSaveStatusLocal] = useState<SaveStatus>('idle');
   const { setStatus: setGlobalStatus } = useAutoSaveStatus();
 
@@ -27,8 +34,10 @@ export function useAutoSave({ onSave, debounceMs = 1500, enabled = true }: UseAu
   const isSavingRef = useRef(false);
   const pendingSaveRef = useRef(false);
 
-  // Always keep the ref up to date with the latest onSave
+  // Always keep the refs up to date with the latest values
   onSaveRef.current = onSave;
+  const shouldSkipPreviewRefreshRef = useRef(shouldSkipPreviewRefresh);
+  shouldSkipPreviewRefreshRef.current = shouldSkipPreviewRefresh;
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -69,7 +78,10 @@ export function useAutoSave({ onSave, debounceMs = 1500, enabled = true }: UseAu
         // Skip PREVIEW_REFRESH if another save is pending (avoids stale DB data flash)
         try {
           const channel = new BroadcastChannel('phera-design-sync');
-          if (!pendingSaveRef.current) {
+          // Skip PREVIEW_REFRESH if another save is pending (avoids stale DB
+          // flash) OR while a non-destructive preview overlay is active (a
+          // refetch would discard it).
+          if (!pendingSaveRef.current && !shouldSkipPreviewRefreshRef.current?.()) {
             channel.postMessage({ type: 'PREVIEW_REFRESH' });
           }
           channel.postMessage({ type: 'CHANGES_SAVED' });

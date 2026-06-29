@@ -2,29 +2,35 @@
 
 import {
   Box,
-  Container,
   Typography,
   Button,
   Stack,
   Paper,
   Grid,
   TextField,
-  Divider,
   FormControlLabel,
   RadioGroup,
   Radio,
   Chip,
-  Tooltip,
   IconButton,
 } from '@mui/material';
-import { useState, useEffect, use, useCallback, useRef } from 'react';
-import { Check, ViewAgenda, UnfoldMore, InfoOutlined, Add, Delete } from '@mui/icons-material';
+import { useState, useEffect, use, useCallback, useRef, useMemo } from 'react';
+import { Check, ViewAgenda, UnfoldMore, Add, Delete } from '@mui/icons-material';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import ImageUpload from '@/components/admin/ImageUpload';
 import { getWeddingImagePath } from '@/lib/utils/image-upload';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING, ENHANCED_CONTAINER_MAX_WIDTH } from '@/lib/constants/form-styles';
+import { ENHANCED_TEXT_FIELD_SX, ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 import { BACKGROUNDS, BACKGROUND_UI_OPTIONS, FRAME_UI_OPTIONS } from '@/lib/constants/images';
+import {
+  THEME_COLOR_OPTIONS,
+  FREE_BACKGROUND_COUNT,
+  FREE_COLOR_COUNT,
+  FREE_FRAME_COUNT,
+  designUsesProAssets,
+} from '@/lib/constants/design-options';
+import WebsiteTemplateGallery from '@/components/admin/WebsiteTemplateGallery';
+import { WEBSITE_TEMPLATES, type WebsiteTemplate } from '@/lib/constants/website-templates';
 import { COUPLE_NAME_FONTS, DEFAULT_COUPLE_FONT_ID, getCoupleFont } from '@/lib/constants/fonts';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import ProBadge from '@/components/admin/ProBadge';
@@ -47,25 +53,9 @@ const textFieldSx = ENHANCED_TEXT_FIELD_SX;
 
 const BACKGROUND_OPTIONS = BACKGROUND_UI_OPTIONS;
 
-// Number of free options for basic plan
-const FREE_BACKGROUND_COUNT = 4;
-const FREE_COLOR_COUNT = 5;
-const FREE_FRAME_COUNT = 4;
-
-const COLOR_OPTIONS = [
-  { name: 'Rose', value: COLORS.brand.primary },
-  { name: 'Black', value: COLORS.text.strong },
-  { name: 'Plum', value: '#59114D' },
-  { name: 'Ocean', value: '#004550' },
-  { name: 'Maroon', value: '#941C28' },
-  { name: 'Purple', value: '#AC3FBA' },
-  { name: 'Sky', value: '#6290C8' },
-  { name: 'Teal', value: '#489991' },
-  { name: 'Green', value: '#76B041' },
-  { name: 'Forest', value: '#59814B' },
-  { name: 'Orange', value: '#DF6507' },
-  { name: 'Amber', value: '#FA9A00' },
-];
+// Theme colours + free-tier cutoffs are centralized in design-options so the
+// editor and the template gallery share one source of truth.
+const COLOR_OPTIONS = THEME_COLOR_OPTIONS;
 
 export default function DesignCustomizationPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
@@ -91,6 +81,10 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [coupleNameFont, setCoupleNameFont] = useState<string>(DEFAULT_COUPLE_FONT_ID);
   const [coupleNamePreview, setCoupleNamePreview] = useState<string>('Simran & Arjun');
   const [coupleImages, setCoupleImages] = useState<(string | null)[]>(Array(6).fill(null));
+
+  // Template gallery: when set, the live preview shows this template's look
+  // WITHOUT touching the saved design (non-destructive preview).
+  const [previewTemplate, setPreviewTemplate] = useState<WebsiteTemplate | null>(null);
 
   const [initialDesignData, setInitialDesignData] = useState<Record<string, unknown> | null>(null);
   const [isDirty, setIsDirty] = useState(false);
@@ -146,7 +140,13 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   }, [weddingId, isPro, mainBackground, customMainBackground,
     mainPrimaryColor, websiteLayout, frameImageUrl, coupleNameFont, coupleImages]);
 
-  const { saveStatus, debouncedSave } = useAutoSave({ onSave: saveDesign, enabled: !!authUser });
+  const { saveStatus, debouncedSave } = useAutoSave({
+    onSave: saveDesign,
+    enabled: !!authUser,
+    // While a template preview overlay is active, a saved real-design edit must
+    // not refetch the preview iframe — that would discard the overlay.
+    shouldSkipPreviewRefresh: () => previewTemplate !== null,
+  });
 
   // Check if current selections include pro items (basic user)
   const hasProSelection = !isPro && (() => {
@@ -255,20 +255,35 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   useEffect(() => {
     if (!weddingId) return;
 
-    const updates = {
-      background_image: customMainBackground || mainBackground,
-      primary_color: mainPrimaryColor,
-      website_layout: websiteLayout,
-      frame_image_url: frameImageUrl,
-      couple_name_font: coupleNameFont,
-      couple_images: coupleImages.filter(img => img),
-    };
+    // When previewing a template, broadcast its look instead of the saved
+    // design — but always keep the couple's own photos and layout. The 300ms
+    // debounce + serialized-compare below make rapid template switching
+    // latest-wins, so the preview never thrashes or flashes.
+    const updates = previewTemplate
+      ? {
+          background_image: previewTemplate.config.background_image,
+          primary_color: previewTemplate.config.primary_color,
+          website_layout: websiteLayout,
+          frame_image_url: previewTemplate.config.frame_image_url,
+          couple_name_font: previewTemplate.config.couple_name_font,
+          couple_images: coupleImages.filter(img => img),
+        }
+      : {
+          background_image: customMainBackground || mainBackground,
+          primary_color: mainPrimaryColor,
+          website_layout: websiteLayout,
+          frame_image_url: frameImageUrl,
+          couple_name_font: coupleNameFont,
+          couple_images: coupleImages.filter(img => img),
+        };
 
     const serialized = JSON.stringify(updates);
     if (serialized === lastSyncRef.current) return;
-    lastSyncRef.current = serialized;
 
     const timer = setTimeout(() => {
+      // Record as broadcast only when the message actually fires, so a
+      // cancelled-then-rescheduled identical value is never silently dropped.
+      lastSyncRef.current = serialized;
       const channel = new BroadcastChannel('phera-design-sync');
       channel.postMessage({ type: 'DESIGN_UPDATE', weddingId, updates });
       channel.close();
@@ -277,6 +292,7 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     return () => clearTimeout(timer);
   }, [
     weddingId,
+    previewTemplate,
     mainBackground,
     customMainBackground,
     mainPrimaryColor,
@@ -285,6 +301,55 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
     coupleNameFont,
     coupleImages
   ]);
+
+  // Any manual edit to the real design cancels an active template preview, so
+  // the editor's own selection immediately takes over the live preview.
+  const realDesignKey = `${customMainBackground || mainBackground}|${mainPrimaryColor}|${frameImageUrl}|${coupleNameFont}|${websiteLayout}`;
+  useEffect(() => {
+    setPreviewTemplate(prev => (prev ? null : prev));
+  }, [realDesignKey]);
+
+  // Which template (if any) the saved design currently matches — drives the
+  // "Applied" check on the gallery card.
+  const appliedTemplateId = useMemo(() => {
+    const current = {
+      background_image: customMainBackground || mainBackground,
+      primary_color: mainPrimaryColor,
+      couple_name_font: coupleNameFont,
+      frame_image_url: frameImageUrl,
+    };
+    const match = WEBSITE_TEMPLATES.find(
+      t =>
+        t.config.background_image === current.background_image &&
+        t.config.primary_color === current.primary_color &&
+        t.config.couple_name_font === current.couple_name_font &&
+        t.config.frame_image_url === current.frame_image_url,
+    );
+    if (!match) return null;
+    // A free user can "apply" a Pro template to see it, but autosave is blocked
+    // so it never persists — don't mislead them with an "Applied" check.
+    if (!isPro && designUsesProAssets(match.config)) return null;
+    return match.id;
+  }, [mainBackground, customMainBackground, mainPrimaryColor, coupleNameFont, frameImageUrl, isPro]);
+
+  const handlePreviewTemplate = useCallback((template: WebsiteTemplate | null) => {
+    setPreviewTemplate(template);
+  }, []);
+
+  const handleApplyTemplate = useCallback((template: WebsiteTemplate) => {
+    const { config } = template;
+    setMainBackground(config.background_image);
+    setCustomMainBackground(null);
+    setMainPrimaryColor(config.primary_color);
+    setFrameImageUrl(config.frame_image_url);
+    setCoupleNameFont(config.couple_name_font);
+    setPreviewTemplate(null);
+    // A free user can apply a Pro template to see it, but it won't auto-save
+    // (the dirty-tracking effect blocks Pro selections) — surface the upgrade.
+    if (!isPro && designUsesProAssets(config)) {
+      setUpgradeModalOpen(true);
+    }
+  }, [isPro]);
 
   useEffect(() => {
     loadData();
@@ -366,6 +431,17 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         />
 
         <Stack spacing={3}>
+          {/* Start With a Template — curated permutations of the options below */}
+          <WebsiteTemplateGallery
+            coupleNames={coupleNamePreview}
+            sampleImageUrl={coupleImages.find(img => img) || null}
+            isPro={isPro}
+            previewId={previewTemplate?.id ?? null}
+            appliedId={appliedTemplateId}
+            onPreview={handlePreviewTemplate}
+            onApply={handleApplyTemplate}
+          />
+
           {/* Desktop Layout Selection */}
           <PheraCard variant="muted" sx={{ p: 3 }}>
             <Typography variant="subtitleCaps" sx={{ mb: 1, color: COLORS.text.strong }}>
