@@ -18,9 +18,9 @@
  * and frame images are preloaded on mount so swaps don't flash.
  */
 
-import { useEffect } from 'react';
-import { Box, Typography, Grid, Stack } from '@mui/material';
-import { Check, AutoAwesome } from '@mui/icons-material';
+import { useEffect, useState } from 'react';
+import { Box, Typography, Grid, Stack, Collapse, IconButton } from '@mui/material';
+import { Check, AutoAwesome, ExpandMore } from '@mui/icons-material';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraCard } from '@/components/shared/Card';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
@@ -39,6 +39,11 @@ function thumbForBackground(url: string): string {
 
 interface WebsiteTemplateGalleryProps {
   coupleNames: string;
+  /** Shown under the names in each card, like the real hero. */
+  weddingDate?: string | null;
+  location?: string | null;
+  /** Label for the sample CTA button in each card. */
+  ctaLabel?: string;
   sampleImageUrl?: string | null;
   isPro: boolean;
   /** Template currently being previewed (override active), or null. */
@@ -51,6 +56,9 @@ interface WebsiteTemplateGalleryProps {
 
 export default function WebsiteTemplateGallery({
   coupleNames,
+  weddingDate,
+  location,
+  ctaLabel = 'View Details',
   sampleImageUrl,
   isPro,
   previewId,
@@ -59,6 +67,9 @@ export default function WebsiteTemplateGallery({
   onApply,
 }: WebsiteTemplateGalleryProps) {
   const samplePhoto = sampleImageUrl || DEFAULT_SAMPLE_PHOTO;
+  const [expanded, setExpanded] = useState(true);
+  const dateLine = weddingDate?.trim() || 'Your wedding date';
+  const locationLine = location?.trim() || 'Your venue';
 
   // Warm the browser cache for full-size background + frame images so that
   // switching templates in the live preview swaps instantly (no blur flash).
@@ -79,12 +90,31 @@ export default function WebsiteTemplateGallery({
 
   return (
     <PheraCard variant="muted" sx={{ p: 3 }}>
-      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 1 }}>
-        <AutoAwesome sx={{ fontSize: 18, color: COLORS.brand.primary }} />
-        <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong }}>
-          Start With a Template
-        </Typography>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        spacing={1}
+        onClick={() => setExpanded((e) => !e)}
+        sx={{ mb: expanded ? 1 : 0, cursor: 'pointer' }}
+      >
+        <Stack direction="row" alignItems="center" spacing={0.75}>
+          <AutoAwesome sx={{ fontSize: 18, color: COLORS.brand.primary }} />
+          <Typography variant="subtitleCaps" sx={{ color: COLORS.text.strong }}>
+            Start With a Template
+          </Typography>
+        </Stack>
+        <IconButton
+          size="small"
+          aria-label={expanded ? 'Collapse templates' : 'Expand templates'}
+          aria-expanded={expanded}
+          sx={{ color: COLORS.text.subtle }}
+        >
+          <ExpandMore sx={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+        </IconButton>
       </Stack>
+
+      <Collapse in={expanded}>
       <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2.5 }}>
         Pick a ready-made look to preview it live, then apply it — or keep customizing below.
         You can always fine-tune everything afterwards.
@@ -149,12 +179,12 @@ export default function WebsiteTemplateGallery({
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '7%',
-                    px: '9%',
+                    gap: '4%',
+                    px: '8%',
                   }}
                 >
                   {/* Framed sample photo */}
-                  <Box sx={{ position: 'relative', width: '66%', aspectRatio: '1 / 1' }}>
+                  <Box sx={{ position: 'relative', width: '56%', aspectRatio: '1 / 1' }}>
                     <Box
                       component="img"
                       src={samplePhoto}
@@ -181,35 +211,78 @@ export default function WebsiteTemplateGallery({
                     />
                   </Box>
 
-                  {/* Couple names in the template font */}
-                  <Typography
-                    sx={{
-                      fontFamily: font.cssVar,
-                      fontStyle: font.fontStyle || 'normal',
-                      fontSize: 'clamp(0.95rem, 4.2vw, 1.35rem)',
-                      lineHeight: 1.1,
-                      color: COLORS.text.strong,
-                      textAlign: 'center',
-                      maxWidth: '100%',
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                    }}
-                  >
-                    {coupleNames}
-                  </Typography>
+                  {/* Names + date + location — the real hero text */}
+                  <Stack spacing={0.2} alignItems="center" sx={{ width: '100%', minWidth: 0 }}>
+                    <Typography
+                      sx={{
+                        fontFamily: font.cssVar,
+                        fontStyle: font.fontStyle || 'normal',
+                        fontSize: 'clamp(0.85rem, 3.9vw, 1.2rem)',
+                        lineHeight: 1.1,
+                        color: COLORS.text.strong,
+                        textAlign: 'center',
+                        maxWidth: '100%',
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 1,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
+                      {coupleNames}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: 'clamp(0.4rem, 2vw, 0.66rem)',
+                        lineHeight: 1.2,
+                        color: COLORS.text.strong,
+                        textAlign: 'center',
+                        maxWidth: '100%',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {dateLine}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: 'clamp(0.4rem, 2vw, 0.66rem)',
+                        lineHeight: 1.2,
+                        color: COLORS.text.subtle,
+                        textAlign: 'center',
+                        maxWidth: '100%',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {locationLine}
+                    </Typography>
+                  </Stack>
 
-                  {/* Accent (echoes the RSVP button colour) */}
+                  {/* Sample CTA button — text, in the template's button colour */}
                   <Box
                     sx={{
-                      width: '52%',
-                      height: '8%',
-                      minHeight: 8,
+                      px: '7%',
+                      py: '2.5%',
                       borderRadius: RADII.pill,
                       bgcolor: config.primary_color,
+                      maxWidth: '90%',
                     }}
-                  />
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: 'clamp(0.4rem, 1.9vw, 0.64rem)',
+                        fontWeight: 700,
+                        letterSpacing: '0.3px',
+                        lineHeight: 1,
+                        color: COLORS.text.inverse,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {ctaLabel}
+                    </Typography>
+                  </Box>
                 </Box>
 
                 {isProTemplate && !isPro && <ProBadge position="corner" />}
@@ -302,6 +375,7 @@ export default function WebsiteTemplateGallery({
           </Stack>
         </Stack>
       )}
+      </Collapse>
     </PheraCard>
   );
 }

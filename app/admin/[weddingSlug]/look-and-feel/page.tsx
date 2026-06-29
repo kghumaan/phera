@@ -80,6 +80,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
   const [frameImageUrl, setFrameImageUrl] = useState<string | null>(null);
   const [coupleNameFont, setCoupleNameFont] = useState<string>(DEFAULT_COUPLE_FONT_ID);
   const [coupleNamePreview, setCoupleNamePreview] = useState<string>('Simran & Arjun');
+  const [weddingDatePreview, setWeddingDatePreview] = useState<string>('');
+  const [locationPreview, setLocationPreview] = useState<string>('');
   const [coupleImages, setCoupleImages] = useState<(string | null)[]>(Array(6).fill(null));
 
   // Template gallery: when set, the live preview shows this template's look
@@ -372,6 +374,9 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
         setFrameImageUrl(wedding.frame_image_url || null);
         setCoupleNameFont((wedding as { couple_name_font?: string | null }).couple_name_font || DEFAULT_COUPLE_FONT_ID);
         setCoupleNamePreview(wedding.couple_name || 'Simran & Arjun');
+        // Date + location for the template previews (gallery handles fallbacks).
+        setWeddingDatePreview((wedding as { wedding_date_display?: string | null }).wedding_date_display || '');
+        setLocationPreview((wedding as { venue_location?: string | null }).venue_location || '');
 
         // Load couple images
         let loadedCoupleImages: (string | null)[] = Array(6).fill(null);
@@ -434,6 +439,8 @@ export default function DesignCustomizationPage({ params }: { params: Promise<{ 
           {/* Start With a Template — curated permutations of the options below */}
           <WebsiteTemplateGallery
             coupleNames={coupleNamePreview}
+            weddingDate={weddingDatePreview || null}
+            location={locationPreview || null}
             sampleImageUrl={coupleImages.find(img => img) || null}
             isPro={isPro}
             previewId={previewTemplate?.id ?? null}
