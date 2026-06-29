@@ -450,7 +450,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={ENHANCED_SECTION_SPACING}>
           <PageHeading
-            title="Wedding Schedule"
+            title="Schedule & Events"
             subtitle="Plan the timeline for your celebration"
           />
           <Box sx={{
@@ -489,7 +489,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
     <Box sx={{ maxWidth: 1000 }}>
       <Stack spacing={ENHANCED_SECTION_SPACING}>
         <PageHeading
-          title="Wedding Schedule"
+          title="Schedule & Events"
           subtitle="Plan the timeline for your celebration"
         />
 

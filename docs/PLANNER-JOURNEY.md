@@ -208,9 +208,9 @@ Logistics & Travel
 
 Communications             → /whatsapp-bot (Concierge · Messaging · Admin tabs)
 
-Vendors & Venue
-  • Vendor Management       (Pro)
-  • Vendor Marketplace      (Pro)
+Vendors
+  • Management              (Pro)   → page title: Vendor Management
+  • Marketplace             (Pro)   → page title: Vendor Marketplace
 
 Planning
   • Task Manager            (Pro)

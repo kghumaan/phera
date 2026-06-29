@@ -133,11 +133,13 @@ export const groups: SidebarGroup[] = [
   },
   {
     id: 'vendors',
-    label: 'Vendors & Venue',
+    label: 'Vendors',
     icon: <StorefrontOutlined />,
     items: [
-      { id: 'coordinator', label: 'Vendor Management', path: '/vendor-management', isPro: true },
-      { id: 'vendor-marketplace', label: 'Vendor Marketplace', path: '/vendor-marketplace', isPro: true },
+      // Short sidebar labels; the pages keep their full "Vendor Management" /
+      // "Vendor Marketplace" titles.
+      { id: 'coordinator', label: 'Management', path: '/vendor-management', isPro: true },
+      { id: 'vendor-marketplace', label: 'Marketplace', path: '/vendor-marketplace', isPro: true },
     ],
   },
   {
