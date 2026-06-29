@@ -112,6 +112,8 @@ export const VENDOR_CITY_CONFIG: Array<{
   { city: 'Kerala',   country_code: 'IN', country: 'India',     region: 'India',         search_name: 'Kochi, Kerala, India' },
   { city: 'Bangkok',  country_code: 'TH', country: 'Thailand',  region: 'International', search_name: 'Bangkok, Thailand' },
   { city: 'Hua Hin',  country_code: 'TH', country: 'Thailand',  region: 'International', search_name: 'Hua Hin, Thailand' },
+  { city: 'Phuket',   country_code: 'TH', country: 'Thailand',  region: 'International', search_name: 'Phuket, Thailand' },
+  { city: 'Khao Lak', country_code: 'TH', country: 'Thailand',  region: 'International', search_name: 'Khao Lak, Phang Nga, Thailand' },
   { city: 'Bali',     country_code: 'ID', country: 'Indonesia', region: 'International', search_name: 'Bali, Indonesia' },
   { city: 'Dubai',    country_code: 'AE', country: 'UAE',       region: 'International', search_name: 'Dubai, UAE' },
 ]
