@@ -123,8 +123,8 @@ function WhatsAppBotPageContent({ params }: { params: Promise<{ weddingSlug: str
   return (
     <Box sx={{ width: '100%' }}>
       <PageHeading
-        title="WhatsApp Bot"
-        subtitle="Send save-the-dates, RSVP nudges, and reminders — and let the bot handle every guest reply 24/7."
+        title="Communications"
+        subtitle="Your guest concierge and messaging hub — send updates and reminders, and let the bot handle every guest reply 24/7."
         actions={
           conciergePhone ? (
             <Stack direction="row" spacing={1} alignItems="center">
