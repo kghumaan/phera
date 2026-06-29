@@ -178,54 +178,53 @@ Managed-capture services today: venue finding, vendor sourcing, shared photo alb
 
 ---
 
-## 5. Sidebar reorganization (proposal)
+## 5. Sidebar — as built (2026-06-29)
 
-So couples can control any service standalone, group the sidebar to mirror the catalog categories. Order by how couples think, with the Planner pinned on top as home base:
+The sidebar mirrors the catalog categories using only **real pages**, with the Planner pinned near the top. Per founder call, **Schedule & Events** and **Travel & Stay** live under **Wedding Website** (they're website sections). Items that are agent-driven managed services or not-yet-built have **no page**, so they're not in the nav — the Planner handles them in chat.
 
 ```
-🪄 Planner (home — pinned)
+Overview
+🪄 Planner
 
-Your Website
-  • Design & Look
-  • FAQs & Knowledge Bank
-  • Registry & Where-to-Shop
+Wedding Website
+  • Wedding Details
+  • Look & Feel
+  • Schedule & Events
+  • Travel & Stay
+  • RSVP Form
+  • FAQ
+  • Registry
+  • Where to Shop
+  • Event Access
+  • Settings & Publish
 
 Guests
   • Guest List
-  • Households & Liaisons
-  • RSVPs
-  • RSVP Form
-  • Guest Details / Logistics
+  • Guest Responses
 
 Logistics & Travel
-  • Schedule & Events
-  • Travel & Flights
   • Room Assignments        (Pro)
   • Transportation          (Pro)
-  • Run-Sheet               (Pro)
 
 Communications
-  • Guest Concierge         (Pro)
-  • Broadcasts              (Pro)
-  • Reminders               (Pro)
-  •  (Save-the-Dates — hidden until un-paused)
+  • WhatsApp Bot
+  • Guest Concierge
+  • Messaging
 
 Vendors & Venue
-  • Find a Venue            (Managed)
-  • Find Vendors            (Managed)
-  • Vendor Coordination     (Pro)
-  • Browse Directory
+  • Vendor Management       (Pro)
+  • Vendor Marketplace      (Pro)
 
-Memories
-  • Shared Photo Album      (Managed)
+Planning
+  • Task Manager            (Pro)
+  • Knowledge Bank          (Pro)
 
-Account
-  • Plan & Billing
-  • Consent & Data
-  •  (Agency — planners only)
+Account                    → plan + upgrade
+Collaborators
+Contact us
 ```
 
-Pro/Managed items can show a small lock/tag so the price/upgrade is honest at first sight (no surprise at checkout). Items the wedding can't use yet (e.g. rooms < 5 guests) stay visible with an "unlocks at 5 guests" hint rather than being hidden.
+**Deliberately NOT in the sidebar — no page to link to (reached via the Planner chat):** Households & Liaisons, Guest Details/Logistics, Run-Sheet, Reminders (agent/outreach-driven); Save-the-Dates (on-hold); **Find a Venue / Find Vendors** (managed — captured via `submit_request`); **Shared Photo Album** (not built); Consent & Data, Agency (no pages yet — the `/account` page is built to extend into these). Pro items show a small badge so the upgrade is honest at first sight.
 
 ---
 

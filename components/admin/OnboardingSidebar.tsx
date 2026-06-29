@@ -103,14 +103,39 @@ export const groups: SidebarGroup[] = [
   },
   {
     id: 'guests-group',
-    label: 'Guest Management',
+    label: 'Guests',
     icon: <People />,
     items: [
       { id: 'guest-list', label: 'Guest List', path: '/guest-list' },
-      { id: 'whatsapp-bot', label: 'WhatsApp Bot', path: '/whatsapp-bot' },
       { id: 'guests', label: 'Guest Responses', path: '/guest-responses' },
+    ],
+  },
+  {
+    id: 'logistics',
+    label: 'Logistics & Travel',
+    icon: <AirportShuttle />,
+    items: [
       { id: 'rooms', label: 'Room Assignments', path: '/room-assignments', isPro: true },
       { id: 'transportation', label: 'Transportation', path: '/transportation', isPro: true },
+    ],
+  },
+  {
+    id: 'communications',
+    label: 'Communications',
+    icon: <ChatBubbleOutline />,
+    items: [
+      { id: 'whatsapp-bot', label: 'WhatsApp Bot', path: '/whatsapp-bot' },
+      { id: 'concierge', label: 'Guest Concierge', path: '/concierge' },
+      { id: 'messaging', label: 'Messaging', path: '/messaging' },
+    ],
+  },
+  {
+    id: 'vendors',
+    label: 'Vendors & Venue',
+    icon: <StorefrontOutlined />,
+    items: [
+      { id: 'coordinator', label: 'Vendor Management', path: '/vendor-management', isPro: true },
+      { id: 'vendor-marketplace', label: 'Vendor Marketplace', path: '/vendor-marketplace', isPro: true },
     ],
   },
   {
@@ -119,8 +144,6 @@ export const groups: SidebarGroup[] = [
     icon: <ViewKanban />,
     items: [
       { id: 'task-manager', label: 'Task Manager', path: '/task-manager', isPro: true },
-      { id: 'vendor-marketplace', label: 'Vendor Marketplace', path: '/vendor-marketplace', isPro: true },
-      { id: 'coordinator', label: 'Vendor Management', path: '/vendor-management', isPro: true },
       { id: 'knowledge-bank', label: 'Knowledge Bank', path: '/knowledge-bank', isPro: true },
     ],
   },
