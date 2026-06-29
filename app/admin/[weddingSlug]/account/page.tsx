@@ -21,33 +21,39 @@ const PREMIUM_FEATURES = [
 ];
 
 /**
- * Account — the couple's plan and billing surface. Currently shows the plan
- * status and the upgrade path (the only direct money surface in the admin).
- * Built with the shared admin primitives so it matches every other page;
- * Consent & Data and Agency (planner) sections can slot in here later.
+ * Account — the couple's plan and billing surface. Shows the current plan and
+ * the upgrade path (the only direct money surface in the admin). Uses the same
+ * full-width `<Box width:100%>` + PageHeading layout as every other admin page
+ * (the layout's <main> supplies the page padding). Consent & Data and Agency
+ * (planner) sections can slot in here later.
  */
 export default function AccountPage() {
   const { isPro } = usePlan();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 760, mx: 'auto' }}>
+    <Box sx={{ width: '100%' }}>
       <PageHeading title="Account" subtitle="Your plan and what's included." />
 
-      <PheraCard variant="default" sx={{ mt: 3, p: { xs: 2.5, md: 3.5 } }}>
+      <PheraCard variant="default" sx={{ mt: 3, maxWidth: 680, p: { xs: 2.5, md: 3.5 } }}>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
           alignItems={{ xs: 'flex-start', sm: 'center' }}
           justifyContent="space-between"
           spacing={2}
-          sx={{ mb: 2 }}
+          sx={{ mb: 2.5 }}
         >
-          <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong }}>
-              {isPro ? 'Premium plan' : 'Free plan'}
+          <Box>
+            <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 0.25 }}>
+              Current plan
             </Typography>
-            {isPro && <ProBadge size="small" />}
-          </Stack>
+            <Stack direction="row" alignItems="center" spacing={1.25}>
+              <Typography variant="h5" sx={{ fontWeight: 700, color: COLORS.text.strong }}>
+                {isPro ? 'Premium' : 'Free'}
+              </Typography>
+              {isPro && <ProBadge size="small" />}
+            </Stack>
+          </Box>
           {!isPro && (
             <PrimaryActionButton onClick={() => setUpgradeOpen(true)}>Upgrade to Premium</PrimaryActionButton>
           )}
