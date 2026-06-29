@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Phera — Design System One-Pager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --pink: #DE3F5E;
+    --pink-hover: #C8365A;
+    --ink: #1a1a1a;
+    --muted: #4a4a4a;
+    --subtle: #6a6a6a;
+    --faint: #9a9a9a;
+    --paper: #FBF7F1;
+    --cream: #F7F1E8;
+    --line: rgba(0,0,0,0.08);
+    --line-strong: rgba(0,0,0,0.15);
+    --serif: 'Instrument Serif', Georgia, serif;
+    --sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  @page { size: A4; margin: 14mm 14mm 12mm; }
+
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.5;
+    background: #fff;
+  }
+
+  /* ── Header ── */
+  .masthead {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+  }
+  .masthead .wordmark svg { height: 40px; width: auto; display: block; }
+  .masthead .meta { text-align: right; color: var(--subtle); font-size: 10px; line-height: 1.6; }
+  .masthead .meta .doc-title {
+    font-family: var(--serif); font-style: italic; font-size: 22px;
+    color: var(--ink); display: block; margin-bottom: 2px;
+  }
+
+  h2.section {
+    font-family: var(--sans);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+    color: var(--pink);
+    margin: 26px 0 12px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--line);
+  }
+  h2.section:first-of-type { margin-top: 0; }
+
+  .lede {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 19px;
+    line-height: 1.35;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+  .sub { color: var(--muted); font-size: 11.5px; max-width: 70ch; margin: 0; }
+
+  .grid { display: grid; gap: 14px; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #fff;
+    break-inside: avoid;
+  }
+  .card h3 {
+    margin: 0 0 8px; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.07em; color: var(--subtle);
+  }
+
+  /* ── Swatches ── */
+  .swatch-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .swatch { break-inside: avoid; }
+  .swatch .chip {
+    height: 46px; border-radius: 8px; border: 1px solid var(--line);
+    margin-bottom: 5px;
+  }
+  .swatch .name { font-size: 9.5px; font-weight: 600; color: var(--ink); line-height: 1.25; }
+  .swatch .hex { font-size: 9px; color: var(--faint); font-variant-numeric: tabular-nums; }
+  .swatch .use { font-size: 8.5px; color: var(--subtle); margin-top: 2px; line-height: 1.2; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); vertical-align: baseline; }
+  th { font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--subtle); font-weight: 600; }
+  td { font-size: 10.5px; color: var(--ink); }
+  td.token { font-family: 'SFMono-Regular', ui-monospace, Menlo, monospace; color: var(--pink); font-size: 10px; }
+  td.val { font-variant-numeric: tabular-nums; color: var(--muted); }
+
+  .type-row { display: flex; align-items: baseline; gap: 14px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .type-row:last-child { border-bottom: none; }
+  .type-row .label { width: 130px; flex: none; font-size: 9.5px; color: var(--subtle); }
+  .type-row .specimen { color: var(--ink); }
+  .serif { font-family: var(--serif); }
+  .ital { font-style: italic; }
+
+  .pill {
+    display: inline-block; padding: 4px 12px; border-radius: 999px;
+    font-size: 10px; font-weight: 500; margin: 0 6px 6px 0;
+  }
+
+  .logo-tile {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; border: 1px solid var(--line); border-radius: 12px; padding: 16px 10px; min-height: 92px;
+    break-inside: avoid;
+  }
+  .logo-tile.dark { background: var(--ink); border-color: var(--ink); }
+  .logo-tile.paper { background: var(--paper); }
+  .logo-tile .cap { font-size: 9px; color: var(--subtle); text-transform: uppercase; letter-spacing: 0.06em; }
+  .logo-tile.dark .cap { color: rgba(255,255,255,0.6); }
+  .logo-tile svg { height: 30px; width: auto; }
+  .lotus-tile svg { height: 40px; }
+
+  .radii-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  .radii-item { text-align: center; }
+  .radii-box { width: 56px; height: 40px; background: var(--cream); border: 1px solid var(--line-strong); }
+  .radii-item .t { font-size: 9px; color: var(--subtle); margin-top: 4px; }
+  .radii-item .t b { color: var(--ink); display: block; font-size: 10px; }
+
+  .btn {
+    display: inline-block; font-family: var(--sans); font-weight: 600;
+    text-transform: none; padding: 9px 18px; font-size: 11px; border-radius: 12px;
+  }
+  .btn-primary { background: var(--pink); color: #fff; }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line-strong); }
+  .btn-pill { border-radius: 999px; }
+
+  .muted { color: var(--muted); }
+  .small { font-size: 9.5px; color: var(--subtle); }
+  ul.tight { margin: 4px 0 0; padding-left: 16px; }
+  ul.tight li { margin-bottom: 3px; font-size: 10.5px; color: var(--muted); }
+  ul.tight li b { color: var(--ink); font-weight: 600; }
+
+  .marquee-words { font-family: var(--serif); font-style: italic; font-size: 13px; color: var(--muted); line-height: 1.8; }
+  .marquee-words .dot { color: var(--saffron, #FF9933); margin: 0 8px; }
+
+  .footer {
+    margin-top: 26px; padding-top: 10px; border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; color: var(--faint); font-size: 9px;
+  }
+  .page-break { break-before: page; }
+</style>
+</head>
+<body>
+
+  <!-- ════════════ MASTHEAD ════════════ -->
+  <div class="masthead">
+    <div class="wordmark">
+      <svg width="178" height="48" viewBox="0 0 178 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M161.25 40.5H152L156.995 9H172.185L177.18 40.5H167.93L167.21 33.66L161.88 34.695L161.25 40.5ZM162.105 31.805L166.985 30.905L165.815 20.97L165.725 18.225H163.455L163.365 20.97L162.105 31.805Z" fill="#1a1a1a"/>
+        <path d="M124 40.5V9H137.14C146.545 9 148.48 10.08 148.48 16.425C148.48 21.6 146.635 24.975 137.455 25.11C138.535 26.28 140.29 29.54 148.84 30.8V40.5C138.715 40.5 135.52 34.83 135.52 26.55V25.11H133.25V40.5H124ZM133.25 22.31H136.835C139.535 22.31 139.58 18.205 139.58 16.27C139.58 14.515 136.535 14.155 133.25 14.11V22.31Z" fill="#1a1a1a"/>
+        <path d="M108.83 40.5C102.26 40.5 101 37.44 101 29.655V9H119.7V17.8H110.25V22.985L116.55 21.23L116.82 24.03L110.25 25.875V29.35C110.25 30.79 110.925 32.375 112.725 32.375C114.21 32.375 116.82 31.925 120.6 31.25V40.5H108.83Z" fill="#1a1a1a"/>
+        <path d="M76 40.5V9H85.25V22.04L88.5 21.32V9H97.75V40.5H88.5V24.21L85.25 24.93V40.5H76Z" fill="#1a1a1a"/>
+        <path d="M52 40.5V9H63.14C71.645 9 72.93 10.71 72.93 19.395V23.895C72.93 32.67 71.645 34.425 63.14 34.425H61.25V40.5L52 40.5ZM61.25 28.845C64.0073 28.5 65.68 27.585 65.68 22.095V21.285C65.68 17.37 64.635 16.245 63.15 16.245H61.25V28.845Z" fill="#1a1a1a"/>
+        <path d="M27.6936 14.2925C28.514 15.3601 29.3788 16.4886 29.8523 17.7968C30.5511 19.7256 30.6792 21.9522 30.2587 23.9452C29.8755 25.7602 29.2394 27.0528 28.2914 28.6336C26.7175 31.258 25.2036 32.9992 24.6539 36.1555C24.475 37.1813 24.5523 38.2832 24.4177 39.2893C24.4004 39.4176 24.2518 39.7538 24.1864 39.8608C24.0767 40.0415 23.8097 40.0693 23.6811 39.8848C23.4816 39.5993 23.4378 38.6194 23.4049 38.2334C23.2227 36.0774 23.0411 34.1593 21.8818 32.2556C19.8139 28.8608 17.492 25.8981 17.4126 21.7116C17.3585 18.8521 18.8502 16.2213 20.4857 13.9626C21.6159 12.4016 22.5352 11.1458 23.3233 9.33833C23.5924 8.72034 23.8075 7.85215 24.0956 7.2689C24.1859 7.0866 24.3621 6.91553 24.561 7.04597C24.8388 7.2288 24.8582 8.46533 24.9225 8.82672C25.3225 11.0742 26.3478 12.5411 27.693 14.2925H27.6936ZM26.5002 18.627C26.3829 18.4864 26.4526 17.9636 26.4316 17.7593C26.2483 15.9845 25.783 15.6413 24.9987 14.2048C24.8636 13.9573 24.5237 12.8549 24.2421 12.8774C24.0578 12.8924 24.0637 13.3922 24.0291 13.5114C23.8037 14.2898 23.5405 15.0687 23.0795 15.7284C21.8402 17.5017 20.6203 18.3704 20.0674 20.659C19.5058 22.9845 19.735 24.4474 20.6329 26.2369C21.3569 27.6796 21.9666 27.8195 23.1023 28.6974C23.6811 29.1447 24.8982 28.9211 25.6279 28.3918C26.2601 27.9332 27.1794 26.3664 27.5745 25.7185C28.6652 23.9324 28.6421 20.443 26.9747 18.8788C26.8537 18.7655 26.5488 18.6858 26.4997 18.627H26.5002Z" fill="#1a1a1a"/>
+        <path d="M35.2705 36.419C33.5831 37.996 31.3261 39.0118 29.0831 39.5731C28.3016 39.7688 27.5054 39.9078 26.7304 39.9692C26.4856 39.9885 26.1948 40.1563 25.9267 40.136L25.7959 39.8356C25.8029 39.7875 25.9716 39.7153 26.0288 39.6527C28.4486 37.0289 28.4864 33.3033 29.7809 30.1064C31.3872 26.1397 34.8717 23.7762 39.1069 23.2127C39.2722 23.1908 39.4803 23.0476 39.6738 23.0999C39.8327 23.1427 40.0187 23.2967 39.9976 23.4747C39.9814 23.6094 39.5641 24.2472 39.4706 24.5086C37.967 28.7122 38.8615 33.0622 35.2694 36.4195L35.2705 36.419ZM32.7011 33.075C32.8011 32.6495 33.0108 32.1844 33.2037 31.7802C33.4205 31.3248 33.6939 30.8174 33.9555 30.3855C34.583 29.3478 35.5051 28.5438 36.1175 27.5521C36.245 27.3457 36.5185 26.9036 36.185 26.7684L35.7299 27.2222C34.0253 29.1067 32.6762 31.1532 31.6304 33.4316C31.1737 34.4254 30.463 35.3866 29.8614 36.3329C29.7836 36.4558 29.4312 36.8397 29.4593 36.9498C29.5209 37.0182 29.5247 37.0476 29.6214 37.0054C29.8036 36.9252 30.1246 36.6333 30.2992 36.4965C30.9699 35.9704 31.5423 35.2188 32.0087 34.3939C32.253 33.9619 32.4573 33.4984 32.5957 33.0221L32.7016 33.0756L32.7011 33.075ZM35.5656 31.2039C34.9635 31.6696 34.242 31.9358 33.8128 32.5971C33.6107 32.9088 33.4318 33.4199 33.6745 33.7465C34.6009 33.7492 35.0338 33.499 35.304 32.6281C35.3619 32.441 35.6332 31.2943 35.5656 31.2034V31.2039Z" fill="#1a1a1a"/>
+        <path d="M16.4709 38.8124C14.8505 38.1874 12.9297 37.0268 11.8946 35.6128C9.83541 32.7997 9.52356 29.319 8.78472 26.0194C8.63338 25.3437 8.45989 24.8529 8.18965 24.2012C8.0675 23.9072 7.64593 23.4646 8.09506 23.2507C8.37828 23.1155 8.69392 23.2117 8.98524 23.2539C14.049 23.9874 17.3649 27.202 18.742 31.9936C19.5641 34.8542 19.5473 37.1038 21.7292 39.4101C21.9011 39.5918 22.3416 39.7656 22.0573 40.1099C21.9157 40.2809 21.1904 40.1104 20.959 40.065C19.4549 39.7688 17.8761 39.355 16.4698 38.8129L16.4709 38.8124ZM15.9185 32.8398C15.6445 32.4239 15.5661 32.1262 15.3791 31.6851C14.5922 29.8311 13.835 28.5128 12.2968 27.1426C12.2162 27.071 11.6839 26.6513 11.6228 26.7139C11.5806 26.9887 11.6774 27.18 11.8163 27.404C12.227 28.0685 12.8724 28.648 13.3204 29.2842C14.4808 30.9324 14.9105 33.0681 15.9769 34.6757C16.4725 35.4225 17.313 36.5248 18.1621 36.8873C18.2318 36.9172 18.4426 36.9787 18.4345 36.8429C18.422 36.6328 17.6929 35.8945 17.5162 35.6657C16.8935 34.8606 16.3563 33.9593 15.9715 33.0211C15.9391 32.9425 16.0099 32.9778 15.9185 32.8398ZM13.6582 31.8637C13.4631 31.6899 12.8248 31.2938 12.5805 31.1922C12.5086 31.1623 12.3054 31.0805 12.3335 31.2216C12.4232 31.6701 12.8032 32.8794 13.0583 33.2322C13.3134 33.5851 14.1722 33.9801 14.3549 33.399C14.396 33.2691 14.3949 33.0868 14.3668 32.9537C14.329 32.7757 13.8063 31.9957 13.6582 31.8642V31.8637Z" fill="#1a1a1a"/>
+        <path d="M12.4109 37.4277C13.6448 38.544 15.1868 39.4736 16.7439 40.0649C17.0001 40.1622 17.3006 40.2868 17.5682 40.2926L17.4779 40.6177L15.3241 40.9331C11.09 41.3442 7.18879 39.8735 4.96308 36.2136C4.15128 34.8782 3.70322 33.3669 2.51633 32.272C2.32013 32.0908 2.00665 32.0261 1.99963 31.7123C1.99422 31.475 2.17691 31.4001 2.37797 31.336C4.46044 30.6704 7.24608 31.336 9.04804 32.4939C9.39665 32.7179 9.55987 33.4754 9.73715 33.8438C10.3522 35.1247 11.3467 36.466 12.4104 37.4277H12.4109Z" fill="#1a1a1a"/>
+        <path d="M30.3943 40.5435C30.3067 40.4456 30.3094 40.3285 30.4337 40.2671C30.6288 40.1703 31.1985 40.0896 31.4585 39.9982C34.0214 39.0947 37.1978 36.4196 38.3161 33.9508C38.5469 33.4408 38.6458 32.6795 39.17 32.3897C40.1861 31.8289 41.1206 31.3804 42.3027 31.2115C43.5841 31.0286 44.3143 30.9618 45.5623 31.3398C45.7898 31.4087 46.0639 31.3082 45.9866 31.6985C45.9315 31.9776 45.7315 32.0075 45.5893 32.1641C45.0445 32.765 44.5538 33.3419 44.1381 34.0433C42.9253 36.0881 42.1805 38.1864 39.9273 39.4475C37.173 40.9893 35.0905 41.1486 31.966 40.8327C31.6433 40.8001 30.5813 40.7536 30.3943 40.544V40.5435Z" fill="#1a1a1a"/>
+        <path d="M25.7937 19.1114C26.2974 19.245 26.4985 19.5562 26.7303 19.9763C26.9498 20.3736 27.2978 21.2904 27.3508 21.7683C27.4475 22.644 27.3217 24.1063 26.9184 24.8948C26.5294 25.6555 26.2307 26.3824 25.5715 26.9079C24.5717 27.7049 23.1021 27.0648 22.8776 26.9079C22.1081 26.3701 21.3061 25.5658 20.8791 23.6795C20.4193 21.6482 21.0045 19.4551 22.2714 17.9208C22.7897 17.2927 23.6723 16.5287 24.0452 15.8263C24.1322 15.6621 24.2955 14.9153 24.3527 14.8998C24.4635 14.8699 24.5035 14.9479 24.5641 15.0099C24.6246 15.0719 25.4526 16.386 25.4991 16.4908C25.8272 17.2365 25.6796 18.3143 25.7942 19.1119L25.7937 19.1114ZM23.5355 18.2881C23.0869 18.8761 22.0762 20.5649 21.906 21.2487C21.7725 21.7849 22.0876 23.1856 22.3022 23.7148C22.7205 24.7477 23.5777 25.3961 24.7478 25.1812C25.1267 25.1117 25.7369 24.5263 25.9126 24.1949C26.4774 23.1267 26.2482 20.828 25.3202 19.9812C25.2521 19.9186 25.151 19.9101 25.0775 19.847C24.6349 19.4631 24.8684 18.2271 24.8095 17.653C24.7841 17.4049 24.65 17.1831 24.6473 16.9307C24.4857 17.1542 24.3344 17.3819 24.1598 17.5974C23.969 17.8331 23.7182 18.048 23.535 18.2886L23.5355 18.2881Z" fill="#1a1a1a"/>
+        <path d="M34.7477 32.5479C34.938 32.8409 34.3591 33.2456 34.1067 33.2889C33.9759 33.0585 34.5537 32.2491 34.7477 32.5479Z" fill="#1a1a1a"/>
+        <path d="M13.7848 33.1285L13.5232 33.1199L13.2449 32.3806C13.5654 32.1919 13.8794 33.0392 13.7854 33.1285H13.7848Z" fill="#1a1a1a"/>
+        <path d="M24.6852 20.4125L24.8101 20.4874C24.5393 21.0417 24.9479 21.5806 25.1074 22.1158C25.2852 22.7124 25.5003 23.4245 25.1057 23.9847C24.8852 24.2975 24.2172 24.3188 23.8756 24.2424C23.4459 24.1462 23.2195 23.3694 23.1897 22.9962C23.1087 21.9933 23.7529 20.8311 24.6847 20.412L24.6852 20.4125ZM24.4296 23.718C24.4188 23.5185 24.6474 23.3854 24.6469 23.2192C24.6469 23.0845 24.5155 22.7915 24.4572 22.652C24.3988 22.5124 24.3334 22.3082 24.2166 22.2227C24.1626 22.7498 23.5038 23.6169 24.4296 23.718Z" fill="#1a1a1a"/>
+        <path d="M23.6025 19.6753C24.1668 19.655 24.1722 20.5381 23.4917 20.4569C23.0826 20.4082 22.9772 19.6972 23.6025 19.6753Z" fill="#1a1a1a"/>
+        <path d="M22.7384 20.8947C22.8156 20.8686 22.9562 20.8707 23.0275 20.9124C23.2194 21.1166 23.1361 21.3588 22.9373 21.5229C22.5681 21.5844 22.4768 20.984 22.7384 20.8947Z" fill="#1a1a1a"/>
+        <path d="M24.5333 18.5409C24.6112 18.7339 24.689 19.1241 24.4058 19.1492C23.8842 19.1952 24.089 18.4051 24.5333 18.5409Z" fill="#1a1a1a"/>
+      </svg>
+    </div>
+    <div class="meta">
+      <span class="doc-title">Design System</span>
+      Brand &amp; UI reference · One-pager<br/>
+      phera.io · Updated 22 Jun 2026
+    </div>
+  </div>
+
+  <!-- ════════════ BRAND ════════════ -->
+  <div class="lede">Indian weddings are beautiful chaos. Phera handles the guest logistics so you can focus on the celebration.</div>
+  <p class="sub">Phera is an Indian-wedding guest-logistics platform. The brand voice is warm, calm, and capable — premium without being stiff, cultural without being kitsch. The visual system pairs an editorial italic serif with a clean geometric sans, anchored by a single confident pink and a warm-paper canvas.</p>
+
+  <h2 class="section">Taglines &amp; Voice</h2>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Headline &amp; Pitch</h3>
+      <ul class="tight">
+        <li><b>Hero:</b> Your desi wedding, <span style="text-decoration: line-through; text-decoration-color: var(--pink);">minus the headaches.</span></li>
+        <li><b>One-liner:</b> Indian weddings are beautiful chaos — 300+ guests, 3–5 days of events, people flying in from everywhere. Phera handles the guest logistics so you can focus on the celebration.</li>
+        <li><b>Product sub:</b> One AI wedding planner that runs it all — just talk to it. Guest list, RSVPs, rooms, shuttles, vendors, and the midnight WhatsApps, handled by chat or voice.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Meta / SEO descriptors</h3>
+      <ul class="tight">
+        <li><b>Title:</b> Phera | Indian Wedding Planning Platform</li>
+        <li><b>Description:</b> The modern Indian wedding platform. Manage RSVPs, coordinate travel, share events, and create beautiful wedding websites. Start free, add smart AI agents when you need them.</li>
+        <li><b>CTAs:</b> “Get started — it's free” · “View Demo”</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px;">
+    <h3>Hero Marquee — the work Phera absorbs (set in serif italic)</h3>
+    <div class="marquee-words">
+      Save the dates <span class="dot">✦</span> RSVPs <span class="dot">✦</span> Dietary needs <span class="dot">✦</span> Plus-ones <span class="dot">✦</span> Flight numbers <span class="dot">✦</span> Hotel blocks <span class="dot">✦</span> Shuttle pickups <span class="dot">✦</span> Dress codes <span class="dot">✦</span> Visa walkthroughs <span class="dot">✦</span> Vendor coordination <span class="dot">✦</span> Cultural briefings <span class="dot">✦</span> Day-of details
+    </div>
+  </div>
+
+  <!-- ════════════ LOGO ════════════ -->
+  <h2 class="section">Logo &amp; Logomark</h2>
+  <p class="sub" style="margin-bottom:12px;">The mark is a <b>lotus-flame</b> glyph — a lotus that reads as a flame, nodding to the sacred fire (<i>agni</i>) circled during the <i>phera</i> ritual. It locks up left of the “Phera” wordmark, set in the display serif. Logomark may stand alone as an app icon / avatar.</p>
+  <div class="grid cols-3">
+    <div class="logo-tile">
+      <svg viewBox="0 0 178 48" xmlns="http://www.w3.org/2000/svg"><use href="#wordmark-ink"></use></svg>
+      <span class="cap">Wordmark · ink #1a1a1a</span>
+    </div>
+    <div class="logo-tile dark">
+      <svg viewBox="0 0 178 48" xmlns="http://www.w3.org/2000/svg" style="filter: none;">
+        <g fill="#ffffff"><use href="#wordmark-shape"></use></g>
+      </svg>
+      <span class="cap">Reversed · on ink</span>
+    </div>
+    <div class="logo-tile paper lotus-tile">
+      <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><g fill="#DE3F5E"><use href="#lotus-shape"></use></g></svg>
+      <span class="cap">Logomark · brand pink</span>
+    </div>
+  </div>
+  <p class="small" style="margin-top:8px;">Files in <code>/public</code>: <code>logo.svg</code> · <code>logo-black.svg</code> · <code>logo-lotus-flame-{black,white}.svg</code> · PNG @512 / @1024 · stacked &amp; flower variants. Clear space ≈ glyph height; never recolor outside ink / white / brand-pink; don't stretch or add effects.</p>
+
+  <!-- ════════════ COLOR ════════════ -->
+  <div class="page-break"></div>
+  <h2 class="section">Color — Brand &amp; Core</h2>
+  <div class="swatch-row">
+    <div class="swatch"><div class="chip" style="background:#DE3F5E;"></div><div class="name">Brand Primary</div><div class="hex">#DE3F5E</div><div class="use">Primary actions, accents, destructive</div></div>
+    <div class="swatch"><div class="chip" style="background:#C8365A;"></div><div class="name">Primary Hover</div><div class="hex">#C8365A</div><div class="use">Hover / pressed pink</div></div>
+    <div class="swatch"><div class="chip" style="background:#1a1a1a;"></div><div class="name">Text Strong</div><div class="hex">#1a1a1a</div><div class="use">Headings, ink</div></div>
+    <div class="swatch"><div class="chip" style="background:#4a4a4a;"></div><div class="name">Text Muted</div><div class="hex">#4a4a4a</div><div class="use">Body copy</div></div>
+    <div class="swatch"><div class="chip" style="background:#6a6a6a;"></div><div class="name">Text Subtle</div><div class="hex">#6a6a6a</div><div class="use">Captions, labels</div></div>
+    <div class="swatch"><div class="chip" style="background:#9a9a9a;"></div><div class="name">Text Faint</div><div class="hex">#9a9a9a</div><div class="use">Hints, meta</div></div>
+  </div>
+  <div class="swatch-row" style="margin-top:12px;">
+    <div class="swatch"><div class="chip" style="background:#ffffff;"></div><div class="name">BG White</div><div class="hex">#FFFFFF</div><div class="use">Base surface</div></div>
+    <div class="swatch"><div class="chip" style="background:#FAFAFA;"></div><div class="name">BG Muted</div><div class="hex">#FAFAFA</div><div class="use">Subtle fill</div></div>
+    <div class="swatch"><div class="chip" style="background:#F8F8F8;"></div><div class="name">BG Subtle</div><div class="hex">#F8F8F8</div><div class="use">Section bg</div></div>
+    <div class="swatch"><div class="chip" style="background:#FBF7F1;"></div><div class="name">Paper</div><div class="hex">#FBF7F1</div><div class="use">Warm canvas</div></div>
+    <div class="swatch"><div class="chip" style="background:#F7F1E8;"></div><div class="name">Cream</div><div class="hex">#F7F1E8</div><div class="use">Textured panels</div></div>
+    <div class="swatch"><div class="chip" style="background:#C2C2C2;"></div><div class="name">Placeholder</div><div class="hex">#C2C2C2</div><div class="use">Input placeholder</div></div>
+  </div>
+
+  <h2 class="section">Color — Status &amp; Cultural</h2>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Status / Semantic</h3>
+      <div class="swatch-row" style="grid-template-columns:repeat(4,1fr);">
+        <div class="swatch"><div class="chip" style="background:#10B981;"></div><div class="name">Success</div><div class="hex">#10B981</div></div>
+        <div class="swatch"><div class="chip" style="background:#F59E0B;"></div><div class="name">Warning</div><div class="hex">#F59E0B</div></div>
+        <div class="swatch"><div class="chip" style="background:#EF4444;"></div><div class="name">Danger</div><div class="hex">#EF4444</div></div>
+        <div class="swatch"><div class="chip" style="background:#3B82F6;"></div><div class="name">Info</div><div class="hex">#3B82F6</div></div>
+      </div>
+      <p class="small" style="margin-top:8px;">Danger red is for <b>status only</b> (e.g. “Not Attending” dots) — never for buttons. Destructive actions use brand pink.</p>
+    </div>
+    <div class="card">
+      <h3>Cultural Accents</h3>
+      <div class="swatch-row" style="grid-template-columns:repeat(4,1fr);">
+        <div class="swatch"><div class="chip" style="background:#D4AF37;"></div><div class="name">Gold</div><div class="hex">#D4AF37</div></div>
+        <div class="swatch"><div class="chip" style="background:#FF9933;"></div><div class="name">Saffron</div><div class="hex">#FF9933</div></div>
+        <div class="swatch"><div class="chip" style="background:#800020;"></div><div class="name">Maroon</div><div class="hex">#800020</div></div>
+        <div class="swatch"><div class="chip" style="background:#D1B99F;"></div><div class="name">Champagne</div><div class="hex">#D1B99F</div></div>
+      </div>
+      <div class="swatch-row" style="grid-template-columns:repeat(4,1fr); margin-top:10px;">
+        <div class="swatch"><div class="chip" style="background:#FF6B6B;"></div><div class="name">Coral</div><div class="hex">#FF6B6B</div></div>
+        <div class="swatch"><div class="chip" style="background:#20C997;"></div><div class="name">Teal</div><div class="hex">#20C997</div></div>
+        <div class="swatch"><div class="chip" style="background:#6C5CE7;"></div><div class="name">Purple</div><div class="hex">#6C5CE7</div></div>
+        <div class="swatch"><div class="chip" style="background:#FBF7F1; border-color:var(--line-strong);"></div><div class="name">—</div><div class="hex">decor</div></div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section">Color — Wedding-Side Coding</h2>
+  <div style="display:flex; gap:10px;">
+    <span class="pill" style="background:rgba(222,63,94,0.12); color:#DE3F5E;">● Bride · #DE3F5E (pink)</span>
+    <span class="pill" style="background:rgba(59,130,246,0.12); color:#3b82f6;">● Groom · #3B82F6 (blue)</span>
+    <span class="pill" style="background:rgba(139,92,246,0.12); color:#8b5cf6;">● Both · #8B5CF6 (purple)</span>
+  </div>
+
+  <!-- ════════════ TYPOGRAPHY ════════════ -->
+  <h2 class="section">Typography</h2>
+  <div class="grid cols-2" style="margin-bottom:14px;">
+    <div class="card">
+      <h3>Display — Instrument Serif</h3>
+      <div class="serif ital" style="font-size:30px; line-height:1.1;">Your desi wedding</div>
+      <p class="small" style="margin-top:6px;">Used at <b>≥ 2rem</b> (h1–h3), typically <i>italic</i>. Weight 400 only. For hero, marquee, dialog titles, big numerals.</p>
+    </div>
+    <div class="card">
+      <h3>Body — Outfit</h3>
+      <div style="font-weight:300; font-size:15px;">Light 300 · <span style="font-weight:400;">Regular 400</span> · <span style="font-weight:500;">Medium 500</span> · <span style="font-weight:600;">Semibold 600</span></div>
+      <p class="small" style="margin-top:6px;">Everything <b>&lt; 2rem</b>: body, labels, buttons, captions. Weights 200–600. <b>14px (0.875rem) is the hard minimum</b> for readable text.</p>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Type Scale &amp; Variants</h3>
+    <div class="type-row"><span class="label">h1 · serif italic</span><span class="specimen serif ital" style="font-size:28px;">Beautiful chaos</span></div>
+    <div class="type-row"><span class="label">h3 · serif italic</span><span class="specimen serif ital" style="font-size:22px;">Guest logistics, handled</span></div>
+    <div class="type-row"><span class="label">h4 · Outfit 600</span><span class="specimen" style="font-size:18px; font-weight:600;">Section heading</span></div>
+    <div class="type-row"><span class="label">body1 · Outfit 400</span><span class="specimen" style="font-size:15px;">Default body copy at one rem.</span></div>
+    <div class="type-row"><span class="label">body2 · Outfit 400</span><span class="specimen" style="font-size:14px;">Secondary copy — the 14px floor.</span></div>
+    <div class="type-row"><span class="label">subtitleCaps · 600</span><span class="specimen" style="font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;">Eyebrow Label</span></div>
+    <div class="type-row"><span class="label">button · Outfit 500</span><span class="specimen" style="font-size:14px; font-weight:500;">Get started — it's free</span></div>
+  </div>
+  <table style="margin-top:12px;">
+    <thead><tr><th>Token</th><th>rem</th><th>px</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td class="token">TEXT.sm</td><td class="val">0.875</td><td class="val">14</td><td>Floor — body, labels, captions</td></tr>
+      <tr><td class="token">TEXT.base</td><td class="val">1</td><td class="val">16</td><td>Default body</td></tr>
+      <tr><td class="token">TEXT.lg</td><td class="val">1.125</td><td class="val">18</td><td>Emphasised body</td></tr>
+      <tr><td class="token">TEXT.xl</td><td class="val">1.25</td><td class="val">20</td><td>Small headings (Outfit)</td></tr>
+      <tr><td class="token">TEXT.2xl</td><td class="val">1.5</td><td class="val">24</td><td>Medium headings (Outfit)</td></tr>
+      <tr><td class="token">TEXT.3xl ↑</td><td class="val">2.0+</td><td class="val">32+</td><td>Switch to Instrument Serif</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ════════════ RADII / SHADOW / MISC ════════════ -->
+  <h2 class="section">Radii, Shadows &amp; Layout</h2>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Corner Radii</h3>
+      <div class="radii-row">
+        <div class="radii-item"><div class="radii-box" style="border-radius:8px;"></div><div class="t"><b>8px</b>sm</div></div>
+        <div class="radii-item"><div class="radii-box" style="border-radius:12px;"></div><div class="t"><b>12px</b>md · buttons/inputs</div></div>
+        <div class="radii-item"><div class="radii-box" style="border-radius:16px;"></div><div class="t"><b>16px</b>lg · cards</div></div>
+        <div class="radii-item"><div class="radii-box" style="border-radius:20px;"></div><div class="t"><b>20px</b>xl · hero</div></div>
+        <div class="radii-item"><div class="radii-box" style="border-radius:24px;"></div><div class="t"><b>24px</b>dialog/cta</div></div>
+        <div class="radii-item"><div class="radii-box" style="border-radius:999px;"></div><div class="t"><b>999px</b>pill</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Shadows &amp; Borders</h3>
+      <table>
+        <tr><td class="token">SHADOWS.card</td><td class="val small">0 1px 2px rgba(0,0,0,.04)</td></tr>
+        <tr><td class="token">SHADOWS.popover</td><td class="val small">0 8px 24px rgba(0,0,0,.08)</td></tr>
+        <tr><td class="token">SHADOWS.dialog</td><td class="val small">0 8px 32px rgba(0,0,0,.08)</td></tr>
+        <tr><td class="token">border.light</td><td class="val small">rgba(0,0,0,.08)</td></tr>
+        <tr><td class="token">border.strong</td><td class="val small">rgba(0,0,0,.23)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h2 class="section">Components — Buttons &amp; Inputs</h2>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Buttons</h3>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <span class="btn btn-primary">Primary action</span>
+        <span class="btn btn-ghost">Secondary</span>
+        <span class="btn btn-primary btn-pill">Landing CTA →</span>
+      </div>
+      <p class="small" style="margin-top:8px;">Admin radius 12px · landing/guest CTAs 999px pill · <code>textTransform: none</code> always. Primitives: <code>PrimaryActionButton</code> / <code>SecondaryActionButton</code>.</p>
+    </div>
+    <div class="card">
+      <h3>Inputs</h3>
+      <div style="border:1px solid var(--line-strong); border-radius:12px; padding:9px 12px; color:var(--ink); background:#fff; font-size:11px;">Guest name</div>
+      <div style="border:2px solid var(--pink); border-radius:12px; padding:9px 12px; color:var(--ink); background:#fff; font-size:11px; margin-top:8px;">Focused — 2px pink ring</div>
+      <p class="small" style="margin-top:8px;">White bg · visible border · dark label/value · pink 2px focus. Primitive: <code>PheraTextField</code>.</p>
+    </div>
+  </div>
+  <p class="small" style="margin-top:10px;"><b>Shared primitives</b> (use over raw MUI): InfoAlert/SuccessAlert/WarningAlert/ErrorAlert · PheraMenu · PheraTextField · PheraCard (default/muted/feature/hero) · PageHeading/SectionHeading · EmptyState · StatCard · PheraChip · PheraDialog · PheraSwitch. <b>Backgrounds are always light</b> — never dark surfaces for new components.</p>
+
+  <div class="footer">
+    <span>Phera Design System · single source of truth: <code>lib/theme/tokens.ts</code> + <code>lib/theme/m3-theme.ts</code></span>
+    <span>phera.io · v1 · 2026-06-22</span>
+  </div>
+
+  <!-- Hidden SVG symbol defs for reuse -->
+  <svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <g id="wordmark-shape">
+      <path d="M161.25 40.5H152L156.995 9H172.185L177.18 40.5H167.93L167.21 33.66L161.88 34.695L161.25 40.5ZM162.105 31.805L166.985 30.905L165.815 20.97L165.725 18.225H163.455L163.365 20.97L162.105 31.805Z"/>
+      <path d="M124 40.5V9H137.14C146.545 9 148.48 10.08 148.48 16.425C148.48 21.6 146.635 24.975 137.455 25.11C138.535 26.28 140.29 29.54 148.84 30.8V40.5C138.715 40.5 135.52 34.83 135.52 26.55V25.11H133.25V40.5H124ZM133.25 22.31H136.835C139.535 22.31 139.58 18.205 139.58 16.27C139.58 14.515 136.535 14.155 133.25 14.11V22.31Z"/>
+      <path d="M108.83 40.5C102.26 40.5 101 37.44 101 29.655V9H119.7V17.8H110.25V22.985L116.55 21.23L116.82 24.03L110.25 25.875V29.35C110.25 30.79 110.925 32.375 112.725 32.375C114.21 32.375 116.82 31.925 120.6 31.25V40.5H108.83Z"/>
+      <path d="M76 40.5V9H85.25V22.04L88.5 21.32V9H97.75V40.5H88.5V24.21L85.25 24.93V40.5H76Z"/>
+      <path d="M52 40.5V9H63.14C71.645 9 72.93 10.71 72.93 19.395V23.895C72.93 32.67 71.645 34.425 63.14 34.425H61.25V40.5L52 40.5ZM61.25 28.845C64.0073 28.5 65.68 27.585 65.68 22.095V21.285C65.68 17.37 64.635 16.245 63.15 16.245H61.25V28.845Z"/>
+      <use href="#lotus-shape"/>
+    </g>
+    <g id="lotus-shape">
+      <path d="M27.6936 14.2925C28.514 15.3601 29.3788 16.4886 29.8523 17.7968C30.5511 19.7256 30.6792 21.9522 30.2587 23.9452C29.8755 25.7602 29.2394 27.0528 28.2914 28.6336C26.7175 31.258 25.2036 32.9992 24.6539 36.1555C24.475 37.1813 24.5523 38.2832 24.4177 39.2893C24.4004 39.4176 24.2518 39.7538 24.1864 39.8608C24.0767 40.0415 23.8097 40.0693 23.6811 39.8848C23.4816 39.5993 23.4378 38.6194 23.4049 38.2334C23.2227 36.0774 23.0411 34.1593 21.8818 32.2556C19.8139 28.8608 17.492 25.8981 17.4126 21.7116C17.3585 18.8521 18.8502 16.2213 20.4857 13.9626C21.6159 12.4016 22.5352 11.1458 23.3233 9.33833C23.5924 8.72034 23.8075 7.85215 24.0956 7.2689C24.1859 7.0866 24.3621 6.91553 24.561 7.04597C24.8388 7.2288 24.8582 8.46533 24.9225 8.82672C25.3225 11.0742 26.3478 12.5411 27.693 14.2925H27.6936ZM26.5002 18.627C26.3829 18.4864 26.4526 17.9636 26.4316 17.7593C26.2483 15.9845 25.783 15.6413 24.9987 14.2048C24.8636 13.9573 24.5237 12.8549 24.2421 12.8774C24.0578 12.8924 24.0637 13.3922 24.0291 13.5114C23.8037 14.2898 23.5405 15.0687 23.0795 15.7284C21.8402 17.5017 20.6203 18.3704 20.0674 20.659C19.5058 22.9845 19.735 24.4474 20.6329 26.2369C21.3569 27.6796 21.9666 27.8195 23.1023 28.6974C23.6811 29.1447 24.8982 28.9211 25.6279 28.3918C26.2601 27.9332 27.1794 26.3664 27.5745 25.7185C28.6652 23.9324 28.6421 20.443 26.9747 18.8788C26.8537 18.7655 26.5488 18.6858 26.4997 18.627H26.5002Z"/>
+      <path d="M35.2705 36.419C33.5831 37.996 31.3261 39.0118 29.0831 39.5731C28.3016 39.7688 27.5054 39.9078 26.7304 39.9692C26.4856 39.9885 26.1948 40.1563 25.9267 40.136L25.7959 39.8356C25.8029 39.7875 25.9716 39.7153 26.0288 39.6527C28.4486 37.0289 28.4864 33.3033 29.7809 30.1064C31.3872 26.1397 34.8717 23.7762 39.1069 23.2127C39.2722 23.1908 39.4803 23.0476 39.6738 23.0999C39.8327 23.1427 40.0187 23.2967 39.9976 23.4747C39.9814 23.6094 39.5641 24.2472 39.4706 24.5086C37.967 28.7122 38.8615 33.0622 35.2694 36.4195L35.2705 36.419ZM32.7011 33.075C32.8011 32.6495 33.0108 32.1844 33.2037 31.7802C33.4205 31.3248 33.6939 30.8174 33.9555 30.3855C34.583 29.3478 35.5051 28.5438 36.1175 27.5521C36.245 27.3457 36.5185 26.9036 36.185 26.7684L35.7299 27.2222C34.0253 29.1067 32.6762 31.1532 31.6304 33.4316C31.1737 34.4254 30.463 35.3866 29.8614 36.3329C29.7836 36.4558 29.4312 36.8397 29.4593 36.9498C29.5209 37.0182 29.5247 37.0476 29.6214 37.0054C29.8036 36.9252 30.1246 36.6333 30.2992 36.4965C30.9699 35.9704 31.5423 35.2188 32.0087 34.3939C32.253 33.9619 32.4573 33.4984 32.5957 33.0221L32.7016 33.0756L32.7011 33.075ZM35.5656 31.2039C34.9635 31.6696 34.242 31.9358 33.8128 32.5971C33.6107 32.9088 33.4318 33.4199 33.6745 33.7465C34.6009 33.7492 35.0338 33.499 35.304 32.6281C35.3619 32.441 35.6332 31.2943 35.5656 31.2034V31.2039Z"/>
+      <path d="M16.4709 38.8124C14.8505 38.1874 12.9297 37.0268 11.8946 35.6128C9.83541 32.7997 9.52356 29.319 8.78472 26.0194C8.63338 25.3437 8.45989 24.8529 8.18965 24.2012C8.0675 23.9072 7.64593 23.4646 8.09506 23.2507C8.37828 23.1155 8.69392 23.2117 8.98524 23.2539C14.049 23.9874 17.3649 27.202 18.742 31.9936C19.5641 34.8542 19.5473 37.1038 21.7292 39.4101C21.9011 39.5918 22.3416 39.7656 22.0573 40.1099C21.9157 40.2809 21.1904 40.1104 20.959 40.065C19.4549 39.7688 17.8761 39.355 16.4698 38.8129L16.4709 38.8124ZM15.9185 32.8398C15.6445 32.4239 15.5661 32.1262 15.3791 31.6851C14.5922 29.8311 13.835 28.5128 12.2968 27.1426C12.2162 27.071 11.6839 26.6513 11.6228 26.7139C11.5806 26.9887 11.6774 27.18 11.8163 27.404C12.227 28.0685 12.8724 28.648 13.3204 29.2842C14.4808 30.9324 14.9105 33.0681 15.9769 34.6757C16.4725 35.4225 17.313 36.5248 18.1621 36.8873C18.2318 36.9172 18.4426 36.9787 18.4345 36.8429C18.422 36.6328 17.6929 35.8945 17.5162 35.6657C16.8935 34.8606 16.3563 33.9593 15.9715 33.0211C15.9391 32.9425 16.0099 32.9778 15.9185 32.8398ZM13.6582 31.8637C13.4631 31.6899 12.8248 31.2938 12.5805 31.1922C12.5086 31.1623 12.3054 31.0805 12.3335 31.2216C12.4232 31.6701 12.8032 32.8794 13.0583 33.2322C13.3134 33.5851 14.1722 33.9801 14.3549 33.399C14.396 33.2691 14.3949 33.0868 14.3668 32.9537C14.329 32.7757 13.8063 31.9957 13.6582 31.8642V31.8637Z"/>
+      <path d="M12.4109 37.4277C13.6448 38.544 15.1868 39.4736 16.7439 40.0649C17.0001 40.1622 17.3006 40.2868 17.5682 40.2926L17.4779 40.6177L15.3241 40.9331C11.09 41.3442 7.18879 39.8735 4.96308 36.2136C4.15128 34.8782 3.70322 33.3669 2.51633 32.272C2.32013 32.0908 2.00665 32.0261 1.99963 31.7123C1.99422 31.475 2.17691 31.4001 2.37797 31.336C4.46044 30.6704 7.24608 31.336 9.04804 32.4939C9.39665 32.7179 9.55987 33.4754 9.73715 33.8438C10.3522 35.1247 11.3467 36.466 12.4104 37.4277H12.4109Z"/>
+      <path d="M30.3943 40.5435C30.3067 40.4456 30.3094 40.3285 30.4337 40.2671C30.6288 40.1703 31.1985 40.0896 31.4585 39.9982C34.0214 39.0947 37.1978 36.4196 38.3161 33.9508C38.5469 33.4408 38.6458 32.6795 39.17 32.3897C40.1861 31.8289 41.1206 31.3804 42.3027 31.2115C43.5841 31.0286 44.3143 30.9618 45.5623 31.3398C45.7898 31.4087 46.0639 31.3082 45.9866 31.6985C45.9315 31.9776 45.7315 32.0075 45.5893 32.1641C45.0445 32.765 44.5538 33.3419 44.1381 34.0433C42.9253 36.0881 42.1805 38.1864 39.9273 39.4475C37.173 40.9893 35.0905 41.1486 31.966 40.8327C31.6433 40.8001 30.5813 40.7536 30.3943 40.544V40.5435Z"/>
+      <path d="M25.7937 19.1114C26.2974 19.245 26.4985 19.5562 26.7303 19.9763C26.9498 20.3736 27.2978 21.2904 27.3508 21.7683C27.4475 22.644 27.3217 24.1063 26.9184 24.8948C26.5294 25.6555 26.2307 26.3824 25.5715 26.9079C24.5717 27.7049 23.1021 27.0648 22.8776 26.9079C22.1081 26.3701 21.3061 25.5658 20.8791 23.6795C20.4193 21.6482 21.0045 19.4551 22.2714 17.9208C22.7897 17.2927 23.6723 16.5287 24.0452 15.8263C24.1322 15.6621 24.2955 14.9153 24.3527 14.8998C24.4635 14.8699 24.5035 14.9479 24.5641 15.0099C24.6246 15.0719 25.4526 16.386 25.4991 16.4908C25.8272 17.2365 25.6796 18.3143 25.7942 19.1119L25.7937 19.1114ZM23.5355 18.2881C23.0869 18.8761 22.0762 20.5649 21.906 21.2487C21.7725 21.7849 22.0876 23.1856 22.3022 23.7148C22.7205 24.7477 23.5777 25.3961 24.7478 25.1812C25.1267 25.1117 25.7369 24.5263 25.9126 24.1949C26.4774 23.1267 26.2482 20.828 25.3202 19.9812C25.2521 19.9186 25.151 19.9101 25.0775 19.847C24.6349 19.4631 24.8684 18.2271 24.8095 17.653C24.7841 17.4049 24.65 17.1831 24.6473 16.9307C24.4857 17.1542 24.3344 17.3819 24.1598 17.5974C23.969 17.8331 23.7182 18.048 23.535 18.2886L23.5355 18.2881Z"/>
+      <path d="M34.7477 32.5479C34.938 32.8409 34.3591 33.2456 34.1067 33.2889C33.9759 33.0585 34.5537 32.2491 34.7477 32.5479Z"/>
+      <path d="M13.7848 33.1285L13.5232 33.1199L13.2449 32.3806C13.5654 32.1919 13.8794 33.0392 13.7854 33.1285H13.7848Z"/>
+      <path d="M24.6852 20.4125L24.8101 20.4874C24.5393 21.0417 24.9479 21.5806 25.1074 22.1158C25.2852 22.7124 25.5003 23.4245 25.1057 23.9847C24.8852 24.2975 24.2172 24.3188 23.8756 24.2424C23.4459 24.1462 23.2195 23.3694 23.1897 22.9962C23.1087 21.9933 23.7529 20.8311 24.6847 20.412L24.6852 20.4125ZM24.4296 23.718C24.4188 23.5185 24.6474 23.3854 24.6469 23.2192C24.6469 23.0845 24.5155 22.7915 24.4572 22.652C24.3988 22.5124 24.3334 22.3082 24.2166 22.2227C24.1626 22.7498 23.5038 23.6169 24.4296 23.718Z"/>
+      <path d="M23.6025 19.6753C24.1668 19.655 24.1722 20.5381 23.4917 20.4569C23.0826 20.4082 22.9772 19.6972 23.6025 19.6753Z"/>
+      <path d="M22.7384 20.8947C22.8156 20.8686 22.9562 20.8707 23.0275 20.9124C23.2194 21.1166 23.1361 21.3588 22.9373 21.5229C22.5681 21.5844 22.4768 20.984 22.7384 20.8947Z"/>
+      <path d="M24.5333 18.5409C24.6112 18.7339 24.689 19.1241 24.4058 19.1492C23.8842 19.1952 24.089 18.4051 24.5333 18.5409Z"/>
+    </g>
+    <g id="wordmark-ink" fill="#1a1a1a"><use href="#wordmark-shape"/></g>
+  </svg>
+
+</body>
+</html>
