@@ -120,13 +120,15 @@ export const groups: SidebarGroup[] = [
     ],
   },
   {
+    // The WhatsApp Bot page is the unified guest-comms hub (Concierge / Messaging /
+    // Admin tabs); /concierge and /messaging are thin redirects into it, so this is
+    // a single entry rather than three items that all land on the same page.
     id: 'communications',
     label: 'Communications',
     icon: <ChatBubbleOutline />,
+    standalone: true,
     items: [
-      { id: 'whatsapp-bot', label: 'WhatsApp Bot', path: '/whatsapp-bot' },
-      { id: 'concierge', label: 'Guest Concierge', path: '/concierge' },
-      { id: 'messaging', label: 'Messaging', path: '/messaging' },
+      { id: 'whatsapp-bot', label: 'Communications', path: '/whatsapp-bot' },
     ],
   },
   {
@@ -455,19 +457,14 @@ export default function OnboardingSidebar({
                   },
                 }}
               >
-                {loadingPath === item.path ? (
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', py: 0.25 }}>
-                    <CircularProgress size={16} sx={{ color: isActive ? 'white' : COLORS.brand.primary }} />
-                  </Box>
-                ) : (
-                  <>
-                    <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>{group.icon}</ListItemIcon>
-                    <ListItemText
-                      primary={group.label}
-                      slotProps={{ primary: { variant: 'body3', sx: { fontWeight: 600, color: 'inherit' } } }}
-                    />
-                    {group.isPro && !isPro && <ProBadge size="small" />}
-                  </>
+                <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>{group.icon}</ListItemIcon>
+                <ListItemText
+                  primary={group.label}
+                  slotProps={{ primary: { variant: 'body3', sx: { fontWeight: 600, color: 'inherit' } } }}
+                />
+                {group.isPro && !isPro && <ProBadge size="small" />}
+                {loadingPath === item.path && (
+                  <CircularProgress size={14} sx={{ ml: 1, flexShrink: 0, color: isActive ? COLORS.text.inverse : COLORS.brand.primary }} />
                 )}
               </ListItemButton>
             );
@@ -588,35 +585,30 @@ export default function OnboardingSidebar({
                             },
                           }}
                         >
-                          {loadingPath === item.path ? (
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                              <CircularProgress size={14} sx={{ color: COLORS.brand.primary }} />
-                            </Box>
-                          ) : (
-                            <>
-                              <ListItemText
-                                primary={
-                                  item.required && !isActive && !item.isPro ? (
-                                    <Box component="span" sx={{ display: 'inline' }}>
-                                      {item.label}<Box component="span" sx={{ color: 'inherit' }}>*</Box>
-                                    </Box>
-                                  ) : item.label
+                          <ListItemText
+                            primary={
+                              item.required && !isActive && !item.isPro ? (
+                                <Box component="span" sx={{ display: 'inline' }}>
+                                  {item.label}<Box component="span" sx={{ color: 'inherit' }}>*</Box>
+                                </Box>
+                              ) : item.label
+                            }
+                            slotProps={{
+                              primary: {
+                                variant: 'body3',
+                                sx: {
+                                  fontWeight: isActive ? 600 : 400,
+                                  color: 'inherit',
                                 }
-                                slotProps={{
-                                  primary: {
-                                    variant: 'body3',
-                                    sx: {
-                                      fontWeight: isActive ? 600 : 400,
-                                      color: 'inherit',
-                                    }
-                                  }
-                                }}
-                              />
-                              {(group.id === 'wedding-website' || item.id === 'guest-list' || item.id === 'knowledge-bank') && sectionComplete[item.id] && (
-                                <CheckCircle sx={{ fontSize: 14, color: COLORS.brand.primary, ml: 0.5, flexShrink: 0 }} />
-                              )}
-                              {item.isPro && !isPro && <ProBadge size="small" />}
-                            </>
+                              }
+                            }}
+                          />
+                          {(group.id === 'wedding-website' || item.id === 'guest-list' || item.id === 'knowledge-bank') && sectionComplete[item.id] && (
+                            <CheckCircle sx={{ fontSize: 14, color: COLORS.brand.primary, ml: 0.5, flexShrink: 0 }} />
+                          )}
+                          {item.isPro && !isPro && <ProBadge size="small" />}
+                          {loadingPath === item.path && (
+                            <CircularProgress size={12} sx={{ ml: 0.75, flexShrink: 0, color: COLORS.brand.primary }} />
                           )}
                         </ListItemButton>
                       </Box>

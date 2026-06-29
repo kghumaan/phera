@@ -206,10 +206,7 @@ Logistics & Travel
   • Room Assignments        (Pro)
   • Transportation          (Pro)
 
-Communications
-  • WhatsApp Bot
-  • Guest Concierge
-  • Messaging
+Communications             → /whatsapp-bot (Concierge · Messaging · Admin tabs)
 
 Vendors & Venue
   • Vendor Management       (Pro)
