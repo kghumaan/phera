@@ -194,6 +194,47 @@ function formatFactValue(value: string): string {
   return value.length > 40 ? `${value.slice(0, 38)}…` : value;
 }
 
+const FULL_MONTHS = [
+  'january', 'february', 'march', 'april', 'may', 'june',
+  'july', 'august', 'september', 'october', 'november', 'december',
+];
+
+/** Capitalize the first letter of each name word, leaving the rest as typed
+ *  ("sim & kv" → "Sim & Kv", "KV" stays "KV"). */
+function titleCaseName(value: string): string {
+  return value.replace(/(^|[\s&/-])([a-z])/g, (_, sep, c) => sep + c.toUpperCase());
+}
+
+/** Tidy a free-typed answer into a short display phrase: drop hedges/filler,
+ *  soften "probably" → "likely", abbreviate months. So a chat-typed
+ *  "Probably February 2027 idk" reads "likely Feb 2027" and
+ *  "Jaipur or somewhere in Thailand" reads "Jaipur or Thailand". Picker answers
+ *  (ISO dates, selects) have no filler, so they pass through unchanged. */
+function summarizeFreeText(value: string): string {
+  let v = ` ${value} `;
+  v = v.replace(/\b(idk|dunno|i\s*don'?t\s*know|not\s*sure|tbd|lol|i\s*think|i\s*guess)\b/gi, ' ');
+  v = v.replace(/\b(somewhere|anywhere)\s+(in|around|near)\s+/gi, '');
+  v = v.replace(/\b(around|roughly|approximately|approx\.?|about|like|or\s+so)\s+/gi, ' ');
+  v = v.replace(/\bprobably\b/gi, 'likely');
+  v = v.replace(/[A-Za-z]+/g, (w) => {
+    const i = FULL_MONTHS.indexOf(w.toLowerCase());
+    return i >= 0 ? MONTHS[i] : w;
+  });
+  v = v.replace(/\s+([,.;])/g, '$1').replace(/\s{2,}/g, ' ');
+  return v.replace(/^[\s,;.]+|[\s,;.]+$/g, '');
+}
+
+/** Display value for a captured fact: names get capitalized; free-text-prone
+ *  fields get tidied; everything runs through the date/length formatter. */
+function factDisplayValue(label: string, raw: string): string {
+  const v = raw.trim();
+  if (label === 'Names') return formatFactValue(titleCaseName(v));
+  if (label === 'Location' || label === 'Venue' || label === 'Dates') {
+    return formatFactValue(summarizeFreeText(v));
+  }
+  return formatFactValue(v);
+}
+
 /** Natural-language phrase for the re-ask message a fact badge sends on tap. */
 const FACT_EDIT_PHRASE: Record<string, string> = {
   Names: 'our names',
@@ -239,7 +280,7 @@ function factsFromAnswers(
     const raw = answers[q.id];
     const value = Array.isArray(raw) ? raw.join(', ') : raw ?? '';
     if (!value.trim()) continue;
-    out.push({ label, value: formatFactValue(value.trim()) });
+    out.push({ label, value: factDisplayValue(label, value.trim()) });
   }
   return out;
 }
@@ -261,7 +302,7 @@ function factsFromMessages(messages: Array<{ content?: AgentContentBlock[] }>): 
         if (!answer || answer === '(skipped)') continue;
         const label = factLabelFor(prompt);
         if (!label) continue;
-        facts = mergeFacts(facts, [{ label, value: formatFactValue(answer) }]);
+        facts = mergeFacts(facts, [{ label, value: factDisplayValue(label, answer) }]);
       }
     }
   }
