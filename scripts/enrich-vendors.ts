@@ -87,11 +87,18 @@ async function enrichVendor(vendor: VendorRecord, dryRun: boolean): Promise<bool
     return false
   }
 
-  const message = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 1024,
-    messages: [{ role: 'user', content: ENRICHMENT_PROMPT(vendor, websiteText) }],
-  })
+  let message
+  try {
+    message = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: ENRICHMENT_PROMPT(vendor, websiteText) }],
+    })
+  } catch (e) {
+    // Transient API/rate-limit error — skip this vendor (don't kill the run).
+    console.error(`  ✗ ${vendor.name}: API error ${e instanceof Error ? e.message : e}`)
+    return false
+  }
 
   const text = message.content[0].type === 'text' ? message.content[0].text : ''
   let parsed: EnrichmentResult
@@ -135,17 +142,25 @@ async function enrichVendor(vendor: VendorRecord, dryRun: boolean): Promise<bool
 
 async function main() {
   const args    = process.argv.slice(2)
-  const limit   = parseInt(args[args.indexOf('--limit') + 1] ?? '20', 10)
-  const dryRun  = args.includes('--dry-run')
+  // Read the value following a flag, or null if absent (indexOf(flag)+1 alone
+  // misreads args[0] when the flag is missing).
+  const flagValue = (flag: string): string | null => {
+    const i = args.indexOf(flag)
+    return i >= 0 ? (args[i + 1] ?? null) : null
+  }
+  const limit    = parseInt(flagValue('--limit') ?? '20', 10)
+  const category = flagValue('--category')
+  const dryRun   = args.includes('--dry-run')
 
-  console.log(`\n🤖 AI Enrichment${dryRun ? ' (DRY RUN)' : ''} — up to ${limit} vendors\n`)
+  console.log(`\n🤖 AI Enrichment${dryRun ? ' (DRY RUN)' : ''}${category ? ` [${category}]` : ''} — up to ${limit} vendors\n`)
 
-  const { data: vendors, error } = await supabase
+  let q = supabase
     .from('vendor_directory')
     .select('*')
     .is('enriched_at', null)
     .not('website', 'is', null)
-    .limit(limit)
+  if (category) q = q.eq('category', category)
+  const { data: vendors, error } = await q.limit(limit)
 
   if (error) { console.error(error); process.exit(1) }
   if (!vendors?.length) { console.log('No unenriched vendors found.'); return }
