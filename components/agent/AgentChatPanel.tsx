@@ -401,9 +401,13 @@ const WELCOME_PLACEHOLDER = "Tell me what's happening — guests, schedule, room
  *  otherwise top-aligns while the buttons sit centered). Targets MuiInputBase so
  *  it layers onto — not clobbers — the base field styles. */
 const COMPOSER_INPUT_SX = {
+  mt: 0, // ENHANCED adds mt:1 for stacked fields; not wanted inline
   '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-  '& .MuiInputBase-root': { alignItems: 'center', py: 0.75 },
-  '& .MuiInputBase-inputMultiline': { py: 0 },
+  // Zero the wrapper's vertical padding and put symmetric padding on the input
+  // itself, so the text/placeholder is centered (the textarea would otherwise
+  // top-align in a box taller than one line).
+  '& .MuiInputBase-root': { py: 0, alignItems: 'center' },
+  '& .MuiInputBase-input': { py: 1.25 },
 } as const;
 
 const DEFAULT_STARTERS = [
