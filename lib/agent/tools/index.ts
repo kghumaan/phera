@@ -7,6 +7,7 @@ import { contentTools } from './content';
 import { travelTools } from './travel';
 import { transportationTools } from './transportation';
 import { vendorTools } from './vendors';
+import { directoryTools } from './directory';
 import { knowledgeTools } from './knowledge';
 import { askTools } from './ask';
 import { goalsTools } from './goals';
@@ -30,6 +31,7 @@ export function ensureToolsRegistered() {
     ...travelTools,
     ...transportationTools,
     ...vendorTools,
+    ...directoryTools,
     ...knowledgeTools,
     ...askTools,
     ...goalsTools,
