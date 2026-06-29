@@ -141,7 +141,7 @@ function VendorCard({ vendor }: { vendor: VendorRecord }) {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {vendor.rating && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <StarIcon sx={{ fontSize: 14, color: '#F59E0B' }} />
+              <StarIcon sx={{ fontSize: 14, color: COLORS.accent.warning }} />
               <Typography variant="caption" sx={{ fontWeight: 600 }}>
                 {vendor.rating.toFixed(1)}
               </Typography>
@@ -198,7 +198,7 @@ function VendorCard({ vendor }: { vendor: VendorRecord }) {
           <Link
             href={`https://instagram.com/${vendor.instagram_handle}`}
             target="_blank" rel="noopener noreferrer"
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.4, fontSize: 12, color: '#E1306C' }}>
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.4, fontSize: 12, color: COLORS.social.instagram }}>
             <InstagramIcon sx={{ fontSize: 13 }} /> @{vendor.instagram_handle}
           </Link>
         )}

@@ -87,6 +87,26 @@ export const COLORS = {
     verifiedBlue: '#2979FF',    // blue verified badge next to sender name
     readCheck: '#53bdeb',       // blue double-check (read receipt)
   },
+  // Vendor-directory category accents (avatars/badges on the admin marketplace
+  // and public /vendors). A content palette, not admin chrome.
+  vendorCategory: {
+    venue: '#D4AF37',
+    hotel: '#3B82F6',
+    photographer: '#DE3F5E',
+    videographer: '#7C3AED',
+    dj: '#0E7C5B',
+    live_band: '#D97706',
+    mehendi_artist: '#B45309',
+    makeup_hair: '#BE185D',
+    decorator_florist: '#059669',
+    wedding_planner: '#1D4ED8',
+    catering: '#92400E',
+    designer: '#6B21A8',
+  },
+  // Social brand colours, for outbound links.
+  social: {
+    instagram: '#E1306C',
+  },
 } as const;
 
 // ─── Radii ──────────────────────────────────────────────────────────

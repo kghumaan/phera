@@ -38,18 +38,18 @@ import { VENDOR_CATEGORY_LABELS, VENDOR_CITY_CONFIG } from '@/lib/vendors/direct
 /* ─── constants ──────────────────────────────────────────────────────────────── */
 
 const CATEGORY_COLORS: Record<VendorCategory, string> = {
-  venue:             COLORS.cultural.gold,
-  hotel:             COLORS.accent.info,
-  photographer:      '#DE3F5E',
-  videographer:      '#7C3AED',
-  dj:                '#0E7C5B',
-  live_band:         '#D97706',
-  mehendi_artist:    '#B45309',
-  makeup_hair:       '#BE185D',
-  decorator_florist: '#059669',
-  wedding_planner:   '#1D4ED8',
-  catering:          '#92400E',
-  designer:          '#6B21A8',
+  venue:             COLORS.vendorCategory.venue,
+  hotel:             COLORS.vendorCategory.hotel,
+  photographer:      COLORS.vendorCategory.photographer,
+  videographer:      COLORS.vendorCategory.videographer,
+  dj:                COLORS.vendorCategory.dj,
+  live_band:         COLORS.vendorCategory.live_band,
+  mehendi_artist:    COLORS.vendorCategory.mehendi_artist,
+  makeup_hair:       COLORS.vendorCategory.makeup_hair,
+  decorator_florist: COLORS.vendorCategory.decorator_florist,
+  wedding_planner:   COLORS.vendorCategory.wedding_planner,
+  catering:          COLORS.vendorCategory.catering,
+  designer:          COLORS.vendorCategory.designer,
 }
 
 const COUNTRY_FLAGS: Record<string, string> = {
@@ -176,7 +176,7 @@ function VendorCard({
               key={s}
               sx={{
                 px: 1, py: 0.25, borderRadius: '999px',
-                bgcolor: COLORS.bg.muted, fontSize: '0.72rem',
+                bgcolor: COLORS.bg.muted, fontSize: '0.875rem',
                 color: COLORS.text.muted, fontFamily: FONTS.body,
               }}
             >
@@ -196,8 +196,8 @@ function VendorCard({
               border: `1px solid ${COLORS.brand.primary}22`,
             }}
           >
-            <Box component="span" sx={{ fontSize: '0.72rem', color: COLORS.brand.primary }}>★</Box>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, fontFamily: FONTS.body, color: COLORS.brand.primary, lineHeight: 1 }}>
+            <Box component="span" sx={{ fontSize: '0.875rem', color: COLORS.brand.primary }}>★</Box>
+            <Typography sx={{ fontSize: '0.875rem', fontWeight: 600, fontFamily: FONTS.body, color: COLORS.brand.primary, lineHeight: 1 }}>
               {vendor.rating.toFixed(1)}
               {vendor.review_count ? ` (${vendor.review_count})` : ''}
             </Typography>
@@ -205,7 +205,7 @@ function VendorCard({
         )}
         {price && (
           <Tooltip title="Approx. — confirm pricing directly with vendor">
-            <Typography sx={{ fontSize: '0.75rem', color: COLORS.text.muted, fontWeight: 500, fontFamily: FONTS.body, cursor: 'default' }}>
+            <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.muted, fontWeight: 500, fontFamily: FONTS.body, cursor: 'default' }}>
               ~{price}
             </Typography>
           </Tooltip>
@@ -218,7 +218,7 @@ function VendorCard({
               border: `1px solid ${COLORS.brand.primary}22`,
             }}
           >
-            <Typography sx={{ fontSize: '0.75rem', color: COLORS.brand.primary, fontWeight: 600, fontFamily: FONTS.body, lineHeight: 1 }}>
+            <Typography sx={{ fontSize: '0.875rem', color: COLORS.brand.primary, fontWeight: 600, fontFamily: FONTS.body, lineHeight: 1 }}>
               NRI exp.
             </Typography>
           </Stack>
@@ -293,7 +293,7 @@ function VendorDetailDrawer({
               <Box sx={{
                 px: 1.25, py: 0.5, borderRadius: '999px',
                 bgcolor: `${COLORS.brand.primary}10`, border: `1px solid ${COLORS.brand.primary}30`,
-                fontSize: '0.78rem', color: COLORS.brand.primary, fontWeight: 600, fontFamily: FONTS.body,
+                fontSize: '0.875rem', color: COLORS.brand.primary, fontWeight: 600, fontFamily: FONTS.body,
               }}>
                 NRI experience
               </Box>
@@ -301,8 +301,8 @@ function VendorDetailDrawer({
             {vendor.is_verified && (
               <Box sx={{
                 px: 1.25, py: 0.5, borderRadius: '999px',
-                bgcolor: '#ECFDF5', border: '1px solid #6EE7B7',
-                fontSize: '0.78rem', color: '#065F46', fontWeight: 600, fontFamily: FONTS.body,
+                bgcolor: COLORS.accent.successBg, border: `1px solid ${COLORS.accent.success}`,
+                fontSize: '0.875rem', color: COLORS.accent.successText, fontWeight: 600, fontFamily: FONTS.body,
               }}>
                 ✓ Verified
               </Box>
@@ -400,7 +400,7 @@ function VendorDetailDrawer({
                     rel="noopener noreferrer"
                     sx={{
                       display: 'inline-flex', alignItems: 'center', gap: 0.75,
-                      color: '#E1306C', fontSize: '0.875rem', fontFamily: FONTS.body,
+                      color: COLORS.social.instagram, fontSize: '0.875rem', fontFamily: FONTS.body,
                       textDecoration: 'none', '&:hover': { textDecoration: 'underline' },
                     }}
                   >

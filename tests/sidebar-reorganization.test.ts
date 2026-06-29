@@ -18,31 +18,39 @@ vi.mock('./ProBadge', () => ({ default: () => null }));
 import { groups } from '@/components/admin/OnboardingSidebar';
 
 describe('Sidebar Reorganization', () => {
-  it('should have 7 groups (Control Tower hidden)', () => {
-    expect(groups).toHaveLength(7);
+  it('should have 11 groups (Control Tower hidden)', () => {
+    expect(groups).toHaveLength(11);
   });
 
-  it('should have correct group IDs', () => {
+  it('should have correct group IDs in order', () => {
     const ids = groups.map((g) => g.id);
     expect(ids).toEqual([
       'overview',
       'planner',
       'wedding-website',
       'guests-group',
+      'logistics',
+      'communications',
+      'vendors',
       'planning',
+      'account',
       'collaborators',
       'support',
     ]);
   });
 
-  it('should have correct group labels', () => {
+  it('should have correct group labels in order', () => {
     const labels = groups.map((g) => g.label);
     expect(labels).toEqual([
       'Overview',
       'Planner',
       'Wedding Website',
-      'Guest Management',
+      'Guests',
+      'Logistics & Travel',
+      'Communications',
+      'Vendors',
       'Planning',
+      'Account',
       'Collaborators',
       'Contact us',
     ]);
@@ -78,9 +86,9 @@ describe('Sidebar Reorganization', () => {
   describe('Guests group', () => {
     const guests = groups.find((g) => g.id === 'guests-group');
 
-    it('should exist with label "Guest Management"', () => {
+    it('should exist with label "Guests"', () => {
       expect(guests).toBeDefined();
-      expect(guests!.label).toBe('Guest Management');
+      expect(guests!.label).toBe('Guests');
     });
 
     it('should have Guest List as the first item', () => {
@@ -96,44 +104,95 @@ describe('Sidebar Reorganization', () => {
       expect(item!.path).toBe('/guest-responses');
     });
 
-    it('should have WhatsApp Bot replacing Messaging + Guest Concierge', () => {
-      const item = guests!.items.find((i) => i.id === 'whatsapp-bot');
+    it('should have exactly 2 items (Guest List + Guest Responses)', () => {
+      expect(guests!.items).toHaveLength(2);
+    });
+
+    it('should NOT include WhatsApp Bot (moved to Communications)', () => {
+      expect(guests!.items.find((i) => i.id === 'whatsapp-bot')).toBeUndefined();
+    });
+
+    it('should NOT include Room Assignments (moved to Logistics & Travel)', () => {
+      expect(guests!.items.find((i) => i.id === 'rooms')).toBeUndefined();
+    });
+
+    it('should NOT include Transportation (moved to Logistics & Travel)', () => {
+      expect(guests!.items.find((i) => i.id === 'transportation')).toBeUndefined();
+    });
+  });
+
+  describe('Logistics & Travel group', () => {
+    const logistics = groups.find((g) => g.id === 'logistics');
+
+    it('should exist with label "Logistics & Travel"', () => {
+      expect(logistics).toBeDefined();
+      expect(logistics!.label).toBe('Logistics & Travel');
+    });
+
+    it('should have Room Assignments (Pro-gated)', () => {
+      const item = logistics!.items.find((i) => i.id === 'rooms');
       expect(item).toBeDefined();
-      expect(item!.label).toBe('WhatsApp Bot');
-      expect(item!.path).toBe('/whatsapp-bot');
-    });
-
-    it('should NOT include the legacy Messaging item', () => {
-      expect(guests!.items.find((i) => i.id === 'invites')).toBeUndefined();
-    });
-
-    it('should NOT include the legacy Guest Concierge item', () => {
-      expect(guests!.items.find((i) => i.id === 'concierge')).toBeUndefined();
-    });
-
-    it('should have Room Assignments', () => {
-      const item = guests!.items.find((i) => i.id === 'rooms');
-      expect(item).toBeDefined();
-      expect(item!.path).toBe('/room-assignments');
       expect(item!.label).toBe('Room Assignments');
+      expect(item!.path).toBe('/room-assignments');
+      expect(item!.isPro).toBe(true);
     });
 
-    it('should have Transportation', () => {
-      const item = guests!.items.find((i) => i.id === 'transportation');
+    it('should have Transportation (Pro-gated)', () => {
+      const item = logistics!.items.find((i) => i.id === 'transportation');
       expect(item).toBeDefined();
+      expect(item!.label).toBe('Transportation');
       expect(item!.path).toBe('/transportation');
+      expect(item!.isPro).toBe(true);
     });
 
-    it('should have 5 items after the WhatsApp Bot merge', () => {
-      expect(guests!.items).toHaveLength(5);
+    it('should have exactly 2 items', () => {
+      expect(logistics!.items).toHaveLength(2);
+    });
+  });
+
+  describe('Communications group', () => {
+    const comms = groups.find((g) => g.id === 'communications');
+
+    it('should be standalone', () => {
+      expect(comms).toBeDefined();
+      expect(comms!.standalone).toBe(true);
     });
 
-    it('should NOT include Outreach (removed)', () => {
-      expect(guests!.items.find((i) => i.id === 'communication')).toBeUndefined();
+    it('should have a single WhatsApp Bot hub item labeled "Communications"', () => {
+      expect(comms!.items).toHaveLength(1);
+      const item = comms!.items[0];
+      expect(item.id).toBe('whatsapp-bot');
+      expect(item.label).toBe('Communications');
+      expect(item.path).toBe('/whatsapp-bot');
+    });
+  });
+
+  describe('Vendors group', () => {
+    const vendors = groups.find((g) => g.id === 'vendors');
+
+    it('should exist with label "Vendors"', () => {
+      expect(vendors).toBeDefined();
+      expect(vendors!.label).toBe('Vendors');
     });
 
-    it('should NOT include Travel Coordination (removed)', () => {
-      expect(guests!.items.find((i) => i.id === 'travel-coordination')).toBeUndefined();
+    it('should have Vendor Management (Pro-gated, short label "Management")', () => {
+      const item = vendors!.items.find((i) => i.id === 'coordinator');
+      expect(item).toBeDefined();
+      expect(item!.label).toBe('Management');
+      expect(item!.path).toBe('/vendor-management');
+      expect(item!.isPro).toBe(true);
+    });
+
+    it('should have Vendor Marketplace (Pro-gated, short label "Marketplace")', () => {
+      const item = vendors!.items.find((i) => i.id === 'vendor-marketplace');
+      expect(item).toBeDefined();
+      expect(item!.label).toBe('Marketplace');
+      expect(item!.path).toBe('/vendor-marketplace');
+      expect(item!.isPro).toBe(true);
+    });
+
+    it('should have exactly 2 items', () => {
+      expect(vendors!.items).toHaveLength(2);
     });
   });
 
@@ -144,16 +203,29 @@ describe('Sidebar Reorganization', () => {
       expect(planning).toBeDefined();
     });
 
-    it('should contain Task Manager, Vendor Management, and Knowledge Bank', () => {
+    it('should contain Task Manager and Knowledge Bank', () => {
       const ids = planning!.items.map((i) => i.id);
       expect(ids).toContain('task-manager');
-      expect(ids).toContain('coordinator');
       expect(ids).toContain('knowledge-bank');
-      expect(ids).toContain('vendor-marketplace');
     });
 
-    it('should have 4 items', () => {
-      expect(planning!.items).toHaveLength(4);
+    it('should have exactly 2 items', () => {
+      expect(planning!.items).toHaveLength(2);
+    });
+
+    it('should NOT include Vendor Management (moved to Vendors)', () => {
+      expect(planning!.items.find((i) => i.id === 'coordinator')).toBeUndefined();
+    });
+
+    it('should NOT include Vendor Marketplace (moved to Vendors)', () => {
+      expect(planning!.items.find((i) => i.id === 'vendor-marketplace')).toBeUndefined();
+    });
+
+    it('Task Manager should be Pro-gated', () => {
+      const tm = planning!.items.find((i) => i.id === 'task-manager');
+      expect(tm).toBeDefined();
+      expect(tm!.isPro).toBe(true);
+      expect(tm!.path).toBe('/task-manager');
     });
 
     it('Knowledge Bank should be Pro-gated', () => {
@@ -178,21 +250,43 @@ describe('Sidebar Reorganization', () => {
       expect(ids).toContain('registry');
       expect(ids).toContain('shopping');
       expect(ids).toContain('pins');
+      expect(ids).toContain('settings');
     });
 
-    it('should have 9 items (incl. Where to Shop + Event Access)', () => {
-      expect(website!.items).toHaveLength(9);
+    it('should have 10 items (incl. Where to Shop, Event Access, Settings & Publish)', () => {
+      expect(website!.items).toHaveLength(10);
     });
 
-    it('Event Access should be the last item and labeled "Event Access"', () => {
+    it('Event Access should be the "pins" item labeled "Event Access"', () => {
+      const pins = website!.items.find((i) => i.id === 'pins');
+      expect(pins).toBeDefined();
+      expect(pins!.label).toBe('Event Access');
+      expect(pins!.path).toBe('/event-access');
+    });
+
+    it('Settings & Publish should be the last item', () => {
       const last = website!.items[website!.items.length - 1];
-      expect(last.id).toBe('pins');
-      expect(last.label).toBe('Event Access');
-      expect(last.path).toBe('/event-access');
+      expect(last.id).toBe('settings');
+      expect(last.label).toBe('Settings & Publish');
+      expect(last.path).toBe('/settings');
     });
 
     it('should NOT include Overview (standalone)', () => {
       expect(website!.items.find((i) => i.id === 'overview')).toBeUndefined();
+    });
+  });
+
+  describe('Account group', () => {
+    const account = groups.find((g) => g.id === 'account');
+
+    it('should be standalone', () => {
+      expect(account).toBeDefined();
+      expect(account!.standalone).toBe(true);
+    });
+
+    it('should have a single account item', () => {
+      expect(account!.items).toHaveLength(1);
+      expect(account!.items[0].path).toBe('/account');
     });
   });
 
@@ -209,7 +303,7 @@ describe('Sidebar Reorganization', () => {
     });
   });
 
-  it('should NOT have a Settings group', () => {
+  it('should NOT have a Settings group (Settings is an item under Wedding Website)', () => {
     expect(groups.find((g) => g.id === 'settings')).toBeUndefined();
   });
 });
