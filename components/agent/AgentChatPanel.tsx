@@ -133,18 +133,73 @@ function UploadCard({ uploadKind, onPick }: { uploadKind: 'guests' | 'rooms'; on
   );
 }
 
-/** Compact one-line summary of what the user answered, for the right-side bubble. */
+/** "Mehndi — date" / "Welcome Dinner — time" → { event, field }. */
+function eventFieldFromPrompt(prompt: string): { event: string; field: 'date' | 'time' } | null {
+  const m = /^(.+?)\s*[—–-]\s*(date|time)\b/i.exec(prompt.trim());
+  if (!m) return null;
+  return { event: m[1].trim(), field: m[2].toLowerCase() as 'date' | 'time' };
+}
+
+/** "5:00 PM" → minutes since midnight, for chronological sorting. */
+function answerMinutes(t?: string): number {
+  if (!t) return 9999;
+  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(t.trim());
+  if (!m) return 9999;
+  return ((Number(m[1]) % 12) + (/pm/i.test(m[3]) ? 12 : 0)) * 60 + Number(m[2]);
+}
+
+/**
+ * Turn answered (prompt → answer) pairs into the bubble the couple sees. A pure
+ * event date/time batch becomes a readable, day-then-time-sorted schedule list
+ * ("Mehndi — Oct 29, 5:00 PM"); anything else is the compact dot-joined values.
+ */
+function summarizePairs(pairs: { prompt: string; answer: string }[]): string {
+  const events = new Map<string, { date?: string; time?: string }>();
+  const allValues: string[] = [];
+  let nonEventCount = 0;
+  for (const p of pairs) {
+    const ans = p.answer.trim();
+    const skipped = !ans || ans === '(skipped)';
+    const ef = eventFieldFromPrompt(p.prompt);
+    if (ef) {
+      const row = events.get(ef.event) ?? {};
+      if (!skipped) {
+        if (ef.field === 'date') row.date = ans;
+        else row.time = ans;
+      }
+      events.set(ef.event, row);
+    } else if (!skipped) {
+      nonEventCount++;
+    }
+    if (!skipped) allValues.push(ans);
+  }
+  if (events.size > 1 && nonEventCount === 0) {
+    const lines = Array.from(events.entries())
+      .map(([event, v]) => ({ event, ...v }))
+      .filter((r) => r.date || r.time)
+      .sort((a, b) => {
+        if (!a.date && !b.date) return 0;
+        if (!a.date) return 1;
+        if (!b.date) return -1;
+        if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+        return answerMinutes(a.time) - answerMinutes(b.time);
+      })
+      .map((r) => `${r.event} — ${r.date ? prettyDate(r.date) : 'date TBD'}${r.time ? `, ${r.time}` : ''}`);
+    if (lines.length) return lines.join('\n');
+  }
+  if (allValues.length === 0) return '';
+  const joined = allValues.join(' · ');
+  return joined.length > 300 ? `${joined.slice(0, 297)}…` : joined;
+}
+
+/** Summary of a just-answered ask_user batch, for the right-side bubble. */
 function summarizeAnswers(questions: AgentQuestion[], answers: Record<string, string | string[]>): string {
-  const parts = questions
-    .map((q) => {
+  return summarizePairs(
+    questions.map((q) => {
       const v = answers[q.id];
-      return Array.isArray(v) ? v.join(', ') : (v ?? '');
+      return { prompt: q.prompt, answer: Array.isArray(v) ? v.join(', ') : v ?? '' };
     })
-    .map((s) => s.trim())
-    .filter(Boolean);
-  if (parts.length === 0) return 'Skipped';
-  const joined = parts.join(' · ');
-  return joined.length > 160 ? `${joined.slice(0, 157)}…` : joined;
+  );
 }
 
 /**
@@ -309,12 +364,56 @@ function factsFromMessages(messages: Array<{ content?: AgentContentBlock[] }>): 
   return facts;
 }
 
+/** A wedding date range parsed from a "YYYY-MM-DD to YYYY-MM-DD" answer. */
+function parseWeddingRange(value: string): { start: string; end: string } | null {
+  const m = /^(\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2})$/.exec(value.trim());
+  return m ? { start: m[1], end: m[2] } : null;
+}
+
+/** Pull the saved celebration date range from persisted answer notes (the last
+ *  "X to Y" dates answer), so per-event date questions can offer those days. */
+function dateRangeFromMessages(
+  messages: Array<{ content?: AgentContentBlock[] }>
+): { start: string; end: string } | null {
+  let found: { start: string; end: string } | null = null;
+  for (const message of messages) {
+    for (const block of message.content ?? []) {
+      if (block.type !== 'text' || !block.text.startsWith(ANSWERS_NOTE_PREFIX)) continue;
+      for (const line of block.text.split('\n')) {
+        const t = line.trim();
+        if (!t.startsWith('- ')) continue;
+        const sep = t.indexOf(' → ');
+        if (sep < 0) continue;
+        if (factLabelFor(t.slice(2, sep).trim()) !== 'Dates') continue;
+        const r = parseWeddingRange(t.slice(sep + 3).trim());
+        if (r) found = r; // keep the last
+      }
+    }
+  }
+  return found;
+}
+
 const DEFAULT_STARTERS = [
   'How is our planning going so far?',
   "What's still missing from our setup?",
   'How many guests have RSVPed?',
   'Which rooms still have space?',
 ];
+
+/** Rebuild the user bubble a form answer showed, from its persisted
+ *  "- <prompt> → <answer>" note — so the couple's responses survive a reload,
+ *  with the same readable schedule formatting as live. */
+function answersSummaryFromNote(noteText: string): string {
+  const pairs: { prompt: string; answer: string }[] = [];
+  for (const line of noteText.split('\n')) {
+    const t = line.trim();
+    if (!t.startsWith('- ')) continue;
+    const sep = t.indexOf(' → ');
+    if (sep < 0) continue;
+    pairs.push({ prompt: t.slice(2, sep).trim(), answer: t.slice(sep + 3).trim() });
+  }
+  return summarizePairs(pairs);
+}
 
 function itemsFromPersisted(messages: Array<{ role: string; content: AgentContentBlock[] }>): ChatItem[] {
   const items: ChatItem[] = [];
@@ -324,8 +423,14 @@ function itemsFromPersisted(messages: Array<{ role: string; content: AgentConten
         // Internal plumbing notes — the agent's reply that follows carries
         // the user-facing content.
         if (block.text.startsWith(CONFIRMATION_NOTE_PREFIX)) continue;
-        if (block.text.startsWith(ANSWERS_NOTE_PREFIX)) continue;
         if (block.text.startsWith(HIDDEN_USER_PREFIX)) continue;
+        if (block.text.startsWith(ANSWERS_NOTE_PREFIX)) {
+          // Form answers persist as an internal note — surface the couple's
+          // response as the same compact bubble they saw when they answered.
+          const summary = answersSummaryFromNote(block.text);
+          if (summary) items.push({ kind: 'user', text: summary });
+          continue;
+        }
         items.push({ kind: message.role === 'user' ? 'user' : 'assistant', text: block.text });
       } else if (block.type === 'tool_use') {
         items.push({ kind: 'tool', label: block.name.replace(/_/g, ' '), status: 'ok' });
@@ -397,6 +502,8 @@ export function AgentChatPanel({
   // tappable badges under the form so the couple sees (and can change) what's
   // been recorded.
   const [facts, setFacts] = useState<CapturedFact[]>([]);
+  // The saved celebration date range — drives the per-event date quick-picks.
+  const [weddingDateRange, setWeddingDateRange] = useState<{ start: string; end: string } | null>(null);
   // One-time animated "try voice" nudge over the mic, revealed right after the
   // (typed-only) names question is answered.
   const [showVoiceHint, setShowVoiceHint] = useState(false);
@@ -474,6 +581,7 @@ export function AgentChatPanel({
     let cancelled = false;
     setItems([]);
     setFacts([]);
+    setWeddingDateRange(null);
     setLoadingHistory(true);
     setHasExistingData(false);
     greetedRef.current = false; // each wedding gets its opener decision once
@@ -509,7 +617,10 @@ export function AgentChatPanel({
         // pending question / confirmation), so nothing actionable is stranded.
         const restoreThread = !!onboarding || pendingActions.length > 0;
         if (restoreThread) {
-          if (data.messages?.length) setFacts(factsFromMessages(data.messages));
+          if (data.messages?.length) {
+          setFacts(factsFromMessages(data.messages));
+          setWeddingDateRange(dateRangeFromMessages(data.messages));
+        }
           const restored = (data.messages?.length ? itemsFromPersisted(data.messages) : []).map((it) =>
             // Always show the latest onboarding greeting copy, not the stale text
             // saved when the thread began.
@@ -728,6 +839,14 @@ export function AgentChatPanel({
       // Reveal/refresh the captured-fact badges for anything answered here.
       const newFacts = factsFromAnswers(questions, answers);
       if (newFacts.length) setFacts((prev) => mergeFacts(prev, newFacts));
+      // Remember the celebration date range so per-event date questions can
+      // offer those days as quick-picks instead of a fresh calendar each time.
+      for (const q of questions) {
+        if (factLabelFor(q.prompt) !== 'Dates') continue;
+        const raw = answers[q.id];
+        const r = typeof raw === 'string' ? parseWeddingRange(raw) : null;
+        if (r) setWeddingDateRange(r);
+      }
       // Show what the user answered as a right-side bubble (summarized).
       const summary = summarizeAnswers(questions, answers);
       setItems((prev) => [
@@ -909,11 +1028,15 @@ export function AgentChatPanel({
     }
     wasAskingNameRef.current = askingForName;
   }, [askingForName]);
+  // Only run the 3s dismissal while the hint is actually visible — i.e. the mic
+  // is on screen and usable (not mid-turn, not recording/transcribing). So if
+  // the agent is busy right after the names answer, we wait to reveal it.
+  const voiceHintVisible = showVoiceHint && !busy && voice.state === 'idle';
   useEffect(() => {
-    if (!showVoiceHint) return;
+    if (!voiceHintVisible) return;
     const t = setTimeout(() => setShowVoiceHint(false), 3000);
     return () => clearTimeout(t);
-  }, [showVoiceHint]);
+  }, [voiceHintVisible]);
 
   // Show the couple's fixed framing line (ONBOARDING_OPENER2) as a second chat
   // bubble, right after the greeting — both live and on reload. The greeting
@@ -1335,6 +1458,7 @@ export function AgentChatPanel({
                   questions={pendingQuestions.questions}
                   disabled={busy}
                   large
+                  dateRange={weddingDateRange}
                   onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
                 />
               ) : (
@@ -1362,8 +1486,11 @@ export function AgentChatPanel({
         {loadingHistory || (onboarding && items.length === 0) ? (
           // During onboarding the kickoff fires immediately — show a spinner,
           // not the generic starter prompts, so we land straight on the greeting.
-          <Stack alignItems="center" py={6}>
-            <CircularProgress size={22} sx={{ color: COLORS.brand.primary }} />
+          <Stack spacing={2} alignItems="center" justifyContent="center" sx={{ minHeight: '100%', py: 6, textAlign: 'center' }}>
+            <CircularProgress size={40} thickness={4} sx={{ color: COLORS.brand.primary }} />
+            <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
+              Setting up your planner…
+            </Typography>
           </Stack>
         ) : items.length === 0 ? (
           <Stack spacing={2} alignItems="center" justifyContent="center" sx={{ minHeight: '100%', py: 6 }}>
@@ -1675,7 +1802,7 @@ export function AgentChatPanel({
             {/* One-time "try voice" callout — mild bounce for 3s, dismissable,
                 auto-hides. Revealed right after the typed names question. */}
             <AnimatePresence>
-              {showVoiceHint && (
+              {voiceHintVisible && (
                 <motion.div
                   initial={{ opacity: 0, y: 8, scale: 0.9 }}
                   animate={{ opacity: 1, y: [0, -3, 0], scale: 1 }}

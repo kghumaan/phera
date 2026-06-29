@@ -1,12 +1,11 @@
 'use client';
 
-import { Box, Stack, Typography, TextField, InputAdornment, Tooltip } from '@mui/material';
-import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
+import { Box, Stack, Typography, TextField, InputAdornment, Tooltip, Divider } from '@mui/material';
+import { forwardRef, Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
-import { MobileTimePicker } from '@mui/x-date-pickers/MobileTimePicker';
-import { format, parse, parseISO } from 'date-fns';
+import { eachDayOfInterval, format, parse, parseISO } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -18,7 +17,7 @@ import { PheraTextField } from '@/components/shared/TextField';
 import { PheraChip } from '@/components/shared/Chip';
 import { PrimaryActionButton, SecondaryActionButton, IconActionButton } from '@/components/admin/ActionButton';
 import { ENHANCED_TEXT_FIELD_SX } from '@/lib/constants/form-styles';
-import { COLORS } from '@/lib/theme/tokens';
+import { COLORS, FONTS } from '@/lib/theme/tokens';
 import type { AgentQuestion } from '@/lib/agent/types';
 
 const INPUT_MAX_WIDTH = 460;
@@ -88,11 +87,33 @@ const DATE_SLOT_PROPS = {
   },
 };
 
+/** Common event start times — one-tap chips so picking a time is inline, not a popup. */
+const TIME_PRESETS = ['9:00 AM', '11:00 AM', '12:00 PM', '2:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM'];
+
+/** Styling for the inline native <input type="time"> custom-time field. */
+const TIME_INPUT_SX = {
+  height: INPUT_HEIGHT,
+  flex: 1,
+  minWidth: 130,
+  maxWidth: 170,
+  px: 1.5,
+  border: `1px solid ${COLORS.border.strong}`,
+  borderRadius: '12px',
+  bgcolor: COLORS.bg.white,
+  color: COLORS.text.strong,
+  fontFamily: FONTS.body,
+  fontSize: '0.95rem',
+  '&:hover': { borderColor: COLORS.brand.primary },
+  '&:focus': { outline: 'none', borderColor: COLORS.brand.primary, borderWidth: '2px' },
+} as const;
+
 export interface QuestionFlowProps {
   questions: AgentQuestion[];
   disabled?: boolean;
   /** Render bigger — used when the form sits in its own left-hand pane. */
   large?: boolean;
+  /** Saved celebration date range; date questions offer these days as quick-picks. */
+  dateRange?: { start: string; end: string } | null;
   onComplete: (answers: Record<string, string | string[]>) => void;
 }
 
@@ -102,13 +123,41 @@ function shortLabel(answer: string | string[] | undefined): string {
   return v.length > 28 ? `${v.slice(0, 28)}…` : v;
 }
 
+/** "Mehndi — date" / "Welcome Dinner — time" → { event, field }. Drives the
+ *  live schedule table so each date/time is clearly tied to its event. */
+function parseEventField(prompt: string): { event: string; field: 'date' | 'time' } | null {
+  const m = /^(.+?)\s*[—–-]\s*(date|time)\b/i.exec(prompt.trim());
+  if (!m) return null;
+  return { event: m[1].trim(), field: m[2].toLowerCase() as 'date' | 'time' };
+}
+
+/** Short, friendly date for the schedule table ("2026-10-29" → "Oct 29"). */
+function prettyDay(iso: string): string {
+  try {
+    const d = parseISO(iso);
+    return isNaN(d.getTime()) ? iso : format(d, 'MMM d');
+  } catch {
+    return iso;
+  }
+}
+
+/** "5:00 PM" → minutes since midnight, for chronological sorting (undated/no
+ *  time sort last). */
+function timeToMinutes(t?: string): number {
+  if (!t) return 9999;
+  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(t.trim());
+  if (!m) return 9999;
+  const h = (Number(m[1]) % 12) + (/pm/i.test(m[3]) ? 12 : 0);
+  return h * 60 + Number(m[2]);
+}
+
 /**
  * Bottom-anchored question collector. Walks the agent's questions one at a
  * time with the right input per type, shows answers given so far as editable
  * chips (click to revisit), and lets the user move forward/back before the
  * batch is submitted.
  */
-export function QuestionFlow({ questions, disabled, large, onComplete }: QuestionFlowProps) {
+export function QuestionFlow({ questions, disabled, large, dateRange, onComplete }: QuestionFlowProps) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [text, setText] = useState('');
@@ -118,8 +167,65 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
   const [otherText, setOtherText] = useState('');
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
+  // For date questions with a known range: show the days as quick-picks until
+  // the user opts into the full calendar for an out-of-range date.
+  const [useCalendar, setUseCalendar] = useState(false);
+
+  // The celebration days, as quick-pick options (empty if no/!sane range).
+  const rangeDays = useMemo(() => {
+    if (!dateRange) return [] as { value: string; label: string }[];
+    try {
+      const start = parseISO(dateRange.start);
+      const end = parseISO(dateRange.end);
+      if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) return [];
+      const days = eachDayOfInterval({ start, end });
+      if (days.length === 0 || days.length > 12) return [];
+      return days.map((d) => ({ value: format(d, 'yyyy-MM-dd'), label: format(d, 'EEE · MMM d, yyyy') }));
+    } catch {
+      return [];
+    }
+  }, [dateRange]);
 
   const q = questions[step];
+
+  // Group event date/time questions into a live schedule (Event · Date · Time)
+  // so it's always clear which value belongs to which function.
+  const eventRows = useMemo(() => {
+    const order: string[] = [];
+    const map: Record<string, { event: string; date?: string; time?: string; dateStep?: number; timeStep?: number }> = {};
+    questions.forEach((qq, i) => {
+      const pf = parseEventField(qq.prompt);
+      if (!pf) return;
+      if (!map[pf.event]) {
+        map[pf.event] = { event: pf.event };
+        order.push(pf.event);
+      }
+      const ans = answers[qq.id];
+      const val = typeof ans === 'string' ? ans : Array.isArray(ans) ? ans.join(', ') : undefined;
+      if (pf.field === 'date') {
+        map[pf.event].date = val || undefined;
+        map[pf.event].dateStep = i;
+      } else {
+        map[pf.event].time = val || undefined;
+        map[pf.event].timeStep = i;
+      }
+    });
+    return order.map((e) => map[e]);
+  }, [questions, answers]);
+  const isEventScheduling = eventRows.length > 1;
+  const currentEvent = q ? parseEventField(q.prompt)?.event : undefined;
+
+  // The schedule, re-sorted chronologically (by day, then time) as answers
+  // change — so it always reads top-to-bottom in running order. Undated last.
+  const scheduleRows = useMemo(() => {
+    return [...eventRows].sort((a, b) => {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+      return timeToMinutes(a.time) - timeToMinutes(b.time);
+    });
+  }, [eventRows]);
 
   // Prefill the working inputs whenever we land on a question (incl. revisits).
   useEffect(() => {
@@ -132,6 +238,7 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
     setOtherText('');
     setRangeStart(null);
     setRangeEnd(null);
+    setUseCalendar(false);
     if (typeof prior === 'string' && prior) {
       if (q.type === 'time') setDate(safeParseTime(prior));
       else if (q.type === 'date_range') {
@@ -148,10 +255,10 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
   const commit = (value: string | string[]) => {
     const next = { ...answers, [q.id]: value };
     setAnswers(next);
-    // Advance to the first still-unanswered question; if none, finish.
-    const nextUnanswered = questions.findIndex(
-      (qq) => next[qq.id] === undefined || next[qq.id] === ''
-    );
+    // Advance to the first question we haven't touched yet. A skipped question
+    // is recorded as '' (present, not undefined) so we never re-land on it —
+    // otherwise Skip would just bounce back to the same question.
+    const nextUnanswered = questions.findIndex((qq) => next[qq.id] === undefined);
     if (nextUnanswered === -1) onComplete(next);
     else setStep(nextUnanswered);
   };
@@ -240,7 +347,7 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
         </SecondaryActionButton>
       )}
       {q.type !== 'single_select' && (
-        <PrimaryActionButton size="small" disabled={disabled || !canSubmit()} onClick={submitCurrent} sx={{ height: INPUT_HEIGHT, flexShrink: 0 }}>
+        <PrimaryActionButton size="small" disabled={disabled || !canSubmit()} onClick={submitCurrent} sx={{ height: INPUT_HEIGHT, minWidth: 104, flexShrink: 0 }}>
           {isLastUnanswered() ? 'Done' : 'Next'}
         </PrimaryActionButton>
       )}
@@ -254,8 +361,57 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
 
   return (
     <Stack spacing={large ? 2.25 : 1.25} sx={{ width: '100%' }}>
-      {/* Answers so far — click to revisit */}
-      {answeredChips.length > 0 && (
+      {/* Live schedule table when placing events; otherwise the generic
+          "answers so far" chips. Either way, tap to revisit. */}
+      {isEventScheduling ? (
+        <Box sx={{ border: `1px solid ${COLORS.border.faint}`, borderRadius: '12px', bgcolor: COLORS.bg.white, p: 1.5 }}>
+          <Typography variant="caption" sx={{ color: COLORS.text.subtle, display: 'block', mb: 0.75 }}>
+            Your schedule so far — tap a chip to change it
+          </Typography>
+          <Stack spacing={0.25}>
+            {scheduleRows.map((r, idx) => {
+              const active = r.event === currentEvent;
+              const prev = scheduleRows[idx - 1];
+              const showDivider = idx > 0 && r.date !== prev.date;
+              return (
+                <Fragment key={r.event}>
+                {showDivider && <Divider sx={{ my: 0.5, borderColor: COLORS.border.faint }} />}
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  spacing={1}
+                  sx={{ py: 0.5, px: 0.75, borderRadius: '8px', bgcolor: active ? COLORS.brand.primarySubtle : 'transparent' }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{ color: COLORS.text.strong, fontWeight: active ? 700 : 500, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
+                    {r.event}
+                  </Typography>
+                  <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                    <PheraChip
+                      size="small"
+                      tone={r.date ? 'brand' : 'neutral'}
+                      label={r.date ? prettyDay(r.date) : '+ date'}
+                      onClick={() => !disabled && r.dateStep !== undefined && setStep(r.dateStep)}
+                      sx={{ cursor: 'pointer' }}
+                    />
+                    <PheraChip
+                      size="small"
+                      tone={r.time ? 'brand' : 'neutral'}
+                      label={r.time ?? '+ time'}
+                      onClick={() => !disabled && r.timeStep !== undefined && setStep(r.timeStep)}
+                      sx={{ cursor: 'pointer' }}
+                    />
+                  </Stack>
+                </Stack>
+                </Fragment>
+              );
+            })}
+          </Stack>
+        </Box>
+      ) : answeredChips.length > 0 ? (
         <Stack direction="row" flexWrap="wrap" gap={0.75}>
           {answeredChips.map(({ qq, i }) => (
             <PheraChip
@@ -268,7 +424,7 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
             />
           ))}
         </Stack>
-      )}
+      ) : null}
 
       <Box>
         {questions.length > 1 && (
@@ -294,10 +450,13 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
         )}
       </Box>
 
-      {/* Single-line inputs: control + action buttons on one height-matched row */}
+      {/* Single-line inputs: full-width control on top, action buttons below —
+          so the input is wide (no truncation) and the buttons don't float
+          awkwardly far to the right. */}
       {q.type === 'text' && (
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%' }}>
+        <Stack spacing={1.25} sx={{ width: '100%' }}>
           <PheraTextField
+            fullWidth
             size="small"
             autoFocus
             placeholder={q.placeholder}
@@ -310,16 +469,18 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
                 commit(text.trim());
               }
             }}
-            sx={{ flex: 1, maxWidth: INPUT_MAX_WIDTH, '& .MuiOutlinedInput-root': INPUT_ROOT_SX }}
+            sx={{ '& .MuiOutlinedInput-root': INPUT_ROOT_SX }}
           />
-          {voiceButton}
-          {actionButtons}
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+            {voiceButton}
+            {actionButtons}
+          </Stack>
         </Stack>
       )}
 
       {q.type === 'date_range' && (
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%' }}>
-          <Box sx={{ flex: 1, maxWidth: INPUT_MAX_WIDTH }}>
+        <Stack spacing={1.25} sx={{ width: '100%' }}>
+          <Box sx={{ width: '100%' }}>
             <DatePicker
               selectsRange
               startDate={rangeStart}
@@ -335,15 +496,60 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
               customInput={<RangeInput />}
             />
           </Box>
-          {actionButtons}
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>{actionButtons}</Stack>
         </Stack>
       )}
 
-      {(q.type === 'date' || q.type === 'time') && (
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%' }}>
-          <Box sx={{ flex: 1, maxWidth: INPUT_MAX_WIDTH }}>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              {q.type === 'date' ? (
+      {q.type === 'date' &&
+        (rangeDays.length > 0 && !useCalendar ? (
+          // Quick-pick the celebration days — no calendar needed per event.
+          <Stack spacing={1} sx={{ width: '100%' }}>
+            <Stack spacing={1}>
+              {rangeDays.map((d) => {
+                const on = !!date && format(date, 'yyyy-MM-dd') === d.value;
+                return (
+                  <SecondaryActionButton
+                    key={d.value}
+                    fullWidth
+                    disabled={disabled}
+                    onClick={() => setDate(parseISO(d.value))}
+                    sx={{
+                      height: INPUT_HEIGHT,
+                      justifyContent: 'center',
+                      ...(on
+                        ? { borderColor: COLORS.brand.primary, color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle, fontWeight: 700 }
+                        : {}),
+                    }}
+                  >
+                    {d.label}
+                  </SecondaryActionButton>
+                );
+              })}
+            </Stack>
+            {/* Confirm the picked day before moving to the time. */}
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+              {step > 0 && (
+                <SecondaryActionButton size="small" onClick={goBack} disabled={disabled} sx={{ height: INPUT_HEIGHT, flexShrink: 0 }}>
+                  Back
+                </SecondaryActionButton>
+              )}
+              <PrimaryActionButton size="small" disabled={disabled || !date} onClick={submitCurrent} sx={{ height: INPUT_HEIGHT, minWidth: 104, flexShrink: 0 }}>
+                Confirm
+              </PrimaryActionButton>
+              <SecondaryActionButton size="small" disabled={disabled} onClick={() => setUseCalendar(true)} sx={{ height: INPUT_HEIGHT, flexShrink: 0 }}>
+                Other date
+              </SecondaryActionButton>
+              {q.optional && (
+                <SecondaryActionButton size="small" onClick={skip} disabled={disabled} sx={{ height: INPUT_HEIGHT, flexShrink: 0 }}>
+                  Skip
+                </SecondaryActionButton>
+              )}
+            </Stack>
+          </Stack>
+        ) : (
+          <Stack spacing={1.25} sx={{ width: '100%' }}>
+            <Box sx={{ width: '100%' }}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <MobileDatePicker
                   value={date}
                   onChange={(v) => setDate(v)}
@@ -351,18 +557,42 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
                   slots={{ textField: TextField }}
                   slotProps={DATE_SLOT_PROPS}
                 />
-              ) : (
-                <MobileTimePicker
-                  value={date}
-                  onChange={(v) => setDate(v)}
-                  enableAccessibleFieldDOMStructure={false}
-                  slots={{ textField: TextField }}
-                  slotProps={DATE_SLOT_PROPS}
+              </LocalizationProvider>
+            </Box>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>{actionButtons}</Stack>
+          </Stack>
+        ))}
+
+      {/* Time: inline preset chips (one tap, no popup) + a native time field for
+          anything custom. */}
+      {q.type === 'time' && (
+        <Stack spacing={1.25} sx={{ width: '100%' }}>
+          <Stack direction="row" flexWrap="wrap" gap={1}>
+            {TIME_PRESETS.map((t) => {
+              const on = !!date && format(date, 'h:mm a') === t;
+              return (
+                <PheraChip
+                  key={t}
+                  tone={on ? 'brand' : 'neutral'}
+                  label={t}
+                  onClick={() => !disabled && commit(t)}
+                  sx={chipSx}
                 />
-              )}
-            </LocalizationProvider>
-          </Box>
-          {actionButtons}
+              );
+            })}
+          </Stack>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+            <Box
+              component="input"
+              type="time"
+              aria-label="Custom time"
+              disabled={disabled}
+              value={date ? format(date, 'HH:mm') : ''}
+              onChange={(e) => setDate(e.target.value ? parse(e.target.value, 'HH:mm', new Date()) : null)}
+              sx={TIME_INPUT_SX}
+            />
+            {actionButtons}
+          </Stack>
         </Stack>
       )}
 
@@ -424,7 +654,7 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
           <Stack direction="row" spacing={1} alignItems="stretch" sx={{ width: '100%' }}>
             {voiceButton}
             {q.allowOther && (
-              <Stack direction="row" spacing={0.75} alignItems="stretch" sx={{ flex: 1, maxWidth: 280 }}>
+              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flex: 1, minWidth: 160, maxWidth: 320 }}>
                 <PheraTextField
                   size="small"
                   placeholder="Add another…"
@@ -437,16 +667,19 @@ export function QuestionFlow({ questions, disabled, large, onComplete }: Questio
                       addOther();
                     }
                   }}
-                  sx={{ flex: 1 }}
+                  sx={{ flex: 1, '& .MuiOutlinedInput-root': INPUT_ROOT_SX }}
                 />
-                <IconActionButton
-                  onClick={addOther}
-                  disabled={disabled || !otherText.trim()}
-                  aria-label="Add option"
-                  sx={{ color: COLORS.brand.primary }}
-                >
-                  <AddRoundedIcon fontSize="small" />
-                </IconActionButton>
+                {/* The + only appears once they've typed something to add. */}
+                {otherText.trim() && (
+                  <IconActionButton
+                    onClick={addOther}
+                    disabled={disabled}
+                    aria-label="Add option"
+                    sx={{ color: COLORS.brand.primary, flexShrink: 0 }}
+                  >
+                    <AddRoundedIcon fontSize="small" />
+                  </IconActionButton>
+                )}
               </Stack>
             )}
             {actionButtons}
