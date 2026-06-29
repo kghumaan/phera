@@ -393,6 +393,19 @@ function dateRangeFromMessages(
   return found;
 }
 
+/** Short placeholder for the first-visit centered input (summarizes what the
+ *  planner can do, so we don't need a paragraph above the starters). */
+const WELCOME_PLACEHOLDER = "Tell me what's happening — guests, schedule, rooms, vendors & more";
+
+/** Vertically-centers the composer's text/placeholder (the multiline textarea
+ *  otherwise top-aligns while the buttons sit centered). Targets MuiInputBase so
+ *  it layers onto — not clobbers — the base field styles. */
+const COMPOSER_INPUT_SX = {
+  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+  '& .MuiInputBase-root': { alignItems: 'center', py: 0.75 },
+  '& .MuiInputBase-inputMultiline': { py: 0 },
+} as const;
+
 const DEFAULT_STARTERS = [
   'How is our planning going so far?',
   "What's still missing from our setup?",
@@ -1197,6 +1210,10 @@ export function AgentChatPanel({
   // Caller-supplied starters win; otherwise the analytical (wedding-specific)
   // ones; otherwise the static defaults.
   const resolvedStarters = starters ?? dynamicStarters ?? DEFAULT_STARTERS;
+  // First visit, nothing said yet (not loading, not onboarding): show a centered
+  // input with the starters below it; it collapses to the bottom composer once
+  // there's a message.
+  const isWelcomeEmpty = items.length === 0 && !loadingHistory && !onboarding;
   // Whether the structured right pane is open — a question is pending or facts
   // have been captured. When closed, the chat runs full-width (ChatGPT-style).
   const formPaneOpen = !!pendingQuestions || facts.length > 0;
@@ -1481,6 +1498,68 @@ export function AgentChatPanel({
       {/* CHAT — on the LEFT (order 1 on md), wider. Messages on a soft grey
           rounded panel with a white input. */}
       <Box sx={{ order: { md: 1 }, flex: { xs: 1, md: 1.6 }, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: COLORS.bg.subtle, borderRadius: RADII.lg, overflow: 'hidden' }}>
+      {isWelcomeEmpty ? (
+      // First-visit hero: a centered input the couple types into, with the
+      // conversation starters below it. Collapses to the bottom composer once
+      // anything is sent.
+      <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2.5, p: 3, overflowY: 'auto' }}>
+        <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 36 }} />
+        <Box
+          component="form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleComposerSend(input);
+          }}
+          sx={{
+            width: '100%',
+            maxWidth: 620,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+            bgcolor: COLORS.bg.white,
+            border: `1px solid ${COLORS.border.faint}`,
+            borderRadius: RADII.lg,
+            px: 1.25,
+            py: 0.75,
+            boxShadow: SHADOWS.card,
+          }}
+        >
+          <PheraTextField
+            fullWidth
+            size="small"
+            multiline
+            maxRows={6}
+            autoFocus
+            placeholder={WELCOME_PLACEHOLDER}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleComposerSend(input);
+              }
+            }}
+            disabled={busy}
+            autoComplete="off"
+            sx={COMPOSER_INPUT_SX}
+          />
+          <IconActionButton
+            type="submit"
+            disabled={busy || !input.trim()}
+            aria-label="Send message"
+            sx={{ color: COLORS.brand.primary, '&.Mui-disabled': { color: COLORS.border.strong } }}
+          >
+            <SendRoundedIcon fontSize="small" />
+          </IconActionButton>
+        </Box>
+        <Stack direction="row" flexWrap="wrap" justifyContent="center" gap={1} sx={{ maxWidth: 640 }}>
+          {resolvedStarters.map((starter) => (
+            <PheraChip key={starter} tone="brand" label={starter} onClick={() => send(starter)} sx={{ cursor: 'pointer' }} />
+          ))}
+        </Stack>
+      </Box>
+      ) : (
+      <>
       <Box sx={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
         {loadingHistory || (onboarding && items.length === 0) ? (
@@ -1739,7 +1818,7 @@ export function AgentChatPanel({
             }}
             disabled={busy}
             autoComplete="off"
-            sx={{ '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
+            sx={COMPOSER_INPUT_SX}
           />
           {/* Mute toggle for spoken replies — only relevant on the typed
               surface, hidden while the hands-free voice agent is disabled. */}
@@ -1854,6 +1933,8 @@ export function AgentChatPanel({
           </IconActionButton>
         </Box>
       </Box>
+      </>
+      )}
       </Box>
       </Box>
       )}
