@@ -11,7 +11,12 @@ const DEFAULT_MODEL = 'claude-opus-4-8';
 
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
-  if (!client) client = new Anthropic();
+  // maxRetries covers the initial request that opens the stream: the SDK retries
+  // 408/409/429 and 5xx (incl. 529 "overloaded") with exponential backoff, so a
+  // transient Anthropic blip doesn't kill the turn. We lift it from the default
+  // 2 to ride out brief overload spikes. (Mid-stream failures still surface as a
+  // friendly error in the chat; provider fallback is a later phase.)
+  if (!client) client = new Anthropic({ maxRetries: 4 });
   return client;
 }
 

@@ -534,16 +534,6 @@
       "count": 6
     }
   },
-  "components/landing/AgentCard.tsx": {
-    "react/no-unescaped-entities": {
-      "count": 2
-    }
-  },
-  "components/landing/AgentModal.tsx": {
-    "react/no-unescaped-entities": {
-      "count": 5
-    }
-  },
   "components/preview/ReadOnlyComments.tsx": {
     "@typescript-eslint/ban-ts-comment": {
       "count": 1
@@ -634,11 +624,6 @@
   "lib/demo/seed-demo-mock-data.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 6
-    }
-  },
-  "lib/email/alerts.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
     }
   },
   "lib/email/resend.ts": {

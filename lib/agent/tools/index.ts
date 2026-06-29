@@ -11,6 +11,9 @@ import { knowledgeTools } from './knowledge';
 import { askTools } from './ask';
 import { goalsTools } from './goals';
 import { uploadTools } from './upload';
+import { shagunTools } from './shagun';
+import { consentTools } from './consent';
+import { requestTools } from './requests';
 
 let registered = false;
 
@@ -31,6 +34,9 @@ export function ensureToolsRegistered() {
     ...askTools,
     ...goalsTools,
     ...uploadTools,
+    ...shagunTools,
+    ...consentTools,
+    ...requestTools,
   ]);
 }
 
