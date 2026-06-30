@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Typography, useTheme, useMediaQuery, IconButton, alpha, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, Drawer, List, ListItemButton, ListItemIcon, ListItemText, useTheme, useMediaQuery, IconButton, alpha } from '@mui/material';
 import Image from 'next/image';
 import NextLink from 'next/link';
 import {
@@ -29,11 +29,14 @@ import {
   Radar,
   ChatBubbleOutline,
   Settings,
+  AccountCircle,
   Hotel,
+  AutoAwesome,
+  StorefrontOutlined,
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
-import { Wedding } from '@/lib/supabase/wedding-service';
+import { Wedding, weddingService } from '@/lib/supabase/wedding-service';
 import { Collapse } from '@mui/material';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
@@ -41,6 +44,7 @@ import ProBadge from './ProBadge';
 import { CheckCircle } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase/client';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 
 interface SidebarItem {
   id: string;
@@ -70,6 +74,15 @@ export const groups: SidebarGroup[] = [
       { id: 'overview', label: 'Overview', path: '/overview' },
     ],
   },
+  {
+    id: 'planner',
+    label: 'Planner',
+    icon: <AutoAwesome />,
+    standalone: true,
+    items: [
+      { id: 'assistant', label: 'Planner', path: '/assistant' },
+    ],
+  },
   // Control Tower hidden from sidebar until feature is ready for broader
   // rollout. Page still exists at /control-tower for direct navigation.
   {
@@ -86,18 +99,48 @@ export const groups: SidebarGroup[] = [
       { id: 'registry', label: 'Registry', path: '/registry' },
       { id: 'shopping', label: 'Where to Shop', path: '/where-to-shop' },
       { id: 'pins', label: 'Event Access', path: '/event-access', required: true },
+      { id: 'settings', label: 'Settings & Publish', path: '/settings' },
     ],
   },
   {
     id: 'guests-group',
-    label: 'Guest Management',
+    label: 'Guests',
     icon: <People />,
     items: [
       { id: 'guest-list', label: 'Guest List', path: '/guest-list' },
-      { id: 'whatsapp-bot', label: 'WhatsApp Bot', path: '/whatsapp-bot' },
       { id: 'guests', label: 'Guest Responses', path: '/guest-responses' },
       { id: 'rooms', label: 'Room Assignments', path: '/room-assignments', isPro: true },
-      { id: 'transportation', label: 'Transportation', path: '/transportation', isPro: true },
+    ],
+  },
+  {
+    id: 'logistics',
+    label: 'Logistics',
+    icon: <AirportShuttle />,
+    items: [
+      { id: 'transportation', label: 'Logistics', path: '/transportation', isPro: true },
+    ],
+  },
+  {
+    // The WhatsApp Bot page is the unified guest-comms hub (Concierge / Messaging /
+    // Admin tabs); /concierge and /messaging are thin redirects into it, so this is
+    // a single entry rather than three items that all land on the same page.
+    id: 'communications',
+    label: 'Communications',
+    icon: <ChatBubbleOutline />,
+    standalone: true,
+    items: [
+      { id: 'whatsapp-bot', label: 'Communications', path: '/whatsapp-bot' },
+    ],
+  },
+  {
+    id: 'vendors',
+    label: 'Vendors',
+    icon: <StorefrontOutlined />,
+    items: [
+      // Short sidebar labels; the pages keep their full "Vendor Management" /
+      // "Vendor Marketplace" titles.
+      { id: 'coordinator', label: 'Management', path: '/vendor-management', isPro: true },
+      { id: 'vendor-marketplace', label: 'Marketplace', path: '/vendor-marketplace', isPro: true },
     ],
   },
   {
@@ -106,8 +149,16 @@ export const groups: SidebarGroup[] = [
     icon: <ViewKanban />,
     items: [
       { id: 'task-manager', label: 'Task Manager', path: '/task-manager', isPro: true },
-      { id: 'coordinator', label: 'Vendor Management', path: '/vendor-management', isPro: true },
       { id: 'knowledge-bank', label: 'Knowledge Bank', path: '/knowledge-bank', isPro: true },
+    ],
+  },
+  {
+    id: 'account',
+    label: 'Account',
+    icon: <AccountCircle />,
+    standalone: true,
+    items: [
+      { id: 'account', label: 'Account', path: '/account' },
     ],
   },
   {
@@ -164,6 +215,37 @@ export default function OnboardingSidebar({
   const { checkGuard } = useNavigationGuard();
   const [arrowPositions, setArrowPositions] = useState<Record<string, number>>({});
   const [sectionComplete, setSectionComplete] = useState<Record<string, boolean>>({});
+  const [loadingPath, setLoadingPath] = useState<string | null>(null);
+  const [plannerWeddings, setPlannerWeddings] = useState<Wedding[]>([]);
+  const [switcherAnchor, setSwitcherAnchor] = useState<null | HTMLElement>(null);
+
+  // Load the planner's weddings for the in-sidebar wedding switcher.
+  useEffect(() => {
+    if (!isPlanner) return;
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (cancelled || !user) return;
+      const list = await weddingService.getUserWeddings(user.id);
+      if (!cancelled) setPlannerWeddings(list);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isPlanner]);
+
+  // Jump straight to another wedding, preserving the current sub-page where it
+  // exists (e.g. stay on Guest Responses) instead of round-tripping through the
+  // dashboard.
+  const handleSwitchWedding = (targetSlug: string) => {
+    setSwitcherAnchor(null);
+    if (targetSlug === weddingSlug) return;
+    if (!checkGuard()) return;
+    const prefix = `/admin/${weddingSlug}`;
+    const subPath = pathname.startsWith(prefix) ? pathname.slice(prefix.length) || '/overview' : '/overview';
+    router.push(`/admin/${targetSlug}${subPath}`);
+    if (isMobile) onClose();
+  };
 
   // Check which sections have content
   useEffect(() => {
@@ -243,6 +325,7 @@ export default function OnboardingSidebar({
       next[g.id] = g.items.some(item => pathname.includes(item.path));
     });
     setExpandedGroups(next);
+    setLoadingPath(null);
   }, [pathname]);
 
   // Measure active item positions for arrow alignment
@@ -298,12 +381,7 @@ export default function OnboardingSidebar({
 
   const handleItemClick = (item: SidebarItem, collapseAll = false, groupId?: string) => {
     if (!checkGuard()) return;
-    // Intentionally NOT calling onNavigating(true): Next.js App Router
-    // preserves this layout across sibling route transitions and the new
-    // page hydrates in a few tens of ms, so triggering the Backdrop spinner
-    // here just flashes a full-page blur + spinner over the content for no
-    // reason. Keep the prop in case we want to re-introduce a slow-route
-    // loading state later.
+    setLoadingPath(item.path);
     router.push(`/admin/${weddingSlug}${item.path}`);
 
     if (collapseAll) {
@@ -337,18 +415,63 @@ export default function OnboardingSidebar({
         {isPlanner && (
           <>
             {wedding?.couple_name && (
-              <Typography
-                variant="body2"
-                sx={{
-                  px: 2.25,
-                  py: 0.5,
-                  color: COLORS.text.strong,
-                  fontWeight: 600,
-                  fontSize: '0.95rem',
-                }}
-              >
-                {wedding.couple_name}
-              </Typography>
+              <>
+                <ListItemButton
+                  onClick={(e: React.MouseEvent<HTMLElement>) => {
+                    if (plannerWeddings.length <= 1) return;
+                    setSwitcherAnchor(e.currentTarget);
+                  }}
+                  sx={{
+                    px: 1.5,
+                    py: 0.75,
+                    mx: 0.75,
+                    mb: 0.25,
+                    borderRadius: RADII.sm,
+                    color: COLORS.text.strong,
+                    cursor: plannerWeddings.length > 1 ? 'pointer' : 'default',
+                    '&:hover': {
+                      bgcolor: plannerWeddings.length > 1 ? alpha(COLORS.brand.primary, 0.08) : 'transparent',
+                    },
+                  }}
+                >
+                  <ListItemText
+                    primary={wedding.couple_name}
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontWeight: 600,
+                          fontSize: '0.95rem',
+                          color: COLORS.text.strong,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        },
+                      },
+                    }}
+                  />
+                  {plannerWeddings.length > 1 && (
+                    <ExpandMore sx={{ fontSize: '1.2rem', color: COLORS.text.subtle, ml: 0.5, flexShrink: 0 }} />
+                  )}
+                </ListItemButton>
+                <PheraMenu
+                  anchorEl={switcherAnchor}
+                  open={Boolean(switcherAnchor)}
+                  onClose={() => setSwitcherAnchor(null)}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                  PaperProps={{ sx: { maxHeight: 360, minWidth: 240 } }}
+                >
+                  {plannerWeddings.map((w) => (
+                    <PheraMenuItem
+                      key={w.id}
+                      selected={w.slug === weddingSlug}
+                      onClick={() => handleSwitchWedding(w.slug)}
+                    >
+                      {w.couple_name}
+                    </PheraMenuItem>
+                  ))}
+                </PheraMenu>
+              </>
             )}
             <ListItemButton
               component={NextLink}
@@ -418,6 +541,9 @@ export default function OnboardingSidebar({
                   slotProps={{ primary: { variant: 'body3', sx: { fontWeight: 600, color: 'inherit' } } }}
                 />
                 {group.isPro && !isPro && <ProBadge size="small" />}
+                {loadingPath === item.path && (
+                  <CircularProgress size={14} sx={{ ml: 1, flexShrink: 0, color: isActive ? COLORS.text.inverse : COLORS.brand.primary }} />
+                )}
               </ListItemButton>
             );
           }
@@ -509,7 +635,7 @@ export default function OnboardingSidebar({
                     return (
                       <Box key={item.id} data-active={isActive ? 'true' : undefined} sx={{ position: 'relative' }}>
                         <ListItemButton
-                          {...(['pins', 'guests', 'travel', 'rooms', 'transportation', 'whatsapp-bot', 'task-manager', 'coordinator', 'team'].includes(item.id) ? { 'data-tour': `tour-${item.id}` } : {})}
+                          {...(['pins', 'guests', 'travel', 'rooms', 'transportation', 'whatsapp-bot', 'task-manager', 'vendor-marketplace', 'coordinator', 'team'].includes(item.id) ? { 'data-tour': `tour-${item.id}` } : {})}
                           component={NextLink}
                           href={`/admin/${weddingSlug}${item.path}`}
                           onClick={(e: React.MouseEvent) => {
@@ -559,6 +685,9 @@ export default function OnboardingSidebar({
                             <CheckCircle sx={{ fontSize: 14, color: COLORS.brand.primary, ml: 0.5, flexShrink: 0 }} />
                           )}
                           {item.isPro && !isPro && <ProBadge size="small" />}
+                          {loadingPath === item.path && (
+                            <CircularProgress size={12} sx={{ ml: 0.75, flexShrink: 0, color: COLORS.brand.primary }} />
+                          )}
                         </ListItemButton>
                       </Box>
                     );

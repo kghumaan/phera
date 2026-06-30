@@ -32,6 +32,11 @@ const TOUR_STEPS: TourStep[] = [
     mobileNote: 'For the full experience we recommend viewing Phera on a desktop.',
   },
   {
+    target: 'tour-planner',
+    title: 'AI Wedding Planner',
+    description: "Chat with your AI planner to build your wedding in minutes — it sets up your website, events, guests, and vendors through conversation. Ask it anything.",
+  },
+  {
     target: 'tour-wedding-website',
     title: 'Your Wedding Website',
     description: "Build a beautiful, bespoke site for your guests — schedule, FAQ, registry, travel info, and more. Design it yourself, let AI build it, or work with our team.",
@@ -73,6 +78,12 @@ const TOUR_STEPS: TourStep[] = [
     target: 'tour-task-manager',
     title: 'Task Manager',
     description: "Organize your entire planning process on a Kanban board. Ramble with voice about what's on your mind and we'll keep track — vendors, to-dos, deadlines, all of it.",
+    expandGroup: 'planning',
+  },
+  {
+    target: 'tour-vendor-marketplace',
+    title: 'Vendor Marketplace',
+    description: "1,200+ photographers, DJs, mehendi artists, planners, and decorators across Goa, Udaipur, Jaipur, Bali, Dubai, and more — filtered by NRI experience and budget. Shortlist the ones you love.",
     expandGroup: 'planning',
   },
   {

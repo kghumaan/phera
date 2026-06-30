@@ -33,7 +33,9 @@ const WEDDING_REQUIRED_FIELDS = {
   rsvp_deadline: '2026-11-01',
 };
 
-describe.skipIf(!canRun)('Workflow Integration Tests', { timeout: 120_000 }, () => {
+// retry — live phera-test DB hit in parallel with the other integration suites;
+// transient connection/contention failures auto-recover on retry.
+describe.skipIf(!canRun)('Workflow Integration Tests', { timeout: 120_000, retry: 2 }, () => {
   let serviceClient: SupabaseClient;
   let anonClient: SupabaseClient;
 

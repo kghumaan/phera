@@ -29,6 +29,7 @@ import {
 import { TransportationSettings, TransportationMode } from '@/lib/supabase/types';
 import TransportationSetupWizard from '@/components/admin/transportation/TransportationSetupWizard';
 import TransportationDashboard from '@/components/admin/transportation/TransportationDashboard';
+import RequestFlightDetailsButton from '@/components/admin/transportation/RequestFlightDetailsButton';
 import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
@@ -171,7 +172,7 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
           <PageHeading
-            title="Transportation"
+            title="Logistics"
             subtitle="Coordinate shuttles and buses for your guests"
             actions={
               <PrimaryActionButton onClick={() => setUpgradeModalOpen(true)} sx={{ whiteSpace: 'nowrap' }}>
@@ -284,12 +285,38 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
       )}
 
       {wizardStep === 'dashboard' && weddingId && settings && (
-        <TransportationDashboard
-          weddingId={weddingId}
-          weddingSlug={weddingSlug}
-          mode={settings.mode!}
-          onEditSetup={handleEditSetup}
-        />
+        <Stack spacing={2}>
+          {/* Slice 1 of shuttle-by-arrival: collect every guest's flight info in
+              one tap so we can place them on the right shuttle. */}
+          <PheraCard
+            variant="muted"
+            sx={{
+              p: 2,
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { sm: 'center' },
+              justifyContent: 'space-between',
+              gap: 1.5,
+            }}
+          >
+            <Box>
+              <Typography sx={{ fontWeight: 600, color: COLORS.text.strong }}>
+                Know who&apos;s arriving when
+              </Typography>
+              <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>
+                Ask every guest for their flight &amp; arrival time so we can put them on the right shuttle.
+              </Typography>
+            </Box>
+            <RequestFlightDetailsButton weddingId={weddingId} weddingSlug={weddingSlug} />
+          </PheraCard>
+
+          <TransportationDashboard
+            weddingId={weddingId}
+            weddingSlug={weddingSlug}
+            mode={settings.mode!}
+            onEditSetup={handleEditSetup}
+          />
+        </Stack>
       )}
     </Box>
   );
@@ -300,7 +327,7 @@ function InitialPrompt({ onStart }: { onStart: () => void }) {
   return (
     <Stack spacing={3}>
       <PageHeading
-        title="Transportation"
+        title="Logistics"
         subtitle="Coordinate shuttles and buses for your guests"
       />
 
@@ -338,7 +365,7 @@ function ModeSelector({ onSelect }: { onSelect: (mode: TransportationMode) => vo
   return (
     <Stack spacing={3}>
       <PageHeading
-        title="Transportation Setup"
+        title="Logistics Setup"
         subtitle="Let's figure out the best way to organize rides for your guests"
       />
 
@@ -414,7 +441,7 @@ function SetupComplete({ onViewResponses }: { onViewResponses: () => void }) {
   return (
     <Stack spacing={3}>
       <PageHeading
-        title="Transportation"
+        title="Logistics"
         subtitle="Coordinate shuttles and buses for your guests"
       />
 

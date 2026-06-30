@@ -7,10 +7,12 @@
 /**
  * Phera landing page.
  *
- * Seven sections — Hero, FeatureStepper ("The full kit"), our WhatsApp
- * Concierge dark panel (kept from a prior iteration), Pricing, Origin
- * (Story), FAQ, FinalCTA — are mirrored 1:1 from the Claude Design
- * package (see /tmp/phera-zip/, also `Phera.zip` at the repo root). The
+ * Nine sections — Hero, Meet your planner (voice-forward centerpiece),
+ * FeatureStepper ("Everything it handles"), our WhatsApp Concierge dark panel
+ * (the planner's guest-facing arm, kept from a prior iteration), Pricing,
+ * Origin (Story), FAQ, Vendor Spotlight, FinalCTA — the design-package
+ * sections are mirrored 1:1 from the Claude Design package (see /tmp/phera-zip/,
+ * also `Phera.zip` at the repo root). The
  * design's CSS lives at app/landing-design.css and is scoped to
  * `.phera-landing` so its classes don't leak into admin or guest surfaces.
  *
@@ -40,22 +42,18 @@ import { ActionButton } from '@/components/admin/ActionButton';
 import HomeNavLinks from '@/components/landing/HomeNavLinks';
 
 import HeroSection from '@/components/landing/HeroSection';
+import MeetYourPlannerSection from '@/components/landing/MeetYourPlannerSection';
 import FeatureStepper from '@/components/landing/FeatureStepper';
 import PricingSection from '@/components/landing/PricingSection';
 import OriginSection from '@/components/landing/OriginSection';
 import FAQSection from '@/components/landing/FAQSection';
 import FinalCTASection from '@/components/landing/FinalCTASection';
+import VendorSpotlightSection from '@/components/landing/VendorSpotlightSection';
 import { COLORS } from '@/lib/theme/tokens';
+import { FAQ_ITEMS } from '@/lib/landing/faq-content';
 
-const FAQS_FOR_SCHEMA = [
-  { q: 'Is there really a free tier?', a: "Yes - really free. Beautiful wedding site, guest list, basic RSVPs without paying us a cent. Base ($349) is when you want the heavier lifting: WhatsApp outreach, concierge, travel, rooms." },
-  { q: 'How does the guest coordination work?', a: "Once you're on Base, the chasing comes off your plate. We WhatsApp every guest on your behalf - save-the-dates, RSVP nudges, travel forms, room assignments, shuttle pickups - on a timeline we tuned by living through it." },
-  { q: 'Do my guests need to download an app?', a: "Nope - that was non-negotiable. Everyone has WhatsApp open already, and your wedding site works on any phone or laptop. No new apps for your aunty to figure out." },
-  { q: "What if a guest doesn't reply on WhatsApp?", a: "We follow up a few times - gently, spaced out. If they're still silent, we hand them off to you with their contact info so a family member can call. Some cousins only respond after a phone call." },
-  { q: 'How does the Concierge know about my wedding?', a: "We feed it everything in your dashboard: schedule, dress codes, venue addresses, plus a Knowledge Bank we auto-build for the city - weather, restaurants, cultural context. Anything wrong, you fix in a click." },
-  { q: 'Do I still need a day-of coordinator?', a: "Phera handles the months leading up to the wedding. We don't cue the DJ or fix your dupatta. For day-of, most couples pair us with a local coordinator. White Glove gets you a dedicated person on our side as well." },
-  { q: "Is my guests' data safe?", a: "Yes. Every guest gives explicit consent before we message them, we're DPDPA-2023 compliant, and we delete everything 90 days after the wedding. Guests can pull their data anytime." },
-];
+// Single source of truth shared with the visible FAQ accordion.
+const FAQS_FOR_SCHEMA = FAQ_ITEMS;
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -113,7 +111,13 @@ function LandingPageContent() {
 
   const handleBaseAction = (e?: React.MouseEvent) => handleTierAction('base', e);
   const handlePremiumAction = (e?: React.MouseEvent) => handleTierAction('premium', e);
-  const handlePlannerAction = (e?: React.MouseEvent) => handleTierAction('planner_perwedding', e);
+  // Planners get a dedicated page (positioning + book-a-call) instead of being
+  // dropped straight into a $249 Stripe checkout. They start the per-wedding
+  // billing flow from inside the planner onboarding.
+  const handlePlannerAction = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    router.push('/planners');
+  };
 
   return (
     <OptimizedBackground useAppDefault className="min-h-screen flex flex-col">
@@ -139,6 +143,8 @@ function LandingPageContent() {
           variables and class rules from app/landing-design.css apply. */}
       <Box component="main" className="phera-landing" sx={{ flexGrow: 1 }}>
         <HeroSection />
+
+        <MeetYourPlannerSection />
 
         <FeatureStepper />
 
@@ -190,7 +196,7 @@ function LandingPageContent() {
                   variants={fadeIn}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
-                    <span className="eyebrow" style={{ color: 'white' }}>24/7 concierge</span>
+                    <span className="eyebrow" style={{ color: 'white' }}>24/7 guest experience</span>
                   </div>
                   <h2
                     className="display"
@@ -205,7 +211,7 @@ function LandingPageContent() {
                       lineHeight: 0.98,
                     }}
                   >
-                    Trained on <em style={{ color: '#F08AA0' }}>your</em> wedding.<br />
+                    Your planner answers <em style={{ color: '#F08AA0' }}>your guests</em>, too.<br />
                     On call <em>at 2 AM.</em>
                   </h2>
                   <Typography
@@ -217,7 +223,7 @@ function LandingPageContent() {
                       lineHeight: 1.55,
                     }}
                   >
-                    Concierge knows your venues, dates, dress codes, weather, nearby restaurants, visa rules. Guests get instant answers. You get to sleep.
+                    The same planner, in guest mode: a WhatsApp concierge trained on your wedding — venues, dates, dress codes, weather, restaurants, visa rules. Guests get instant answers. You get to sleep.
                   </Typography>
                   <Box component="ul" sx={{ marginTop: { xs: 3, md: 4 }, listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: { xs: 1.25, md: 1.75 } }}>
                     {[
@@ -233,10 +239,8 @@ function LandingPageContent() {
                     ))}
                   </Box>
                   <ActionButton
-                    onClick={handleBaseAction}
+                    href="/auth/signup"
                     variant="contained"
-                    keepBackgroundOnLoad
-                    spinnerColor={COLORS.text.inverse}
                     className="btn btn-primary"
                     sx={{
                       marginTop: { xs: '28px', md: '36px' },
@@ -251,8 +255,11 @@ function LandingPageContent() {
                     }}
                     endIcon={<span className="btn-arrow" style={{ display: 'inline-block' }}>→</span>}
                   >
-                    Activate concierge
+                    Start free
                   </ActionButton>
+                  <Typography sx={{ marginTop: 1.5, fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
+                    The concierge is part of Base — $349, one-time per wedding.
+                  </Typography>
                 </motion.div>
               </Grid>
               <Grid size={{ xs: 12, md: 5 }} sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -290,6 +297,8 @@ function LandingPageContent() {
         <OriginSection />
 
         <FAQSection />
+
+        <VendorSpotlightSection />
 
         <FinalCTASection />
 
@@ -335,7 +344,10 @@ function LandingPageContent() {
                 <Stack spacing={1}>
                   <Link href="#service" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">Features</Link>
                   <Link href="#pricing" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">Pricing</Link>
+                  <Link href="/vendors" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">Vendor Directory</Link>
                   <Link href="/demo" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">Demo</Link>
+                  <Link href="/planners" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">For Planners</Link>
+                  <Link href="/vendors/join" className="text-[#4a4a4a] hover:text-[#DE3F5E] transition-colors">For Vendors</Link>
                 </Stack>
               </Grid>
               <Grid size={{ xs: 6, md: 2 }}>

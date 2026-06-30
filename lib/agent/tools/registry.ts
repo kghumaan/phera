@@ -1,0 +1,251 @@
+import type { AgentQuestion, AgentToolContext, AgentToolDefinition, VenueCard, WhatsAppBroadcastDraft } from '../types';
+
+/**
+ * Central tool registry. Every capability the agent has lives here as one
+ * declarative entry — a thin wrapper over the existing service layer, so the
+ * UI and the agent drive the exact same data paths. To extend the agent,
+ * add a tool to one of the domain files in this directory and it shows up
+ * in the model's tool list automatically.
+ */
+const registry = new Map<string, AgentToolDefinition>();
+
+export function registerTools(tools: AgentToolDefinition[]) {
+  for (const tool of tools) {
+    if (registry.has(tool.name)) {
+      throw new Error(`Agent tool already registered: ${tool.name}`);
+    }
+    registry.set(tool.name, tool);
+  }
+}
+
+export function getTool(name: string): AgentToolDefinition | undefined {
+  return registry.get(name);
+}
+
+export function listTools(): AgentToolDefinition[] {
+  return Array.from(registry.values());
+}
+
+/** Test-only escape hatch so suites can register fixtures without leaking. */
+export function clearRegistryForTests() {
+  registry.clear();
+}
+
+export interface DispatchResult {
+  ok: boolean;
+  /** JSON-stringified payload handed back to the model as the tool_result. */
+  content: string;
+  /** Set when a gated tool was parked as a pending agent_actions row. */
+  pendingActionId?: string;
+  /** Set when ask_user parked questions for the client to render. */
+  questions?: AgentQuestion[];
+  /** Set when a Pro tool was blocked for a Basic user — the feature name. */
+  upgradeRequiredFeature?: string;
+  /** Set when request_upload asked the client to render an upload card. */
+  uploadKind?: 'guests' | 'rooms';
+  /** Set when an FAQ write tool (propose_faqs / add_faq / update_faq) returned the
+   *  current FAQ list for the client's review-and-approve panel. Surfaced from
+   *  the tool's execute() result — see the normal-execution path below. */
+  faqReview?: { id: string; question: string; answer: string }[];
+  /** Set when search_vendor_directory returned matches to render as listing cards
+   *  in the right pane. Surfaced from the tool's execute() result — see the
+   *  normal-execution path below. */
+  venueCards?: VenueCard[];
+  /** Set when connect_whatsapp asked the client to open the QR pairing panel. */
+  whatsappPairing?: { status: string };
+  /** Set when broadcast_message drafted a guest broadcast for the review panel. */
+  broadcastReview?: WhatsAppBroadcastDraft;
+}
+
+/** Pull a `faqReview` directive off a tool's execute() result, if present, so the
+ *  loop can stream it to the client. The full result (incl. faqReview) is still
+ *  handed back to the model as the tool_result content. */
+function extractFaqReview(result: unknown): DispatchResult['faqReview'] | undefined {
+  if (!result || typeof result !== 'object' || !('faqReview' in result)) return undefined;
+  const value = (result as { faqReview?: unknown }).faqReview;
+  if (!Array.isArray(value)) return undefined;
+  return value as DispatchResult['faqReview'];
+}
+
+/** Pull a `venueCards` directive off a tool's execute() result, if present, so the
+ *  loop can stream it to the client as listing cards. The full result (incl.
+ *  venueCards) is still handed back to the model as the tool_result content. */
+function extractVenueCards(result: unknown): DispatchResult['venueCards'] | undefined {
+  if (!result || typeof result !== 'object' || !('venueCards' in result)) return undefined;
+  const value = (result as { venueCards?: unknown }).venueCards;
+  if (!Array.isArray(value)) return undefined;
+  return value as DispatchResult['venueCards'];
+}
+
+/** Pull a `whatsappPairing` directive off a tool's execute() result so the loop
+ *  can tell the client to open the QR pairing panel. */
+function extractWhatsappPairing(result: unknown): DispatchResult['whatsappPairing'] | undefined {
+  if (!result || typeof result !== 'object' || !('whatsappPairing' in result)) return undefined;
+  const value = (result as { whatsappPairing?: unknown }).whatsappPairing;
+  if (!value || typeof value !== 'object') return undefined;
+  return value as DispatchResult['whatsappPairing'];
+}
+
+/** Pull a `broadcastReview` directive off a tool's execute() result so the loop
+ *  can stream the drafted broadcast to the client's review panel. */
+function extractBroadcastReview(result: unknown): DispatchResult['broadcastReview'] | undefined {
+  if (!result || typeof result !== 'object' || !('broadcastReview' in result)) return undefined;
+  const value = (result as { broadcastReview?: unknown }).broadcastReview;
+  if (!value || typeof value !== 'object') return undefined;
+  return value as DispatchResult['broadcastReview'];
+}
+
+const MAX_RESULT_CHARS = 12_000;
+
+function serializeResult(value: unknown): string {
+  const raw = typeof value === 'string' ? value : JSON.stringify(value ?? null);
+  if (raw.length <= MAX_RESULT_CHARS) return raw;
+  return `${raw.slice(0, MAX_RESULT_CHARS)}… [truncated — ask for a narrower slice]`;
+}
+
+/**
+ * Execute a tool call and audit-log it. Reads are logged too (cheap, and the
+ * audit trail doubles as eval data); gated tools refuse until the Phase 2
+ * confirmation flow lands.
+ */
+export async function dispatchTool(
+  name: string,
+  input: Record<string, unknown>,
+  ctx: AgentToolContext
+): Promise<DispatchResult> {
+  const tool = registry.get(name);
+  if (!tool) {
+    return { ok: false, content: `Unknown tool: ${name}` };
+  }
+
+  // Pro gate: Basic users can't use paid features. Surface an upgrade card
+  // instead of executing — the agent explains it's the feature they wanted.
+  if (tool.proFeature && !ctx.isPro) {
+    return {
+      ok: false,
+      upgradeRequiredFeature: tool.proFeature,
+      content: `UPGRADE REQUIRED — "${tool.proFeature}" is a paid (Premium) feature and this account is on the free Basic plan. An upgrade card is now shown in the chat. Tell the user, in one warm line, that ${tool.proFeature} is a Premium feature (one they asked for) and they can upgrade via the card to unlock it and continue. Do NOT retry this tool.`,
+    };
+  }
+
+  // request_upload: show an inline upload card (with format help) in the chat.
+  if (name === 'request_upload') {
+    const kind = input?.kind === 'rooms' ? 'rooms' : 'guests';
+    return {
+      ok: true,
+      uploadKind: kind,
+      content: `An upload card for the ${
+        kind === 'guests' ? 'guest list (with the recommended columns)' : 'hotel floor plan'
+      } is now shown in the chat. The user attaches their file there and the import result arrives as a message. Add one short line inviting them to upload; do not retry.`,
+    };
+  }
+
+  // ask_user: park the questions; the chat renders inputs and the answers
+  // come back via /api/agent/answer as the next user message.
+  if (name === 'ask_user') {
+    const questions = (input?.questions ?? []) as AgentQuestion[];
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return { ok: false, content: 'ask_user needs a non-empty "questions" array.' };
+    }
+    const { data: pending, error } = await ctx.supabase
+      .from('agent_actions')
+      .insert({
+        conversation_id: ctx.conversationId,
+        wedding_id: ctx.weddingSlug,
+        tool_name: 'ask_user',
+        input,
+        status: 'pending',
+        risk: 'read',
+      })
+      .select('id')
+      .single();
+    if (error || !pending) {
+      return { ok: false, content: `Could not queue the questions: ${error?.message}` };
+    }
+    return {
+      ok: true,
+      pendingActionId: pending.id as string,
+      questions,
+      content:
+        'ASKED — the questions are now shown to the user as input fields. Stop here and wait; their answers arrive as the next message. Do not re-ask in prose.',
+    };
+  }
+
+  if (tool.risk === 'gated') {
+    // Park the call as a pending action; the chat client renders a
+    // Confirm/Decline card and /api/agent/confirm resolves it.
+    const { data: pending, error } = await ctx.supabase
+      .from('agent_actions')
+      .insert({
+        conversation_id: ctx.conversationId,
+        wedding_id: ctx.weddingSlug,
+        tool_name: name,
+        input,
+        status: 'pending',
+        risk: tool.risk,
+      })
+      .select('id')
+      .single();
+    if (error || !pending) {
+      return { ok: false, content: `Could not queue the action for confirmation: ${error?.message}` };
+    }
+    return {
+      ok: true,
+      pendingActionId: pending.id as string,
+      content:
+        'PENDING — this action now awaits the user\'s confirmation via a Confirm button shown in the chat. It has NOT executed yet. Briefly tell the user what will happen when they confirm; do not assume or claim it is done.',
+    };
+  }
+
+  const startedAt = new Date().toISOString();
+  try {
+    const result = await tool.execute(input ?? {}, ctx);
+    const content = serializeResult(result);
+    await logAction(ctx, { name, input, risk: tool.risk, status: 'executed', result: content, startedAt });
+    const faqReview = extractFaqReview(result);
+    const venueCards = extractVenueCards(result);
+    const whatsappPairing = extractWhatsappPairing(result);
+    const broadcastReview = extractBroadcastReview(result);
+    return {
+      ok: true,
+      content,
+      ...(faqReview ? { faqReview } : {}),
+      ...(venueCards ? { venueCards } : {}),
+      ...(whatsappPairing ? { whatsappPairing } : {}),
+      ...(broadcastReview ? { broadcastReview } : {}),
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    await logAction(ctx, { name, input, risk: tool.risk, status: 'failed', result: message, startedAt });
+    return { ok: false, content: `Tool failed: ${message}` };
+  }
+}
+
+async function logAction(
+  ctx: AgentToolContext,
+  entry: {
+    name: string;
+    input: Record<string, unknown>;
+    risk: string;
+    status: 'executed' | 'failed' | 'declined';
+    result: string;
+    startedAt: string;
+  }
+) {
+  try {
+    await ctx.supabase.from('agent_actions').insert({
+      conversation_id: ctx.conversationId,
+      wedding_id: ctx.weddingSlug,
+      tool_name: entry.name,
+      input: entry.input,
+      result: { output: entry.result.slice(0, 4000) },
+      status: entry.status,
+      risk: entry.risk,
+      created_at: entry.startedAt,
+      resolved_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    // The audit log must never break a conversation turn.
+    console.error('agent_actions insert failed:', error);
+  }
+}

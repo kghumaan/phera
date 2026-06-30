@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
 import AppHeader from '@/components/shared/AppHeader';
 import AppFooter from '@/components/shared/AppFooter';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
-import { FONTS } from '@/lib/theme/tokens';
+import { FONTS, COLORS } from '@/lib/theme/tokens';
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -146,8 +146,8 @@ export default function SubProcessorsPage() {
                 sx={{
                   width: '100%',
                   borderCollapse: 'collapse',
-                  '& th, & td': { border: '1px solid #e5e5e5', p: 1.5, fontSize: '0.875rem', textAlign: 'left', verticalAlign: 'top' },
-                  '& th': { bgcolor: '#f8f8f8', fontWeight: 600 },
+                  '& th, & td': { border: `1px solid ${COLORS.border.strong}`, p: 1.5, fontSize: '0.875rem', textAlign: 'left', verticalAlign: 'top', color: COLORS.text.strong },
+                  '& th': { bgcolor: COLORS.bg.muted, fontWeight: 600 },
                 }}
               >
                 <thead>

@@ -12,6 +12,7 @@
  */
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { ActionButton } from '@/components/admin/ActionButton';
 import { COLORS } from '@/lib/theme/tokens';
 import { LotusGlyph, Reveal } from './design-primitives';
@@ -117,18 +118,17 @@ export default function HeroSection() {
               lineHeight: 1.5,
             }}
           >
-            The wedding operations platform you wish you had. We handle every guest: RSVPs, travel, rooms, midnight WhatsApps. So you can actually enjoy your wedding.
+            AI wedding planner that handles it all — guest lists, RSVPs, room assignments, WhatsApp groups, vendors, guest logistics, and everything in between.
           </p>
         </Reveal>
 
         <Reveal delay={3}>
           <div className="hero-cta-row">
             <ActionButton
-              href="/auth/login"
+              href="/auth/signup"
               variant="contained"
               className="btn btn-primary"
               keepBackgroundOnLoad
-              spinnerColor={COLORS.text.inverse}
               sx={{
                 fontSize: { xs: 15, sm: 17 },
                 padding: { xs: '13px 22px', sm: '18px 30px' },
@@ -141,12 +141,14 @@ export default function HeroSection() {
               }}
               endIcon={<span className="btn-arrow" style={{ display: 'inline-block' }}>→</span>}
             >
-              Get started - it&apos;s free
+              Start free
             </ActionButton>
             <ActionButton
               href="/demo"
               variant="outlined"
               className="btn btn-ghost"
+              keepBackgroundOnLoad
+              spinnerColor={COLORS.text.strong}
               sx={{
                 fontSize: { xs: 15, sm: 17 },
                 padding: { xs: '13px 22px', sm: '18px 30px' },
@@ -156,15 +158,59 @@ export default function HeroSection() {
                 color: 'var(--text-strong)',
                 borderColor: 'rgba(0,0,0,0.18)',
                 bgcolor: 'transparent',
+                // Keep the outline visible while loading (don't let MUI's
+                // disabled state fade the border under the spinner).
+                '&.Mui-disabled': { borderColor: 'rgba(0,0,0,0.18)' },
                 '&:hover': {
                   borderColor: 'var(--text-strong)',
                   bgcolor: 'rgba(0,0,0,0.02)',
                 },
               }}
             >
-              View Demo
+              Try the live demo
             </ActionButton>
           </div>
+          {/* Honest scope line — sets the free-vs-paid expectation right at the
+              CTA so the promise above doesn't read as bait once they reach
+              pricing. Mirrors the /welcome screen's tone. */}
+          <p
+            className="hero-scope-line"
+            style={{
+              marginTop: 18,
+              fontSize: 'clamp(14px, 1vw, 15px)',
+              color: 'var(--text-subtle)',
+              maxWidth: '52ch',
+              lineHeight: 1.6,
+            }}
+          >
+            Free forever for your wedding site, guest list &amp; RSVPs.<br />
+            Full guest ops from $349 — one-time, per wedding.
+          </p>
+          {/* Planner wedge — gives a planner self-identifying as the buyer an
+              above-the-fold path to /planners without competing with the
+              couple-facing CTAs. */}
+          <p
+            className="hero-planner-line"
+            style={{
+              marginTop: 10,
+              fontSize: 'clamp(14px, 1vw, 15px)',
+              color: 'var(--text-subtle)',
+              lineHeight: 1.6,
+            }}
+          >
+            Planning weddings for clients?{' '}
+            <Link
+              href="/planners"
+              style={{
+                color: 'var(--accent)',
+                fontWeight: 600,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Phera for planners →
+            </Link>
+          </p>
         </Reveal>
       </div>
 
@@ -213,7 +259,7 @@ export default function HeroSection() {
            inner stack; the extra push comes from a min top inset. */
         .hero-section { padding-top: 100px; }
         .hero-content { padding-top: clamp(48px, 8vh, 120px); }
-        .hero-cta-row { display: flex; gap: 14px; margin-top: 40px; flex-wrap: wrap; align-items: stretch; }
+        .hero-cta-row { display: flex; gap: 14px; margin-top: 24px; flex-wrap: wrap; align-items: stretch; }
         .hero-cta-row > * {
           flex: 0 0 auto;
           /* Equal heights even though one button has an arrow icon. */
@@ -227,7 +273,7 @@ export default function HeroSection() {
           .hero-content { padding-top: clamp(64px, 10vh, 120px); }
           /* Both CTAs are the same size on mobile: equal flex basis,
              equal min-height, same horizontal padding. */
-          .hero-cta-row { gap: 10px; margin-top: 28px; flex-direction: column; align-items: stretch; }
+          .hero-cta-row { gap: 10px; margin-top: 20px; flex-direction: column; align-items: stretch; }
           .hero-cta-row > * {
             flex: 1 1 0;
             width: 100%;

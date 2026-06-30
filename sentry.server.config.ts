@@ -4,10 +4,11 @@ import * as Sentry from "@sentry/nextjs";
 // Server errors are almost always actionable — real uncaught exceptions
 // in API routes, bad DB queries, Stripe webhook failures. We're much
 // stricter about noise filters here than on the client.
+// Production-only: skip local dev and Vercel preview deploys.
 Sentry.init({
     dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-    enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
-    environment: process.env.NODE_ENV,
+    enabled: process.env.VERCEL_ENV === "production" && !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+    environment: process.env.VERCEL_ENV || process.env.NODE_ENV,
 
     // 5% trace sampling — matches client, keeps us under free-tier caps.
     tracesSampleRate: 0.05,

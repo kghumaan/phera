@@ -46,7 +46,9 @@ function LoginContent() {
   const isAnyLoading = emailLoading || googleLoading;
 
   const getOnboardingUrl = () => {
-    return `/onboarding${role ? `?role=${role}` : ''}`;
+    // New couples land on /welcome — the AI-planner vs manual fork the landing
+    // page sells. Planners keep their dedicated onboarding path.
+    return role ? `/onboarding?role=${role}` : '/welcome';
   };
 
   useEffect(() => {

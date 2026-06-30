@@ -49,11 +49,13 @@ Phera (phera.io) is an Indian wedding guest logistics platform pivoting from a D
 
 ## Current State
 
-**Pivot status:** Phase 1 — building the outreach engine and service infrastructure on the `develop` branch. The `main` branch has the existing production app (wedding website builder, RSVP, WhatsApp concierge, transportation system). Production on `main` is live and must not break.
+**ACTIVE FOCUS (June 2026): the Phera Agent** — a single AI wedding-planner agent that controls the whole app via chat (eventually WhatsApp + voice). Work lives on `feature/phera-agent`; the plan is `AGENT-PLAN.md`. Code map: `lib/agent/` (provider-agnostic loop, tool registry with read/write/gated risk tiers, Anthropic provider on `claude-opus-4-8`, in-chat confirmation flow), `app/api/agent/` (SSE chat + confirm + lab routes), `app/admin/[weddingSlug]/assistant/` (Planner page), `app/agent-lab/` (E2E testing UI — disposable `agent-lab-*` mock weddings, scriptable via `AGENT_LAB_TOKEN`). Tables: `agent_conversations/messages/actions/feedback/knowledge` (migration `20260612_agent_tables.sql`, applied to both envs). To extend the agent, add a tool to `lib/agent/tools/` — see existing domain files for the pattern. Key data conventions: `rsvps.attending` is `'yes'|'no'|'maybe'`; guests need `avatar_color` + `email` (use `''` for none, phone is the required contact); TBD placeholders are `'Venue TBD'`/epoch dates.
+
+**Earlier outreach-pivot context (still relevant background):** Phase 1 of the outreach engine was built on the `develop` branch. The `main` branch has the existing production app (wedding website builder, RSVP, WhatsApp concierge, transportation system). Production on `main` is live and must not break.
 
 **Task 1 (DB migration) is COMPLETE.** The full SQL migration has been run against both test and production Supabase. All new columns on `guests` table (outreach_status, outreach_last_contacted_at, outreach_attempt_count, outreach_next_action, outreach_next_action_at, whatsapp_opted_out, contact_type, is_family_liaison, liaison_for, logistics_data, consent_given_at, consent_language, consent_withdrawn_at, data_retention_until) and all three new tables (outreach_events, outreach_sequences, outreach_escalations) plus their indexes already exist. **Do NOT re-run any migration SQL. Do NOT create or modify Task 1 migration files.**
 
-**Active work starts at Task 2** in DEV-ROADMAP.md.
+DEV-ROADMAP.md documents the (paused) outreach-engine task sequence; consult it only when outreach work resumes.
 
 ## Target Market
 

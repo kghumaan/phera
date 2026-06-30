@@ -49,9 +49,9 @@ export async function sendContactAlert(data: ContactAlertData) {
 
         if (result.error) throw result.error;
         return { success: true };
-    } catch (err: any) {
+    } catch (err) {
         console.error('Failed to send contact alert email:', err);
-        return { success: false, error: err.message };
+        return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
 }
 
@@ -88,8 +88,62 @@ export async function sendFeatureRequestAlert(data: FeatureRequestAlertData) {
 
         if (result.error) throw result.error;
         return { success: true };
-    } catch (err: any) {
+    } catch (err) {
         console.error('Failed to send feature request alert email:', err);
-        return { success: false, error: err.message };
+        return { success: false, error: err instanceof Error ? err.message : String(err) };
+    }
+}
+
+export interface PlannerRequestAlertData {
+    weddingId?: string;
+    /** 'managed' = a service our team runs; 'unsupported' = something we don't do yet. */
+    kind: 'managed' | 'unsupported';
+    service: string;
+    budget?: string | null;
+    details: string;
+}
+
+/**
+ * Sends an email alert when the AI Planner captures a request it can't
+ * self-serve — a managed-service brief (venue/vendor sourcing, album,
+ * save-the-dates) or an unsupported ask the couple made. Mirrors the
+ * contact-form alert so the team is notified the same way.
+ */
+export async function sendPlannerRequestAlert(data: PlannerRequestAlertData) {
+    const { weddingId, kind, service, budget, details } = data;
+    const fromEmail = process.env.RESEND_FROM_EMAIL;
+
+    if (!fromEmail) {
+        console.error('RESEND_FROM_EMAIL is not configured');
+        return { success: false, error: 'RESEND_FROM_EMAIL is not configured' };
+    }
+
+    const kindLabel = kind === 'unsupported' ? 'Unsupported ask' : 'Managed request';
+
+    try {
+        const result = await resend().emails.send({
+            from: fromEmail,
+            to: [ALERT_RECIPIENT],
+            subject: `[Phera Planner] ${kindLabel}: ${service}`,
+            html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
+          <h2 style="color: #DE3F5E; border-bottom: 2px solid #DE3F5E; padding-bottom: 10px;">${kindLabel}</h2>
+          <p><strong>Service:</strong> ${service}</p>
+          <p><strong>Wedding:</strong> ${weddingId || 'N/A'}</p>
+          ${budget ? `<p><strong>Budget:</strong> ${budget}</p>` : ''}
+          <div style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 8px;">
+            <p><strong>Brief:</strong></p>
+            <p style="white-space: pre-wrap;">${details}</p>
+          </div>
+          <p style="font-size: 12px; color: #999; margin-top: 30px; text-align: center;">Captured by the Phera AI Planner</p>
+        </div>
+      `,
+        });
+
+        if (result.error) throw result.error;
+        return { success: true };
+    } catch (err) {
+        console.error('Failed to send planner request alert email:', err);
+        return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
 }

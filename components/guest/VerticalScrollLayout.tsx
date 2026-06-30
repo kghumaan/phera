@@ -272,6 +272,10 @@ export default function VerticalScrollLayout({
 
   // Event detail carousel state
   const [selectedEvent, setSelectedEvent] = useState<WeddingEvent | null>(null);
+  // Title shown above the carousel. Tracks the clicked schedule item's name —
+  // NOT the linked wedding_event.name, which freezes at creation time and goes
+  // stale when the item is later renamed in the admin schedule editor.
+  const [selectedEventName, setSelectedEventName] = useState<string>('');
   const [showEventCarousel, setShowEventCarousel] = useState(false);
 
   const [hasSchedule, setHasSchedule] = useState(false);
@@ -545,6 +549,8 @@ export default function VerticalScrollLayout({
     const linkedEvent = findLinkedEvent(event.linked_event_id, event.name);
     if (linkedEvent && linkedEvent.carousel_slides && linkedEvent.carousel_slides.length > 0) {
       setSelectedEvent(linkedEvent);
+      // Use the schedule item's current name so the title reflects any rename.
+      setSelectedEventName(event.name);
       setShowEventCarousel(true);
     }
   };
@@ -1635,7 +1641,7 @@ export default function VerticalScrollLayout({
         {/* Right Side - Fixed Couple Image OR Event Detail Carousel */}
         {showEventCarousel && selectedEvent ? (
           <EventDetailCarousel
-            eventName={selectedEvent.name}
+            eventName={selectedEventName || selectedEvent.name}
             slides={selectedEvent.carousel_slides}
             textColor={selectedEvent.text_color || COLORS.bg.white}
             gradientBackground={selectedEvent.gradient_background || null}

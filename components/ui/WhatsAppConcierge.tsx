@@ -35,6 +35,13 @@ export interface WhatsAppConciergeProps {
      * panel pixel-for-pixel but the chat needs to read smaller.
      */
     compact?: boolean;
+    /**
+     * Multiplier on the scripted drip-feed timing (only applies when
+     * `scripted`). 1 = default pace; >1 = slower. Lets a landing mock play the
+     * conversation more slowly without affecting other surfaces that share this
+     * component.
+     */
+    pace?: number;
 }
 
 const defaultMessages: Message[] = [
@@ -73,7 +80,7 @@ const defaultMessages: Message[] = [
     }
 ];
 
-const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages = defaultMessages, hideNotch = false, dense = false, scripted = false, compact = false }) => {
+const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages = defaultMessages, hideNotch = false, dense = false, scripted = false, compact = false, pace = 1 }) => {
     const [shown, setShown] = useState<number>(scripted ? 0 : messages.length);
     const [typing, setTyping] = useState<boolean>(false);
     const chatRef = useRef<HTMLDivElement | null>(null);
@@ -86,6 +93,8 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
         let cancelled = false;
         let idx = 0;
         let timer: ReturnType<typeof setTimeout>;
+        // `pace` (>1) slows the whole drip-feed; 1 = original timing.
+        const p = (ms: number) => Math.round(ms * (pace > 0 ? pace : 1));
         const tick = () => {
             if (cancelled) return;
             if (idx >= messages.length) {
@@ -94,8 +103,8 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
                     idx = 0;
                     setShown(0);
                     setTyping(false);
-                    timer = setTimeout(tick, 800);
-                }, 5500);
+                    timer = setTimeout(tick, p(800));
+                }, p(5500));
                 return;
             }
             const next = messages[idx];
@@ -106,20 +115,20 @@ const WhatsAppConcierge: React.FC<WhatsAppConciergeProps> = ({ sx = {}, messages
                     setTyping(false);
                     setShown((n) => n + 1);
                     idx += 1;
-                    timer = setTimeout(tick, 1100);
-                }, 1100);
+                    timer = setTimeout(tick, p(1100));
+                }, p(1100));
             } else {
                 setShown((n) => n + 1);
                 idx += 1;
-                timer = setTimeout(tick, 900);
+                timer = setTimeout(tick, p(900));
             }
         };
-        timer = setTimeout(tick, 600);
+        timer = setTimeout(tick, p(600));
         return () => {
             cancelled = true;
             clearTimeout(timer);
         };
-    }, [scripted, messages]);
+    }, [scripted, messages, pace]);
 
     useEffect(() => {
         if (chatRef.current) {

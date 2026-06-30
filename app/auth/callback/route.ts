@@ -178,7 +178,7 @@ export async function GET(request: NextRequest) {
 
         // Special handling: If redirecting to /admin, check onboarding first
         if (redirectParam.startsWith('/admin') && !onboardingCompleted) {
-          redirectUrl = new URL('/onboarding', origin);
+          redirectUrl = new URL('/welcome', origin);
           console.log('[Callback] Onboarding not completed, redirecting to /onboarding instead of admin');
         } else if (redirectParam === '/admin/new/overview' && data.session?.user?.id) {
           // Check if user has any existing weddings
@@ -189,11 +189,11 @@ export async function GET(request: NextRequest) {
             .order('created_at', { ascending: false })
             .limit(1);
 
-          // If user has existing weddings, redirect to their most recent one
+          // If user has existing weddings, redirect to their most recent one's Planner
           if (weddings && weddings.length > 0) {
             const weddingSlug = weddings[0].slug;
-            redirectUrl = new URL(`/admin/${weddingSlug}/overview`, origin);
-            console.log(`[Callback] User has existing wedding, redirecting to: ${weddingSlug}`);
+            redirectUrl = new URL(`/admin/${weddingSlug}/assistant`, origin);
+            console.log(`[Callback] User has existing wedding, redirecting to Planner: ${weddingSlug}`);
           }
         }
       }
@@ -204,7 +204,7 @@ export async function GET(request: NextRequest) {
       // Priority 3: Default behavior based on onboarding status
       else {
         if (!onboardingCompleted) {
-          redirectUrl = new URL('/onboarding', origin);
+          redirectUrl = new URL('/welcome', origin);
         } else {
           redirectUrl = new URL('/admin', origin);
         }

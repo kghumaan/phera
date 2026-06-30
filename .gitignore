@@ -76,3 +76,6 @@ public/images/frames/_originals/
 * copy.*
 * copy
 * conflicted *
+
+# Agent eval runner output
+agent-evals-report.json

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendWhapiText } from '@/lib/whatsapp/whapi-send';
 import type { BroadcastDataField, BroadcastTargetType } from '@/lib/supabase/broadcasts-service';
+import { guestMatchesTags } from '@/lib/utils/guest-tags';
 
 /**
  * Create + send a broadcast.
@@ -76,9 +77,7 @@ export async function POST(req: NextRequest) {
 
   if (targetType === 'tags') {
     if (!targetTags.length) return NextResponse.json({ error: 'No tags selected' }, { status: 400 });
-    recipients = recipients.filter(
-      (g: any) => g.logistics_data?.tag && targetTags.includes(g.logistics_data.tag),
-    );
+    recipients = recipients.filter((g: any) => guestMatchesTags(g.logistics_data, targetTags));
   }
 
   if (!recipients.length) {

@@ -16,9 +16,10 @@ import SchedulePage from '@/app/(guest)/[weddingSlug]/schedule/page';
 import TravelPage from '@/app/(guest)/[weddingSlug]/travel/page';
 import RegistryPage from '@/app/(guest)/[weddingSlug]/registry/page';
 import WhereToShopPage from '@/app/(guest)/[weddingSlug]/where-to-shop/page';
+import CulturalGuidePage from '@/app/(guest)/[weddingSlug]/cultural-guide/page';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
-const VALID_SECTIONS = ['schedule', 'travel', 'faq', 'registry', 'shopping'];
+const VALID_SECTIONS = ['schedule', 'travel', 'faq', 'registry', 'shopping', 'cultural-guide'];
 
 type PreviewView = 'pin_entry' | 'no_rsvp' | 'rsvp_submitted';
 
@@ -267,6 +268,7 @@ function SectionPreviewContent({ section }: { section: string }) {
       travel: TravelPage,
       registry: RegistryPage,
       shopping: WhereToShopPage,
+      'cultural-guide': CulturalGuidePage,
     };
     const Component = SectionComponent[section];
     if (Component) {

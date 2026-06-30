@@ -17,9 +17,12 @@ import WhatsAppBotMock from './feature-mocks/WhatsAppBotMock';
 import RoomAssignmentsMock from './feature-mocks/RoomAssignmentsMock';
 import TransportationMock from './feature-mocks/TransportationMock';
 import VendorAgentMock from './feature-mocks/VendorAgentMock';
+import { VENDOR_DIRECTORY_COUNT, VENDOR_DIRECTORY_SHORT } from '@/lib/landing/vendor-directory-copy';
 
 interface Step {
   tag: string;
+  /** Which plan unlocks this step — drives the Free/Base badge on the kicker. */
+  tier: 'Free' | 'Base';
   title: string;
   copy: string;
   bullet: string[];
@@ -33,19 +36,23 @@ interface Step {
   customMock?: () => React.ReactNode;
 }
 
-/** Compact six-step overview chips rendered above the stepper grid. */
+/** Compact overview chips rendered above the stepper grid. */
+// The glance-able journey — these mirror the six detailed steps below 1:1 so
+// the numbering never competes. (The AI planner that runs all of this is the
+// "Meet your planner" section just above; this is what it coordinates.)
 const OVERVIEW_STEPS = [
-  { n: '01', t: 'Bring your guest list' },
-  { n: '02', t: 'Spin up your site' },
-  { n: '03', t: 'Switch on the bot' },
-  { n: '04', t: 'Sort rooms & shuttles' },
-  { n: '05', t: 'Loop us into vendors' },
-  { n: '06', t: 'Show up, celebrate' },
+  { n: '01', t: 'Guest list & RSVPs' },
+  { n: '02', t: 'Wedding website' },
+  { n: '03', t: 'WhatsApp & broadcasts' },
+  { n: '04', t: 'Room assignments' },
+  { n: '05', t: 'Shuttles & travel' },
+  { n: '06', t: 'Find vendors' },
 ];
 
 const STEPS: Step[] = [
   {
     tag: 'STEP 01  ·  Guest list',
+    tier: 'Free',
     title: 'Bring your guest list. We take it from there.',
     copy: "Drop in a spreadsheet, paste from Google Contacts, or send us a photo of your handwritten list. Once it's in, we know who to reach out to, who's coming, who's asking the same question for the third time - and how to seat their family across the weekend.",
     bullet: [
@@ -59,32 +66,35 @@ const STEPS: Step[] = [
   },
   {
     tag: 'STEP 02  ·  Wedding website',
+    tier: 'Free',
     title: 'A site that actually gets used.',
     copy: "The digital invitation for this generation - schedule, venues, RSVP, registry, and a built-in cultural guide for the friends flying in from abroad. So when a non-desi friend asks what to wear to the sangeet, the answer is already on their phone.",
     bullet: [
       'Schedule, FAQ, registry, PIN-gated events',
+      'RSVPs with custom questions - collect responses free',
       'Built-in cultural guide: what to wear, what to expect, what NOT to do',
-      'DIY, AI-assisted, or 1-on-1 with our team',
     ],
     mockLabel: 'Wedding website + cultural guide',
     tint: 'rgba(255,153,51,0.07)',
     customMock: () => <WeddingWebsiteMock />,
   },
   {
-    tag: 'STEP 03  ·  WhatsApp bot',
-    title: 'Save-the-dates, invites, and a 24/7 reply bot.',
-    copy: "Flip it on and we WhatsApp every guest on a timeline we tuned by living through it. Behind the scenes, we auto-build a knowledge bank for your dates and city - weather, hotels, restaurants, dress codes - so the bot answers like a local who's been to your wedding twice already.",
+    tag: 'STEP 03  ·  WhatsApp outreach',
+    tier: 'Base',
+    title: 'Save-the-dates, invites, and one-tap broadcasts.',
+    copy: "Flip it on and we WhatsApp every guest on a timeline we tuned by living through it - save-the-dates, RSVP nudges, travel forms. Need to reach everyone at once? Broadcast any update or question - 'send your flight details', 'thank you for celebrating with us' - and every reply flows straight back into your dashboard.",
     bullet: [
       'Save-the-dates -> RSVPs -> travel forms, all on schedule',
-      '24/7 reply bot trained on your wedding + your city',
-      'You text us back; we update everything for you',
+      'Broadcast any message or question to every guest at once',
+      'Replies flow back in: flights, head counts, dietary notes',
     ],
-    mockLabel: 'WhatsApp outreach + concierge bot',
+    mockLabel: 'WhatsApp outreach + broadcasts',
     tint: 'rgba(32,201,151,0.07)',
     customMock: () => <WhatsAppBotMock />,
   },
   {
     tag: 'STEP 04  ·  Rooms',
+    tier: 'Base',
     title: 'Room assignments, without the politics.',
     copy: "Upload a floor plan or hotel block and we help place every guest - siblings together, the loud cousins on a different floor than your in-laws, the late arrivals near the lobby. The puzzle that usually eats a Sunday afternoon, solved before lunch.",
     bullet: [
@@ -98,27 +108,29 @@ const STEPS: Step[] = [
   },
   {
     tag: 'STEP 05  ·  Transportation',
-    title: 'Shuttles, airport pickups, venue transfers.',
-    copy: "We collect every flight, optimize shuttle routes, and ping pickups before guests even land. Uncle Raj at 4 AM is no longer your problem - he gets a WhatsApp with his driver's name, license plate, and a real-time map.",
+    tier: 'Base',
+    title: 'Every guest on the right shuttle, sorted.',
+    copy: "You plan the shuttles; we handle the puzzle of who goes on which one. The WhatsApp bot collects each guest's flight and arrival time, and we help you match every guest to the best pickup for when they actually land - then send each one their shuttle, time, and pickup point. No more chasing 200 people for flight numbers or rebuilding the list every time a flight changes.",
     bullet: [
-      'Auto-collect flight info via WhatsApp',
-      'Optimized shuttle routes + driver dispatch',
-      'Live arrival board for the family',
+      'Auto-collect flight & arrival details via WhatsApp',
+      'We help place each guest on the best shuttle for their arrival',
+      'Each guest gets their pickup time & point; you get the full board',
     ],
     mockLabel: 'Travel & shuttle dashboard',
     tint: 'rgba(59,130,246,0.06)',
     customMock: () => <TransportationMock />,
   },
   {
-    tag: 'STEP 06  ·  Vendor agent',
-    title: 'We sit in your vendor chats.',
-    copy: "Add us as a member of your caterer, florist, decor, and DJ groups. We summarize every thread, surface the action items, and chase the things you'd otherwise forget at 11pm. Nothing falls through the cracks because nobody's the project manager.",
+    tag: 'STEP 06  ·  Vendors',
+    tier: 'Base',
+    title: 'Find them. Add them. We coordinate the rest.',
+    copy: `Not sure where to start? Browse ${VENDOR_DIRECTORY_COUNT.toLocaleString()}+ photographers, DJs, mehendi artists, and planners across Asia's top destination-wedding cities - filtered by city, budget, and NRI experience. Once you've got your team, add Phera to the group chats and we'll read every thread, surface action items, and chase the things you'd forget at 11 PM.`,
     bullet: [
-      'Reads your vendor WhatsApp groups for you',
-      'Daily digest, action items, blockers',
-      'Flags risks before they become disasters',
+      VENDOR_DIRECTORY_SHORT,
+      'Filter by city, budget, category, and NRI experience',
+      'Already have vendors? We sit in their WhatsApp groups for you',
     ],
-    mockLabel: 'Vendor digest + action items',
+    mockLabel: 'Vendor discovery + coordinator',
     tint: 'rgba(212,175,55,0.08)',
     customMock: () => <VendorAgentMock />,
   },
@@ -218,13 +230,14 @@ export default function FeatureStepper() {
     >
       <div className="container">
         <SectionHeader
-          eyebrow="The full kit"
+          eyebrow="Everything it handles"
           title="One platform. Everything coordinated."
+          kicker="Once you speak with our planner, here's how it handles everything for you."
           singleLine
         />
 
-        {/* "Six steps" overview — six numbered chips with a dashed
-            connector behind. Hidden on mobile. */}
+        {/* Overview — numbered chips with a dashed connector behind.
+            Hidden on mobile. */}
         <div
           className="feature-steps-overview"
           style={{
@@ -335,6 +348,17 @@ export default function FeatureStepper() {
                     background: 'var(--accent)',
                   }} />
                   {s.tag}
+                  {/* Free vs Base badge so visitors see where the paywall is
+                      without reverse-engineering it from the pricing card. */}
+                  <span style={{
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    color: s.tier === 'Free' ? 'var(--text-subtle)' : 'white',
+                    background: s.tier === 'Free' ? 'rgba(0,0,0,0.06)' : 'var(--accent)',
+                  }}>{s.tier}</span>
                 </div>
                 <h3 className="display wrap-balance" style={{
                   fontFamily: 'var(--font-instrument-serif), Georgia, serif',

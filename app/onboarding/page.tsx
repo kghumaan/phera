@@ -42,6 +42,8 @@ import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
 import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
+import { onboardingAnalytics } from '@/lib/analytics/onboarding';
+import { useOnboardingExitTracking } from '@/lib/analytics/useOnboardingExitTracking';
 
 // --- Types ---
 type OnboardingStep = 1 | 2 | 3;
@@ -89,7 +91,7 @@ const features: Feature[] = [
     name: 'RSVP Collection',
     description: 'Track attendance and dietary needs',
     icon: <EventNote fontSize="large" />,
-    isPro: true,
+    isPro: false,
   },
   {
     id: 'whatsapp',
@@ -186,6 +188,9 @@ export default function OnboardingPage() {
   const [step, setStep] = useState<OnboardingStep>(1);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  // Set true the moment we commit to a successful finish, so the exit tracker
+  // (which can fire during the post-onboarding redirect) doesn't log a bounce.
+  const completedRef = useRef(false);
   const [role, setRole] = useState<UserRole | null>(null);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
@@ -308,6 +313,10 @@ export default function OnboardingPage() {
       const { data: { user: sessionUser } } = await supabase.auth.getUser();
       if (sessionUser) {
         setAuthUser(sessionUser);
+        // Onboarding is a high-intent flow — force a session replay and mark
+        // the funnel entry so we can see where users click and where they drop.
+        onboardingAnalytics.startSessionReplay();
+        onboardingAnalytics.started({ role: null, startStep: 1 });
         restoreSettings(sessionUser.id);
       } else {
         router.push('/auth/login');
@@ -315,6 +324,24 @@ export default function OnboardingPage() {
     };
     checkSession();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Funnel: record each step the user actually sees.
+  useEffect(() => {
+    if (loading) return;
+    onboardingAnalytics.stepViewed(step, role);
+  }, [step, role, loading]);
+
+  // Abandonment: emit an event (with the step they left on) when the user
+  // backgrounds or closes the tab without finishing.
+  useOnboardingExitTracking(() => ({
+    step,
+    role,
+    completed: completedRef.current,
+    hadInput: Boolean(
+      coupleName || partnerName || venueName || weddingDate ||
+      companyName || plannerLocation || selectedGoals.length || selectedFeatures.length
+    ),
+  }));
 
   const restoreSettings = async (userId: string) => {
     try {
@@ -379,6 +406,8 @@ export default function OnboardingPage() {
         const params = new URLSearchParams(window.location.search);
         if (params.get('role') === 'planner') {
           setRole('planner');
+          onboardingAnalytics.roleSelected('planner');
+          onboardingAnalytics.stepCompleted(1, 'planner');
           // Start at step 2 if we pre-selected planner to reduce friction
           setStep(2);
         }
@@ -539,6 +568,15 @@ export default function OnboardingPage() {
         }
       }
 
+      // Planners don't create a wedding during onboarding — send them straight
+      // into creating their first client wedding instead of an empty dashboard.
+      if (data.role === 'planner') {
+        console.log('[Onboarding DEBUG] Planner onboarding complete, sending to first wedding creation...');
+        setLoadingMessage("All set! Let's set up your first wedding...");
+        router.push('/admin/new');
+        return;
+      }
+
       console.log('[Onboarding DEBUG] All steps finished (no wedding needed), redirecting...');
       setLoadingMessage('All set! Taking you to your dashboard...');
       router.push('/admin');
@@ -567,6 +605,7 @@ export default function OnboardingPage() {
   const handleNext = () => {
     console.log('[Onboarding] handleNext clicked', { step });
     if (step < 3) {
+      onboardingAnalytics.stepCompleted(step, role);
       setStep((step + 1) as OnboardingStep);
     }
     else {
@@ -590,9 +629,13 @@ export default function OnboardingPage() {
     console.log('[Onboarding DEBUG] handleSubmit: Finalizing onboarding...');
 
     console.log('[Onboarding DEBUG] handleSubmit: Finalizing FREE plan onboarding...');
+    onboardingAnalytics.stepCompleted(3, role);
     setLoading(true);
     setLoadingMessage('Creating your wedding workspace...');
     setSubmitting(true);
+    // Optimistically mark complete so the redirect that follows isn't logged as
+    // an abandonment; rolled back in catch if finalize throws.
+    completedRef.current = true;
     try {
       await finalizeOnboarding({
         userId: authUser.id,
@@ -608,6 +651,14 @@ export default function OnboardingPage() {
         selectedGoals,
         companyName,
         plannerLocation,
+      });
+
+      onboardingAnalytics.completed({
+        role: role as UserRole,
+        goalCount: selectedGoals.length,
+        hasVenue: Boolean(venueName) && !venueTbd,
+        hasDate: Boolean(weddingDate) && !dateTbd,
+        plan,
       });
 
       // Record onboarding goals for product research — non-fatal on error.
@@ -626,6 +677,7 @@ export default function OnboardingPage() {
       }
     } catch (error) {
       console.error('[Onboarding DEBUG] handleSubmit: Error completing onboarding:', error);
+      completedRef.current = false;
       alert('Something went wrong. Please try again.');
       setLoading(false);
     } finally {
@@ -749,7 +801,7 @@ export default function OnboardingPage() {
                             >
                               <CardActionArea
                                 sx={{ p: 3, height: '100%' }}
-                                onClick={() => { setRole('couple'); setStep(2); }}
+                                onClick={() => { setRole('couple'); onboardingAnalytics.roleSelected('couple'); onboardingAnalytics.stepCompleted(1, 'couple'); setStep(2); }}
                               >
                                 <Favorite sx={{ fontSize: 40, color: COLORS.brand.primary, mb: 1.5 }} />
                                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: COLORS.text.strong, fontSize: '1rem' }}>I'm a Couple</Typography>
@@ -771,7 +823,7 @@ export default function OnboardingPage() {
                             >
                               <CardActionArea
                                 sx={{ p: 3, height: '100%' }}
-                                onClick={() => { setRole('planner'); setStep(2); }}
+                                onClick={() => { setRole('planner'); onboardingAnalytics.roleSelected('planner'); onboardingAnalytics.stepCompleted(1, 'planner'); setStep(2); }}
                               >
                                 <Work sx={{ fontSize: 40, color: COLORS.brand.primary, mb: 1.5 }} />
                                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: COLORS.text.strong, fontSize: '1rem' }}>I'm a Planner</Typography>

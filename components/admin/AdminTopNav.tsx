@@ -288,17 +288,10 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             )}
                         </Avatar>
                         <Typography
-                            onClick={(e) => {
-                                if (!isPro) {
-                                    e.stopPropagation();
-                                    setUpgradeModalOpen(true);
-                                }
-                            }}
                             sx={{
                                 fontSize: '0.875rem',
                                 fontWeight: 600,
                                 color: isPro ? COLORS.brand.primary : COLORS.text.subtle,
-                                cursor: isPro ? 'default' : 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 0.5,
@@ -373,25 +366,42 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             </Typography>
 
                             {/* Plan Display */}
-                            <Chip
-                                icon={isPro ? <AutoAwesome sx={{ fontSize: 14, color: 'white !important' }} /> : undefined}
-                                label={isPro ? 'Pro Plan' : 'Basic Plan'}
-                                onClick={() => !isPro && setUpgradeModalOpen(true)}
-                                sx={{
-                                    mt: 1.5,
-                                    bgcolor: isPro ? COLORS.brand.primary : COLORS.border.faint,
-                                    color: isPro ? COLORS.bg.white : COLORS.text.subtle,
-                                    fontWeight: 600,
-                                    fontSize: '0.875rem',
-                                    cursor: isPro ? 'default' : 'pointer',
-                                    '&:hover': {
-                                        bgcolor: isPro ? COLORS.brand.primary : COLORS.border.default,
-                                    },
-                                    '& .MuiChip-icon': {
-                                        color: COLORS.text.inverse,
-                                    },
-                                }}
-                            />
+                            <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Chip
+                                    icon={isPro ? <AutoAwesome sx={{ fontSize: 14, color: 'white !important' }} /> : undefined}
+                                    label={isPro ? 'Pro Plan' : 'Basic Plan'}
+                                    sx={{
+                                        bgcolor: isPro ? COLORS.brand.primary : COLORS.border.faint,
+                                        color: isPro ? COLORS.bg.white : COLORS.text.subtle,
+                                        fontWeight: 600,
+                                        fontSize: '0.875rem',
+                                        cursor: 'default',
+                                        '& .MuiChip-icon': { color: COLORS.text.inverse },
+                                    }}
+                                />
+                                {!isPro && (
+                                    <Typography
+                                        component="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleMenuClose();
+                                            setUpgradeModalOpen(true);
+                                        }}
+                                        sx={{
+                                            border: 'none',
+                                            background: 'none',
+                                            p: 0,
+                                            cursor: 'pointer',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 700,
+                                            color: COLORS.brand.primary,
+                                            '&:hover': { color: COLORS.brand.primaryHover },
+                                        }}
+                                    >
+                                        Upgrade?
+                                    </Typography>
+                                )}
+                            </Box>
                         </Box>
 
                         {/* <Divider sx={{ my: 1, opacity: 0.6 }} /> */}

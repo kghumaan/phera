@@ -17,12 +17,13 @@ import {
   Divider,
   Tooltip,
 } from '@mui/material';
-import { Close, Add, Delete } from '@mui/icons-material';
+import { Add, Delete } from '@mui/icons-material';
 import { PrimaryActionButton, ActionButton } from '@/components/admin/ActionButton';
 import { InfoAlert, SuccessAlert, ErrorAlert } from '@/components/shared/Alert';
 import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { supabase } from '@/lib/supabase/client';
 import type { BroadcastDataField, BroadcastTargetType } from '@/lib/supabase/broadcasts-service';
+import { guestTags } from '@/lib/utils/guest-tags';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 
 interface BroadcastComposerProps {
@@ -31,13 +32,22 @@ interface BroadcastComposerProps {
   weddingId: string;
   weddingSlug: string;
   onSent: () => void;
+  /**
+   * Optional pre-fill so callers can open the composer ready to send a
+   * specific broadcast (e.g. a "request flight details" blast). When
+   * `initialDataSchema` is provided we skip AI auto-detect so it doesn't
+   * clobber the pre-declared fields — the admin can still edit before sending.
+   */
+  initialMessage?: string;
+  initialCollectsData?: boolean;
+  initialDataSchema?: BroadcastDataField[];
 }
 
 interface GuestOption {
   id: string;
   name: string;
   phone: string | null;
-  tag: string | null;
+  tags: string[];
 }
 
 const FIELD_SX = {
@@ -59,6 +69,9 @@ export default function BroadcastComposer({
   weddingId,
   weddingSlug,
   onSent,
+  initialMessage,
+  initialCollectsData,
+  initialDataSchema,
 }: BroadcastComposerProps) {
   const [message, setMessage] = useState('');
   const [targetType, setTargetType] = useState<BroadcastTargetType>('all');
@@ -83,16 +96,18 @@ export default function BroadcastComposer({
   const detectReqId = useRef(0);
 
   const resetState = useCallback(() => {
-    setMessage('');
+    setMessage(initialMessage ?? '');
     setTargetType('all');
     setTargetTags([]);
     setTargetGuestIds([]);
-    setCollectsData(false);
-    setDataSchema([]);
+    setCollectsData(initialCollectsData ?? false);
+    setDataSchema(initialDataSchema ?? []);
     setSendResult(null);
-    setManualOverride(false);
+    // Pre-declared fields → manual mode so the debounced AI auto-detect doesn't
+    // overwrite them. Blank composer → auto-detect as before.
+    setManualOverride(!!initialDataSchema?.length);
     setDetecting(false);
-  }, []);
+  }, [initialMessage, initialCollectsData, initialDataSchema]);
 
   useEffect(() => {
     if (!open) return;
@@ -107,7 +122,7 @@ export default function BroadcastComposer({
           id: g.id,
           name: g.name,
           phone: g.phone,
-          tag: g.logistics_data?.tag ?? null,
+          tags: guestTags(g.logistics_data),
         })),
       );
     })();
@@ -158,7 +173,7 @@ export default function BroadcastComposer({
 
   const availableTags = useMemo(() => {
     const tags = new Set<string>();
-    for (const g of guests) if (g.tag) tags.add(g.tag);
+    for (const g of guests) g.tags.forEach((t) => tags.add(t));
     return Array.from(tags).sort();
   }, [guests]);
 
@@ -166,7 +181,7 @@ export default function BroadcastComposer({
     const withPhone = guests.filter((g) => !!g.phone);
     if (targetType === 'all') return withPhone.length;
     if (targetType === 'tags') {
-      return withPhone.filter((g) => g.tag && targetTags.includes(g.tag)).length;
+      return withPhone.filter((g) => g.tags.some((t) => targetTags.includes(t))).length;
     }
     return withPhone.filter((g) => targetGuestIds.includes(g.id)).length;
   }, [guests, targetType, targetTags, targetGuestIds]);
@@ -309,7 +324,7 @@ export default function BroadcastComposer({
             <Autocomplete
               multiple
               options={guests.filter((g) => !!g.phone)}
-              getOptionLabel={(g) => `${g.name}${g.tag ? ` · ${g.tag}` : ''}`}
+              getOptionLabel={(g) => `${g.name}${g.tags.length ? ` · ${g.tags.join(', ')}` : ''}`}
               isOptionEqualToValue={(a, b) => a.id === b.id}
               value={guests.filter((g) => targetGuestIds.includes(g.id))}
               onChange={(_, val) => setTargetGuestIds(val.map((g) => g.id))}

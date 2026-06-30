@@ -124,11 +124,14 @@ export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(fun
       startIcon={startIcon}
       endIcon={endIcon}
       onClick={handleClick}
-      sx={{
-        position: 'relative',
-        ...sx,
-        ...loadingSx,
-      }}
+      // Layer as an array so nested selectors (e.g. a consumer's `&.Mui-disabled`
+      // border) deep-merge with loadingSx instead of being clobbered by a shallow
+      // spread — lets marketing CTAs keep their outline under the spinner.
+      sx={[
+        { position: 'relative' },
+        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(loadingSx ? [loadingSx] : []),
+      ]}
     >
       {children}
       {isLoading && (

@@ -62,6 +62,12 @@ function NewWeddingPageInner() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [confirmCharging, setConfirmCharging] = useState(false);
+  // Idempotency key bound to the couple-name being created. Reused across
+  // cancel/reopen/retry for the same couple so every retry maps to the same
+  // PaymentIntent server-side (prevents double-charging + duplicate weddings).
+  // A new couple name mints a fresh key; a successful create navigates away and
+  // unmounts this page, so the next wedding naturally gets its own key.
+  const [chargeIdem, setChargeIdem] = useState<{ name: string; key: string } | null>(null);
 
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
@@ -201,6 +207,16 @@ function NewWeddingPageInner() {
       // Planner flow — payment required.
       if (billing.hasCard) {
         setConfirmError(null);
+        const name = coupleName.trim();
+        // Mint a key only when the couple name changed; reuse it for retries of
+        // the same couple so a cancel→reopen→retry can't double-charge.
+        if (chargeIdem?.name !== name) {
+          const key =
+            typeof crypto !== 'undefined' && crypto.randomUUID
+              ? crypto.randomUUID()
+              : `${userId}-${name}-${Date.now()}`;
+          setChargeIdem({ name, key });
+        }
         setConfirmOpen(true);
       } else {
         if (typeof window !== 'undefined') {
@@ -257,7 +273,7 @@ function NewWeddingPageInner() {
       const res = await fetch('/api/stripe/charge-planner-wedding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coupleName: coupleName.trim() }),
+        body: JSON.stringify({ coupleName: coupleName.trim(), idempotencyKey: chargeIdem?.key ?? undefined }),
       });
       const data = await res.json();
       if (res.ok && data?.success) {
