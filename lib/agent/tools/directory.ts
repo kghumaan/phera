@@ -1,11 +1,14 @@
-import type { AgentToolDefinition } from '../types';
+import type { AgentToolDefinition, VenueCard } from '../types';
 import { queryVendors } from '@/lib/vendors/directory/service';
+import { estimateGuestCapacity, estimateWeddingCostUsd } from '@/lib/vendors/estimates';
 import {
   VENDOR_CATEGORY_LABELS,
+  VENDOR_CITY_CONFIG,
   type VendorCategory,
 } from '@/lib/vendors/directory/types';
 
 const CATEGORY_ENUM = Object.keys(VENDOR_CATEGORY_LABELS) as VendorCategory[];
+const COVERED_CITIES = VENDOR_CITY_CONFIG.map((c) => c.city).join(', ');
 
 /**
  * Read-only access to Phera's *public* vendor directory (the same data behind
@@ -19,7 +22,7 @@ export const directoryTools: AgentToolDefinition[] = [
     label: 'Searching the vendor directory',
     risk: 'read',
     description:
-      "Search Phera's curated public directory of wedding VENUES, HOTELS, and vendors across destination-wedding cities (Goa, Udaipur, Jaipur, Jodhpur, Rishikesh, Kerala, Bangkok, Bali, Dubai). Use this to RECOMMEND options the couple hasn't booked yet — e.g. \"where could we host the wedding?\" (category: venue), \"suggest hotels for our guests in Udaipur\" (category: hotel), or \"find photographers in Goa\". This is the public directory; it is NOT the couple's own booked vendors (use get_vendors for those). Returns up to 8 top matches sorted by NRI/destination experience then rating.",
+      `Search Phera's curated directory of wedding VENUES, HOTELS, and vendors across our covered destination cities (${COVERED_CITIES}). ALWAYS call this FIRST when the couple wants a venue, hotel, or vendor in a covered city — before any thought of escalating to the team — and show them the real matches. Use it for "where could we host the wedding?" (category: venue), "suggest hotels for our guests in Udaipur" (category: hotel), or "find photographers in Goa". Pass their city plus any budget/rating/NRI filters. This is the public directory, NOT the couple's own booked vendors (use get_vendors for those). Returns up to 8 top matches sorted by NRI/destination experience then rating. Only if this returns nothing usable, or their city isn't in the list above, fall back to submit_request.`,
     inputSchema: {
       type: 'object',
       properties: {
@@ -59,6 +62,28 @@ export const directoryTools: AgentToolDefinition[] = [
         limit: 8,
       });
 
+      // Same matches, shaped for the right-pane listing cards. The model still
+      // gets the JSON above; the loop peels `venueCards` off to stream the panel.
+      const venueCards: VenueCard[] = results.map((v) => ({
+        name: v.name,
+        category: VENDOR_CATEGORY_LABELS[v.category as VendorCategory] ?? v.category,
+        city: v.city,
+        country_code: v.country_code,
+        rating: v.rating,
+        review_count: v.review_count,
+        price_min: v.price_range_min,
+        price_max: v.price_range_max,
+        nri_experienced: v.has_nri_experience,
+        specialties: v.specialties,
+        website: v.website,
+        image: v.portfolio_urls?.[0] ?? null,
+        place_id: v.source === 'google_places' ? v.source_id : null,
+        // Placeholder estimates (venues/hotels only) — UI shows them behind an
+        // info icon, never as confirmed figures.
+        capacity: estimateGuestCapacity(v),
+        costEstimate: estimateWeddingCostUsd(v),
+      }));
+
       return {
         count: results.length,
         vendors: results.map((v) => ({
@@ -77,7 +102,10 @@ export const directoryTools: AgentToolDefinition[] = [
           website: v.website,
         })),
         note:
-          'Public directory listings. Contact details are revealed once the couple saves a vendor on the /vendors page.',
+          'Public directory listings, also shown to the couple as cards on the right. Contact details are revealed once the couple saves a vendor on the /vendors page.',
+        // Only attach when there's something to show — keeps the panel from
+        // flashing empty on a no-results search.
+        ...(venueCards.length > 0 ? { venueCards } : {}),
       };
     },
   },

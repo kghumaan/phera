@@ -62,7 +62,7 @@ This gap is our opportunity.
 **Pricing (Current — Being Restructured):**
 - Free tier: Website, RSVP, guest list, multi-event, PINs, schedule, FAQ, shopping guide
 - Pro ($99): Travel coordination, WhatsApp Concierge, voice tasks, registry, premium themes
-- Planner ($249/yr): Multi-wedding dashboard, unlimited pro features
+- Planner ($249/wedding, pay-per-wedding, no subscription): Multi-wedding dashboard, unlimited pro features per wedding
 
 **Tech Stack:**
 - Next.js 15 (App Router) + React 19 + TypeScript

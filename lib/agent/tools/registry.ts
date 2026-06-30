@@ -1,4 +1,4 @@
-import type { AgentQuestion, AgentToolContext, AgentToolDefinition } from '../types';
+import type { AgentQuestion, AgentToolContext, AgentToolDefinition, VenueCard, WhatsAppBroadcastDraft } from '../types';
 
 /**
  * Central tool registry. Every capability the agent has lives here as one
@@ -43,6 +43,56 @@ export interface DispatchResult {
   upgradeRequiredFeature?: string;
   /** Set when request_upload asked the client to render an upload card. */
   uploadKind?: 'guests' | 'rooms';
+  /** Set when an FAQ write tool (propose_faqs / add_faq / update_faq) returned the
+   *  current FAQ list for the client's review-and-approve panel. Surfaced from
+   *  the tool's execute() result — see the normal-execution path below. */
+  faqReview?: { id: string; question: string; answer: string }[];
+  /** Set when search_vendor_directory returned matches to render as listing cards
+   *  in the right pane. Surfaced from the tool's execute() result — see the
+   *  normal-execution path below. */
+  venueCards?: VenueCard[];
+  /** Set when connect_whatsapp asked the client to open the QR pairing panel. */
+  whatsappPairing?: { status: string };
+  /** Set when broadcast_message drafted a guest broadcast for the review panel. */
+  broadcastReview?: WhatsAppBroadcastDraft;
+}
+
+/** Pull a `faqReview` directive off a tool's execute() result, if present, so the
+ *  loop can stream it to the client. The full result (incl. faqReview) is still
+ *  handed back to the model as the tool_result content. */
+function extractFaqReview(result: unknown): DispatchResult['faqReview'] | undefined {
+  if (!result || typeof result !== 'object' || !('faqReview' in result)) return undefined;
+  const value = (result as { faqReview?: unknown }).faqReview;
+  if (!Array.isArray(value)) return undefined;
+  return value as DispatchResult['faqReview'];
+}
+
+/** Pull a `venueCards` directive off a tool's execute() result, if present, so the
+ *  loop can stream it to the client as listing cards. The full result (incl.
+ *  venueCards) is still handed back to the model as the tool_result content. */
+function extractVenueCards(result: unknown): DispatchResult['venueCards'] | undefined {
+  if (!result || typeof result !== 'object' || !('venueCards' in result)) return undefined;
+  const value = (result as { venueCards?: unknown }).venueCards;
+  if (!Array.isArray(value)) return undefined;
+  return value as DispatchResult['venueCards'];
+}
+
+/** Pull a `whatsappPairing` directive off a tool's execute() result so the loop
+ *  can tell the client to open the QR pairing panel. */
+function extractWhatsappPairing(result: unknown): DispatchResult['whatsappPairing'] | undefined {
+  if (!result || typeof result !== 'object' || !('whatsappPairing' in result)) return undefined;
+  const value = (result as { whatsappPairing?: unknown }).whatsappPairing;
+  if (!value || typeof value !== 'object') return undefined;
+  return value as DispatchResult['whatsappPairing'];
+}
+
+/** Pull a `broadcastReview` directive off a tool's execute() result so the loop
+ *  can stream the drafted broadcast to the client's review panel. */
+function extractBroadcastReview(result: unknown): DispatchResult['broadcastReview'] | undefined {
+  if (!result || typeof result !== 'object' || !('broadcastReview' in result)) return undefined;
+  const value = (result as { broadcastReview?: unknown }).broadcastReview;
+  if (!value || typeof value !== 'object') return undefined;
+  return value as DispatchResult['broadcastReview'];
 }
 
 const MAX_RESULT_CHARS = 12_000;
@@ -152,7 +202,18 @@ export async function dispatchTool(
     const result = await tool.execute(input ?? {}, ctx);
     const content = serializeResult(result);
     await logAction(ctx, { name, input, risk: tool.risk, status: 'executed', result: content, startedAt });
-    return { ok: true, content };
+    const faqReview = extractFaqReview(result);
+    const venueCards = extractVenueCards(result);
+    const whatsappPairing = extractWhatsappPairing(result);
+    const broadcastReview = extractBroadcastReview(result);
+    return {
+      ok: true,
+      content,
+      ...(faqReview ? { faqReview } : {}),
+      ...(venueCards ? { venueCards } : {}),
+      ...(whatsappPairing ? { whatsappPairing } : {}),
+      ...(broadcastReview ? { broadcastReview } : {}),
+    };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await logAction(ctx, { name, input, risk: tool.risk, status: 'failed', result: message, startedAt });

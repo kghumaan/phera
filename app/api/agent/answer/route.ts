@@ -68,7 +68,15 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         console.error('Answer resolution failed:', error);
         Sentry.captureException(error, { tags: { surface: 'agent-answer' } });
-        send({ type: 'error', message: 'Something went wrong saving those answers — please try again.' });
+        // The answers are recorded before the follow-up turn runs, so a failure
+        // here means the save succeeded but the agent's next step hiccuped — say
+        // so honestly and keep the thread open (the couple just types to go on,
+        // which hits /chat, not this route, so there's no "already answered" wall).
+        send({
+          type: 'error',
+          message:
+            "Got that — it's saved. I hit a snag on the very next step, but you're not stuck: just tell me what you'd like to do next and I'll pick right back up.",
+        });
       } finally {
         controller.close();
       }

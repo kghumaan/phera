@@ -46,7 +46,7 @@ describe('Sidebar Reorganization', () => {
       'Planner',
       'Wedding Website',
       'Guests',
-      'Logistics & Travel',
+      'Logistics',
       'Communications',
       'Vendors',
       'Planning',
@@ -104,49 +104,49 @@ describe('Sidebar Reorganization', () => {
       expect(item!.path).toBe('/guest-responses');
     });
 
-    it('should have exactly 2 items (Guest List + Guest Responses)', () => {
-      expect(guests!.items).toHaveLength(2);
-    });
-
-    it('should NOT include WhatsApp Bot (moved to Communications)', () => {
-      expect(guests!.items.find((i) => i.id === 'whatsapp-bot')).toBeUndefined();
-    });
-
-    it('should NOT include Room Assignments (moved to Logistics & Travel)', () => {
-      expect(guests!.items.find((i) => i.id === 'rooms')).toBeUndefined();
-    });
-
-    it('should NOT include Transportation (moved to Logistics & Travel)', () => {
-      expect(guests!.items.find((i) => i.id === 'transportation')).toBeUndefined();
-    });
-  });
-
-  describe('Logistics & Travel group', () => {
-    const logistics = groups.find((g) => g.id === 'logistics');
-
-    it('should exist with label "Logistics & Travel"', () => {
-      expect(logistics).toBeDefined();
-      expect(logistics!.label).toBe('Logistics & Travel');
-    });
-
-    it('should have Room Assignments (Pro-gated)', () => {
-      const item = logistics!.items.find((i) => i.id === 'rooms');
+    it('should include Room Assignments (Pro-gated, moved from Logistics)', () => {
+      const item = guests!.items.find((i) => i.id === 'rooms');
       expect(item).toBeDefined();
       expect(item!.label).toBe('Room Assignments');
       expect(item!.path).toBe('/room-assignments');
       expect(item!.isPro).toBe(true);
     });
 
-    it('should have Transportation (Pro-gated)', () => {
+    it('should have exactly 3 items (Guest List + Guest Responses + Room Assignments)', () => {
+      expect(guests!.items).toHaveLength(3);
+    });
+
+    it('should NOT include WhatsApp Bot (moved to Communications)', () => {
+      expect(guests!.items.find((i) => i.id === 'whatsapp-bot')).toBeUndefined();
+    });
+
+    it('should NOT include Transportation (lives under Logistics)', () => {
+      expect(guests!.items.find((i) => i.id === 'transportation')).toBeUndefined();
+    });
+  });
+
+  describe('Logistics group', () => {
+    const logistics = groups.find((g) => g.id === 'logistics');
+
+    it('should exist with label "Logistics"', () => {
+      expect(logistics).toBeDefined();
+      expect(logistics!.label).toBe('Logistics');
+    });
+
+    it('should be a single Logistics link to the transportation page (Pro-gated)', () => {
       const item = logistics!.items.find((i) => i.id === 'transportation');
       expect(item).toBeDefined();
-      expect(item!.label).toBe('Transportation');
+      expect(item!.label).toBe('Logistics');
       expect(item!.path).toBe('/transportation');
       expect(item!.isPro).toBe(true);
     });
 
-    it('should have exactly 2 items', () => {
-      expect(logistics!.items).toHaveLength(2);
+    it('should NOT include Room Assignments (moved to Guests)', () => {
+      expect(logistics!.items.find((i) => i.id === 'rooms')).toBeUndefined();
+    });
+
+    it('should have exactly 1 item', () => {
+      expect(logistics!.items).toHaveLength(1);
     });
   });
 

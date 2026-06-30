@@ -568,6 +568,15 @@ export default function OnboardingPage() {
         }
       }
 
+      // Planners don't create a wedding during onboarding — send them straight
+      // into creating their first client wedding instead of an empty dashboard.
+      if (data.role === 'planner') {
+        console.log('[Onboarding DEBUG] Planner onboarding complete, sending to first wedding creation...');
+        setLoadingMessage("All set! Let's set up your first wedding...");
+        router.push('/admin/new');
+        return;
+      }
+
       console.log('[Onboarding DEBUG] All steps finished (no wedding needed), redirecting...');
       setLoadingMessage('All set! Taking you to your dashboard...');
       router.push('/admin');

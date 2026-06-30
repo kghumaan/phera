@@ -19,7 +19,14 @@ export async function queryVendors(filters: VendorFilters): Promise<VendorRecord
 
   if (filters.city) q = q.ilike('city', filters.city)
   if (filters.country_code) q = q.eq('country_code', filters.country_code)
-  if (filters.category) q = q.eq('category', filters.category)
+  // Venues and hotels overlap heavily (a resort is both a "hotel" and a
+  // "wedding venue"), so treat them as one bucket — filtering by either returns
+  // both, and a hotel that hosts weddings shows up under "Venue" too.
+  if (filters.category === 'venue' || filters.category === 'hotel') {
+    q = q.in('category', ['venue', 'hotel'])
+  } else if (filters.category) {
+    q = q.eq('category', filters.category)
+  }
   if (filters.max_price) q = q.or(`price_range_min.lte.${filters.max_price},price_range_min.is.null`)
   if (filters.min_rating) q = q.gte('rating', filters.min_rating)
   if (filters.has_nri_experience) q = q.eq('has_nri_experience', true)
@@ -100,7 +107,14 @@ export async function countVendors(filters: Pick<VendorFilters, 'city' | 'catego
   const supabase = getServiceClient()
   let q = supabase.from('vendor_directory').select('id', { count: 'exact', head: true }).eq('is_active', true)
   if (filters.city) q = q.ilike('city', filters.city)
-  if (filters.category) q = q.eq('category', filters.category)
+  // Venues and hotels overlap heavily (a resort is both a "hotel" and a
+  // "wedding venue"), so treat them as one bucket — filtering by either returns
+  // both, and a hotel that hosts weddings shows up under "Venue" too.
+  if (filters.category === 'venue' || filters.category === 'hotel') {
+    q = q.in('category', ['venue', 'hotel'])
+  } else if (filters.category) {
+    q = q.eq('category', filters.category)
+  }
   const { count, error } = await q
   if (error) throw error
   return count ?? 0

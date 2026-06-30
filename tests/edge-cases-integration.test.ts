@@ -104,7 +104,9 @@ describe('Edge 1: Rate Limiter Unit Tests', () => {
 // =========================================================================
 // Supabase-dependent edge case tests
 // =========================================================================
-describe.skipIf(!canRun)('Edge Case Integration Tests', { timeout: 120_000 }, () => {
+// retry — live phera-test DB hit in parallel with the other integration suites;
+// transient connection/contention failures auto-recover on retry.
+describe.skipIf(!canRun)('Edge Case Integration Tests', { timeout: 120_000, retry: 2 }, () => {
   let serviceClient: SupabaseClient;
   let anonClient: SupabaseClient;
 

@@ -9,6 +9,7 @@ import { eachDayOfInterval, format, parse, parseISO } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import StopRoundedIcon from '@mui/icons-material/StopRounded';
@@ -44,8 +45,12 @@ const SELECT_CHIP_SX = {
   cursor: 'pointer',
   height: 'auto',
   borderRadius: '12px',
-  '& .MuiChip-label': { px: 1.75, py: 1.1, fontSize: '0.95rem', lineHeight: 1.2 },
+  '& .MuiChip-label': { px: 1.9, py: 1.2, fontSize: '1rem', lineHeight: 1.25 },
 } as const;
+
+/** A "The whole thing" option in a multi-select acts as select-all: tapping it
+ *  toggles every option on/off, and on submit it collapses to just itself. */
+const WHOLE_THING_RE = /whole thing/i;
 
 /** Black-on-white calendar styling (the picker defaults render near-invisible
  *  on our white surfaces). Mirrors the build-ai ChatDateForm treatment. */
@@ -346,12 +351,10 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
           Back
         </SecondaryActionButton>
       )}
-      {q.type !== 'single_select' && (
-        <PrimaryActionButton size="small" disabled={disabled || !canSubmit()} onClick={submitCurrent} sx={{ height: INPUT_HEIGHT, minWidth: 104, flexShrink: 0 }}>
-          {isLastUnanswered() ? 'Done' : 'Next'}
-        </PrimaryActionButton>
-      )}
-      {q.optional && q.type !== 'single_select' && (
+      <PrimaryActionButton size="small" disabled={disabled || !canSubmit()} onClick={submitCurrent} sx={{ height: INPUT_HEIGHT, minWidth: 104, flexShrink: 0 }}>
+        {isLastUnanswered() ? 'Done' : 'Next'}
+      </PrimaryActionButton>
+      {q.optional && (
         <SecondaryActionButton size="small" onClick={skip} disabled={disabled} sx={{ height: INPUT_HEIGHT, flexShrink: 0 }}>
           Skip
         </SecondaryActionButton>
@@ -618,19 +621,24 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
       {q.type === 'single_select' && (
         <Stack spacing={1}>
           <Stack direction="row" flexWrap="wrap" gap={1}>
-            {options.map((opt) => (
-              <PheraChip
-                key={opt}
-                tone="neutral"
-                label={opt}
-                onClick={() => !disabled && commit(opt)}
-                sx={chipSx}
-              />
-            ))}
+            {options.map((opt) => {
+              const on = text === opt;
+              return (
+                <PheraChip
+                  key={opt}
+                  tone={on ? 'brand' : 'neutral'}
+                  label={opt}
+                  onClick={() => !disabled && setText(opt)}
+                  sx={{ ...chipSx, ...(on ? {} : { '&:hover': { bgcolor: COLORS.border.default } }) }}
+                />
+              );
+            })}
           </Stack>
+          {/* Buttons stay visible (Confirm disabled until a choice) so the form
+              never looks empty — pick a chip, then Confirm. */}
           <Stack direction="row" spacing={1} alignItems="center">
             {voiceButton}
-            {step > 0 && actionButtons}
+            {actionButtons}
           </Stack>
         </Stack>
       )}
@@ -644,9 +652,39 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
                 <PheraChip
                   key={opt}
                   tone={on ? 'brand' : 'neutral'}
-                  label={on ? `✓ ${opt}` : opt}
-                  onClick={() => !disabled && setMulti((m) => (on ? m.filter((x) => x !== opt) : [...m, opt]))}
-                  sx={chipSx}
+                  label={
+                    on ? (
+                      // Selected: check on the left pushes the text right.
+                      <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                        <CheckRoundedIcon sx={{ fontSize: '1.05rem' }} />
+                        {opt}
+                      </Box>
+                    ) : (
+                      // Unselected: symmetric padding == check+gap, so the text is
+                      // centered AND the chip width matches the selected state.
+                      <Box component="span" sx={{ px: 1.3 }}>{opt}</Box>
+                    )
+                  }
+                  onClick={() => {
+                    if (disabled) return;
+                    if (WHOLE_THING_RE.test(opt)) {
+                      // "The whole thing" toggles every option on/off.
+                      setMulti((m) => (options.every((o) => m.includes(o)) ? [] : [...options]));
+                      return;
+                    }
+                    setMulti((m) => {
+                      const base = m.includes(opt) ? m.filter((x) => x !== opt) : [...m, opt];
+                      const wholeOpt = options.find((o) => WHOLE_THING_RE.test(o));
+                      if (!wholeOpt) return base;
+                      // Keep the whole-thing chip lit only when every other is.
+                      const withoutWhole = base.filter((o) => !WHOLE_THING_RE.test(o));
+                      const others = options.filter((o) => !WHOLE_THING_RE.test(o));
+                      return others.every((o) => withoutWhole.includes(o))
+                        ? [...withoutWhole, wholeOpt]
+                        : withoutWhole;
+                    });
+                  }}
+                  sx={{ ...chipSx, ...(on ? {} : { '&:hover': { bgcolor: COLORS.border.default } }) }}
                 />
               );
             })}
@@ -654,7 +692,7 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
           <Stack direction="row" spacing={1} alignItems="stretch" sx={{ width: '100%' }}>
             {voiceButton}
             {q.allowOther && (
-              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flex: 1, minWidth: 160, maxWidth: 320 }}>
+              <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flex: 1, minWidth: 160 }}>
                 <PheraTextField
                   size="small"
                   placeholder="Add another…"
@@ -717,8 +755,11 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
       if (!rangeStart) return commit('');
       const s = format(rangeStart, 'yyyy-MM-dd');
       commit(rangeEnd ? `${s} to ${format(rangeEnd, 'yyyy-MM-dd')}` : s);
-    } else if (q.type === 'multi_select') commit(multi);
-    else commit(text.trim());
+    } else if (q.type === 'multi_select') {
+      // If "the whole thing" is selected, send only that — not every option.
+      const wholeOpt = options.find((o) => WHOLE_THING_RE.test(o));
+      commit(wholeOpt && multi.includes(wholeOpt) ? [wholeOpt] : multi);
+    } else commit(text.trim());
   }
 
   function isLastUnanswered(): boolean {

@@ -1,4 +1,5 @@
 import { supabase } from './client';
+import { guestTags, guestMatchesTags } from '@/lib/utils/guest-tags';
 
 export interface BroadcastDataField {
   key: string;
@@ -131,7 +132,7 @@ export const broadcastsService = {
           id: g.id,
           phone: g.phone,
           name: g.name,
-          tag: g.logistics_data?.tag ?? null,
+          tag: guestTags(g.logistics_data)[0] ?? null,
         }));
     }
 
@@ -147,8 +148,8 @@ export const broadcastsService = {
     if (targetType === 'tags') {
       if (!targetTags.length) return [];
       return guests
-        .filter((g: any) => g.logistics_data?.tag && targetTags.includes(g.logistics_data.tag))
-        .map((g: any) => ({ id: g.id, phone: g.phone, name: g.name, tag: g.logistics_data?.tag ?? null }));
+        .filter((g: any) => guestMatchesTags(g.logistics_data, targetTags))
+        .map((g: any) => ({ id: g.id, phone: g.phone, name: g.name, tag: guestTags(g.logistics_data)[0] ?? null }));
     }
 
     return guests.map((g: any) => ({

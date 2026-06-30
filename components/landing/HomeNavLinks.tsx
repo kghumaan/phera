@@ -66,6 +66,7 @@ export default function HomeNavLinks() {
   const pathname = usePathname();
   const isHome = pathname === '/';
   const onVendors = pathname?.startsWith('/vendors') ?? false;
+  const onPlanners = pathname?.startsWith('/planners') ?? false;
 
   // On the home page, anchor clicks run the custom tween. On any other page
   // (e.g. /vendors/join) the link points at /#section so the browser navigates
@@ -97,6 +98,11 @@ export default function HomeNavLinks() {
       {!onVendors && (
         <Box component={Link} href="/vendors/join" sx={linkSx}>
           For Vendors
+        </Box>
+      )}
+      {!onPlanners && (
+        <Box component={Link} href="/planners" sx={linkSx}>
+          For Planners
         </Box>
       )}
       {LINKS.map((l) => (

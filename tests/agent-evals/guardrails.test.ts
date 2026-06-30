@@ -55,9 +55,14 @@ describe('Pro gating — the upgrade reveal', () => {
     }
   });
 
-  it('the gated feature set is exactly Rooms / Transportation / Vendor coordination', () => {
+  it('the gated feature set is exactly the four paid features', () => {
     const features = [...new Set(tools.filter((t) => t.proFeature).map((t) => t.proFeature))].sort();
-    expect(features).toEqual(['Room assignments', 'Transportation', 'Vendor coordination']);
+    expect(features).toEqual([
+      'Guest WhatsApp messaging',
+      'Room assignments',
+      'Transportation',
+      'Vendor coordination',
+    ]);
   });
 });
 

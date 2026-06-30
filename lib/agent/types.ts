@@ -75,8 +75,68 @@ export type AgentStreamEvent =
   | { type: 'upgrade_required'; feature: string }
   /** The agent asked the user to upload a file — render an upload card with format help. */
   | { type: 'upload_requested'; uploadKind: 'guests' | 'rooms' }
+  /** The agent drafted/updated guest FAQs and saved them live (unpublished) — the
+   *  client shows a review panel on the right where the couple can expand, edit,
+   *  and approve them. Non-blocking: the turn continues normally. */
+  | { type: 'faq_review'; faqs: { id: string; question: string; answer: string }[] }
+  /** The agent searched the vendor directory — the matching venues/hotels/vendors
+   *  render as Airbnb-style listing cards in the right pane. Non-blocking. */
+  | { type: 'venue_cards'; vendors: VenueCard[] }
+  /** The agent opened the WhatsApp pairing panel — the couple connects their
+   *  OWN number via QR. The panel polls /api/whatsapp/connect for QR + status. */
+  | { type: 'whatsapp_pairing'; status: string }
+  /** The agent drafted a guest broadcast — the right pane shows it for review,
+   *  audience confirmation, and a send choice (couple's number / Phera / wa.me). */
+  | { type: 'broadcast_review'; draft: WhatsAppBroadcastDraft }
   | { type: 'done' }
   | { type: 'error'; message: string };
+
+/** One venue/hotel/vendor match rendered as a listing card in the right pane.
+ *  Built from a directory VendorRecord — see lib/agent/tools/directory.ts. */
+export interface VenueCard {
+  name: string;
+  /** Human label, e.g. "Wedding Venue" / "Hotel" (already mapped from the enum). */
+  category: string;
+  city: string;
+  country_code: string;
+  rating: number | null;
+  review_count: number | null;
+  price_min: number | null;
+  price_max: number | null;
+  nri_experienced: boolean;
+  specialties: string[];
+  website: string | null;
+  /** First portfolio image URL, if any. */
+  image: string | null;
+  /** Google Place ID (for google_places-sourced rows) so the right pane can
+   *  fall back to the business's own Google photo via /api/vendors/photo when
+   *  there's no portfolio image. Null for non-Google sources. */
+  place_id: string | null;
+  /** Best-guess guest capacity (venues/hotels only) — rendered behind an
+   *  estimate icon, never as a confirmed figure. Null for non-hosting vendors. */
+  capacity: { min: number; max: number } | null;
+  /** Ballpark all-in 3-day wedding cost in USD (venues/hotels only), shown
+   *  behind the same estimate icon. Null for non-hosting vendors. */
+  costEstimate: { minUsd: number; maxUsd: number } | null;
+}
+
+/** A guest broadcast the agent drafted, shown in the right pane for review +
+ *  a send choice. The actual send is the couple's explicit action in the panel
+ *  (calls /api/whatsapp/send) — drafting never sends on its own. */
+export interface WhatsAppBroadcastDraft {
+  message: string;
+  /** How the audience was resolved. */
+  audience: 'all' | 'tags' | 'specific';
+  /** Tags / guest ids that defined the audience (echoed back for the send call). */
+  tags: string[];
+  guestIds: string[];
+  /** How many guests (with a phone) will receive it. */
+  count: number;
+  /** A few recipient names, for a human-readable confirmation. */
+  sampleNames: string[];
+  /** True if the couple's own WhatsApp is paired (enables "send as me"). */
+  connected: boolean;
+}
 
 /** A single question the agent asks via the ask_user tool. The chat renders
  *  the right input per type and collects answers one at a time. */

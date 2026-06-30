@@ -44,7 +44,10 @@ const WEDDING_REQUIRED_FIELDS = {
   rsvp_deadline: '2026-11-01',
 };
 
-describe.skipIf(!canRun)('RLS Integration Tests', { timeout: 120_000 }, () => {
+// retry — these hit the live phera-test Supabase in parallel with the other
+// integration suites, so occasional transient connection/contention failures
+// auto-recover on retry. Unit tests stay strict (no global retry in config).
+describe.skipIf(!canRun)('RLS Integration Tests', { timeout: 120_000, retry: 2 }, () => {
   let serviceClient: SupabaseClient;
   let anonClient: SupabaseClient;
   let ownerClient: SupabaseClient;

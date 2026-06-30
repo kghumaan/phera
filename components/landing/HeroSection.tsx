@@ -12,6 +12,7 @@
  */
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { ActionButton } from '@/components/admin/ActionButton';
 import { COLORS } from '@/lib/theme/tokens';
 import { LotusGlyph, Reveal } from './design-primitives';
@@ -117,7 +118,7 @@ export default function HeroSection() {
               lineHeight: 1.5,
             }}
           >
-            AI wedding planner that handles it all — guest lists, RSVPs, room assignments, vendors, transportation, and the midnight WhatsApp questions.
+            AI wedding planner that handles it all — guest lists, RSVPs, room assignments, WhatsApp groups, vendors, guest logistics, and everything in between.
           </p>
         </Reveal>
 
@@ -184,6 +185,31 @@ export default function HeroSection() {
           >
             Free forever for your wedding site, guest list &amp; RSVPs.<br />
             Full guest ops from $349 — one-time, per wedding.
+          </p>
+          {/* Planner wedge — gives a planner self-identifying as the buyer an
+              above-the-fold path to /planners without competing with the
+              couple-facing CTAs. */}
+          <p
+            className="hero-planner-line"
+            style={{
+              marginTop: 10,
+              fontSize: 'clamp(14px, 1vw, 15px)',
+              color: 'var(--text-subtle)',
+              lineHeight: 1.6,
+            }}
+          >
+            Planning weddings for clients?{' '}
+            <Link
+              href="/planners"
+              style={{
+                color: 'var(--accent)',
+                fontWeight: 600,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Phera for planners →
+            </Link>
           </p>
         </Reveal>
       </div>

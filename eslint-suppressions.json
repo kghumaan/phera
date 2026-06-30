@@ -323,12 +323,12 @@
   },
   "app/legal/dpa/page.tsx": {
     "no-restricted-syntax": {
-      "count": 5
+      "count": 4
     }
   },
   "app/legal/sub-processors/page.tsx": {
     "no-restricted-syntax": {
-      "count": 4
+      "count": 3
     }
   },
   "app/not-found.tsx": {
@@ -357,7 +357,7 @@
   },
   "app/terms/page.tsx": {
     "no-restricted-syntax": {
-      "count": 5
+      "count": 4
     }
   },
   "app/test-magic-link/page.tsx": {
@@ -389,11 +389,6 @@
     },
     "react/no-unescaped-entities": {
       "count": 2
-    }
-  },
-  "components/admin/PlannerDashboard.tsx": {
-    "prefer-const": {
-      "count": 1
     }
   },
   "components/admin/VoiceWaveform.tsx": {

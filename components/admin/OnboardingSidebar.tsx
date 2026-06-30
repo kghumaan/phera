@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, CircularProgress, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Typography, useTheme, useMediaQuery, IconButton, alpha } from '@mui/material';
+import { Box, CircularProgress, Drawer, List, ListItemButton, ListItemIcon, ListItemText, useTheme, useMediaQuery, IconButton, alpha } from '@mui/material';
 import Image from 'next/image';
 import NextLink from 'next/link';
 import {
@@ -36,7 +36,7 @@ import {
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
-import { Wedding } from '@/lib/supabase/wedding-service';
+import { Wedding, weddingService } from '@/lib/supabase/wedding-service';
 import { Collapse } from '@mui/material';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
@@ -44,6 +44,7 @@ import ProBadge from './ProBadge';
 import { CheckCircle } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase/client';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 
 interface SidebarItem {
   id: string;
@@ -108,15 +109,15 @@ export const groups: SidebarGroup[] = [
     items: [
       { id: 'guest-list', label: 'Guest List', path: '/guest-list' },
       { id: 'guests', label: 'Guest Responses', path: '/guest-responses' },
+      { id: 'rooms', label: 'Room Assignments', path: '/room-assignments', isPro: true },
     ],
   },
   {
     id: 'logistics',
-    label: 'Logistics & Travel',
+    label: 'Logistics',
     icon: <AirportShuttle />,
     items: [
-      { id: 'rooms', label: 'Room Assignments', path: '/room-assignments', isPro: true },
-      { id: 'transportation', label: 'Transportation', path: '/transportation', isPro: true },
+      { id: 'transportation', label: 'Logistics', path: '/transportation', isPro: true },
     ],
   },
   {
@@ -215,6 +216,36 @@ export default function OnboardingSidebar({
   const [arrowPositions, setArrowPositions] = useState<Record<string, number>>({});
   const [sectionComplete, setSectionComplete] = useState<Record<string, boolean>>({});
   const [loadingPath, setLoadingPath] = useState<string | null>(null);
+  const [plannerWeddings, setPlannerWeddings] = useState<Wedding[]>([]);
+  const [switcherAnchor, setSwitcherAnchor] = useState<null | HTMLElement>(null);
+
+  // Load the planner's weddings for the in-sidebar wedding switcher.
+  useEffect(() => {
+    if (!isPlanner) return;
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (cancelled || !user) return;
+      const list = await weddingService.getUserWeddings(user.id);
+      if (!cancelled) setPlannerWeddings(list);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isPlanner]);
+
+  // Jump straight to another wedding, preserving the current sub-page where it
+  // exists (e.g. stay on Guest Responses) instead of round-tripping through the
+  // dashboard.
+  const handleSwitchWedding = (targetSlug: string) => {
+    setSwitcherAnchor(null);
+    if (targetSlug === weddingSlug) return;
+    if (!checkGuard()) return;
+    const prefix = `/admin/${weddingSlug}`;
+    const subPath = pathname.startsWith(prefix) ? pathname.slice(prefix.length) || '/overview' : '/overview';
+    router.push(`/admin/${targetSlug}${subPath}`);
+    if (isMobile) onClose();
+  };
 
   // Check which sections have content
   useEffect(() => {
@@ -384,18 +415,63 @@ export default function OnboardingSidebar({
         {isPlanner && (
           <>
             {wedding?.couple_name && (
-              <Typography
-                variant="body2"
-                sx={{
-                  px: 2.25,
-                  py: 0.5,
-                  color: COLORS.text.strong,
-                  fontWeight: 600,
-                  fontSize: '0.95rem',
-                }}
-              >
-                {wedding.couple_name}
-              </Typography>
+              <>
+                <ListItemButton
+                  onClick={(e: React.MouseEvent<HTMLElement>) => {
+                    if (plannerWeddings.length <= 1) return;
+                    setSwitcherAnchor(e.currentTarget);
+                  }}
+                  sx={{
+                    px: 1.5,
+                    py: 0.75,
+                    mx: 0.75,
+                    mb: 0.25,
+                    borderRadius: RADII.sm,
+                    color: COLORS.text.strong,
+                    cursor: plannerWeddings.length > 1 ? 'pointer' : 'default',
+                    '&:hover': {
+                      bgcolor: plannerWeddings.length > 1 ? alpha(COLORS.brand.primary, 0.08) : 'transparent',
+                    },
+                  }}
+                >
+                  <ListItemText
+                    primary={wedding.couple_name}
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontWeight: 600,
+                          fontSize: '0.95rem',
+                          color: COLORS.text.strong,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        },
+                      },
+                    }}
+                  />
+                  {plannerWeddings.length > 1 && (
+                    <ExpandMore sx={{ fontSize: '1.2rem', color: COLORS.text.subtle, ml: 0.5, flexShrink: 0 }} />
+                  )}
+                </ListItemButton>
+                <PheraMenu
+                  anchorEl={switcherAnchor}
+                  open={Boolean(switcherAnchor)}
+                  onClose={() => setSwitcherAnchor(null)}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                  PaperProps={{ sx: { maxHeight: 360, minWidth: 240 } }}
+                >
+                  {plannerWeddings.map((w) => (
+                    <PheraMenuItem
+                      key={w.id}
+                      selected={w.slug === weddingSlug}
+                      onClick={() => handleSwitchWedding(w.slug)}
+                    >
+                      {w.couple_name}
+                    </PheraMenuItem>
+                  ))}
+                </PheraMenu>
+              </>
             )}
             <ListItemButton
               component={NextLink}

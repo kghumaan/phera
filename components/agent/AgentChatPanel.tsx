@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Stack, Typography, CircularProgress, Tooltip, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { Box, Stack, Typography, CircularProgress, LinearProgress, Tooltip, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
@@ -20,7 +20,7 @@ import { useVoiceMode } from './useVoiceMode';
 import { useSpeechQueue, drainSentences, type SpeechQueue } from './useSpeechQueue';
 import { VoiceOrb, type OrbState } from './VoiceOrb';
 import { MarkdownText } from './MarkdownText';
-import { importGuestsFromFile, importRoomsFromFile } from '@/lib/agent/chat-uploads';
+import { importGuestsFromFile, importRoomsFromFile, type GuestImportProgress } from '@/lib/agent/chat-uploads';
 import { PheraCard } from '@/components/shared/Card';
 import { PheraTextField } from '@/components/shared/TextField';
 import { PheraChip } from '@/components/shared/Chip';
@@ -30,11 +30,16 @@ import { CONFIRMATION_NOTE_PREFIX } from '@/lib/agent/confirm';
 import { ANSWERS_NOTE_PREFIX } from '@/lib/agent/answer';
 import { HIDDEN_KICKOFF_PREFIX } from '@/lib/agent/message-prefixes';
 import { QuestionFlow } from './QuestionFlow';
+import { FaqReviewPanel, type FaqReviewItem } from './FaqReviewPanel';
+import { VenueCardsPanel } from './VenueCardsPanel';
+import { WhatsAppPairingPanel } from './WhatsAppPairingPanel';
+import { BroadcastPanel } from './BroadcastPanel';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { AgentStreamEvent, AgentContentBlock, AgentQuestion } from '@/lib/agent/types';
+import confetti from 'canvas-confetti';
+import type { AgentStreamEvent, AgentContentBlock, AgentQuestion, VenueCard, WhatsAppBroadcastDraft } from '@/lib/agent/types';
 
 type ChatItem =
-  | { kind: 'user'; text: string }
+  | { kind: 'user'; text: string; markdown?: boolean }
   | { kind: 'assistant'; text: string }
   | { kind: 'tool'; label: string; status: 'running' | 'ok' | 'failed' }
   | {
@@ -148,14 +153,34 @@ function answerMinutes(t?: string): number {
   return ((Number(m[1]) % 12) + (/pm/i.test(m[3]) ? 12 : 0)) * 60 + Number(m[2]);
 }
 
+// A friendly category label for the couple's answer bubble, so a tapped option
+// reads "Preferred Destination: Goa" rather than a bare "Goa".
+const BUBBLE_LABEL_RULES: { test: RegExp; label: string }[] = [
+  { test: /venue/i, label: 'Venue' },
+  { test: /\b(city|region|destination|leaning toward)\b/i, label: 'Preferred Destination' },
+  { test: /(date|when are|timeframe|celebration)/i, label: 'Dates' },
+  { test: /(ceremon|\bevents?\b)/i, label: 'Events' },
+  { test: /(your names|what are your name|partner|couple)/i, label: 'Names' },
+  { test: /(stage|planning process|where are you in)/i, label: 'Planning stage' },
+  { test: /(help with|would you like help|what would you like)/i, label: 'Helping with' },
+  { test: /budget/i, label: 'Budget' },
+];
+function bubbleLabelFor(prompt: string): string | null {
+  for (const r of BUBBLE_LABEL_RULES) if (r.test.test(prompt)) return r.label;
+  return null;
+}
+
 /**
  * Turn answered (prompt → answer) pairs into the bubble the couple sees. A pure
  * event date/time batch becomes a readable, day-then-time-sorted schedule list
- * ("Mehndi — Oct 29, 5:00 PM"); anything else is the compact dot-joined values.
+ * ("Mehndi — Oct 29, 5:00 PM"); anything else is the compact dot-joined values,
+ * each prefixed with a bold category label.
  */
 function summarizePairs(pairs: { prompt: string; answer: string }[]): string {
   const events = new Map<string, { date?: string; time?: string }>();
   const allValues: string[] = [];
+  // Non-event answers prefixed with a bold category ("**Dates:** Jan 4–6").
+  const labeled: string[] = [];
   let nonEventCount = 0;
   for (const p of pairs) {
     const ans = p.answer.trim();
@@ -170,6 +195,8 @@ function summarizePairs(pairs: { prompt: string; answer: string }[]): string {
       events.set(ef.event, row);
     } else if (!skipped) {
       nonEventCount++;
+      const lbl = bubbleLabelFor(p.prompt);
+      labeled.push(lbl ? `**${lbl}:** ${ans}` : ans);
     }
     if (!skipped) allValues.push(ans);
   }
@@ -187,8 +214,9 @@ function summarizePairs(pairs: { prompt: string; answer: string }[]): string {
       .map((r) => `${r.event} — ${r.date ? prettyDate(r.date) : 'date TBD'}${r.time ? `, ${r.time}` : ''}`);
     if (lines.length) return lines.join('\n');
   }
-  if (allValues.length === 0) return '';
-  const joined = allValues.join(' · ');
+  const display = labeled.length ? labeled : allValues;
+  if (display.length === 0) return '';
+  const joined = display.join(' · ');
   return joined.length > 300 ? `${joined.slice(0, 297)}…` : joined;
 }
 
@@ -290,17 +318,6 @@ function factDisplayValue(label: string, raw: string): string {
   return formatFactValue(v);
 }
 
-/** Natural-language phrase for the re-ask message a fact badge sends on tap. */
-const FACT_EDIT_PHRASE: Record<string, string> = {
-  Names: 'our names',
-  Stage: 'where we are in planning',
-  Venue: 'the venue',
-  Location: 'the location',
-  Dates: 'the dates',
-  Events: 'the events',
-  'Helping with': "what you're helping me with",
-};
-
 // Facts woven into the "Planning a wedding for X in Y …" clause, in reading
 // order with their connecting word. Stage and "Helping with" read better as
 // short trailing sentences, so they're handled separately.
@@ -393,6 +410,25 @@ function dateRangeFromMessages(
   return found;
 }
 
+/** The most recent panel payload a tool streamed (venueCards / faqReview),
+ *  recovered from persisted tool results so a refresh re-renders the right-pane
+ *  cards or review that were live before reload — instead of an empty pane. */
+function lastToolPanel<T>(messages: Array<{ content?: AgentContentBlock[] }>, key: string): T | null {
+  let found: T | null = null;
+  for (const message of messages) {
+    for (const block of message.content ?? []) {
+      if (block.type !== 'tool_result' || typeof block.content !== 'string') continue;
+      try {
+        const value = (JSON.parse(block.content) as Record<string, unknown>)[key];
+        if (Array.isArray(value) && value.length > 0) found = value as T;
+      } catch {
+        // non-JSON tool result — ignore
+      }
+    }
+  }
+  return found;
+}
+
 /** Short placeholder for the first-visit centered input (summarizes what the
  *  planner can do, so we don't need a paragraph above the starters). */
 const WELCOME_PLACEHOLDER = "Tell me what's happening — guests, schedule, rooms, vendors & more";
@@ -445,7 +481,7 @@ function itemsFromPersisted(messages: Array<{ role: string; content: AgentConten
           // Form answers persist as an internal note — surface the couple's
           // response as the same compact bubble they saw when they answered.
           const summary = answersSummaryFromNote(block.text);
-          if (summary) items.push({ kind: 'user', text: summary });
+          if (summary) items.push({ kind: 'user', text: summary, markdown: true });
           continue;
         }
         items.push({ kind: message.role === 'user' ? 'user' : 'assistant', text: block.text });
@@ -482,6 +518,30 @@ const ONBOARDING_OPENER =
 const ONBOARDING_OPENER2 =
   "Let's start by gathering as much information about your celebrations so we can personalize your experience. Answer the questions on the right, " +
   "or just just brain-dump below — share any details, any documentation or notes you may already have. The more you share with us, the better we can help.";
+
+/** A short, celebratory confetti burst spread across the chat — fired once when
+ *  the congratulations opener appears, to make the first moment feel special. */
+function fireCongratsConfetti() {
+  const common = {
+    spread: 75,
+    startVelocity: 42,
+    ticks: 130,
+    gravity: 0.9,
+    zIndex: 2000,
+    disableForReducedMotion: true,
+    colors: [
+      COLORS.brand.primary,
+      COLORS.cultural.gold,
+      COLORS.cultural.purple,
+      COLORS.cultural.saffron,
+      COLORS.cultural.teal,
+    ],
+  };
+  // Three origins (left, centre, right) so it rains across the whole panel.
+  confetti({ ...common, particleCount: 45, angle: 60, origin: { x: 0.15, y: 0.35 } });
+  confetti({ ...common, particleCount: 55, angle: 90, origin: { x: 0.5, y: 0.2 } });
+  confetti({ ...common, particleCount: 45, angle: 120, origin: { x: 0.85, y: 0.35 } });
+}
 // Text-onboarding kickoff: the model greets, asks for names (typed only), then
 // walks the warm onboarding sequence from the system prompt.
 const ONBOARDING_KICKOFF =
@@ -521,6 +581,17 @@ export function AgentChatPanel({
   const [facts, setFacts] = useState<CapturedFact[]>([]);
   // The saved celebration date range — drives the per-event date quick-picks.
   const [weddingDateRange, setWeddingDateRange] = useState<{ start: string; end: string } | null>(null);
+  // Live FAQs the planner drafted/updated — shown in the right-pane review panel
+  // (expand/edit/approve). Non-null while a review is in front of the couple.
+  const [faqReview, setFaqReview] = useState<FaqReviewItem[] | null>(null);
+  // Vendor-directory matches the planner surfaced — shown as Airbnb-style
+  // listing cards in the right pane. Non-null while results are on screen.
+  const [venueCards, setVenueCards] = useState<VenueCard[] | null>(null);
+  // Couple's WhatsApp pairing — non-null while the QR connect panel is up;
+  // holds the latest channel status string.
+  const [pairingStatus, setPairingStatus] = useState<string | null>(null);
+  // A drafted guest broadcast awaiting the couple's review + send choice.
+  const [broadcastDraft, setBroadcastDraft] = useState<WhatsAppBroadcastDraft | null>(null);
   // One-time animated "try voice" nudge over the mic, revealed right after the
   // (typed-only) names question is answered.
   const [showVoiceHint, setShowVoiceHint] = useState(false);
@@ -529,6 +600,7 @@ export function AgentChatPanel({
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [busyLabel, setBusyLabel] = useState('Thinking…');
+  const [importProgress, setImportProgress] = useState<GuestImportProgress | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(true);
   // True once history loads if the couple has already provided anything (chat,
   // goals, guests, date/venue) — drives resume-vs-fresh on open.
@@ -554,6 +626,8 @@ export function AgentChatPanel({
   busyRef.current = busy;
   // One-shot guard for the opener/resume decision; reset per wedding.
   const greetedRef = useRef(false);
+  // One-shot guard so the congrats confetti fires only once per wedding.
+  const congratsConfettiRef = useRef(false);
   const voiceActiveRef = useRef(false);
   const voiceRestartRef = useRef<() => void>(() => {});
   const voiceSetSpeakingRef = useRef<(v: boolean) => void>(() => {});
@@ -599,9 +673,14 @@ export function AgentChatPanel({
     setItems([]);
     setFacts([]);
     setWeddingDateRange(null);
+    setFaqReview(null);
+    setVenueCards(null);
+    setPairingStatus(null);
+    setBroadcastDraft(null);
     setLoadingHistory(true);
     setHasExistingData(false);
     greetedRef.current = false; // each wedding gets its opener decision once
+    congratsConfettiRef.current = false;
     conversationIdRef.current = null;
     (async () => {
       try {
@@ -637,6 +716,10 @@ export function AgentChatPanel({
           if (data.messages?.length) {
           setFacts(factsFromMessages(data.messages));
           setWeddingDateRange(dateRangeFromMessages(data.messages));
+          // Re-hydrate the transient right-pane panels so a refresh doesn't strand
+          // the user staring at an empty pane the agent says has cards/FAQs.
+          setFaqReview(lastToolPanel<FaqReviewItem[]>(data.messages, 'faqReview'));
+          setVenueCards(lastToolPanel<VenueCard[]>(data.messages, 'venueCards'));
         }
           const restored = (data.messages?.length ? itemsFromPersisted(data.messages) : []).map((it) =>
             // Always show the latest onboarding greeting copy, not the stale text
@@ -700,6 +783,25 @@ export function AgentChatPanel({
   }, [items, busy]);
 
   const handleEvent = useCallback((event: AgentStreamEvent) => {
+    // FAQ review drives its own right-pane state, not the chat item list.
+    if (event.type === 'faq_review') {
+      setFaqReview(event.faqs.length ? event.faqs : null);
+      return;
+    }
+    // Vendor-directory matches drive their own right-pane state too.
+    if (event.type === 'venue_cards') {
+      setVenueCards(event.vendors.length ? event.vendors : null);
+      return;
+    }
+    // WhatsApp pairing + broadcast review each drive their own right-pane panel.
+    if (event.type === 'whatsapp_pairing') {
+      setPairingStatus(event.status);
+      return;
+    }
+    if (event.type === 'broadcast_review') {
+      setBroadcastDraft(event.draft);
+      return;
+    }
     setItems((prev) => {
       const next = [...prev];
       switch (event.type) {
@@ -870,7 +972,7 @@ export function AgentChatPanel({
         ...prev.map((item) =>
           item.kind === 'questions' && item.actionId === actionId ? { ...item, status: 'done' as const } : item
         ),
-        ...(summary ? [{ kind: 'user' as const, text: summary }] : []),
+        ...(summary ? [{ kind: 'user' as const, text: summary, markdown: true }] : []),
       ]);
       try {
         const res = await fetch('/api/agent/answer', {
@@ -893,10 +995,13 @@ export function AgentChatPanel({
       streamingRef.current = true; // fixed label during the import itself
       setBusyLabel(kind === 'guests' ? 'Importing guests…' : 'Reading floor plan…');
       setBusy(true);
+      // Show activity the instant the file lands — before parsing even starts —
+      // so there's no dead gap while the file is read.
+      if (kind === 'guests') setImportProgress({ done: 0, total: 0, phase: 'parsing' });
       try {
         let note: string;
         if (kind === 'guests') {
-          const r = await importGuestsFromFile(file, weddingSlug);
+          const r = await importGuestsFromFile(file, weddingSlug, setImportProgress);
           const dupes = r.duplicates ? `, ${r.duplicates} duplicate${r.duplicates === 1 ? '' : 's'} skipped` : '';
           note = `${HIDDEN_USER_PREFIX} I just imported my guest list — ${r.imported} guests added${dupes}. Confirm in one short line and continue with the next step for my goals.`;
         } else {
@@ -916,6 +1021,7 @@ export function AgentChatPanel({
         ]);
       } finally {
         setBusy(false);
+        setImportProgress(null);
         onTurnComplete?.();
       }
     },
@@ -963,6 +1069,44 @@ export function AgentChatPanel({
     [busy, streamChat, onTurnComplete]
   );
   sendRef.current = send;
+
+  // The couple approved the drafted FAQs: clear the review panel and hand a
+  // hidden note to the agent so it acknowledges and moves to the next step
+  // (mirrors the post-upload continuation note).
+  const approveFaqs = useCallback(() => {
+    if (busy) return;
+    setFaqReview(null);
+    void send(
+      `${HIDDEN_USER_PREFIX} I've reviewed and approved the FAQs — continue with my next step.`
+    );
+  }, [busy, send]);
+
+  // The couple picked one of the suggested venues/vendors, or chose to skip.
+  const selectVenue = useCallback((v: VenueCard) => {
+    if (busy) return;
+    setVenueCards(null);
+    void send(`I'd like to go with ${v.name}${v.city ? ` in ${v.city}` : ''}.`);
+  }, [busy, send]);
+  const skipVenues = useCallback(() => {
+    if (busy) return;
+    setVenueCards(null);
+    void send(`${HIDDEN_USER_PREFIX} None of those — let's keep going.`);
+  }, [busy, send]);
+
+  // The couple's WhatsApp finished pairing — clear the panel, nudge the agent on.
+  const onWhatsAppConnected = useCallback(() => {
+    setPairingStatus(null);
+    void send(`${HIDDEN_USER_PREFIX} My WhatsApp is now connected — continue with my next step.`);
+  }, [send]);
+  // A broadcast was sent from the review panel — acknowledge + continue.
+  const onBroadcastSent = useCallback(
+    (summary: string) => {
+      setBroadcastDraft(null);
+      void send(`${HIDDEN_USER_PREFIX} ${summary} Acknowledge in one short line and continue.`);
+    },
+    [send]
+  );
+  const cancelBroadcast = useCallback(() => setBroadcastDraft(null), []);
 
   const voice = useVoiceInput(
     useCallback((text: string) => {
@@ -1027,6 +1171,19 @@ export function AgentChatPanel({
     if (!defaultVoice || !voiceMode.supported) setVoicePending(false);
   }, [defaultVoice, voiceMode]);
 
+  // Rain a little confetti on the congrats moment — the first assistant greeting
+  // of an onboarding session, or any message that carries the congrats opener.
+  useEffect(() => {
+    if (congratsConfettiRef.current) return;
+    const greeted = items.some(
+      (i) => i.kind === 'assistant' && (onboarding || /congratulations on your engagement/i.test(i.text)),
+    );
+    if (greeted) {
+      congratsConfettiRef.current = true;
+      fireCongratsConfetti();
+    }
+  }, [items, onboarding]);
+
   // While the agent is waiting on a structured-question answer, the user
   // answers via the QuestionFlow at the bottom — not the free-text composer.
   const pendingQuestions = [...items]
@@ -1051,7 +1208,7 @@ export function AgentChatPanel({
   const voiceHintVisible = showVoiceHint && !busy && voice.state === 'idle';
   useEffect(() => {
     if (!voiceHintVisible) return;
-    const t = setTimeout(() => setShowVoiceHint(false), 3000);
+    const t = setTimeout(() => setShowVoiceHint(false), 7000);
     return () => clearTimeout(t);
   }, [voiceHintVisible]);
 
@@ -1085,7 +1242,10 @@ export function AgentChatPanel({
       <Box
         component="span"
         onClick={() =>
-          !busy && send(`I'd like to change ${FACT_EDIT_PHRASE[label] ?? `the ${label.toLowerCase()}`}.`)
+          !busy &&
+          send(
+            `${HIDDEN_USER_PREFIX} The couple tapped "${label}" to change it. Re-ask just that one field with ask_user (a single question, same input type) so the form reappears, then apply their answer. If it's a minor fix (spelling/wording) update it quietly; if it's a significant change (a different destination, dates, or venue) note in one line what it affects and confirm before cascading.`
+          )
         }
         sx={{
           fontWeight: 700,
@@ -1218,9 +1378,15 @@ export function AgentChatPanel({
   // input with the starters below it; it collapses to the bottom composer once
   // there's a message.
   const isWelcomeEmpty = items.length === 0 && !loadingHistory && !onboarding;
-  // Whether the structured right pane is open — a question is pending or facts
-  // have been captured. When closed, the chat runs full-width (ChatGPT-style).
-  const formPaneOpen = !!pendingQuestions || facts.length > 0;
+  // Whether the structured right pane is open — a question is pending, FAQs are
+  // up for review, or facts have been captured. When closed, the chat runs
+  // full-width (ChatGPT-style).
+  const hasFaqReview = !!faqReview && faqReview.length > 0;
+  const hasVenueCards = !!venueCards && venueCards.length > 0;
+  const hasPairing = !!pairingStatus;
+  const hasBroadcast = !!broadcastDraft;
+  const formPaneOpen =
+    !!pendingQuestions || hasFaqReview || hasVenueCards || hasPairing || hasBroadcast || facts.length > 0;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight }}>
@@ -1482,6 +1648,25 @@ export function AgentChatPanel({
                   dateRange={weddingDateRange}
                   onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
                 />
+              ) : hasFaqReview && faqReview ? (
+                <FaqReviewPanel faqs={faqReview} disabled={busy} onApprove={approveFaqs} />
+              ) : hasVenueCards && venueCards ? (
+                <VenueCardsPanel vendors={venueCards} disabled={busy} onSelect={selectVenue} onSkip={skipVenues} />
+              ) : hasPairing && pairingStatus ? (
+                <WhatsAppPairingPanel
+                  weddingSlug={weddingSlug}
+                  initialStatus={pairingStatus}
+                  disabled={busy}
+                  onConnected={onWhatsAppConnected}
+                />
+              ) : hasBroadcast && broadcastDraft ? (
+                <BroadcastPanel
+                  weddingSlug={weddingSlug}
+                  draft={broadcastDraft}
+                  disabled={busy}
+                  onSent={onBroadcastSent}
+                  onCancel={cancelBroadcast}
+                />
               ) : (
                 <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
                   <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 30 }} />
@@ -1710,7 +1895,7 @@ export function AgentChatPanel({
                     border: item.kind === 'user' ? `1px solid ${COLORS.brand.primaryBorder}` : 'none',
                   }}
                 >
-                  {item.kind === 'assistant' ? (
+                  {item.kind === 'assistant' || (item.kind === 'user' && item.markdown) ? (
                     <MarkdownText text={item.text} />
                   ) : (
                     <Typography
@@ -1723,12 +1908,38 @@ export function AgentChatPanel({
                 </Box>
               )
             )}
-            {busy && items[items.length - 1]?.kind !== 'assistant' && (
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ pl: 0.5 }}>
-                <CircularProgress size={14} sx={{ color: COLORS.brand.primary }} />
-                <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
-                  {busyLabel}
-                </Typography>
+            {((busy && items[items.length - 1]?.kind !== 'assistant') || importProgress) && (
+              <Stack spacing={0.75} sx={{ pl: 0.5, maxWidth: 320 }}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <CircularProgress size={14} sx={{ color: COLORS.brand.primary }} />
+                  <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
+                    {importProgress
+                      ? importProgress.phase === 'importing' && importProgress.total > 0
+                        ? `Importing ${importProgress.done}/${importProgress.total} guests…`
+                        : 'Reading your file…'
+                      : busyLabel}
+                  </Typography>
+                </Stack>
+                {importProgress && (
+                  <LinearProgress
+                    variant={
+                      importProgress.phase === 'importing' && importProgress.total > 0
+                        ? 'determinate'
+                        : 'indeterminate'
+                    }
+                    value={
+                      importProgress.phase === 'importing' && importProgress.total > 0
+                        ? Math.round((importProgress.done / importProgress.total) * 100)
+                        : undefined
+                    }
+                    sx={{
+                      height: 6,
+                      borderRadius: 3,
+                      bgcolor: COLORS.border.faint,
+                      '& .MuiLinearProgress-bar': { bgcolor: COLORS.brand.primary, borderRadius: 3 },
+                    }}
+                  />
+                )}
               </Stack>
             )}
           </Stack>
@@ -1899,6 +2110,7 @@ export function AgentChatPanel({
                 >
                   <Box
                     sx={{
+                      position: 'relative',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 0.5,
@@ -1922,6 +2134,20 @@ export function AgentChatPanel({
                     >
                       <CloseRoundedIcon sx={{ fontSize: 16 }} />
                     </IconActionButton>
+                    {/* Caret pointing down at the mic button right below. */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        bottom: -6,
+                        right: 18,
+                        width: 11,
+                        height: 11,
+                        bgcolor: COLORS.bg.white,
+                        borderRight: `1px solid ${COLORS.brand.primaryBorder}`,
+                        borderBottom: `1px solid ${COLORS.brand.primaryBorder}`,
+                        transform: 'rotate(45deg)',
+                      }}
+                    />
                   </Box>
                 </motion.div>
               )}

@@ -172,7 +172,7 @@ export default function TransportationPage({ params }: { params: Promise<{ weddi
       <Box sx={{ maxWidth: 1000 }}>
         <Stack spacing={3}>
           <PageHeading
-            title="Transportation"
+            title="Logistics"
             subtitle="Coordinate shuttles and buses for your guests"
             actions={
               <PrimaryActionButton onClick={() => setUpgradeModalOpen(true)} sx={{ whiteSpace: 'nowrap' }}>
@@ -327,7 +327,7 @@ function InitialPrompt({ onStart }: { onStart: () => void }) {
   return (
     <Stack spacing={3}>
       <PageHeading
-        title="Transportation"
+        title="Logistics"
         subtitle="Coordinate shuttles and buses for your guests"
       />
 
@@ -365,7 +365,7 @@ function ModeSelector({ onSelect }: { onSelect: (mode: TransportationMode) => vo
   return (
     <Stack spacing={3}>
       <PageHeading
-        title="Transportation Setup"
+        title="Logistics Setup"
         subtitle="Let's figure out the best way to organize rides for your guests"
       />
 
@@ -441,7 +441,7 @@ function SetupComplete({ onViewResponses }: { onViewResponses: () => void }) {
   return (
     <Stack spacing={3}>
       <PageHeading
-        title="Transportation"
+        title="Logistics"
         subtitle="Coordinate shuttles and buses for your guests"
       />
 

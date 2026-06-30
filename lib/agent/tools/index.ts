@@ -15,6 +15,7 @@ import { uploadTools } from './upload';
 import { shagunTools } from './shagun';
 import { consentTools } from './consent';
 import { requestTools } from './requests';
+import { messagingTools } from './messaging';
 
 let registered = false;
 
@@ -39,6 +40,7 @@ export function ensureToolsRegistered() {
     ...shagunTools,
     ...consentTools,
     ...requestTools,
+    ...messagingTools,
   ]);
 }
 

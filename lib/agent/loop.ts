@@ -263,6 +263,18 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       const dispatched = await dispatchTool(use.name, use.input, toolCtx);
       onEvent({ type: 'tool_done', name: use.name, ok: dispatched.ok });
       if (dispatched.questions) parkedQuestions = true;
+      // FAQ review is non-blocking — surface the panel and let the turn continue.
+      if (dispatched.faqReview) onEvent({ type: 'faq_review', faqs: dispatched.faqReview });
+      // Venue/vendor matches render as listing cards in the right pane — also
+      // non-blocking; the turn continues so the agent can frame them in chat.
+      if (dispatched.venueCards) onEvent({ type: 'venue_cards', vendors: dispatched.venueCards });
+      // WhatsApp pairing + broadcast review open right-pane panels — non-blocking.
+      if (dispatched.whatsappPairing) {
+        onEvent({ type: 'whatsapp_pairing', status: dispatched.whatsappPairing.status });
+      }
+      if (dispatched.broadcastReview) {
+        onEvent({ type: 'broadcast_review', draft: dispatched.broadcastReview });
+      }
       if (dispatched.uploadKind) {
         onEvent({ type: 'upload_requested', uploadKind: dispatched.uploadKind });
       } else if (dispatched.upgradeRequiredFeature) {

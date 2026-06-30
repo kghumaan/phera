@@ -24,6 +24,8 @@ import RestaurantOutlinedIcon from '@mui/icons-material/RestaurantOutlined'
 import StyleOutlinedIcon from '@mui/icons-material/StyleOutlined'
 import CastleOutlinedIcon from '@mui/icons-material/CastleOutlined'
 import HotelOutlinedIcon from '@mui/icons-material/HotelOutlined'
+import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded'
+import PaymentsRoundedIcon from '@mui/icons-material/PaymentsRounded'
 import { COLORS, RADII, FONTS } from '@/lib/theme/tokens'
 import { PheraCard } from '@/components/shared/Card'
 import { PheraChip } from '@/components/shared/Chip'
@@ -33,6 +35,8 @@ import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/A
 import UpgradeModal from '@/components/admin/UpgradeModal'
 import { usePlan } from '@/lib/contexts/PlanContext'
 import type { VendorRecord, VendorCategory } from '@/lib/vendors/directory/types'
+import { EstimateInfo } from '@/components/shared/EstimateInfo'
+import { estimateGuestCapacity, estimateWeddingCostUsd, formatCapacity, formatCostBand } from '@/lib/vendors/estimates'
 import { VENDOR_CATEGORY_LABELS, VENDOR_CITY_CONFIG } from '@/lib/vendors/directory/types'
 
 /* ─── constants ──────────────────────────────────────────────────────────────── */
@@ -104,6 +108,16 @@ function VendorCard({
   const price = formatPrice(vendor.price_range_min, vendor.price_range_max, vendor.currency)
   const flag  = COUNTRY_FLAGS[vendor.country_code] ?? ''
   const color = CATEGORY_COLORS[vendor.category]
+  const [imgFailed, setImgFailed] = useState(false)
+  // Business's own Google photo (server-proxied so the key stays off the client)
+  // when we have a place id; otherwise the category icon.
+  const photoUrl =
+    vendor.source === 'google_places' && vendor.source_id
+      ? `/api/vendors/photo?placeId=${encodeURIComponent(vendor.source_id)}`
+      : null
+  // Placeholder estimates (venues/hotels only) — shown behind the info icon.
+  const capacity = estimateGuestCapacity(vendor)
+  const costEstimate = estimateWeddingCostUsd(vendor)
 
   return (
     <PheraCard
@@ -121,16 +135,27 @@ function VendorCard({
     >
       {/* Header row */}
       <Stack direction="row" spacing={1.5} alignItems="flex-start">
-        <Box
-          sx={{
-            width: 40, height: 40, borderRadius: RADII.md,
-            bgcolor: color, color: 'white',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          {CATEGORY_ICONS[vendor.category]}
-        </Box>
+        {photoUrl && !imgFailed ? (
+          <Box
+            component="img"
+            src={photoUrl}
+            alt=""
+            aria-hidden
+            onError={() => setImgFailed(true)}
+            sx={{ width: 40, height: 40, borderRadius: RADII.md, objectFit: 'cover', flexShrink: 0 }}
+          />
+        ) : (
+          <Box
+            sx={{
+              width: 40, height: 40, borderRadius: RADII.md,
+              bgcolor: color, color: 'white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {CATEGORY_ICONS[vendor.category]}
+          </Box>
+        )}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography
             sx={{ fontWeight: 600, fontSize: '0.9rem', fontFamily: FONTS.body, lineHeight: 1.3, mb: 0.25, color: COLORS.text.strong }}
@@ -203,13 +228,30 @@ function VendorCard({
             </Typography>
           </Stack>
         )}
-        {price && (
+        {price && !costEstimate && (
           <Tooltip title="Approx. — confirm pricing directly with vendor">
             <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.muted, fontWeight: 500, fontFamily: FONTS.body, cursor: 'default' }}>
               ~{price}
             </Typography>
           </Tooltip>
         )}
+        {capacity && (
+          <Stack direction="row" spacing={0.4} alignItems="center">
+            <GroupsRoundedIcon sx={{ fontSize: 15, color: COLORS.text.faint }} />
+            <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.muted, fontFamily: FONTS.body }}>
+              {formatCapacity(capacity)}
+            </Typography>
+          </Stack>
+        )}
+        {costEstimate && (
+          <Stack direction="row" spacing={0.4} alignItems="center">
+            <PaymentsRoundedIcon sx={{ fontSize: 14, color: COLORS.text.faint }} />
+            <Typography sx={{ fontSize: '0.875rem', color: COLORS.text.strong, fontWeight: 600, fontFamily: FONTS.body }}>
+              ~{formatCostBand(costEstimate)}
+            </Typography>
+          </Stack>
+        )}
+        {(capacity || costEstimate) && <EstimateInfo size={14} />}
         {vendor.has_nri_experience && (
           <Stack direction="row" alignItems="center"
             sx={{

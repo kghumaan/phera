@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
 import AppHeader from '@/components/shared/AppHeader';
 import AppFooter from '@/components/shared/AppFooter';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
-import { FONTS } from '@/lib/theme/tokens';
+import { FONTS, COLORS } from '@/lib/theme/tokens';
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -58,8 +58,8 @@ export default function DataProcessingAddendumPage() {
               Last Updated: April 26, 2026 · Effective: April 26, 2026
             </Typography>
 
-            <Box sx={{ p: 2, mb: 4, border: '1px solid #e5e5e5', borderRadius: 2, bgcolor: '#fafafa' }}>
-              <Typography variant="body2" sx={{ ...bodySx, fontWeight: 600 }}>
+            <Box sx={{ p: 2, mb: 4, border: `1px solid ${COLORS.border.strong}`, borderRadius: 2, bgcolor: COLORS.bg.muted }}>
+              <Typography variant="body2" sx={{ ...bodySx, fontWeight: 600, color: COLORS.text.strong }}>
                 This Data Processing Addendum (&quot;<strong>DPA</strong>&quot;) supplements the Phera Terms of Service and applies whenever Phera processes Personal Data on behalf of the Customer. By accepting the Terms of Service or signing up for Phera, the Customer accepts this DPA.
               </Typography>
             </Box>

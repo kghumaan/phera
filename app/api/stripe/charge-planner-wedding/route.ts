@@ -36,9 +36,12 @@ export async function POST(request: NextRequest) {
   }
 
   let coupleName: string;
+  let idempotencyKey: string | undefined;
   try {
     const body = await request.json();
     coupleName = (body?.coupleName ?? '').toString().trim();
+    const rawKey = (body?.idempotencyKey ?? '').toString().trim();
+    idempotencyKey = rawKey || undefined;
   } catch {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
@@ -78,19 +81,25 @@ export async function POST(request: NextRequest) {
 
   let paymentIntent: Stripe.PaymentIntent;
   try {
-    paymentIntent = await stripe.paymentIntents.create({
-      amount: PLANNER_PER_WEDDING_AMOUNT_CENTS,
-      currency: PLANNER_PER_WEDDING_CURRENCY,
-      customer: settings.stripe_customer_id,
-      payment_method: settings.stripe_default_payment_method_id,
-      off_session: true,
-      confirm: true,
-      metadata: {
-        userId: user.id,
-        tier: 'planner_perwedding',
-        coupleName,
+    paymentIntent = await stripe.paymentIntents.create(
+      {
+        amount: PLANNER_PER_WEDDING_AMOUNT_CENTS,
+        currency: PLANNER_PER_WEDDING_CURRENCY,
+        customer: settings.stripe_customer_id,
+        payment_method: settings.stripe_default_payment_method_id,
+        off_session: true,
+        confirm: true,
+        metadata: {
+          userId: user.id,
+          tier: 'planner_perwedding',
+          coupleName,
+        },
       },
-    });
+      // Idempotency key (sent from the client per charge attempt) ensures a
+      // retried/double-submitted request reuses the same PaymentIntent instead
+      // of charging the planner twice for one wedding.
+      idempotencyKey ? { idempotencyKey } : undefined,
+    );
   } catch (err) {
     const stripeErr = err as Stripe.errors.StripeError;
     const code = stripeErr.code ?? 'charge_failed';
@@ -111,6 +120,23 @@ export async function POST(request: NextRequest) {
       { error: paymentIntent.status, message: 'Payment did not complete' },
       { status: 402 },
     );
+  }
+
+  // Idempotency: if this PaymentIntent already produced a wedding (e.g. a
+  // retried request after a lost response), return the existing wedding instead
+  // of creating a duplicate.
+  const { data: existingPayment } = await admin
+    .from('wedding_payments')
+    .select('wedding_slug')
+    .eq('stripe_payment_intent_id', paymentIntent.id)
+    .maybeSingle();
+
+  if (existingPayment?.wedding_slug) {
+    return NextResponse.json({
+      success: true,
+      slug: existingPayment.wedding_slug,
+      paymentIntentId: paymentIntent.id,
+    });
   }
 
   const baseSlug = generateWeddingSlug(coupleName);
@@ -155,6 +181,26 @@ export async function POST(request: NextRequest) {
   } as any);
 
   if (paymentError) {
+    // A unique-constraint violation on stripe_payment_intent_id means another
+    // (concurrent or replayed) request already recorded a payment for this
+    // PaymentIntent and created its wedding. The one we just inserted is a
+    // duplicate — remove it and return the original wedding so a single charge
+    // maps to exactly one wedding.
+    if ((paymentError as { code?: string }).code === '23505') {
+      await admin.from('weddings').delete().eq('slug', slug);
+      const { data: priorPayment } = await admin
+        .from('wedding_payments')
+        .select('wedding_slug')
+        .eq('stripe_payment_intent_id', paymentIntent.id)
+        .maybeSingle();
+      if (priorPayment?.wedding_slug) {
+        return NextResponse.json({
+          success: true,
+          slug: priorPayment.wedding_slug,
+          paymentIntentId: paymentIntent.id,
+        });
+      }
+    }
     console.error('Failed to insert wedding_payments row (wedding still created):', paymentError);
   }
 

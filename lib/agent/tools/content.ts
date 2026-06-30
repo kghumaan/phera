@@ -46,7 +46,59 @@ export const contentTools: AgentToolDefinition[] = [
         answer: input.answer as string,
       } as never);
       if (!created) throw new Error('Failed to create FAQ');
-      return { created: { id: created.id, question: created.question } };
+      // Re-fetch the full list so the review panel reflects the new total (a chat
+      // edit like "add one about parking" re-emits the fresh list to the panel).
+      const all = await service.getFAQs(ctx.weddingUuid);
+      return {
+        created: { id: created.id, question: created.question },
+        faqReview: all.map((f) => ({ id: f.id, question: f.question, answer: f.answer })),
+      };
+    },
+  },
+  {
+    name: 'propose_faqs',
+    label: 'Drafting your FAQs',
+    risk: 'write',
+    description:
+      'Draft several guest FAQs at once and save them live (unpublished) for the couple to review on the right. Call this once the destination city/venue is known to set up a guest FAQ section covering the city, travel, and logistics questions guests always ask (parking, weather/what to pack, getting from the airport, visa basics, dress code, kids). Provide 5–8 question/answer pairs; the couple edits or approves them in the review panel.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        faqs: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              question: { type: 'string' },
+              answer: { type: 'string' },
+            },
+            required: ['question', 'answer'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['faqs'],
+      additionalProperties: false,
+    },
+    execute: async (input, ctx) => {
+      const incoming = (input.faqs ?? []) as { question: string; answer: string }[];
+      if (!Array.isArray(incoming) || incoming.length === 0) {
+        throw new Error('propose_faqs needs a non-empty "faqs" array');
+      }
+      const service = new WeddingService(ctx.supabase as never);
+      for (const f of incoming) {
+        await service.createFAQ({
+          wedding_id: ctx.weddingUuid,
+          question: f.question,
+          answer: f.answer,
+        } as never);
+      }
+      // Re-fetch the full list (incl. any prior FAQs) for the review panel.
+      const all = await service.getFAQs(ctx.weddingUuid);
+      return {
+        created: incoming.length,
+        faqReview: all.map((f) => ({ id: f.id, question: f.question, answer: f.answer })),
+      };
     },
   },
   {
@@ -73,7 +125,13 @@ export const contentTools: AgentToolDefinition[] = [
       const service = new WeddingService(ctx.supabase as never);
       const updated = await service.updateFAQ(input.faq_id as string, updates as never);
       if (!updated) throw new Error('Failed to update FAQ');
-      return { updated: { id: updated.id, question: updated.question } };
+      // Re-fetch so a chat edit ("make #2 shorter") re-emits the fresh list and
+      // the review panel updates before approval.
+      const all = await service.getFAQs(ctx.weddingUuid);
+      return {
+        updated: { id: updated.id, question: updated.question },
+        faqReview: all.map((f) => ({ id: f.id, question: f.question, answer: f.answer })),
+      };
     },
   },
   {
