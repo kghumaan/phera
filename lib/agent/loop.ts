@@ -60,6 +60,42 @@ export function sanitizeHistoryWindow(messages: AgentChatMessage[]): AgentChatMe
   return window;
 }
 
+/**
+ * Enforce Anthropic's tool_use↔tool_result pairing across the ENTIRE window, not
+ * just its edges: every tool_result must reference a tool_use in the immediately
+ * preceding assistant message, and every tool_use must be answered by a
+ * tool_result in the immediately following user message. Orphans — left by an
+ * interrupted turn or a split pair — are dropped, and any message emptied out is
+ * removed. Without this ONE corrupted turn 400s the whole conversation forever
+ * ("unexpected tool_use_id … no corresponding tool_use block").
+ */
+export function sanitizeToolPairing(messages: AgentChatMessage[]): AgentChatMessage[] {
+  const msgs = messages.map((m) => ({ role: m.role, content: [...m.content] }));
+
+  // Drop tool_results whose tool_use isn't in the immediately preceding message.
+  for (let i = 0; i < msgs.length; i++) {
+    if (msgs[i].role !== 'user' || !msgs[i].content.some((b) => b.type === 'tool_result')) continue;
+    const prev = msgs[i - 1];
+    const useIds = new Set(
+      prev?.role === 'assistant' ? prev.content.flatMap((b) => (b.type === 'tool_use' ? [b.id] : [])) : []
+    );
+    msgs[i].content = msgs[i].content.filter((b) => b.type !== 'tool_result' || useIds.has(b.tool_use_id));
+  }
+
+  // Drop tool_uses not answered by a tool_result in the immediately next message.
+  for (let i = 0; i < msgs.length; i++) {
+    if (msgs[i].role !== 'assistant' || !msgs[i].content.some((b) => b.type === 'tool_use')) continue;
+    const next = msgs[i + 1];
+    const resultIds = new Set(
+      next?.role === 'user' ? next.content.flatMap((b) => (b.type === 'tool_result' ? [b.tool_use_id] : [])) : []
+    );
+    msgs[i].content = msgs[i].content.filter((b) => b.type !== 'tool_use' || resultIds.has(b.id));
+  }
+
+  // Anthropic rejects messages with empty content — drop any left with none.
+  return msgs.filter((m) => m.content.length > 0);
+}
+
 async function loadHistory(
   supabase: SupabaseClient,
   conversationId: string
@@ -90,13 +126,15 @@ async function loadHistory(
   const { data } = await query;
 
   const window = sanitizeHistoryWindow(
-    (data ?? [])
-      .reverse()
-      .filter((m) => m.role === 'user' || m.role === 'assistant')
-      .map((m) => ({
-        role: m.role as 'user' | 'assistant',
-        content: (m.content ?? []) as AgentContentBlock[],
-      }))
+    sanitizeToolPairing(
+      (data ?? [])
+        .reverse()
+        .filter((m) => m.role === 'user' || m.role === 'assistant')
+        .map((m) => ({
+          role: m.role as 'user' | 'assistant',
+          content: (m.content ?? []) as AgentContentBlock[],
+        }))
+    )
   );
 
   if (summary) {

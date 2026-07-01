@@ -10,6 +10,23 @@ import type { AgentStreamEvent } from '@/lib/agent/types';
 export const runtime = 'nodejs';
 export const maxDuration = 120;
 
+/** A user-facing message tuned to the actual failure cause, so we don't cry
+ *  "something went wrong" when the model provider is simply overloaded (the far
+ *  more common transient case) or the API key is misconfigured. */
+function agentTurnErrorMessage(error: unknown): string {
+  const status =
+    error && typeof (error as { status?: unknown }).status === 'number'
+      ? (error as { status: number }).status
+      : undefined;
+  if (status === 429 || status === 529 || (status !== undefined && status >= 500)) {
+    return "Phera's AI is briefly overloaded — give it a few seconds and try again.";
+  }
+  if (status === 401 || status === 403) {
+    return "Phera's AI isn't reachable right now (we're on it) — please try again shortly.";
+  }
+  return 'Something went wrong on my end — please try that again.';
+}
+
 /**
  * POST /api/agent/chat
  * Body: { weddingSlug: string, message: string, conversationId?: string }
@@ -102,10 +119,7 @@ export async function POST(request: NextRequest) {
         }
         console.error('Agent turn failed:', error);
         Sentry.captureException(error, { tags: { surface: 'agent-chat' } });
-        send({
-          type: 'error',
-          message: 'Something went wrong on my end — please try that again.',
-        });
+        send({ type: 'error', message: agentTurnErrorMessage(error) });
       } finally {
         controller.close();
       }

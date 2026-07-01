@@ -5,7 +5,7 @@ vi.mock('@/lib/supabase/client', () => ({
   publicSupabase: { from: vi.fn() },
 }));
 
-import { runAgentTurn, TurnInProgressError, sanitizeHistoryWindow } from '@/lib/agent/loop';
+import { runAgentTurn, TurnInProgressError, sanitizeHistoryWindow, sanitizeToolPairing } from '@/lib/agent/loop';
 import type { AgentChatMessage, AgentProvider, AgentStreamEvent, ProviderTurnResult } from '@/lib/agent/types';
 import { createFakeSupabase, type TableResult } from './mocks/fake-supabase';
 
@@ -252,5 +252,39 @@ describe('sanitizeHistoryWindow', () => {
       { role: 'assistant' as const, content: [text('hi')] },
     ];
     expect(sanitizeHistoryWindow(input)).toEqual(input);
+  });
+});
+
+describe('sanitizeToolPairing', () => {
+  const text = (t: string) => ({ type: 'text' as const, text: t });
+
+  it('drops a mid-history tool_result whose tool_use is missing from the prior message (the prod 400)', () => {
+    const out = sanitizeToolPairing([
+      { role: 'user', content: [text('hi')] },
+      { role: 'assistant', content: [text('sure')] }, // no tool_use here
+      { role: 'user', content: [text('more'), { type: 'tool_result', tool_use_id: 'orphan', content: 'x' }] },
+    ]);
+    const last = out[out.length - 1];
+    expect(last.content.some((b) => b.type === 'tool_result')).toBe(false);
+    expect(last.content.some((b) => b.type === 'text')).toBe(true);
+  });
+
+  it('keeps a valid tool_use → tool_result pair', () => {
+    const input: AgentChatMessage[] = [
+      { role: 'user', content: [text('hi')] },
+      { role: 'assistant', content: [{ type: 'tool_use', id: 't1', name: 'list_guests', input: {} }] },
+      { role: 'user', content: [{ type: 'tool_result', tool_use_id: 't1', content: 'ok' }] },
+    ];
+    expect(sanitizeToolPairing(input)).toEqual(input);
+  });
+
+  it('drops an unanswered tool_use and removes the message it empties', () => {
+    const out = sanitizeToolPairing([
+      { role: 'user', content: [text('hi')] },
+      { role: 'assistant', content: [{ type: 'tool_use', id: 't1', name: 'list_guests', input: {} }] }, // no result follows
+      { role: 'user', content: [text('next')] },
+    ]);
+    expect(out).toHaveLength(2);
+    expect(out.some((m) => m.content.some((b) => b.type === 'tool_use'))).toBe(false);
   });
 });
