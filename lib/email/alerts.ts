@@ -1,4 +1,5 @@
 import { resend } from './resend';
+import { isLabSlug } from '@/lib/agent/lab/scenarios';
 
 const ALERT_RECIPIENT = 'contact@phera.io';
 
@@ -112,6 +113,12 @@ export interface PlannerRequestAlertData {
 export async function sendPlannerRequestAlert(data: PlannerRequestAlertData) {
     const { weddingId, kind, service, budget, details } = data;
     const fromEmail = process.env.RESEND_FROM_EMAIL;
+
+    // Disposable agent-lab weddings (evals, manual lab testing) must never
+    // page the team — the request row is still written for assertions.
+    if (weddingId && isLabSlug(weddingId)) {
+        return { success: true, skipped: 'lab wedding' };
+    }
 
     if (!fromEmail) {
         console.error('RESEND_FROM_EMAIL is not configured');

@@ -6,6 +6,7 @@
 export default {
   name: 'gated-confirm-decline',
   description: 'Populated wedding: confirm executes, decline leaves data untouched',
+  persona: 'E6', // gating edge case — Pro/gated tools park confirmations honestly
   seed: 'populated',
   turns: [
     {

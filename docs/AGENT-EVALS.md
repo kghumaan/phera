@@ -2,7 +2,11 @@
 
 > **Living document.** The persona library + edge cases + verifiable eval design we test the Planner agent against, so we can prove it behaves correctly as we build the conversation spine. Companion to `docs/PLANNER-JOURNEY.md`.
 >
-> Last updated: 2026-06-29 · Targets the real lab infra (`app/api/agent/lab/chat`, `lib/agent/lab/scenarios.ts`).
+> Last updated: 2026-07-02 · Targets the real lab infra (`app/api/agent/lab/chat`, `lib/agent/lab/scenarios.ts`).
+>
+> **Spine order (decided 2026-07-02, `docs/PLANNER-SPINE-TRACKER.md` E1):** schedule/events → travel/stay/shuttles → website+FAQs → guest list → RSVPs → rooms → vendors & venue → registry → photos. Travel moved BEFORE website so FAQs state real accommodation facts.
+>
+> **Enforced in CI** by `tests/agent-evals/scenario-coverage.test.ts`: every scenario fixture must declare a `persona` (P/E id), the suite must cover ≥5 distinct personas, a `spine: 'full'` walkthrough must always exist with `spineSteps` matching the canonical order above, and the system prompt's dependency order must match too. Coverage cannot silently rot.
 
 ---
 
@@ -149,8 +153,29 @@ Implemented under `tests/agent-evals/`:
 
 **The upgrade reveal, confirmed end-to-end:** `upgrade_required` (loop) → `handleEvent` pushes an inline upgrade card (`AgentChatPanel.tsx:575`) → its "Upgrade" button opens `<UpgradeModal>` (`:1692`). The deterministic suites prove the backend half; the live suite proves it against the real model.
 
-### Still to add (eval-driven, alongside step 4 — the spine)
-- Multi-turn live fixtures (the `answer` round-trip via `resolveAgentAnswers`) for the full P1–P10 / E1–E10 behavioral matrix (act-first drafting, triage short-circuit, the SEND trigger, city-not-venue, consent-at-collection). These are RED until the spine ships, by design — add the fixture, then build the prompt until it goes green.
+### Scenario fixtures (as of 2026-07-02)
+
+All fixtures in `tests/agent-evals/scenarios/` now carry a `persona` tag; run a persona with `npm run evals -- P5`.
+
+| Fixture | Persona | Covers |
+|---|---|---|
+| `01-onboarding-fuzzy-basics` | P1 | Fuzzy date/city capture, no invented venue |
+| `02-onboarding-skeleton-build` | P2 | Act-first schedule drafting |
+| `03-grounded-rsvp-count` | P3 | Grounded RSVP numbers |
+| `04-cancellation-couple` | P8 | Single-task returning couple |
+| `05-gated-confirm-decline` | E6 | Gated confirm/decline round-trip |
+| `06-proactive-faq` | P9 | Reverse-destination seasonal judgment → FAQ |
+| `07-full-spine-walkthrough` | P2 · **spine: full** | The whole decided spine, one step per turn, order asserted |
+| `08-plus-one-headcount` | P3 | Party-size/plus-one-aware headcounts (post smart-import work) |
+| `09-guest-import-upload` | P1 | Spreadsheet guest list → `request_upload`, nothing fabricated |
+| `10-persona-destination-nri` | P5 | Travel cluster engagement + consent-before-personal-data |
+| `11-persona-local-small` | P6 | Minimal path pruning, destination cluster suppressed |
+
+`verify(state, helpers, run)` now receives a third arg `{ reply, toolsRun }` so fixtures can reconcile the reply against live state (see `08-plus-one-headcount`).
+
+### Still to add (eval-driven, alongside the spine build)
+- Working-on bar behaviors once built (PLANNER-SPINE-TRACKER A1–A5): persisted current step, resume ("are you done with X?"), skip = defer-and-resurface.
+- Multi-turn `answer` round-trips via `resolveAgentAnswers` for the remaining P4/P7/E-matrix cases (triage short-circuit, planner-agency register, brain-dump parse).
 - An optional `llm-judge.ts` for "did it follow the spine" where regex is too brittle.
 - CI wiring: deterministic suites on every PR; live suite nightly / pre-release.
 

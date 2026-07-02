@@ -1,4 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import {
+  FOCUS_TITLE,
+  SPINE_STEPS,
+  spineStepLabel,
+  spineComplete,
+  type SpineFocus,
+} from './spine';
 
 export interface CompletenessItem {
   key: string;
@@ -29,6 +36,8 @@ export interface WeddingSnapshot {
   completeness: CompletenessItem[];
   /** Structured numbers behind the snapshot — for analytical UI (e.g. Planner starter prompts). */
   stats: WeddingStats;
+  /** Persisted spine focus (the "Working on" bar) — null when never set. */
+  focus: (SpineFocus & { label: string | null; complete: boolean }) | null;
 }
 
 /**
@@ -115,18 +124,31 @@ export async function buildWeddingSnapshot(
     { key: 'faqs', label: 'Guest FAQs written', done: faqCount > 0, detail: `${faqCount} FAQs` },
   ];
 
-  // Planning goals (what the couple actually wants help with) — stored as a
-  // wedding-scoped agent_knowledge row. Fail-open if missing.
+  // Planning goals + current spine focus — both live as wedding-scoped
+  // agent_knowledge rows. Fail-open if missing.
   let goals: string | null = null;
+  let focus: WeddingSnapshot['focus'] = null;
   try {
     const { data } = await supabase
       .from('agent_knowledge')
-      .select('content')
+      .select('title, content, metadata')
       .eq('wedding_id', weddingSlug)
       .eq('scope', 'wedding')
-      .eq('title', 'Planning goals')
-      .maybeSingle();
-    goals = data?.content ?? null;
+      .in('title', ['Planning goals', FOCUS_TITLE]);
+    goals = data?.find((r) => r.title === 'Planning goals')?.content ?? null;
+    const focusMeta = data?.find((r) => r.title === FOCUS_TITLE)?.metadata as
+      | Partial<SpineFocus>
+      | undefined;
+    if (focusMeta) {
+      const parsed: SpineFocus = {
+        step: typeof focusMeta.step === 'string' ? focusMeta.step : null,
+        done: Array.isArray(focusMeta.done) ? focusMeta.done.filter((s): s is string => typeof s === 'string') : [],
+        skipped: Array.isArray(focusMeta.skipped)
+          ? focusMeta.skipped.filter((s): s is string => typeof s === 'string')
+          : [],
+      };
+      focus = { ...parsed, label: spineStepLabel(parsed.step), complete: spineComplete(parsed) };
+    }
   } catch {
     /* knowledge table not available */
   }
@@ -156,10 +178,19 @@ export async function buildWeddingSnapshot(
     `Today's date: ${today}`,
     `Account: ${
       isPlanner
-        ? "PLANNER — you're helping a wedding planner set up their CLIENT's wedding (not the planner's own). Address the planner; ask for THE COUPLE's names (\"Whose wedding are you setting up?\"), and treat the guest list / dates / details as the couple's. Never congratulate the planner on an engagement."
+        ? "PLANNER — you're helping a wedding planner set up their CLIENT's wedding (not the planner's own). Address the planner; ask for THE COUPLE's names (\"What's the couple's name?\"), phrase every question about their client's wedding in the third person, and treat the guest list / dates / details as the couple's. Never congratulate the planner on an engagement."
         : 'Couple — they are using Phera for their own wedding.'
     }`,
     `Planning goals: ${goals || 'NOT SET — first ask what they want help with'}`,
+    `Working on (spine focus): ${
+      focus?.step
+        ? `${focus.label} [${focus.step}]${focus.done.length ? ` · done: ${focus.done.join(', ')}` : ''}${
+            focus.skipped.length ? ` · skipped (resurface later): ${focus.skipped.join(', ')}` : ''
+          } — if this is the first message of a NEW conversation, open by asking whether they're done with ${focus.label} before moving on`
+        : focus?.complete
+          ? `spine complete ✓${focus.skipped.length ? ` (still skipped: ${focus.skipped.join(', ')})` : ''}`
+          : `NOT SET — once goals are set, call set_current_focus for the first relevant spine step (order: ${SPINE_STEPS.map((s) => s.key).join(' → ')})`
+    }`,
     `Couple: ${wedding.couple_name ?? [wedding.partner1_name, wedding.partner2_name].filter(Boolean).join(' & ') ?? 'not set'}`,
     `Wedding date: ${dateSet ? wedding.wedding_date : 'NOT SET'}${dateSet && wedding.wedding_date_end ? ` to ${wedding.wedding_date_end}` : ''}${
       daysToWedding !== null ? ` (${daysToWedding} days away)` : ''
@@ -191,5 +222,5 @@ export async function buildWeddingSnapshot(
     goalsSet: !!goals,
   };
 
-  return { text: lines.join('\n'), completeness, stats };
+  return { text: lines.join('\n'), completeness, stats, focus };
 }

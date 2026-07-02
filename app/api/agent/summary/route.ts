@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
 import { verifyWeddingAccess } from '@/lib/utils/verify-wedding-access';
 import { buildWeddingSnapshot, type WeddingSnapshot } from '@/lib/agent/context';
+import { SPINE_STEPS } from '@/lib/agent/spine';
 
 export const runtime = 'nodejs';
 
@@ -85,9 +86,23 @@ export async function GET(request: NextRequest) {
 
   try {
     const snapshot = await buildWeddingSnapshot(supabase, wedding.slug, wedding.id);
-    return NextResponse.json({ starters: buildStarters(snapshot) });
+    // The Working-on bar's state (PLANNER-SPINE-TRACKER A1/A2): current spine
+    // step + progress, shaped for direct rendering.
+    const f = snapshot.focus;
+    const focus = f
+      ? {
+          step: f.step,
+          label: f.label,
+          stepNumber: f.step ? SPINE_STEPS.findIndex((s) => s.key === f.step) + 1 : null,
+          totalSteps: SPINE_STEPS.length,
+          done: f.done,
+          skipped: f.skipped,
+          complete: f.complete,
+        }
+      : null;
+    return NextResponse.json({ starters: buildStarters(snapshot), focus });
   } catch {
     // Fail open — the client falls back to its default starters.
-    return NextResponse.json({ starters: [] });
+    return NextResponse.json({ starters: [], focus: null });
   }
 }

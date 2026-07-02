@@ -18,10 +18,11 @@
 4. ask GOALS ("what do you want help with?") → call set_planning_goals
    [goals now SET — onboarding done]
         ↓
-5. ACT across the wedding in dependency order:
-   schedule/events → website+FAQs → guest list (+households/liaisons)
-   → RSVPs → travel/logistics (only if guests fly in) → rooms
-   → shuttles → guest comms → vendors/venue → registry → photos
+5. ACT across the wedding in dependency order (decided 2026-07-02, see
+   docs/PLANNER-SPINE-TRACKER.md E1 — travel BEFORE website so FAQs are real):
+   schedule/events → travel/stay/shuttles (only if guests fly in)
+   → website+FAQs → guest list (+households/liaisons) → RSVPs (broadcast)
+   → rooms → vendors/venue → registry → photos
 ```
 
 ## Ask vs. Do

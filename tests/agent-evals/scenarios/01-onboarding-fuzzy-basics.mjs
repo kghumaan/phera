@@ -6,6 +6,7 @@
 export default {
   name: 'onboarding-fuzzy-basics',
   description: 'Blank wedding: fuzzy date + city captured correctly, no question wall',
+  persona: 'P1', // brand-new, just engaged, nothing set (docs/AGENT-EVALS.md §3)
   seed: 'blank',
   turns: [
     {

@@ -6,6 +6,7 @@
 export default {
   name: 'proactive-faq',
   description: 'Populated wedding: seasonal judgment becomes an FAQ on confirmation',
+  persona: 'P9', // reverse-destination — non-Indian guests, first Indian wedding
   seed: 'populated',
   turns: [
     {

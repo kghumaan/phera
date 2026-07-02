@@ -11,11 +11,11 @@
 
 | # | Item | Status | Notes |
 |---|------|--------|-------|
-| A1 | Persistent status bar at top of chat interface: full width, same border radius as chat container (`RADII.lg` 16px, chat uses `COLORS.bg.subtle`), single line. Left: "Working on: {step}". Right: skip / move-on button. | TODO | No top bar exists today inside AgentChatPanel — clean slot above the chat box (`AgentChatPanel.tsx:1691`). |
-| A2 | Persist current spine step per wedding so returning users resume where they left off. | TODO | Nothing persisted today — snapshot is rebuilt per turn from table data (`lib/agent/context.ts:39-195`). Likely home: `agent_knowledge` row (like Planning goals) or new column. |
-| A3 | On return, agent proactively asks "Are you done with everything on {step}?" — confirm → advance, else continue. | TODO | |
-| A4 | The current step drives which right-side panel shows — always exactly one focus. | TODO | Right pane already exists + swaps content: QuestionFlow / FaqReviewPanel / VenueCardsPanel / WhatsAppPairingPanel / BroadcastPanel (`AgentChatPanel.tsx:1620-1688`). Needs to be driven by the persisted step. |
-| A5 | When user clicks away to a section (guest list, website), planner records that step as pending; on return it's still "Working on". | TODO | |
+| A1 | Persistent status bar at top of chat interface: full width, single line. Left: "Working on: {step}". Right: skip / move-on button. | DONE ✅ (2026-07-02) | Pinned white strip at the top of the chat panel (inherits panel radius via overflow), `Working on: {label} · step N of 9`, `SecondaryActionButton` "Skip / move on", "All caught up ✓ (+N skipped parked)" when complete. Visual pass in browser still worth a look. |
+| A2 | Persist current spine step per wedding so returning users resume where they left off. | DONE ✅ (2026-07-02) | `agent_knowledge` row (title `Current focus`, metadata `{step, done[], skipped[]}`) — NO migration needed. Canonical steps + defer-and-resurface logic in `lib/agent/spine.ts` (unit-tested, `tests/agent-evals/spine-focus.test.ts`). Agent tools `set_current_focus` / `complete_focus_step` (`lib/agent/tools/focus.ts`). Exposed to UI via `/api/agent/summary` `focus`. |
+| A3 | On return, agent proactively asks "Are you done with everything on {step}?" — confirm → advance, else continue. | DONE ✅ (2026-07-02) | Snapshot injects "Working on (spine focus): … open by asking whether they're done" + system-prompt WORKING-ON BAR rules. Live eval `12-working-on-resume.mjs` covers set → return → resume → advance. |
+| A4 | The current step drives which right-side panel shows — always exactly one focus. | PARTIAL | Right pane is event-driven (QuestionFlow / FAQ / venues / broadcast panels) and the agent now works one focused step at a time, so the pane follows the focus in practice. A hard step→pane mapping deferred until a real mismatch shows up. |
+| A5 | When user clicks away to a section (guest list, website), planner records that step as pending; on return it's still "Working on". | DONE (via A2) ✅ | Focus persists until explicitly completed/skipped — clicking away changes nothing; the bar + resume prompt pick it right back up. Deep-link "went to section X" detection can layer on later if needed. |
 
 ## B. The spine (step order + per-step spec)
 
@@ -86,7 +86,7 @@ Order from the dump: **schedule/events → travel/logistics/stay → website →
 
 | # | Item | Status | Notes |
 |---|------|--------|-------|
-| C1 | **Plus-one parsing bug**: import missed plus-ones (got only the 72 named guests). Parser DOES support plus-one columns (`guest-import-parsers.ts:90-155` matches "plus one", "+1", "companion") but mapping is pure heuristic — the file's column naming evidently didn't match. Fix: LLM-assisted column mapping / row interpretation fallback. | TODO | Need the actual file from KV to reproduce (E6). |
+| C1 | **Plus-one parsing bug**: import missed plus-ones (got only the 72 named guests). Root cause: pure-heuristic column mapping + no plus-one visibility in preview + chat path imports with no preview at all. | DONE ✅ (2026-07-02, verified w/ real Zola file — 157 headcount vs 72 before) | Shipped: Gemini column analyzer (`/api/guests/import/analyze`, rate-limited + size-capped) + `smartMapColumns` merge w/ heuristic fallback; multi additional-guest columns → `additional_guests`; per-cell interpretation of mixed Plus One columns (names / yes-no / counts) → party_size + `plus-one-allowed` tag; serial "No." guard; phone-affinity pairing; XLSX numeric-cell coercion; confirm preview shows Plus One + expected headcount; Import blocked while analyzer in flight; chat upload path uses it all too. 14 adversarial-review findings found + fixed; 83 tests green. Remaining: verify against KV's real file (E6). |
 | C2 | **Voice tagging**: mic in the guest list section — admin rambles about tagging (who's with who, whose rooms covered, who shouldn't see an event); LLM applies tags accurately; asks clarifying questions when unsure. | TODO | Reusable: `useVoiceInput` hook + `/api/concierge/transcribe` (Groq Whisper) already power chat voice. No voice in guest list today. |
 | C3 | Highlight the voice feature prominently in the guest list section ("just speak to us and tell us how to tag"). | TODO | |
 | C4 | Image upload for guest list (scratch notes → parsed guests). | TODO | Overlaps B4; reuse the rooms Gemini-vision parse pattern. |
@@ -95,8 +95,8 @@ Order from the dump: **schedule/events → travel/logistics/stay → website →
 
 | # | Item | Status | Notes |
 |---|------|--------|-------|
-| D1 | Guest list upload: make the "I have a lawful…" consent note smaller. | TODO | `GuestImportWizard.tsx:1146-1149`, currently 0.8125rem (13px) — already under the 14px floor; legal footnote exception → 0.75rem. |
-| D2 | Landing hero heading: a bit smaller at every breakpoint **except mobile**. | TODO | `HeroSection.tsx:97` — `clamp(56px, 10.5vw, 156px)`. Keep 56px min, reduce slope+max, e.g. `clamp(56px, 9vw, 128px)` (tune visually). |
+| D1 | Guest list upload: make the "I have a lawful…" consent note smaller. | DONE (2026-07-02) | 0.8125rem → 0.75rem (legal-footnote exception to the 14px floor). |
+| D2 | Landing hero heading: a bit smaller at every breakpoint **except mobile**. | DONE (2026-07-02) | `clamp(56px, 10.5vw, 156px)` → `clamp(56px, 9vw, 128px)`. Mobile (≤622px) unchanged at 56px; 1024px: 107→92px; 1440px: 151→128px. Tune further on visual check. |
 
 ## E. Open questions (answers get logged here)
 
@@ -107,8 +107,28 @@ Order from the dump: **schedule/events → travel/logistics/stay → website →
 | E3 | Docked chat on Guest List / Rooms — collapsible right panel vs floating widget vs fixed panel? Same conversation as main planner? | ✅ **Collapsible right panel**, open by default on those two pages, collapses to slim edge tab, sits below admin header, shares the main planner conversation, text + voice. |
 | E4 | RSVP broadcast — keep existing Whapi/paired-number channel + Pro gate as-is? Is this spine step THE SEND-trigger conversion moment for free users? | ✅ **Yes, SEND-trigger**: everyone gets the drafted broadcast; free users hit the upgrade card at send. |
 | E5 | Registry "pay directly" — the existing Stripe payment-link generator is what you mean? Or something new (direct-to-bank, shagun-ledger tie-in)? | ✅ Couples create their own Stripe products dynamically through Phera (Stripe API/MCP); money collected on Phera's Stripe; **forward to couple after the wedding — NOT built yet, don't worry about payout now. Low priority overall.** |
-| E6 | The plus-one guest file — need it re-shared (attachment didn't come through). | ⏳ Waiting on KV to re-share. |
+| E6 | The plus-one guest file — need it re-shared (attachment didn't come through). | ✅ Received (`~/Downloads/Zola_Guest_List_v2.csv`) and verified 2026-07-02: 72 guests + 37 named plus-ones + 11 Y-flags + 37 additional guests = **157 expected attendees** (old importer captured 72). Heuristics alone handle it; LLM analyzer reinforces. |
 | E7 | What to build first? | ✅ **Quick fixes first** (D1, D2, C1) → then Working-on bar (A1–A5) → then spine steps in order. |
+
+## G. Evals (added 2026-07-02 per KV request)
+
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| G1 | Audit existing eval infra. | DONE ✅ | 3 tiers: deterministic CI suites (`tests/agent-evals/*.test.ts`), live invariants (`live/personas.live.test.ts`), scenario scorecard (`scenarios/*.mjs` via `npm run evals`, costs tokens). Personas P1–P10/E1–E10 defined in `docs/AGENT-EVALS.md`. |
+| G2 | Persona tags on every fixture + multiple-persona coverage. | DONE ✅ | All 11 fixtures tagged (P1, P2, P3, P5, P6, P8, P9, E6 = 8 distinct). `npm run evals -- P5` filters by persona. |
+| G3 | Full-spine walkthrough eval in the DECIDED order. | DONE ✅ | `07-full-spine-walkthrough.mjs` — 10 turns, one spine step each, order asserted. System prompt + flow doc updated to decided order (travel before website). |
+| G4 | **Enforcement**: coverage can't rot. | DONE ✅ | `tests/agent-evals/scenario-coverage.test.ts` (CI): every fixture must declare a persona; ≥5 distinct personas; a `spine:'full'` fixture must exist with `spineSteps` == canonical order; system-prompt order probed too. |
+| G5 | New fixtures for what we changed: plus-one headcounts + upload flow. | DONE ✅ | `08-plus-one-headcount.mjs` (reply reconciled against Σ party_size via new `verify(state, h, {reply})` 3rd arg), `09-guest-import-upload.mjs` (request_upload, nothing fabricated). |
+| G6 | Working-on bar evals (persisted step, resume prompt, skip=defer). | DONE ✅ (2026-07-02) | `12-working-on-resume.mjs` — **5/5 live on first run**: set_current_focus fires on topic declaration, a NEW conversation resumes at the focused step (no onboarding restart), complete_focus_step advances to RSVPs. Runner gained `newConversation:` turns + `expect.events/notEvents`. |
+| G7 | Live scorecard baseline (2026-07-02): **60/61 checks green** across 7 scenarios run live. | BASELINE | One documented red kept as a regression target: full-spine t5 — mid-flow *statement* "our guest list is in a spreadsheet" doesn't render the upload card (direct asks DO — `09-guest-import-upload` passes). Deliberate: not over-tuning the prompt against one turn. |
+
+## F. Follow-ups noticed along the way
+
+| # | Item | Status | Notes |
+|---|------|--------|-------|
+| F1 | `/api/guests/import`, `/api/rooms/parse`, and the new `/api/guests/import/analyze` are **unauthenticated** (middleware only guards /admin pages + /api/ops). Analyze is now rate-limited + size-capped; the other two are pre-existing. Worth an auth pass across guest/rooms API routes. | TODO | Surfaced by 2026-07-02 adversarial review. |
+| F2 | Pre-existing failing test `tests/agent-onboard-tts-api.test.ts` ("creates a draft wedding…" expects slug `new-wedding-*`, route now returns a UUID) — belongs to earlier uncommitted WIP on `app/api/agent/onboard/start/route.ts`. | DONE ✅ (2026-07-02) | Test updated to assert the route's intended unguessable-UUID draft slug. Unit suite fully green again. |
+| F3 | **TTS (voice onboarding) — BACKLOG, not an active feature.** KV decision 2026-07-02: keep it *working* (green tests, no rot) but don't invest in it as a feature right now. | BACKLOG | Includes fixing the F2 test so the suite stays green. |
 
 ---
 

@@ -97,9 +97,16 @@ async function runScenario(scenario) {
         });
         lastPendingActions = lastPendingActions.slice(1);
       } else {
+        // turn.newConversation simulates the couple RETURNING later — a fresh
+        // conversation against the same wedding (tests resume behavior like
+        // the Working-on bar's "are you done with X?" reopening).
         result = await api('/api/agent/lab/chat', {
           method: 'POST',
-          body: JSON.stringify({ weddingSlug: slug, conversationId, message: turn.message }),
+          body: JSON.stringify({
+            weddingSlug: slug,
+            conversationId: turn.newConversation ? undefined : conversationId,
+            message: turn.message,
+          }),
         });
         conversationId = result.conversationId;
         lastPendingActions = (result.events ?? []).filter((e) => e.type === 'confirmation_required');
@@ -107,6 +114,7 @@ async function runScenario(scenario) {
 
       const reply = result.reply ?? '';
       const toolsRun = (result.actions ?? []).map((a) => a.tool_name);
+      const eventTypes = (result.events ?? []).map((e) => e.type);
       const expect = turn.expect ?? {};
 
       for (const tool of expect.tools ?? []) {
@@ -114,6 +122,15 @@ async function runScenario(scenario) {
       }
       for (const tool of expect.notTools ?? []) {
         check(checks, `${tag} did NOT call ${tool}`, !toolsRun.includes(tool));
+      }
+      // Some capabilities surface as loop EVENTS, not action rows — e.g.
+      // request_upload emits `upload_requested`, gating emits
+      // `upgrade_required`. Assert on those with expect.events / notEvents.
+      for (const type of expect.events ?? []) {
+        check(checks, `${tag} emitted ${type}`, eventTypes.includes(type), `events: ${eventTypes.join(', ') || 'none'}`);
+      }
+      for (const type of expect.notEvents ?? []) {
+        check(checks, `${tag} did NOT emit ${type}`, !eventTypes.includes(type));
       }
       for (const pattern of expect.reply ?? []) {
         const re = new RegExp(pattern, 'i');
@@ -133,7 +150,9 @@ async function runScenario(scenario) {
 
       if (turn.verify) {
         const state = await api(`/api/agent/lab/state?weddingSlug=${slug}`);
-        const results = await turn.verify(state, helpers);
+        // Third arg lets verify() reconcile the REPLY against live state
+        // (e.g. "the headcount it quoted matches the sum of party sizes").
+        const results = await turn.verify(state, helpers, { reply, toolsRun });
         for (const r of results) check(checks, `${tag} ${r.label}`, r.pass, r.detail ?? '');
       }
     }
@@ -160,9 +179,11 @@ async function main() {
 
   for (const file of files) {
     const { default: scenario } = await import(pathToFileURL(join(SCENARIO_DIR, file)).href);
-    if (filters.length && !filters.some((f) => scenario.name.includes(f))) continue;
+    // Filter by name substring OR persona id (e.g. `npm run evals -- P5`).
+    if (filters.length && !filters.some((f) => scenario.name.includes(f) || scenario.persona === f)) continue;
 
-    process.stdout.write(`\n▶ ${scenario.name} — ${scenario.description}\n`);
+    const personaTag = scenario.persona ? ` [${scenario.persona}${scenario.spine === 'full' ? ' · full spine' : ''}]` : '';
+    process.stdout.write(`\n▶ ${scenario.name}${personaTag} — ${scenario.description}\n`);
     let checks;
     try {
       checks = await runScenario(scenario);

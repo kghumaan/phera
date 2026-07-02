@@ -5,6 +5,7 @@
 export default {
   name: 'grounded-rsvp-count',
   description: 'Populated wedding: headcount answers are grounded in real data',
+  persona: 'P3', // mid-planning, list in, RSVPs landing
   seed: 'populated',
   turns: [
     {

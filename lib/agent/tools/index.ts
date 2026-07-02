@@ -11,6 +11,7 @@ import { directoryTools } from './directory';
 import { knowledgeTools } from './knowledge';
 import { askTools } from './ask';
 import { goalsTools } from './goals';
+import { focusTools } from './focus';
 import { uploadTools } from './upload';
 import { shagunTools } from './shagun';
 import { consentTools } from './consent';
@@ -36,6 +37,7 @@ export function ensureToolsRegistered() {
     ...knowledgeTools,
     ...askTools,
     ...goalsTools,
+    ...focusTools,
     ...uploadTools,
     ...shagunTools,
     ...consentTools,

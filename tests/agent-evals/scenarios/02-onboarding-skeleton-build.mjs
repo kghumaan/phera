@@ -6,6 +6,7 @@
 export default {
   name: 'onboarding-skeleton-build',
   description: 'Blank wedding: 3-day sketch becomes real schedule days + events',
+  persona: 'P2', // venue booked, early — act-first schedule drafting
   seed: 'blank',
   turns: [
     {

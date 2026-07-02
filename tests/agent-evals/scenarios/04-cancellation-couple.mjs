@@ -6,6 +6,7 @@
 export default {
   name: 'cancellation-couple',
   description: 'Populated wedding: couple cancels — both RSVPs flip, room 204 flagged',
+  persona: 'P8', // single-task returning couple — do the task, no full sweep
   seed: 'populated',
   turns: [
     {

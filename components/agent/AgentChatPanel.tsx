@@ -577,6 +577,18 @@ export function AgentChatPanel({
   // 280 RSVPs are in…"), fetched from /api/agent/summary. A caller-supplied
   // `starters` wins; otherwise these, then the static defaults.
   const [dynamicStarters, setDynamicStarters] = useState<string[] | null>(null);
+  // The "Working on" bar (PLANNER-SPINE-TRACKER A1): the persisted spine step
+  // from /api/agent/summary. Refetched after every turn so the bar tracks the
+  // agent's set_current_focus / complete_focus_step calls.
+  const [focus, setFocus] = useState<{
+    step: string | null;
+    label: string | null;
+    stepNumber: number | null;
+    totalSteps: number;
+    done: string[];
+    skipped: string[];
+    complete: boolean;
+  } | null>(null);
   // Captured wedding facts distilled from answered form questions — shown as
   // tappable badges under the form so the couple sees (and can change) what's
   // been recorded.
@@ -758,27 +770,29 @@ export function AgentChatPanel({
     };
   }, [weddingSlug, defaultVoice, onboarding]);
 
-  // Fetch analytical starter prompts for a returning couple (skip the onboarding
-  // flow, which has its own scripted kickoff). Fail-open to the static defaults.
-  useEffect(() => {
-    if (onboarding) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`/api/agent/summary?weddingSlug=${encodeURIComponent(weddingSlug)}`);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!cancelled && Array.isArray(data.starters) && data.starters.length) {
-          setDynamicStarters(data.starters);
-        }
-      } catch {
-        /* fall back to defaults */
+  // Fetch the wedding summary: analytical starter prompts for a returning
+  // couple (skipped during the scripted onboarding kickoff) + the Working-on
+  // bar's spine focus. Called on mount and after every completed turn, so the
+  // bar tracks the agent's focus tools. Fail-open on any error.
+  const refreshSummary = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/agent/summary?weddingSlug=${encodeURIComponent(weddingSlug)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!onboarding && Array.isArray(data.starters) && data.starters.length) {
+        setDynamicStarters(data.starters);
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
+      setFocus(data.focus ?? null);
+    } catch {
+      /* fall back to defaults */
+    }
   }, [weddingSlug, onboarding]);
+  const refreshSummaryRef = useRef(refreshSummary);
+  refreshSummaryRef.current = refreshSummary;
+
+  useEffect(() => {
+    void refreshSummary();
+  }, [refreshSummary]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -1065,12 +1079,22 @@ export function AgentChatPanel({
         await streamChat(trimmed);
       } finally {
         setBusy(false);
+        // Keep the Working-on bar in sync with any focus-tool calls this turn.
+        void refreshSummaryRef.current();
         onTurnComplete?.();
       }
     },
     [busy, streamChat, onTurnComplete]
   );
   sendRef.current = send;
+
+  // The Working-on bar's right-side action: hand the decision to the agent,
+  // which marks the step done vs skipped based on the snapshot and advances
+  // the focus (skip = defer-and-resurface).
+  const moveOnFromFocus = useCallback(() => {
+    if (busy || !focus?.step || !focus.label) return;
+    void send(`Let's move on from ${focus.label} for now — take me to the next step.`);
+  }, [busy, focus, send]);
 
   // The couple approved the drafted FAQs: clear the review panel and hand a
   // hidden note to the agent so it acknowledges and moves to the next step
@@ -1688,7 +1712,55 @@ export function AgentChatPanel({
       </AnimatePresence>
       {/* CHAT — on the LEFT (order 1 on md), wider. Messages on a soft grey
           rounded panel with a white input. */}
-      <Box sx={{ order: { md: 1 }, flex: { xs: 1, md: 1.6 }, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: COLORS.bg.subtle, borderRadius: RADII.lg, overflow: 'hidden' }}>
+      <Box sx={{ order: { md: 1 }, flex: { xs: 1, md: 1.6 }, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: COLORS.bg.subtle, border: `1px solid ${COLORS.border.light}`, borderRadius: RADII.lg, overflow: 'hidden' }}>
+      {/* The "Working on" bar — one line pinned to the top of the chat panel:
+          the persisted spine step on the left, skip/move-on on the right
+          (PLANNER-SPINE-TRACKER A1/A3). Shows "All caught up" once the spine
+          is complete; hidden until the agent first sets a focus. */}
+      {focus && (focus.step || focus.complete) && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1,
+            px: 2,
+            py: 0.75,
+            bgcolor: COLORS.bg.white,
+            borderBottom: `1px solid ${COLORS.border.light}`,
+            flexShrink: 0,
+            minHeight: 44,
+          }}
+        >
+          {focus.step ? (
+            <>
+              <Typography
+                variant="body2"
+                sx={{ color: COLORS.text.muted, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+              >
+                Working on:{' '}
+                <Box component="span" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
+                  {focus.label}
+                </Box>
+                {focus.stepNumber && (
+                  <Box component="span" sx={{ color: COLORS.text.faint, display: { xs: 'none', sm: 'inline' } }}>
+                    {' '}· step {focus.stepNumber} of {focus.totalSteps}
+                  </Box>
+                )}
+              </Typography>
+              <SecondaryActionButton size="small" onClick={moveOnFromFocus} disabled={busy} sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+                Skip / move on
+              </SecondaryActionButton>
+            </>
+          ) : (
+            <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
+              All caught up ✓
+              {focus.skipped.length > 0 &&
+                ` · ${focus.skipped.length} skipped step${focus.skipped.length !== 1 ? 's' : ''} parked for later`}
+            </Typography>
+          )}
+        </Box>
+      )}
       {isWelcomeEmpty ? (
       // First-visit hero: a centered input the couple types into, with the
       // conversation starters below it. Collapses to the bottom composer once
