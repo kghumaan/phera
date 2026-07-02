@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
 import { WeddingService } from '@/lib/supabase/wedding-service';
 import { COLORS } from '@/lib/theme/tokens';
+import { DRAFT_COUPLE_NAME } from '@/lib/constants/wedding-placeholders';
 
 export const runtime = 'nodejs';
 
@@ -36,7 +37,7 @@ export async function POST() {
 
   const wedding = await service.createWedding({
     slug,
-    couple_name: 'Your Wedding',
+    couple_name: DRAFT_COUPLE_NAME,
     partner1_name: '',
     partner2_name: '',
     wedding_date: new Date(0).toISOString(),

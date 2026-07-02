@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -20,8 +20,6 @@ import { ErrorAlert } from '@/components/shared/Alert';
 import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import ConfirmChargeModal from '@/components/admin/ConfirmChargeModal';
-
-const PENDING_COUPLE_NAME_KEY = 'phera_planner_pending_couple_name';
 
 interface BillingInfo {
   isPlanner: boolean;
@@ -62,41 +60,61 @@ function NewWeddingPageInner() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [confirmCharging, setConfirmCharging] = useState(false);
-  // Idempotency key bound to the couple-name being created. Reused across
-  // cancel/reopen/retry for the same couple so every retry maps to the same
-  // PaymentIntent server-side (prevents double-charging + duplicate weddings).
-  // A new couple name mints a fresh key; a successful create navigates away and
-  // unmounts this page, so the next wedding naturally gets its own key.
-  const [chargeIdem, setChargeIdem] = useState<{ name: string; key: string } | null>(null);
+  // Idempotency key for the planner charge — minted once per page visit so a
+  // cancel/reopen/retry maps to the same PaymentIntent server-side (prevents
+  // double-charging + duplicate weddings). A successful create navigates away.
+  const [chargeIdemKey, setChargeIdemKey] = useState<string | null>(null);
 
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   // A planner's first wedding is free; the $249 only kicks in from wedding #2.
   const [firstWeddingFree, setFirstWeddingFree] = useState(false);
+  // Guards the auto-create so StrictMode's double-effect can't create two drafts.
+  const autoCreateRef = useRef(false);
+
+  // Planners skip the couple-name form entirely: the wedding is created as a
+  // nameless draft and they land in the Planner chat, where the agent asks for
+  // the couple's name as step 1 — mirroring the couple onboarding flow.
+  const createPlannerWedding = useCallback(async () => {
+    try {
+      const res = await fetch('/api/stripe/charge-planner-wedding', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (res.ok && data?.success) {
+        router.replace(`/admin/${data.slug}/assistant?welcome=1`);
+        return true;
+      }
+      setError(data?.message || data?.error || 'Could not create your wedding. Please try again.');
+    } catch (err) {
+      console.error('Free wedding creation error:', err);
+      setError('An unexpected error occurred');
+    }
+    return false;
+  }, [router]);
 
   const finalizeAfterCheckout = useCallback(
     async (sessionId: string) => {
       setFinalizing(true);
       setError(null);
       try {
-        const stash =
-          typeof window !== 'undefined' ? sessionStorage.getItem(PENDING_COUPLE_NAME_KEY) ?? '' : '';
         const res = await fetch('/api/stripe/finalize-planner-wedding', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId, coupleName: stash }),
+          body: JSON.stringify({ sessionId }),
         });
         const data = await res.json();
         if (!res.ok || !data?.success) {
           throw new Error(data?.error || 'Failed to finalize wedding');
         }
         if (typeof window !== 'undefined') {
-          sessionStorage.removeItem(PENDING_COUPLE_NAME_KEY);
           // Clean the session_id query param so a refresh doesn't re-finalize.
           const url = new URL(window.location.href);
           url.searchParams.delete('session_id');
           window.history.replaceState({}, '', url.toString());
         }
-        router.replace(`/admin/${data.slug}/details`);
+        router.replace(`/admin/${data.slug}/assistant?welcome=1`);
       } catch (err) {
         console.error('Finalize error:', err);
         setError(err instanceof Error ? err.message : 'Failed to finalize wedding');
@@ -106,24 +124,24 @@ function NewWeddingPageInner() {
     [router],
   );
 
-  const loadBillingInfo = useCallback(async () => {
+  const loadBillingInfo = useCallback(async (): Promise<BillingInfo> => {
+    let info: BillingInfo = { isPlanner: false, hasCard: false };
     try {
       const res = await fetch('/api/stripe/planner-billing-info');
-      if (!res.ok) {
-        setBilling({ isPlanner: false, hasCard: false });
-        return;
+      if (res.ok) {
+        const data = await res.json();
+        info = {
+          isPlanner: !!data.isPlanner,
+          hasCard: !!data.hasCard,
+          brand: data.brand,
+          last4: data.last4,
+        };
       }
-      const data = await res.json();
-      setBilling({
-        isPlanner: !!data.isPlanner,
-        hasCard: !!data.hasCard,
-        brand: data.brand,
-        last4: data.last4,
-      });
     } catch (err) {
       console.error('Failed to load billing info:', err);
-      setBilling({ isPlanner: false, hasCard: false });
     }
+    setBilling(info);
+    return info;
   }, []);
 
   useEffect(() => {
@@ -186,22 +204,47 @@ function NewWeddingPageInner() {
         return;
       }
 
-      // A planner's first wedding is free — count theirs so the UI can skip the
-      // $249 charge (and the card prompt) for wedding #1.
+      // A planner's first wedding is free — count theirs so the flow can skip
+      // the $249 charge (and the card prompt) for wedding #1.
       const { count: plannerWeddingCount } = await supabase
         .from('weddings')
         .select('id', { count: 'exact', head: true })
         .eq('created_by', user.id);
-      if (!cancelled) setFirstWeddingFree((plannerWeddingCount ?? 0) === 0);
+      const firstFree = (plannerWeddingCount ?? 0) === 0;
+      if (cancelled) return;
+      setFirstWeddingFree(firstFree);
 
-      await loadBillingInfo();
+      const info = await loadBillingInfo();
+      if (cancelled) return;
+
+      // No intermediate form for planners — go straight to creating the wedding.
+      if (firstFree) {
+        if (!autoCreateRef.current) {
+          autoCreateRef.current = true;
+          const created = await createPlannerWedding();
+          if (created) return; // navigating away — keep the spinner up
+        }
+        setCheckingAuth(false);
+        return;
+      }
+      if (info.hasCard) {
+        setChargeIdemKey(
+          typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `${user.id}-${Date.now()}`,
+        );
+        setConfirmOpen(true);
+      } else {
+        setUpgradeOpen(true);
+      }
       setCheckingAuth(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [router, sessionIdFromCheckout, finalizeAfterCheckout, loadBillingInfo]);
+  }, [router, sessionIdFromCheckout, finalizeAfterCheckout, loadBillingInfo, createPlannerWedding]);
 
+  // Couple flow only — planners never see the name form.
   const handleCreateWedding = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!coupleName.trim()) {
@@ -213,55 +256,6 @@ function NewWeddingPageInner() {
       return;
     }
 
-    if (billing?.isPlanner) {
-      if (firstWeddingFree) {
-        // First wedding is free — create it directly, no charge or card needed.
-        setSubmitting(true);
-        setError(null);
-        try {
-          const res = await fetch('/api/stripe/charge-planner-wedding', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ coupleName: coupleName.trim() }),
-          });
-          const data = await res.json();
-          if (res.ok && data?.success) {
-            router.replace(`/admin/${data.slug}/details`);
-            return;
-          }
-          setError(data?.message || data?.error || 'Could not create your wedding. Please try again.');
-          setSubmitting(false);
-        } catch (err) {
-          console.error('Free wedding creation error:', err);
-          setError('An unexpected error occurred');
-          setSubmitting(false);
-        }
-        return;
-      }
-      // Planner 2nd+ wedding — payment required.
-      if (billing.hasCard) {
-        setConfirmError(null);
-        const name = coupleName.trim();
-        // Mint a key only when the couple name changed; reuse it for retries of
-        // the same couple so a cancel→reopen→retry can't double-charge.
-        if (chargeIdem?.name !== name) {
-          const key =
-            typeof crypto !== 'undefined' && crypto.randomUUID
-              ? crypto.randomUUID()
-              : `${userId}-${name}-${Date.now()}`;
-          setChargeIdem({ name, key });
-        }
-        setConfirmOpen(true);
-      } else {
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem(PENDING_COUPLE_NAME_KEY, coupleName.trim());
-        }
-        setUpgradeOpen(true);
-      }
-      return;
-    }
-
-    // Non-planner flow — unchanged.
     setSubmitting(true);
     setError(null);
     try {
@@ -307,21 +301,18 @@ function NewWeddingPageInner() {
       const res = await fetch('/api/stripe/charge-planner-wedding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coupleName: coupleName.trim(), idempotencyKey: chargeIdem?.key ?? undefined }),
+        body: JSON.stringify({ idempotencyKey: chargeIdemKey ?? undefined }),
       });
       const data = await res.json();
       if (res.ok && data?.success) {
         setConfirmOpen(false);
-        router.replace(`/admin/${data.slug}/details`);
+        router.replace(`/admin/${data.slug}/assistant?welcome=1`);
         return;
       }
 
       if (data?.error === 'authentication_required' || data?.error === 'no_saved_card') {
         // Card needs re-entry — fall back to full Stripe Checkout.
         setConfirmOpen(false);
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem(PENDING_COUPLE_NAME_KEY, coupleName.trim());
-        }
         setUpgradeOpen(true);
         return;
       }
@@ -333,10 +324,6 @@ function NewWeddingPageInner() {
     } finally {
       setConfirmCharging(false);
     }
-  };
-
-  const handleUpgradeClose = () => {
-    setUpgradeOpen(false);
   };
 
   if (checkingAuth || finalizing) {
@@ -353,18 +340,95 @@ function NewWeddingPageInner() {
           }}
         >
           <CircularProgress size={48} sx={{ color: COLORS.brand.primary }} />
-          {finalizing && (
-            <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
-              Setting up your wedding…
-            </Typography>
-          )}
+          <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
+            Setting up your wedding…
+          </Typography>
         </Box>
       </OptimizedBackground>
     );
   }
 
   const isPlanner = billing?.isPlanner ?? false;
-  const continueLabel = isPlanner ? (firstWeddingFree ? 'Continue (free)' : 'Continue ($249)') : 'Continue';
+
+  // Planner view: no name form — just the charge/checkout modals over a light
+  // backdrop card. The wedding starts as a draft; the Planner chat collects the
+  // couple's name first thing.
+  if (isPlanner) {
+    return (
+      <OptimizedBackground useAppDefault className="min-h-screen flex flex-col">
+        <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', py: 4 }}>
+          <Container maxWidth="sm">
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 3, sm: 5 },
+                borderRadius: '32px',
+                bgcolor: alpha(COLORS.bg.white, 0.95),
+                backdropFilter: 'blur(10px)',
+                textAlign: 'center',
+              }}
+            >
+              <Stack spacing={2}>
+                <Typography
+                  variant="h3"
+                  sx={{
+                    fontFamily: FONTS.display,
+                    fontSize: { xs: '2rem', sm: '2.5rem' },
+                    color: COLORS.text.strong,
+                  }}
+                >
+                  Start a New Wedding
+                </Typography>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontSize: { xs: '0.95rem', sm: '1.05rem' } }}>
+                  Phera is $249 per wedding for planners. Once you&apos;re in, your Phera planner
+                  will get the couple&apos;s details from you in chat.
+                </Typography>
+                {error && <ErrorAlert onClose={() => setError(null)}>{error}</ErrorAlert>}
+                <PrimaryActionButton
+                  size="large"
+                  onClick={() => {
+                    setError(null);
+                    if (billing?.hasCard) {
+                      setConfirmOpen(true);
+                    } else {
+                      setUpgradeOpen(true);
+                    }
+                  }}
+                  sx={{ borderRadius: RADII.lg, py: 1.5, fontSize: '1.1rem', alignSelf: 'center', px: 5 }}
+                >
+                  {firstWeddingFree ? 'Continue (free)' : 'Continue ($249)'}
+                </PrimaryActionButton>
+              </Stack>
+            </Paper>
+          </Container>
+        </Box>
+
+        <ConfirmChargeModal
+          open={confirmOpen}
+          amountLabel="$249"
+          cardLast4={billing?.last4 ?? null}
+          loading={confirmCharging}
+          error={confirmError}
+          onCancel={() => {
+            if (!confirmCharging) {
+              setConfirmOpen(false);
+              router.push('/admin');
+            }
+          }}
+          onConfirm={handleConfirmCharge}
+        />
+
+        <UpgradeModal
+          open={upgradeOpen}
+          onClose={() => {
+            setUpgradeOpen(false);
+            router.push('/admin');
+          }}
+          tier="planner_perwedding"
+        />
+      </OptimizedBackground>
+    );
+  }
 
   return (
     <OptimizedBackground useAppDefault className="min-h-screen flex flex-col">
@@ -398,23 +462,6 @@ function NewWeddingPageInner() {
                 >
                   Let's start by getting your names
                 </Typography>
-                {isPlanner && (
-                  <Typography
-                    variant="body2"
-                    sx={{ color: COLORS.text.muted, mt: 1.5, fontSize: '0.9rem' }}
-                  >
-                    {firstWeddingFree ? (
-                      'Your first wedding is on us — set it up and explore everything free. We only charge $249 from your second wedding on.'
-                    ) : (
-                      <>
-                        Phera is $249 per wedding for planners.
-                        {billing?.hasCard
-                          ? ' We\'ll charge your saved card on the next step.'
-                          : ' Your card is saved on the first checkout for one-click charges next time.'}
-                      </>
-                    )}
-                  </Typography>
-                )}
               </Box>
 
               <form onSubmit={handleCreateWedding}>
@@ -458,7 +505,7 @@ function NewWeddingPageInner() {
                       '&:disabled': { bgcolor: COLORS.border.default },
                     }}
                   >
-                    {continueLabel}
+                    Continue
                   </PrimaryActionButton>
                 </Stack>
               </form>
@@ -473,25 +520,6 @@ function NewWeddingPageInner() {
           </Paper>
         </Container>
       </Box>
-
-      <ConfirmChargeModal
-        open={confirmOpen}
-        amountLabel="$249"
-        cardLast4={billing?.last4 ?? null}
-        loading={confirmCharging}
-        error={confirmError}
-        onCancel={() => {
-          if (!confirmCharging) setConfirmOpen(false);
-        }}
-        onConfirm={handleConfirmCharge}
-      />
-
-      <UpgradeModal
-        open={upgradeOpen}
-        onClose={handleUpgradeClose}
-        tier="planner_perwedding"
-        coupleName={coupleName.trim()}
-      />
     </OptimizedBackground>
   );
 }

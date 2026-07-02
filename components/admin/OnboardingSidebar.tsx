@@ -45,6 +45,7 @@ import { CheckCircle } from '@mui/icons-material';
 import { supabase } from '@/lib/supabase/client';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
+import { isDraftCoupleName } from '@/lib/constants/wedding-placeholders';
 
 interface SidebarItem {
   id: string;
@@ -411,10 +412,12 @@ export default function OnboardingSidebar({
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Navigation Groups */}
       <Box sx={{ flex: 1, py: 2, overflowY: 'auto' }}>
-        {/* Planner context: couple name + All Weddings button */}
+        {/* Planner context: couple name + All Weddings button. The name stays
+            hidden while it's still a draft placeholder — it appears once the
+            agent has captured the couple's real names. */}
         {isPlanner && (
           <>
-            {wedding?.couple_name && (
+            {wedding?.couple_name && !isDraftCoupleName(wedding.couple_name) && (
               <>
                 <ListItemButton
                   onClick={(e: React.MouseEvent<HTMLElement>) => {

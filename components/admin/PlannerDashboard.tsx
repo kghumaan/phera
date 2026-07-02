@@ -60,7 +60,7 @@ export default function PlannerDashboard({ userId }: PlannerDashboardProps) {
               fontSize: { xs: '1.6rem', md: '2rem' },
             }}
           >
-            My Weddings
+            Weddings
           </Typography>
           {weddings.length > 0 && (
             <PrimaryActionButton

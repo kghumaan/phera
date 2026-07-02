@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 import {
   PLANNER_PER_WEDDING_AMOUNT_CENTS,
   PLANNER_PER_WEDDING_CURRENCY,
+  buildPlannerDraftDefaults,
   buildPlannerWeddingDefaults,
   findUniqueSlug,
   generateWeddingSlug,
@@ -46,9 +47,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
-  if (!coupleName) {
-    return NextResponse.json({ error: 'Couple name is required' }, { status: 400 });
-  }
+  // coupleName is optional: the planner flow creates a nameless draft and the
+  // agent asks for the couple's name as onboarding step 1 in the Planner chat.
 
   const admin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -80,19 +80,29 @@ export async function POST(request: NextRequest) {
     .eq('created_by', user.id);
 
   if ((existingWeddingCount ?? 0) === 0) {
-    const baseSlugFree = generateWeddingSlug(coupleName);
-    if (!baseSlugFree) {
-      return NextResponse.json({ error: 'Invalid couple name' }, { status: 400 });
+    let freeSlug: string;
+    let freeDefaults: Record<string, unknown>;
+    if (coupleName) {
+      const baseSlugFree = generateWeddingSlug(coupleName);
+      if (!baseSlugFree) {
+        return NextResponse.json({ error: 'Invalid couple name' }, { status: 400 });
+      }
+      freeSlug = await findUniqueSlug(baseSlugFree, async (candidate) => {
+        const { data, error } = await admin.from('weddings').select('slug').eq('slug', candidate).maybeSingle();
+        if (error) throw error;
+        return !data;
+      });
+      freeDefaults = buildPlannerWeddingDefaults(freeSlug, coupleName, user.id) as unknown as Record<string, unknown>;
+    } else {
+      // Nameless draft — unguessable UUID slug, renamed by the agent once the
+      // couple's name is captured in the Planner chat.
+      freeSlug = globalThis.crypto?.randomUUID?.() ?? `w-${Date.now()}`;
+      freeDefaults = buildPlannerDraftDefaults(freeSlug, user.id) as unknown as Record<string, unknown>;
     }
-    const freeSlug = await findUniqueSlug(baseSlugFree, async (candidate) => {
-      const { data, error } = await admin.from('weddings').select('slug').eq('slug', candidate).maybeSingle();
-      if (error) throw error;
-      return !data;
-    });
     const { error: freeWeddingError } = await admin
       .from('weddings')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .insert(buildPlannerWeddingDefaults(freeSlug, coupleName, user.id) as any);
+      .insert(freeDefaults as any);
     if (freeWeddingError) {
       console.error('Failed to insert free first planner wedding:', freeWeddingError);
       return NextResponse.json({ error: 'wedding_create_failed' }, { status: 500 });
@@ -167,22 +177,27 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const baseSlug = generateWeddingSlug(coupleName);
-  if (!baseSlug) {
-    return NextResponse.json({ error: 'Invalid couple name' }, { status: 400 });
+  let slug: string;
+  let defaults: Record<string, unknown>;
+  if (coupleName) {
+    const baseSlug = generateWeddingSlug(coupleName);
+    if (!baseSlug) {
+      return NextResponse.json({ error: 'Invalid couple name' }, { status: 400 });
+    }
+    slug = await findUniqueSlug(baseSlug, async (candidate) => {
+      const { data, error } = await admin
+        .from('weddings')
+        .select('slug')
+        .eq('slug', candidate)
+        .maybeSingle();
+      if (error) throw error;
+      return !data;
+    });
+    defaults = buildPlannerWeddingDefaults(slug, coupleName, user.id) as unknown as Record<string, unknown>;
+  } else {
+    slug = globalThis.crypto?.randomUUID?.() ?? `w-${Date.now()}`;
+    defaults = buildPlannerDraftDefaults(slug, user.id) as unknown as Record<string, unknown>;
   }
-
-  const slug = await findUniqueSlug(baseSlug, async (candidate) => {
-    const { data, error } = await admin
-      .from('weddings')
-      .select('slug')
-      .eq('slug', candidate)
-      .maybeSingle();
-    if (error) throw error;
-    return !data;
-  });
-
-  const defaults = buildPlannerWeddingDefaults(slug, coupleName, user.id);
 
   const { error: weddingError } = await admin
     .from('weddings')
