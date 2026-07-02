@@ -103,6 +103,30 @@ function sendTestToSelf() {
   Logger.log('Test sent to %s', me);
 }
 
+// --- CONFIRMATION TEST -------------------------------------------------------
+// Safe sandbox: sends ALL THREE variants to ONLY these two inboxes so you can
+// eyeball the render + every variant before wiring up the real sheet/trigger.
+// No sheet needed. Run `sendConfirmationTest` and approve the OAuth prompt.
+const TEST_RECIPIENTS = ['kv.s.ghumaan@gmail.com', 'contact@phera.io'];
+
+function sendConfirmationTest() {
+  const variants = ['A', 'B', 'C'];
+  let n = 0;
+  variants.forEach((v) => {
+    const built = buildEmail_(v, 'there', DEFAULT_SUBJECTS[v]);
+    TEST_RECIPIENTS.forEach((to) => {
+      GmailApp.sendEmail(to, '[TEST ' + v + '] ' + built.subject, built.text, {
+        htmlBody: built.html,
+        name: CONFIG.FROM_NAME,
+        replyTo: CONFIG.REPLY_TO,
+      });
+      n++;
+      Utilities.sleep(1500);
+    });
+  });
+  Logger.log('Confirmation test: sent %s emails (A/B/C) to %s', n, TEST_RECIPIENTS.join(', '));
+}
+
 // ----------------------------- EMAIL BUILDER --------------------------------
 // Full-color card — safe here because API send preserves backgrounds.
 
