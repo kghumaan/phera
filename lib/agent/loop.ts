@@ -1,7 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { buildWeddingSnapshot } from './context';
 import { getUserIsPro } from './plan';
+import { readAutonomy } from './autonomy';
 import { maybeCompactConversation } from './compact';
+import { HIDDEN_KICKOFF_PREFIX } from './message-prefixes';
 import { AGENT_SYSTEM_PROMPT } from './system-prompt';
 import { getAllTools, dispatchTool } from './tools';
 import type {
@@ -221,12 +223,19 @@ export async function runAgentTurn(args: RunAgentTurnArgs): Promise<void> {
 async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
   const { supabase, weddingSlug, weddingUuid, userId, conversationId, provider, onEvent } = args;
 
-  const [history, snapshot, isPro] = await Promise.all([
+  const [history, snapshot, isPro, autonomy] = await Promise.all([
     loadHistory(supabase, conversationId),
     buildWeddingSnapshot(supabase, weddingSlug, weddingUuid),
     getUserIsPro(supabase, userId),
+    readAutonomy(supabase, weddingSlug),
   ]);
   snapshot.text += `\nPlan: ${isPro ? 'Pro (all features unlocked)' : 'Basic / free — Room assignments, Transportation, and Vendor coordination require an upgrade'}`;
+  const autonomyEntries = Object.entries(autonomy);
+  if (autonomyEntries.length > 0) {
+    snapshot.text += `\nAutonomy overrides (set by the user): ${autonomyEntries
+      .map(([t, m]) => `${t} = ${m === 'auto' ? 'auto-approved, no Confirm card' : 'always ask first (Confirm card appears)'}`)
+      .join('; ')}`;
+  }
   if (args.voice) {
     snapshot.text +=
       `\n\nMODALITY: The user is in HANDS-FREE VOICE mode. Your reply is read aloud and they answer by speaking. ` +
@@ -240,7 +249,7 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       `Avoid bullet lists, tables, and long enumerations; say the few items that matter.`;
   }
 
-  const toolCtx: AgentToolContext = { supabase, weddingSlug, weddingUuid, userId, conversationId, isPro };
+  const toolCtx: AgentToolContext = { supabase, weddingSlug, weddingUuid, userId, conversationId, isPro, autonomy };
   const tools = getAllTools();
 
   // DB writes run off the critical path (collected here, flushed before the turn
@@ -259,6 +268,13 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
   const messages: AgentChatMessage[] = [...history, userMessage];
 
   const usageTotals = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, rounds: 0 };
+  // Per-turn failure counter so a broken tool can't be retried into the round
+  // cap: on the 2nd consecutive failure the tool_result tells the model to
+  // stop, explain, and offer the human-handoff path instead.
+  const failCounts = new Map<string, number>();
+  // Whether the round cap cut the turn off mid-tool-use — if so we force one
+  // final text-only round so the user never gets a silent stall.
+  let cappedMidToolUse = false;
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const result = await provider.streamTurn({
@@ -299,7 +315,13 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       const label = tools.find((t) => t.name === use.name)?.label ?? use.name;
       onEvent({ type: 'tool_start', name: use.name, label });
       const dispatched = await dispatchTool(use.name, use.input, toolCtx);
-      onEvent({ type: 'tool_done', name: use.name, ok: dispatched.ok });
+      onEvent({
+        type: 'tool_done',
+        name: use.name,
+        ok: dispatched.ok,
+        ...(dispatched.summary ? { summary: dispatched.summary } : {}),
+        ...(dispatched.undoable ? { undoable: true } : {}),
+      });
       if (dispatched.questions) parkedQuestions = true;
       // FAQ review is non-blocking — surface the panel and let the turn continue.
       if (dispatched.faqReview) onEvent({ type: 'faq_review', faqs: dispatched.faqReview });
@@ -312,6 +334,10 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       }
       if (dispatched.broadcastReview) {
         onEvent({ type: 'broadcast_review', draft: dispatched.broadcastReview });
+      }
+      // Structured data (guest table / RSVP stats / schedule) — non-blocking.
+      if (dispatched.dataPanel) {
+        onEvent({ type: 'data_panel', panel: dispatched.dataPanel });
       }
       if (dispatched.uploadKind) {
         onEvent({ type: 'upload_requested', uploadKind: dispatched.uploadKind });
@@ -330,12 +356,26 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
           name: use.name,
           label,
           input: use.input,
+          ...(dispatched.pendingSummary ? { summary: dispatched.pendingSummary } : {}),
         });
+      }
+      // Two strikes on the same tool this turn → tell the model to stop
+      // retrying and route around it (explain + offer the team hand-off).
+      let content = dispatched.content;
+      if (!dispatched.ok) {
+        const fails = (failCounts.get(use.name) ?? 0) + 1;
+        failCounts.set(use.name, fails);
+        if (fails >= 2) {
+          content +=
+            '\n\n[SYSTEM NOTE: This tool has now failed ' +
+            String(fails) +
+            ' times this turn. Do NOT call it again. Tell the user plainly what failed and where in the app they can do it manually, and offer to pass it to the Phera team (submit_request, kind "support").]';
+        }
       }
       toolResults.push({
         type: 'tool_result',
         tool_use_id: use.id,
-        content: dispatched.content,
+        content,
         ...(dispatched.ok ? {} : { is_error: true }),
       });
     }
@@ -347,6 +387,38 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
     // Questions are now in front of the user — end the turn instead of letting
     // the model add a redundant "I'll wait for your answers" line.
     if (parkedQuestions) break;
+    if (round === MAX_TOOL_ROUNDS - 1) cappedMidToolUse = true;
+  }
+
+  // The round cap cut the turn off while the model still wanted tools — force
+  // one text-only wrap-up so the user never gets a silent stall with no reply.
+  if (cappedMidToolUse) {
+    const nudge: AgentChatMessage = {
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: `${HIDDEN_KICKOFF_PREFIX} Tool-round limit reached for this turn. Reply to the user NOW in plain text — in one or two short sentences say what you completed, what's still unfinished, and the single next step. Do not call any more tools.`,
+        },
+      ],
+    };
+    messages.push(nudge);
+    pendingWrites.push(persistMessage(supabase, conversationId, nudge, stamp()));
+    const wrapUp = await provider.streamTurn({
+      system: AGENT_SYSTEM_PROMPT,
+      snapshot: snapshot.text,
+      messages,
+      tools,
+      onText: (text) => onEvent({ type: 'text_delta', text }),
+      fast: args.voice,
+    });
+    // Keep only the text — an unanswered tool_use here would corrupt pairing.
+    const textOnly = wrapUp.content.filter((b) => b.type === 'text');
+    if (textOnly.length > 0) {
+      pendingWrites.push(
+        persistMessage(supabase, conversationId, { role: 'assistant', content: textOnly }, stamp())
+      );
+    }
   }
 
   // Ensure all message writes have landed before compaction reads them back and

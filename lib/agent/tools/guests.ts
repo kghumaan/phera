@@ -1,4 +1,5 @@
 import { generateFallbackColor } from '@/lib/utils/avatar-generator';
+import { humanizeFields } from './humanize';
 import type { AgentToolContext, AgentToolDefinition } from '../types';
 
 type GuestRow = {
@@ -109,7 +110,39 @@ export const guestTools: AgentToolDefinition[] = [
         return { ...compactGuest(g), rsvp_status: status };
       });
       if (input.rsvp_status) rows = rows.filter((r) => r.rsvp_status === input.rsvp_status);
-      return { total: count ?? rows.length, returned: rows.length, guests: rows };
+      const total = count ?? rows.length;
+      // Server-shaped right-pane table (generic dataPanel directive) — the
+      // model frames it in one line instead of re-typing rows as prose.
+      // Capped at 60 rows to stay well inside the tool-result serialization cap.
+      const panelRows = rows.slice(0, 60);
+      return {
+        total,
+        returned: rows.length,
+        guests: rows,
+        summary: `${total} guest${total === 1 ? '' : 's'}${input.search ? ` matching "${input.search}"` : ''}${input.rsvp_status ? ` · ${rows.length} ${String(input.rsvp_status).replace(/_/g, ' ')}` : ''}`,
+        ...(rows.length > 0
+          ? {
+              dataPanel: {
+                kind: 'table' as const,
+                title: `Guests${rows.length > panelRows.length ? ` (first ${panelRows.length} of ${rows.length})` : ''}`,
+                columns: [
+                  { key: 'name', label: 'Name' },
+                  { key: 'party', label: 'Party' },
+                  { key: 'side', label: 'Side' },
+                  { key: 'phone', label: 'Phone' },
+                  { key: 'rsvp_status', label: 'RSVP' },
+                ],
+                rows: panelRows.map((r) => ({
+                  name: r.name,
+                  party: Number(r.party_size) || 1,
+                  side: r.side,
+                  phone: r.phone,
+                  rsvp_status: r.rsvp_status,
+                })),
+              },
+            }
+          : {}),
+      };
     },
   },
   {
@@ -158,7 +191,7 @@ export const guestTools: AgentToolDefinition[] = [
       'Get RSVP totals for the wedding: per event, how many parties said yes/no and the total expected headcount, plus how many guests have not responded. Call this for questions like "how many people are coming?".',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     execute: async (_input, ctx) => {
-      const [{ count: guestCount }, { data: rsvps, error }] = await Promise.all([
+      const [{ count: guestCount }, { data: rsvps, error }, { data: events }] = await Promise.all([
         ctx.supabase
           .from('guests')
           .select('id', { count: 'exact', head: true })
@@ -167,8 +200,11 @@ export const guestTools: AgentToolDefinition[] = [
           .from('rsvps')
           .select('event_id, attending, guest_count, guest_id')
           .eq('wedding_id', ctx.weddingSlug),
+        // Event names for the stats panel — by_event is keyed by event_id UUID.
+        ctx.supabase.from('wedding_events').select('id, name').eq('wedding_id', ctx.weddingUuid),
       ]);
       if (error) throw new Error(error.message);
+      const eventNames = new Map((events ?? []).map((e) => [e.id as string, e.name as string]));
       const byEvent = new Map<
         string,
         { yes: number; no: number; maybe: number; headcount: number }
@@ -186,11 +222,28 @@ export const guestTools: AgentToolDefinition[] = [
         else if (attending === 'maybe') entry.maybe += 1;
         byEvent.set(key, entry);
       }
+      const totalGuests = guestCount ?? 0;
+      const noResponse = Math.max(0, totalGuests - responded.size);
       return {
-        total_guests: guestCount ?? 0,
+        total_guests: totalGuests,
         responded: responded.size,
-        no_response: Math.max(0, (guestCount ?? 0) - responded.size),
+        no_response: noResponse,
         by_event: Object.fromEntries(byEvent),
+        summary: `${totalGuests} guests · ${responded.size} responded · ${noResponse} no reply`,
+        dataPanel: {
+          kind: 'stats' as const,
+          title: 'RSVPs',
+          items: [
+            { label: 'Guests', value: String(totalGuests) },
+            { label: 'Responded', value: String(responded.size) },
+            { label: 'No reply', value: String(noResponse) },
+            ...[...byEvent.entries()].map(([key, e]) => ({
+              label: key === 'general' ? 'Overall' : (eventNames.get(key) ?? 'Event'),
+              value: `${e.yes} yes`,
+              hint: `${e.headcount} people · ${e.no} no · ${e.maybe} maybe`,
+            })),
+          ],
+        },
       };
     },
   },
@@ -213,6 +266,14 @@ export const guestTools: AgentToolDefinition[] = [
       required: ['name', 'phone'],
       additionalProperties: false,
     },
+    // Undo for a create = delete the created row, matched by natural key. The
+    // undo tool refuses unless the match hits exactly one row, so a same-name
+    // same-phone duplicate can never be deleted by mistake.
+    captureBefore: async (input, ctx) => ({
+      restore: 'delete',
+      table: 'guests',
+      match: { wedding_id: ctx.weddingSlug, name: input.name as string, phone: input.phone as string },
+    }),
     execute: async (input, ctx) => {
       if (!input.phone || !String(input.phone).trim()) {
         throw new Error('A phone number is required to add a guest — ask the user for it.');
@@ -235,7 +296,7 @@ export const guestTools: AgentToolDefinition[] = [
         .select('id, name')
         .single();
       if (error) throw new Error(error.message);
-      return { created: data };
+      return { created: data, summary: `${data.name} added to the guest list` };
     },
   },
   {
@@ -254,6 +315,24 @@ export const guestTools: AgentToolDefinition[] = [
       },
       required: ['guest_id', 'attending'],
       additionalProperties: false,
+    },
+    // Undo: restore the prior RSVP values if a row existed; delete the row this
+    // write is about to insert if none did (wedding+guest+event is the natural
+    // unique key, so the delete-matcher is exact).
+    captureBefore: async (input, ctx) => {
+      const eventId = (input.event_id as string) || 'general';
+      const match = {
+        wedding_id: ctx.weddingSlug,
+        guest_id: input.guest_id as string,
+        event_id: eventId,
+      };
+      const { data: existing } = await ctx.supabase
+        .from('rsvps')
+        .select('attending, guest_count')
+        .match(match)
+        .maybeSingle();
+      if (existing) return { restore: 'update', table: 'rsvps', match, values: existing };
+      return { restore: 'delete', table: 'rsvps', match };
     },
     execute: async (input, ctx) => {
       const eventId = (input.event_id as string) || 'general';
@@ -298,7 +377,13 @@ export const guestTools: AgentToolDefinition[] = [
         });
         if (error) throw new Error(error.message);
       }
-      return { guest: guest.name, attending: input.attending, guest_count: guestCount, event_id: eventId };
+      return {
+        guest: guest.name,
+        attending: input.attending,
+        guest_count: guestCount,
+        event_id: eventId,
+        summary: `${guest.name}: ${input.attending}${guestCount ? `, party of ${guestCount}` : ''}`,
+      };
     },
   },
   {
@@ -321,6 +406,21 @@ export const guestTools: AgentToolDefinition[] = [
       },
       required: ['guest_id'],
       additionalProperties: false,
+    },
+    captureBefore: async (input, ctx) => {
+      const { data: guest } = await ctx.supabase
+        .from('guests')
+        .select('name, email, phone, wedding_side, logistics_data')
+        .eq('wedding_id', ctx.weddingSlug)
+        .eq('id', input.guest_id as string)
+        .maybeSingle();
+      if (!guest) return null;
+      return {
+        restore: 'update',
+        table: 'guests',
+        match: { wedding_id: ctx.weddingSlug, id: input.guest_id as string },
+        values: guest,
+      };
     },
     execute: async (input, ctx) => {
       const updates: Record<string, unknown> = {};
@@ -352,7 +452,11 @@ export const guestTools: AgentToolDefinition[] = [
         .select('id, name')
         .single();
       if (error) throw new Error(error.message);
-      return { updated: data, fields: Object.keys(updates) };
+      return {
+        updated: data,
+        fields: Object.keys(updates),
+        summary: `${data.name} — ${humanizeFields(Object.keys(updates))} updated`,
+      };
     },
   },
 ];

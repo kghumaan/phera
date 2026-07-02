@@ -117,6 +117,21 @@ export const contentTools: AgentToolDefinition[] = [
       required: ['faq_id'],
       additionalProperties: false,
     },
+    captureBefore: async (input, ctx) => {
+      const { data: faq } = await ctx.supabase
+        .from('wedding_faqs')
+        .select('question, answer')
+        .eq('wedding_id', ctx.weddingUuid)
+        .eq('id', input.faq_id as string)
+        .maybeSingle();
+      if (!faq) return null;
+      return {
+        restore: 'update',
+        table: 'wedding_faqs',
+        match: { id: input.faq_id as string },
+        values: faq,
+      };
+    },
     execute: async (input, ctx) => {
       const updates: Record<string, unknown> = {};
       if (input.question !== undefined) updates.question = input.question;
@@ -131,6 +146,7 @@ export const contentTools: AgentToolDefinition[] = [
       return {
         updated: { id: updated.id, question: updated.question },
         faqReview: all.map((f) => ({ id: f.id, question: f.question, answer: f.answer })),
+        summary: `FAQ "${updated.question}" updated`,
       };
     },
   },
@@ -181,7 +197,7 @@ export const contentTools: AgentToolDefinition[] = [
         column: 'todo',
       });
       if (!created) throw new Error('Failed to create task');
-      return { created: { id: created.id, title: created.title } };
+      return { created: { id: created.id, title: created.title }, summary: `Task added: ${created.title}` };
     },
   },
   {
@@ -201,6 +217,21 @@ export const contentTools: AgentToolDefinition[] = [
       required: ['task_id'],
       additionalProperties: false,
     },
+    captureBefore: async (input, ctx) => {
+      const { data: task } = await ctx.supabase
+        .from('wedding_tasks')
+        .select('column, title, description')
+        .eq('wedding_id', ctx.weddingUuid)
+        .eq('id', input.task_id as string)
+        .maybeSingle();
+      if (!task) return null;
+      return {
+        restore: 'update',
+        table: 'wedding_tasks',
+        match: { id: input.task_id as string },
+        values: task,
+      };
+    },
     execute: async (input, ctx) => {
       const updates: Record<string, unknown> = {};
       for (const f of ['column', 'title', 'description'] as const) {
@@ -210,7 +241,10 @@ export const contentTools: AgentToolDefinition[] = [
       const service = new WeddingService(ctx.supabase as never);
       const updated = await service.updateTask(input.task_id as string, updates as never);
       if (!updated) throw new Error('Failed to update task');
-      return { updated: { id: updated.id, title: updated.title, column: updated.column } };
+      return {
+        updated: { id: updated.id, title: updated.title, column: updated.column },
+        summary: `${updated.title} → ${updated.column}`,
+      };
     },
   },
 ];

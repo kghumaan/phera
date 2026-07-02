@@ -63,7 +63,7 @@ export const messagingTools: AgentToolDefinition[] = [
     risk: 'gated',
     proFeature: WHATSAPP_FEATURE,
     description:
-      "Call this to create the wedding's guest WhatsApp group from the couple's OWN connected number (they become the admin). Requires WhatsApp to be connected first. After creating it, you'll get a join (invite) link — then OFFER to broadcast that link to guests so they self-join (we do NOT auto-add hundreds of people; that risks the couple's number). Pass a friendly group subject like 'Priya & Rahul Wedding 💍'.",
+      "Call this to create the wedding's guest WhatsApp group from the couple's OWN connected number (they become the admin). Requires WhatsApp to be connected first. After creating it, you'll get a join (invite) link — then OFFER to broadcast that link to guests so they self-join (we do NOT auto-add hundreds of people; that risks the couple's number). Pass a friendly group subject like 'Priya & Rahul Wedding 💍', and `reason`: one short user-facing sentence of why now (shown on the Confirm card).",
     inputSchema: {
       type: 'object',
       properties: {
@@ -71,8 +71,17 @@ export const messagingTools: AgentToolDefinition[] = [
           type: 'string',
           description: "Group name, e.g. 'Priya & Rahul Wedding'. Keep it short and warm.",
         },
+        reason: {
+          type: 'string',
+          description: 'One short sentence of why, grounded in data — shown to the user on the Confirm card.',
+        },
       },
       additionalProperties: false,
+    },
+    describe: async (input, ctx) => {
+      const subject = ((input.subject as string) || '').trim() || 'Wedding Guests';
+      const view = await refreshAndGetStatus(ctx.weddingSlug);
+      return `Creates the WhatsApp group "${subject}" on your own number (${view.pairedPhone ?? 'your paired phone'}) — you're the admin; guests join via an invite link, never auto-added.`;
     },
     execute: async (input, ctx) => {
       const subject = ((input.subject as string) || '').trim() || 'Wedding Guests';

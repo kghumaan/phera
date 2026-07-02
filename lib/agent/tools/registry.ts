@@ -1,4 +1,13 @@
-import type { AgentQuestion, AgentToolContext, AgentToolDefinition, VenueCard, WhatsAppBroadcastDraft } from '../types';
+import { resolveEffectiveRisk } from '../autonomy';
+import type {
+  AgentBeforeState,
+  AgentDataPanel,
+  AgentQuestion,
+  AgentToolContext,
+  AgentToolDefinition,
+  VenueCard,
+  WhatsAppBroadcastDraft,
+} from '../types';
 
 /**
  * Central tool registry. Every capability the agent has lives here as one
@@ -55,6 +64,19 @@ export interface DispatchResult {
   whatsappPairing?: { status: string };
   /** Set when broadcast_message drafted a guest broadcast for the review panel. */
   broadcastReview?: WhatsAppBroadcastDraft;
+  /** Set when a tool attached a `dataPanel` directive — structured data for the
+   *  right pane (guest table, RSVP stats, schedule). The generic mechanism:
+   *  new tools ride this key instead of adding another bespoke extractor. */
+  dataPanel?: AgentDataPanel;
+  /** One-line receipt from the tool's `summary` result key, shown muted in the
+   *  chat ("214 RSVPs · 47 no reply") so grounded answers are visibly grounded. */
+  summary?: string;
+  /** True when a before-snapshot was captured and persisted for this write —
+   *  the client may offer an inline Undo. */
+  undoable?: boolean;
+  /** For parked gated tools: the tool's describe() output (names, not UUIDs),
+   *  rendered on the Confirm card. */
+  pendingSummary?: string;
 }
 
 /** Pull a `faqReview` directive off a tool's execute() result, if present, so the
@@ -93,6 +115,24 @@ function extractBroadcastReview(result: unknown): DispatchResult['broadcastRevie
   const value = (result as { broadcastReview?: unknown }).broadcastReview;
   if (!value || typeof value !== 'object') return undefined;
   return value as DispatchResult['broadcastReview'];
+}
+
+/** Pull a `dataPanel` directive off a tool's execute() result so the loop can
+ *  stream it to the right pane. The generic structured-output channel. */
+function extractDataPanel(result: unknown): DispatchResult['dataPanel'] | undefined {
+  if (!result || typeof result !== 'object' || !('dataPanel' in result)) return undefined;
+  const value = (result as { dataPanel?: unknown }).dataPanel;
+  if (!value || typeof value !== 'object') return undefined;
+  const panel = value as AgentDataPanel;
+  if (panel.kind !== 'table' && panel.kind !== 'stats') return undefined;
+  return panel;
+}
+
+/** Pull a one-line `summary` receipt off a tool's execute() result. */
+function extractSummary(result: unknown): string | undefined {
+  if (!result || typeof result !== 'object' || !('summary' in result)) return undefined;
+  const value = (result as { summary?: unknown }).summary;
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
 const MAX_RESULT_CHARS = 12_000;
@@ -171,9 +211,23 @@ export async function dispatchTool(
     };
   }
 
-  if (tool.risk === 'gated') {
+  // The user's autonomy dial can downgrade gated→write ("don't ask again") or
+  // upgrade write→gated ("always ask me first"). set_autonomy is the one
+  // dynamic case: granting autonomy ('auto', or anything malformed) always
+  // needs a Confirm tap, while tightening ('ask') or clearing ('default')
+  // only reduces the agent's leash, so it applies instantly.
+  let effectiveRisk = resolveEffectiveRisk(tool, ctx.autonomy);
+  if (name === 'set_autonomy' && (input?.mode === 'ask' || input?.mode === 'default')) {
+    effectiveRisk = 'write';
+  }
+
+  if (effectiveRisk === 'gated') {
     // Park the call as a pending action; the chat client renders a
-    // Confirm/Decline card and /api/agent/confirm resolves it.
+    // Confirm/Decline card and /api/agent/confirm resolves it. describe()
+    // resolves the raw input to a readable sentence (names, not UUIDs); it's
+    // stashed in the row's result JSONB — unused while pending, overwritten
+    // at resolution — so a reload can restore the card's summary too.
+    const pendingSummary = await tool.describe?.(input ?? {}, ctx).catch(() => undefined);
     const { data: pending, error } = await ctx.supabase
       .from('agent_actions')
       .insert({
@@ -183,6 +237,7 @@ export async function dispatchTool(
         input,
         status: 'pending',
         risk: tool.risk,
+        ...(pendingSummary ? { result: { summary: pendingSummary } } : {}),
       })
       .select('id')
       .single();
@@ -192,20 +247,33 @@ export async function dispatchTool(
     return {
       ok: true,
       pendingActionId: pending.id as string,
+      ...(pendingSummary ? { pendingSummary } : {}),
       content:
         'PENDING — this action now awaits the user\'s confirmation via a Confirm button shown in the chat. It has NOT executed yet. Briefly tell the user what will happen when they confirm; do not assume or claim it is done.',
     };
   }
 
   const startedAt = new Date().toISOString();
+  // Snapshot what's about to be overwritten so the write is undoable. Never
+  // blocks the write: a failed snapshot just means undo can't restore it.
+  let before: AgentBeforeState | null = null;
+  if (effectiveRisk === 'write' && tool.captureBefore) {
+    try {
+      before = await tool.captureBefore(input ?? {}, ctx);
+    } catch (error) {
+      console.error(`captureBefore failed for ${name}:`, error);
+    }
+  }
   try {
     const result = await tool.execute(input ?? {}, ctx);
     const content = serializeResult(result);
-    await logAction(ctx, { name, input, risk: tool.risk, status: 'executed', result: content, startedAt });
+    await logAction(ctx, { name, input, risk: tool.risk, status: 'executed', result: content, startedAt, before });
     const faqReview = extractFaqReview(result);
     const venueCards = extractVenueCards(result);
     const whatsappPairing = extractWhatsappPairing(result);
     const broadcastReview = extractBroadcastReview(result);
+    const dataPanel = extractDataPanel(result);
+    const summary = extractSummary(result);
     return {
       ok: true,
       content,
@@ -213,6 +281,9 @@ export async function dispatchTool(
       ...(venueCards ? { venueCards } : {}),
       ...(whatsappPairing ? { whatsappPairing } : {}),
       ...(broadcastReview ? { broadcastReview } : {}),
+      ...(dataPanel ? { dataPanel } : {}),
+      ...(summary ? { summary } : {}),
+      ...(before ? { undoable: true } : {}),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -230,20 +301,29 @@ async function logAction(
     status: 'executed' | 'failed' | 'declined';
     result: string;
     startedAt: string;
+    before?: AgentBeforeState | null;
   }
 ) {
+  const row = {
+    conversation_id: ctx.conversationId,
+    wedding_id: ctx.weddingSlug,
+    tool_name: entry.name,
+    input: entry.input,
+    result: { output: entry.result.slice(0, 4000) },
+    status: entry.status,
+    risk: entry.risk,
+    created_at: entry.startedAt,
+    resolved_at: new Date().toISOString(),
+  };
   try {
-    await ctx.supabase.from('agent_actions').insert({
-      conversation_id: ctx.conversationId,
-      wedding_id: ctx.weddingSlug,
-      tool_name: entry.name,
-      input: entry.input,
-      result: { output: entry.result.slice(0, 4000) },
-      status: entry.status,
-      risk: entry.risk,
-      created_at: entry.startedAt,
-      resolved_at: new Date().toISOString(),
-    });
+    if (entry.before) {
+      // The before column lands with the agentic-ux migration; until it's
+      // applied, fall back to the plain row so no audit entry is ever lost.
+      const { error } = await ctx.supabase.from('agent_actions').insert({ ...row, before: entry.before });
+      if (error) await ctx.supabase.from('agent_actions').insert(row);
+    } else {
+      await ctx.supabase.from('agent_actions').insert(row);
+    }
   } catch (error) {
     // The audit log must never break a conversation turn.
     console.error('agent_actions insert failed:', error);

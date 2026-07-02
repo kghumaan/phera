@@ -97,8 +97,8 @@ export async function sendFeatureRequestAlert(data: FeatureRequestAlertData) {
 
 export interface PlannerRequestAlertData {
     weddingId?: string;
-    /** 'managed' = a service our team runs; 'unsupported' = something we don't do yet. */
-    kind: 'managed' | 'unsupported';
+    /** 'managed' = a service our team runs; 'unsupported' = something we don't do yet; 'support' = the user needs a human. */
+    kind: 'managed' | 'unsupported' | 'support';
     service: string;
     budget?: string | null;
     details: string;
@@ -125,7 +125,10 @@ export async function sendPlannerRequestAlert(data: PlannerRequestAlertData) {
         return { success: false, error: 'RESEND_FROM_EMAIL is not configured' };
     }
 
-    const kindLabel = kind === 'unsupported' ? 'Unsupported ask' : 'Managed request';
+    const kindLabel =
+        kind === 'unsupported' ? 'Unsupported ask'
+        : kind === 'support' ? 'Support / human handoff'
+        : 'Managed request';
 
     try {
         const result = await resend().emails.send({

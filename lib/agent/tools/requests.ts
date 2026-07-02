@@ -15,15 +15,15 @@ export const requestTools: AgentToolDefinition[] = [
     label: 'Passing this to our team',
     risk: 'write',
     description:
-      'Capture a request the Planner cannot do itself and hand it to the Phera team. Use for: (a) MANAGED services our team runs — shared photo album, save-the-dates, and venue/vendor sourcing ONLY when our directory cannot help; and (b) UNSUPPORTED asks — anything the app does not do yet that the couple wants. CRITICAL for venues/hotels/vendors: FIRST call search_vendor_directory for the couple\'s city — only escalate here if it returns no usable matches OR the city is NOT one we cover (Goa, Udaipur, Jaipur, Jodhpur, Rishikesh, Kerala, Bangkok, Hua Hin, Phuket, Khao Lak, Bali, Dubai). It saves the brief and emails our team. ALWAYS frame the result to the couple as "I\'ve passed this to our team — they\'ll follow up", never as an automated or self-serve action (never fake automation). For sourcing requests, include budget and style/must-haves in the brief — this is the ONLY place budget is captured, and it goes to our internal team, not to guests. Do not call this for things the app CAN do (those have their own tools).',
+      'Capture a request the Planner cannot do itself and hand it to the Phera team. Use for: (a) MANAGED services our team runs — shared photo album, save-the-dates, and venue/vendor sourcing ONLY when our directory cannot help; and (b) UNSUPPORTED asks — anything the app does not do yet that the couple wants. Use kind \'support\' when the user asks to talk to a person, something keeps failing, or a situation needs human judgment. CRITICAL for venues/hotels/vendors: FIRST call search_vendor_directory for the couple\'s city — only escalate here if it returns no usable matches OR the city is NOT one we cover (Goa, Udaipur, Jaipur, Jodhpur, Rishikesh, Kerala, Bangkok, Hua Hin, Phuket, Khao Lak, Bali, Dubai). It saves the brief and emails our team. ALWAYS frame the result to the couple as "I\'ve passed this to our team — they\'ll follow up", never as an automated or self-serve action (never fake automation). For sourcing requests, include budget and style/must-haves in the brief — this is the ONLY place budget is captured, and it goes to our internal team, not to guests. Do not call this for things the app CAN do (those have their own tools).',
     inputSchema: {
       type: 'object',
       properties: {
         kind: {
           type: 'string',
-          enum: ['managed', 'unsupported'],
+          enum: ['managed', 'unsupported', 'support'],
           description:
-            "'managed' = a service our team runs for them (venue/vendor sourcing, album, save-the-dates); 'unsupported' = something Phera does not do yet",
+            "'managed' = a service our team runs for them (venue/vendor sourcing, album, save-the-dates); 'unsupported' = something Phera does not do yet; 'support' = the user asked for a human, is stuck after a repeated failure, or raised something needing human judgment (family conflict, complaint)",
         },
         service: {
           type: 'string',
@@ -44,7 +44,8 @@ export const requestTools: AgentToolDefinition[] = [
       additionalProperties: false,
     },
     execute: async (input, ctx) => {
-      const kind = input.kind === 'unsupported' ? 'unsupported' : 'managed';
+      const kind =
+        input.kind === 'unsupported' || input.kind === 'support' ? input.kind : 'managed';
       const service = String(input.service ?? '').trim() || 'Unspecified request';
       const details = String(input.details ?? '').trim();
       const budget = input.budget ? String(input.budget).trim() : null;

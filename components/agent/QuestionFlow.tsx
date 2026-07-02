@@ -504,7 +504,10 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
       )}
 
       {q.type === 'date' &&
-        (rangeDays.length > 0 && !useCalendar ? (
+        // Celebration-day quick-picks only make sense when dating an EVENT
+        // ("Mehndi — date"). Other date questions (an RSVP deadline!) must not
+        // steer the user toward the wedding days — those get the calendar.
+        (rangeDays.length > 0 && !useCalendar && parseEventField(q.prompt) ? (
           // Quick-pick the celebration days — no calendar needed per event.
           <Stack spacing={1} sx={{ width: '100%' }}>
             <Stack spacing={1}>
@@ -707,17 +710,16 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
                   }}
                   sx={{ flex: 1, '& .MuiOutlinedInput-root': INPUT_ROOT_SX }}
                 />
-                {/* The + only appears once they've typed something to add. */}
-                {otherText.trim() && (
-                  <IconActionButton
-                    onClick={addOther}
-                    disabled={disabled}
-                    aria-label="Add option"
-                    sx={{ color: COLORS.brand.primary, flexShrink: 0 }}
-                  >
-                    <AddRoundedIcon fontSize="small" />
-                  </IconActionButton>
-                )}
+                {/* Always visible (disabled until they type) — buttons never
+                    appear out of nowhere. */}
+                <IconActionButton
+                  onClick={addOther}
+                  disabled={disabled || !otherText.trim()}
+                  aria-label="Add option"
+                  sx={{ color: COLORS.brand.primary, flexShrink: 0 }}
+                >
+                  <AddRoundedIcon fontSize="small" />
+                </IconActionButton>
               </Stack>
             )}
             {actionButtons}

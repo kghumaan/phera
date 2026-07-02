@@ -56,7 +56,36 @@ export const roomTools: AgentToolDefinition[] = [
         };
       });
       if (input.only_with_space) rows = rows.filter((r) => (r.open_spots ?? 0) > 0);
-      return { rooms: rows, total: rows.length };
+      const withSpace = rows.filter((r) => (r.open_spots ?? 0) > 0).length;
+      // Capped at 60 rows to stay well inside the tool-result serialization cap.
+      const panelRows = rows.slice(0, 60);
+      return {
+        rooms: rows,
+        total: rows.length,
+        summary: `${rows.length} room${rows.length === 1 ? '' : 's'} · ${withSpace} with space`,
+        ...(rows.length > 0
+          ? {
+              dataPanel: {
+                kind: 'table' as const,
+                title: `Rooms${rows.length > panelRows.length ? ` (first ${panelRows.length} of ${rows.length})` : ''}`,
+                columns: [
+                  { key: 'room', label: 'Room' },
+                  { key: 'hotel', label: 'Hotel' },
+                  { key: 'capacity', label: 'Capacity' },
+                  { key: 'assigned', label: 'Assigned' },
+                  { key: 'open', label: 'Open' },
+                ],
+                rows: panelRows.map((r) => ({
+                  room: r.room_number,
+                  hotel: r.hotel,
+                  capacity: r.capacity,
+                  assigned: r.assigned.join(', ') || null,
+                  open: r.open_spots,
+                })),
+              },
+            }
+          : {}),
+      };
     },
   },
   {
@@ -78,6 +107,21 @@ export const roomTools: AgentToolDefinition[] = [
       },
       required: ['room_id'],
       additionalProperties: false,
+    },
+    captureBefore: async (input, ctx) => {
+      const { data: room } = await ctx.supabase
+        .from('wedding_rooms')
+        .select('capacity, bed_type, floor, hotel_name, notes')
+        .eq('wedding_id', ctx.weddingSlug)
+        .eq('id', input.room_id as string)
+        .maybeSingle();
+      if (!room) return null;
+      return {
+        restore: 'update',
+        table: 'wedding_rooms',
+        match: { wedding_id: ctx.weddingSlug, id: input.room_id as string },
+        values: room,
+      };
     },
     execute: async (input, ctx) => {
       const updates: Record<string, unknown> = {};
@@ -102,15 +146,58 @@ export const roomTools: AgentToolDefinition[] = [
     risk: 'gated',
     proFeature: 'Room assignments',
     description:
-      'Replace the set of guests assigned to a room (pass the full new list of guest IDs). Use after list_rooms and list_guests to know the IDs. This is a sensitive change and requires user confirmation.',
+      'Replace the set of guests assigned to a room (pass the full new list of guest IDs). Use after list_rooms and list_guests to know the IDs. This is a sensitive change and requires user confirmation — pass `reason`: one short user-facing sentence of why, grounded in the data you read (capacity, who, what changes).',
     inputSchema: {
       type: 'object',
       properties: {
         room_id: { type: 'string' },
         guest_ids: { type: 'array', items: { type: 'string' } },
+        reason: {
+          type: 'string',
+          description: 'One short sentence of why, grounded in data — shown to the user on the Confirm card.',
+        },
       },
       required: ['room_id', 'guest_ids'],
       additionalProperties: false,
+    },
+    // Confirm-card summary: resolve the raw UUIDs to a readable sentence so
+    // the user can inspect exactly what they're approving.
+    describe: async (input, ctx) => {
+      const guestIds = (input.guest_ids ?? []) as string[];
+      const [{ data: room }, { data: guests }] = await Promise.all([
+        ctx.supabase
+          .from('wedding_rooms')
+          .select('room_number, hotel_name, assigned_guest_ids')
+          .eq('wedding_id', ctx.weddingSlug)
+          .eq('id', input.room_id as string)
+          .maybeSingle(),
+        guestIds.length
+          ? ctx.supabase.from('guests').select('id, name').eq('wedding_id', ctx.weddingSlug).in('id', guestIds)
+          : Promise.resolve({ data: [] as { id: string; name: string }[] }),
+      ]);
+      const names = new Map((guests ?? []).map((g) => [g.id, g.name]));
+      const who = guestIds.map((id) => names.get(id) ?? 'unknown guest').join(', ') || 'nobody (clears the room)';
+      const where = room
+        ? `Room ${room.room_number}${room.hotel_name ? ` at ${room.hotel_name}` : ''}`
+        : 'this room';
+      const replaces = (room?.assigned_guest_ids ?? []).length;
+      return `${where} → ${who}${replaces ? ` (replaces the current ${replaces} assigned)` : ''}`;
+    },
+    // Undo snapshot: the assignment list this write is about to replace.
+    captureBefore: async (input, ctx) => {
+      const { data: room } = await ctx.supabase
+        .from('wedding_rooms')
+        .select('assigned_guest_ids')
+        .eq('wedding_id', ctx.weddingSlug)
+        .eq('id', input.room_id as string)
+        .maybeSingle();
+      if (!room) return null;
+      return {
+        restore: 'update',
+        table: 'wedding_rooms',
+        match: { wedding_id: ctx.weddingSlug, id: input.room_id as string },
+        values: { assigned_guest_ids: room.assigned_guest_ids ?? [] },
+      };
     },
     execute: async (input, ctx) => {
       const { data, error } = await ctx.supabase

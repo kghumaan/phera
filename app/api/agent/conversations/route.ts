@@ -75,7 +75,9 @@ export async function GET(request: NextRequest) {
       .limit(200),
     supabase
       .from('agent_actions')
-      .select('id, tool_name, input, created_at')
+      // result holds { summary } while pending (describe() output for the
+      // Confirm card) — see the gated branch in lib/agent/tools/registry.ts.
+      .select('id, tool_name, input, result, created_at')
       .eq('conversation_id', conversation.id)
       .eq('status', 'pending')
       .order('created_at', { ascending: true }),

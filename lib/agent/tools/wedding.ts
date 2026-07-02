@@ -1,4 +1,5 @@
 import { WeddingService } from '@/lib/supabase/wedding-service';
+import { humanizeFields } from './humanize';
 import type { AgentToolDefinition } from '../types';
 
 /** Fields the agent may update on the weddings row. Styling/publishing stay in the UI for now. */
@@ -75,6 +76,22 @@ export const weddingTools: AgentToolDefinition[] = [
       },
       additionalProperties: false,
     },
+    captureBefore: async (input, ctx) => {
+      const fields = UPDATABLE_WEDDING_FIELDS.filter((f) => input[f] !== undefined);
+      if (fields.length === 0) return null;
+      const { data: wedding } = await ctx.supabase
+        .from('weddings')
+        .select(fields.join(', '))
+        .eq('id', ctx.weddingUuid)
+        .maybeSingle();
+      if (!wedding) return null;
+      return {
+        restore: 'update',
+        table: 'weddings',
+        match: { id: ctx.weddingUuid },
+        values: wedding as unknown as Record<string, unknown>,
+      };
+    },
     execute: async (input, ctx) => {
       const updates: Record<string, unknown> = {};
       for (const field of UPDATABLE_WEDDING_FIELDS) {
@@ -84,7 +101,12 @@ export const weddingTools: AgentToolDefinition[] = [
       const service = new WeddingService(ctx.supabase as never);
       const updated = await service.updateWedding(ctx.weddingUuid, updates as never);
       if (!updated) throw new Error('Update failed');
-      return { updated: Object.keys(updates), wedding_date: updated.wedding_date, venue_name: updated.venue_name };
+      return {
+        updated: Object.keys(updates),
+        wedding_date: updated.wedding_date,
+        venue_name: updated.venue_name,
+        summary: `${humanizeFields(Object.keys(updates))} updated`,
+      };
     },
   },
 ];

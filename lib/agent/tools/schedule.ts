@@ -1,4 +1,5 @@
 import { WeddingService } from '@/lib/supabase/wedding-service';
+import { humanizeFields } from './humanize';
 import type { AgentToolDefinition } from '../types';
 
 export const scheduleTools: AgentToolDefinition[] = [
@@ -12,21 +13,48 @@ export const scheduleTools: AgentToolDefinition[] = [
     execute: async (_input, ctx) => {
       const service = new WeddingService(ctx.supabase as never);
       const days = await service.getWeddingSchedule(ctx.weddingUuid);
-      return {
-        days: days.map((d) => ({
-          schedule_id: d.id,
-          day_name: d.day_name,
-          date: d.date,
-          items: (d.events ?? []).map((item) => ({
-            id: item.id,
-            name: item.name,
-            time: item.time,
-            location: item.location,
-            description: item.description,
-            dress_code: item.dress_code,
-            is_major_event: item.is_major_event,
-          })),
+      const mapped = days.map((d) => ({
+        schedule_id: d.id,
+        day_name: d.day_name,
+        date: d.date,
+        items: (d.events ?? []).map((item) => ({
+          id: item.id,
+          name: item.name,
+          time: item.time,
+          location: item.location,
+          description: item.description,
+          dress_code: item.dress_code,
+          is_major_event: item.is_major_event,
         })),
+      }));
+      const itemCount = mapped.reduce((n, d) => n + d.items.length, 0);
+      return {
+        days: mapped,
+        summary: `${mapped.length} day${mapped.length === 1 ? '' : 's'} · ${itemCount} item${itemCount === 1 ? '' : 's'}`,
+        ...(itemCount > 0
+          ? {
+              dataPanel: {
+                kind: 'table' as const,
+                title: 'Schedule',
+                columns: [
+                  { key: 'day', label: 'Day' },
+                  { key: 'event', label: 'Event' },
+                  { key: 'time', label: 'Time' },
+                  { key: 'location', label: 'Location' },
+                  { key: 'dress_code', label: 'Dress code' },
+                ],
+                rows: mapped.flatMap((d) =>
+                  d.items.map((item) => ({
+                    day: d.day_name,
+                    event: item.name,
+                    time: item.time,
+                    location: item.location,
+                    dress_code: item.dress_code,
+                  }))
+                ),
+              },
+            }
+          : {}),
       };
     },
   },
@@ -167,6 +195,15 @@ export const scheduleTools: AgentToolDefinition[] = [
       required: ['item_id'],
       additionalProperties: false,
     },
+    captureBefore: async (input, ctx) => {
+      const { data: item } = await ctx.supabase
+        .from('schedule_items')
+        .select('name, time, location, description, dress_code, is_major_event')
+        .eq('id', input.item_id as string)
+        .maybeSingle();
+      if (!item) return null;
+      return { restore: 'update', table: 'schedule_items', match: { id: input.item_id as string }, values: item };
+    },
     execute: async (input, ctx) => {
       const updates: Record<string, unknown> = {};
       for (const f of ['name', 'time', 'location', 'description', 'dress_code', 'is_major_event'] as const) {
@@ -176,7 +213,10 @@ export const scheduleTools: AgentToolDefinition[] = [
       const service = new WeddingService(ctx.supabase as never);
       const updated = await service.updateScheduleItem(input.item_id as string, updates as never);
       if (!updated) throw new Error('Failed to update schedule item');
-      return { updated: { id: updated.id, name: updated.name, time: updated.time } };
+      return {
+        updated: { id: updated.id, name: updated.name, time: updated.time },
+        summary: `${updated.name} — ${humanizeFields(Object.keys(updates))} updated`,
+      };
     },
   },
   {
@@ -197,6 +237,21 @@ export const scheduleTools: AgentToolDefinition[] = [
       required: ['event_id'],
       additionalProperties: false,
     },
+    captureBefore: async (input, ctx) => {
+      const { data: event } = await ctx.supabase
+        .from('wedding_events')
+        .select('name, date, time, dress_code')
+        .eq('wedding_id', ctx.weddingUuid)
+        .eq('id', input.event_id as string)
+        .maybeSingle();
+      if (!event) return null;
+      return {
+        restore: 'update',
+        table: 'wedding_events',
+        match: { wedding_id: ctx.weddingUuid, id: input.event_id as string },
+        values: event,
+      };
+    },
     execute: async (input, ctx) => {
       const updates: Record<string, unknown> = {};
       for (const f of ['name', 'date', 'time', 'dress_code'] as const) {
@@ -206,7 +261,10 @@ export const scheduleTools: AgentToolDefinition[] = [
       const service = new WeddingService(ctx.supabase as never);
       const updated = await service.updateEvent(input.event_id as string, updates as never);
       if (!updated) throw new Error('Failed to update event');
-      return { updated: { id: updated.id, name: updated.name, date: updated.date } };
+      return {
+        updated: { id: updated.id, name: updated.name, date: updated.date },
+        summary: `${updated.name} — ${humanizeFields(Object.keys(updates))} updated`,
+      };
     },
   },
 ];

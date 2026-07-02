@@ -149,18 +149,22 @@ describe('runAgentTurn', () => {
       name: 'assign_guests_to_room',
       label: 'Reassigning a room',
       input: { room_id: 'r-204', guest_ids: ['g1'] },
+      // describe() runs against the fake supabase (no rows), so the summary is
+      // the degenerate fallback — what matters is that the card gets ONE.
+      summary: expect.any(String),
     });
     expect(events.at(-1)?.type).toBe('done');
   });
 
-  it('stops after the max number of tool rounds', async () => {
+  it('stops after the max number of tool rounds, then forces a text wrap-up', async () => {
     const toolTurn: ProviderTurnResult = {
       content: [{ type: 'tool_use', id: 'tu-x', name: 'not_a_real_tool', input: {} }],
       stopReason: 'tool_use',
     };
     const provider = scriptedProvider(Array(20).fill(toolTurn));
     const { events } = await run(provider);
-    expect((provider as { calls: number }).calls).toBe(8);
+    // 8 tool rounds + 1 forced text-only wrap-up so the turn never ends silent.
+    expect((provider as { calls: number }).calls).toBe(9);
     expect(events.at(-1)?.type).toBe('done');
   });
 

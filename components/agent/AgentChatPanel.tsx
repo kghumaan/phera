@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Stack, Typography, CircularProgress, LinearProgress, Tooltip, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { Box, Checkbox, Stack, Typography, CircularProgress, LinearProgress, Tooltip, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
@@ -13,7 +13,10 @@ import AttachFileRoundedIcon from '@mui/icons-material/AttachFileRounded';
 import GraphicEqRoundedIcon from '@mui/icons-material/GraphicEqRounded';
 import KeyboardRoundedIcon from '@mui/icons-material/KeyboardRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
+import { SPINE_STEPS } from '@/lib/agent/spine';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import { useVoiceInput } from './useVoiceInput';
 import { useVoiceMode } from './useVoiceMode';
@@ -34,18 +37,23 @@ import { FaqReviewPanel, type FaqReviewItem } from './FaqReviewPanel';
 import { VenueCardsPanel } from './VenueCardsPanel';
 import { WhatsAppPairingPanel } from './WhatsAppPairingPanel';
 import { BroadcastPanel } from './BroadcastPanel';
+import { DataPanel } from './DataPanel';
 import { AnimatePresence, motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import type { AgentStreamEvent, AgentContentBlock, AgentQuestion, VenueCard, WhatsAppBroadcastDraft } from '@/lib/agent/types';
+import type { AgentDataPanel, AgentStreamEvent, AgentContentBlock, AgentQuestion, VenueCard, WhatsAppBroadcastDraft } from '@/lib/agent/types';
 
 type ChatItem =
   | { kind: 'user'; text: string; markdown?: boolean }
   | { kind: 'assistant'; text: string }
-  | { kind: 'tool'; label: string; status: 'running' | 'ok' | 'failed' }
+  | { kind: 'tool'; label: string; status: 'running' | 'ok' | 'failed'; summary?: string; undoable?: boolean }
   | {
       kind: 'confirm';
       actionId: string;
       label: string;
+      name: string;
+      summary?: string;
+      reason?: string;
+      input?: Record<string, unknown>;
       status: 'pending' | 'resolving' | 'confirmed' | 'declined';
     }
   | {
@@ -134,6 +142,157 @@ function UploadCard({ uploadKind, onPick }: { uploadKind: 'guests' | 'rooms'; on
       <PrimaryActionButton size="small" onClick={onPick} startIcon={<UploadFileRoundedIcon fontSize="small" />}>
         Upload guest list
       </PrimaryActionButton>
+    </Box>
+  );
+}
+
+/** Compact display value for a confirm-card input field. */
+function confirmValue(value: unknown): string {
+  const s = String(value);
+  return s.length > 120 ? `${s.slice(0, 119)}…` : s;
+}
+
+/**
+ * The in-chat gated-action card: what the agent wants to do (the tool's
+ * describe() summary — or a raw key/value fallback — plus its stated reason),
+ * with Confirm / Edit… / Decline. "Edit…" opens a correction note that declines
+ * the action and has the agent re-propose an amended one; the "Don't ask again"
+ * checkbox persists an 'auto' autonomy override on approval.
+ */
+function ConfirmActionCard({
+  item,
+  busy,
+  onResolve,
+}: {
+  item: Extract<ChatItem, { kind: 'confirm' }>;
+  busy: boolean;
+  onResolve: (actionId: string, approve: boolean, opts?: { note?: string; alwaysAllow?: boolean }) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [note, setNote] = useState('');
+  const [alwaysAllow, setAlwaysAllow] = useState(false);
+  // Raw input fields shown only when there's no friendly summary; the reason
+  // gets its own "Why:" line below.
+  const inputEntries = item.summary
+    ? []
+    : Object.entries(item.input ?? {}).filter(([key]) => key !== 'reason');
+  return (
+    <Box
+      sx={{
+        alignSelf: 'flex-start',
+        border: `1px solid ${COLORS.brand.primaryBorder}`,
+        bgcolor: COLORS.brand.primaryWash,
+        borderRadius: RADII.lg,
+        px: 2,
+        py: 1.5,
+        maxWidth: '85%',
+      }}
+    >
+      <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 600, mb: 1 }}>
+        Confirm: {item.label}
+      </Typography>
+      {item.summary ? (
+        <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 1 }}>
+          {item.summary}
+        </Typography>
+      ) : inputEntries.length > 0 ? (
+        <Stack spacing={0.25} sx={{ mb: 1 }}>
+          {inputEntries.map(([key, value]) => (
+            <Typography key={key} variant="caption" sx={{ color: COLORS.text.muted }}>
+              <Box component="span" sx={{ color: COLORS.text.subtle }}>
+                {key.replace(/_/g, ' ')}:
+              </Box>{' '}
+              {confirmValue(value)}
+            </Typography>
+          ))}
+        </Stack>
+      ) : null}
+      {item.reason && (
+        <Typography variant="caption" sx={{ color: COLORS.text.subtle, display: 'block', mb: 1 }}>
+          Why: {item.reason}
+        </Typography>
+      )}
+      {item.status === 'pending' || item.status === 'resolving' ? (
+        <Stack spacing={1}>
+          <Stack direction="row" spacing={1}>
+            <PrimaryActionButton
+              size="small"
+              loading={item.status === 'resolving'}
+              disabled={busy}
+              onClick={() => onResolve(item.actionId, true, alwaysAllow ? { alwaysAllow: true } : undefined)}
+            >
+              Confirm
+            </PrimaryActionButton>
+            <SecondaryActionButton size="small" disabled={busy} onClick={() => setEditing((v) => !v)}>
+              Edit…
+            </SecondaryActionButton>
+            <SecondaryActionButton size="small" disabled={busy} onClick={() => onResolve(item.actionId, false)}>
+              Decline
+            </SecondaryActionButton>
+          </Stack>
+          {editing && (
+            <Stack spacing={1}>
+              <PheraTextField
+                size="small"
+                multiline
+                minRows={2}
+                placeholder="What should change?"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                disabled={busy}
+              />
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <PrimaryActionButton
+                  size="small"
+                  disabled={busy || !note.trim()}
+                  onClick={() => onResolve(item.actionId, false, { note: note.trim() })}
+                >
+                  Send change
+                </PrimaryActionButton>
+                <Typography
+                  component="button"
+                  type="button"
+                  variant="caption"
+                  onClick={() => {
+                    setEditing(false);
+                    setNote('');
+                  }}
+                  sx={{
+                    border: 'none',
+                    background: 'none',
+                    p: 0,
+                    cursor: 'pointer',
+                    color: COLORS.text.subtle,
+                    '&:hover': { textDecoration: 'underline' },
+                  }}
+                >
+                  Cancel
+                </Typography>
+              </Stack>
+            </Stack>
+          )}
+          {item.name !== 'set_autonomy' && (
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <Checkbox
+                size="small"
+                checked={alwaysAllow}
+                onChange={(e) => setAlwaysAllow(e.target.checked)}
+                disabled={busy}
+                sx={{ p: 0.25, color: COLORS.text.subtle, '&.Mui-checked': { color: COLORS.brand.primary } }}
+              />
+              <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
+                Don&apos;t ask again for this
+              </Typography>
+            </Stack>
+          )}
+        </Stack>
+      ) : (
+        <PheraChip
+          size="small"
+          tone={item.status === 'confirmed' ? 'success' : 'neutral'}
+          label={item.status === 'confirmed' ? 'Confirmed ✓' : 'Declined'}
+        />
+      )}
     </Box>
   );
 }
@@ -413,14 +572,30 @@ function dateRangeFromMessages(
 /** The most recent panel payload a tool streamed (venueCards / faqReview),
  *  recovered from persisted tool results so a refresh re-renders the right-pane
  *  cards or review that were live before reload — instead of an empty pane. */
-function lastToolPanel<T>(messages: Array<{ content?: AgentContentBlock[] }>, key: string): T | null {
+function lastToolPanel<T>(
+  messages: Array<{ role?: string; content?: AgentContentBlock[] }>,
+  key: string,
+  options?: {
+    /** A later user message matching this marks the panel consumed (e.g. the
+     *  venue Choose/skip messages) — don't restore it on reload. */
+    consumedBy?: RegExp;
+  }
+): T | null {
   let found: T | null = null;
   for (const message of messages) {
+    if (found && options?.consumedBy && message.role === 'user') {
+      for (const block of message.content ?? []) {
+        if (block.type === 'text' && options.consumedBy.test(block.text)) {
+          found = null;
+          break;
+        }
+      }
+    }
     for (const block of message.content ?? []) {
       if (block.type !== 'tool_result' || typeof block.content !== 'string') continue;
       try {
         const value = (JSON.parse(block.content) as Record<string, unknown>)[key];
-        if (Array.isArray(value) && value.length > 0) found = value as T;
+        if (Array.isArray(value) ? value.length > 0 : value && typeof value === 'object') found = value as T;
       } catch {
         // non-JSON tool result — ignore
       }
@@ -428,6 +603,10 @@ function lastToolPanel<T>(messages: Array<{ content?: AgentContentBlock[] }>, ke
   }
   return found;
 }
+
+/** The venue-cards Choose / skip messages — once one follows the cards, the
+ *  couple has acted on them and a reload must not resurrect the panel. */
+const VENUE_CARDS_CONSUMED_RE = /^I'd like to go with |None of those — let's keep going\./;
 
 /** Short placeholder for the first-visit centered input (summarizes what the
  *  planner can do, so we don't need a paragraph above the starters). */
@@ -601,6 +780,9 @@ export function AgentChatPanel({
   // Vendor-directory matches the planner surfaced — shown as Airbnb-style
   // listing cards in the right pane. Non-null while results are on screen.
   const [venueCards, setVenueCards] = useState<VenueCard[] | null>(null);
+  // Structured tool output (guest tables, RSVP stats, schedules) — shown as a
+  // right-pane data panel. Non-null while a panel is on screen.
+  const [dataPanel, setDataPanel] = useState<AgentDataPanel | null>(null);
   // Couple's WhatsApp pairing — non-null while the QR connect panel is up;
   // holds the latest channel status string.
   const [pairingStatus, setPairingStatus] = useState<string | null>(null);
@@ -689,6 +871,7 @@ export function AgentChatPanel({
     setWeddingDateRange(null);
     setFaqReview(null);
     setVenueCards(null);
+    setDataPanel(null);
     setPairingStatus(null);
     setBroadcastDraft(null);
     setLoadingHistory(true);
@@ -733,7 +916,10 @@ export function AgentChatPanel({
           // Re-hydrate the transient right-pane panels so a refresh doesn't strand
           // the user staring at an empty pane the agent says has cards/FAQs.
           setFaqReview(lastToolPanel<FaqReviewItem[]>(data.messages, 'faqReview'));
-          setVenueCards(lastToolPanel<VenueCard[]>(data.messages, 'venueCards'));
+          setVenueCards(
+            lastToolPanel<VenueCard[]>(data.messages, 'venueCards', { consumedBy: VENUE_CARDS_CONSUMED_RE })
+          );
+          setDataPanel(lastToolPanel<AgentDataPanel>(data.messages, 'dataPanel'));
         }
           const restored = (data.messages?.length ? itemsFromPersisted(data.messages) : []).map((it) =>
             // Always show the latest onboarding greeting copy, not the stale text
@@ -751,10 +937,17 @@ export function AgentChatPanel({
                 status: 'pending',
               });
             } else {
+              // Pending gated rows stash the describe() summary in their result.
+              const pendingResult = (pending.result ?? null) as { summary?: string } | null;
               restored.push({
                 kind: 'confirm',
                 actionId: pending.id,
                 label: String(pending.tool_name).replace(/_/g, ' '),
+                name: String(pending.tool_name),
+                summary:
+                  pendingResult && typeof pendingResult === 'object' ? pendingResult.summary : undefined,
+                input: pending.input ?? undefined,
+                reason: typeof pending.input?.reason === 'string' ? pending.input.reason : undefined,
                 status: 'pending',
               });
             }
@@ -818,6 +1011,11 @@ export function AgentChatPanel({
       setBroadcastDraft(event.draft);
       return;
     }
+    // Structured tool output (tables/stats) drives its own right-pane panel.
+    if (event.type === 'data_panel') {
+      setDataPanel(event.panel);
+      return;
+    }
     setItems((prev) => {
       const next = [...prev];
       switch (event.type) {
@@ -837,7 +1035,12 @@ export function AgentChatPanel({
           for (let i = next.length - 1; i >= 0; i--) {
             const item = next[i];
             if (item.kind === 'tool' && item.status === 'running') {
-              next[i] = { ...item, status: event.ok ? 'ok' : 'failed' };
+              next[i] = {
+                ...item,
+                status: event.ok ? 'ok' : 'failed',
+                summary: event.summary,
+                undoable: event.undoable,
+              };
               break;
             }
           }
@@ -848,6 +1051,10 @@ export function AgentChatPanel({
             kind: 'confirm',
             actionId: event.actionId,
             label: event.label,
+            name: event.name,
+            summary: event.summary,
+            input: event.input,
+            reason: typeof event.input.reason === 'string' ? event.input.reason : undefined,
             status: 'pending',
           });
           return next;
@@ -902,8 +1109,12 @@ export function AgentChatPanel({
               if (event.type === 'conversation') {
                 conversationIdRef.current = event.conversationId;
               } else {
-                // Once the agent actually starts working, move past "Saving…".
-                if (event.type === 'tool_start' || event.type === 'text_delta') {
+                // Once the agent actually starts working, move past "Saving…" —
+                // a running tool shows its own label ("Checking RSVPs…").
+                if (event.type === 'tool_start') {
+                  streamingRef.current = true;
+                  setBusyLabel(`${event.label}…`);
+                } else if (event.type === 'text_delta') {
                   streamingRef.current = true;
                   setBusyLabel('Thinking…');
                 }
@@ -933,7 +1144,7 @@ export function AgentChatPanel({
   );
 
   const resolveAction = useCallback(
-    async (actionId: string, approve: boolean) => {
+    async (actionId: string, approve: boolean, opts?: { note?: string; alwaysAllow?: boolean }) => {
       if (busy) return;
       streamingRef.current = false;
       setBusyLabel('Saving…');
@@ -947,7 +1158,12 @@ export function AgentChatPanel({
         const res = await fetch('/api/agent/confirm', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ actionId, approve }),
+          body: JSON.stringify({
+            actionId,
+            approve,
+            ...(opts?.note ? { note: opts.note } : {}),
+            ...(opts?.alwaysAllow ? { alwaysAllow: true } : {}),
+          }),
         });
         setItems((prev) =>
           prev.map((item) =>
@@ -1095,6 +1311,19 @@ export function AgentChatPanel({
     if (busy || !focus?.step || !focus.label) return;
     void send(`Let's move on from ${focus.label} for now — take me to the next step.`);
   }, [busy, focus, send]);
+
+  // The spine checklist behind the "Working on" bar: anchor for the dropdown,
+  // and jump-back — tapping a past (or skipped) step asks the agent to reopen
+  // it, so skipping is never a dead end.
+  const [spineAnchor, setSpineAnchor] = useState<null | HTMLElement>(null);
+  const jumpToSpineStep = useCallback(
+    (key: string, label: string) => {
+      setSpineAnchor(null);
+      if (busy || focus?.step === key) return;
+      void send(`Let's go back to ${label} — I want to review or finish it.`);
+    },
+    [busy, focus, send]
+  );
 
   // The couple approved the drafted FAQs: clear the review panel and hand a
   // hidden note to the agent so it acknowledges and moves to the next step
@@ -1411,8 +1640,9 @@ export function AgentChatPanel({
   const hasVenueCards = !!venueCards && venueCards.length > 0;
   const hasPairing = !!pairingStatus;
   const hasBroadcast = !!broadcastDraft;
+  const hasDataPanel = !!dataPanel;
   const formPaneOpen =
-    !!pendingQuestions || hasFaqReview || hasVenueCards || hasPairing || hasBroadcast || facts.length > 0;
+    !!pendingQuestions || hasFaqReview || hasVenueCards || hasPairing || hasBroadcast || hasDataPanel || facts.length > 0;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight }}>
@@ -1693,6 +1923,8 @@ export function AgentChatPanel({
                   onSent={onBroadcastSent}
                   onCancel={cancelBroadcast}
                 />
+              ) : hasDataPanel && dataPanel ? (
+                <DataPanel panel={dataPanel} disabled={busy} onDismiss={() => setDataPanel(null)} />
               ) : (
                 <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
                   <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 30 }} />
@@ -1734,31 +1966,123 @@ export function AgentChatPanel({
         >
           {focus.step ? (
             <>
-              <Typography
-                variant="body2"
-                sx={{ color: COLORS.text.muted, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+              {/* Tap the step to open the full spine checklist (A5): review
+                  what's done, jump back to anything — skipped or finished. */}
+              <Box
+                component="button"
+                type="button"
+                onClick={(e: React.MouseEvent<HTMLElement>) => setSpineAnchor(e.currentTarget)}
+                aria-label="Show all planning steps"
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.25,
+                  minWidth: 0,
+                  border: 'none',
+                  background: 'none',
+                  p: 0,
+                  cursor: 'pointer',
+                  borderRadius: RADII.sm,
+                  '&:hover': { bgcolor: COLORS.bg.subtle },
+                }}
               >
-                Working on:{' '}
-                <Box component="span" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
-                  {focus.label}
-                </Box>
-                {focus.stepNumber && (
-                  <Box component="span" sx={{ color: COLORS.text.faint, display: { xs: 'none', sm: 'inline' } }}>
-                    {' '}· step {focus.stepNumber} of {focus.totalSteps}
+                <Typography
+                  variant="body2"
+                  sx={{ color: COLORS.text.muted, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                >
+                  Working on:{' '}
+                  <Box component="span" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
+                    {focus.label}
                   </Box>
-                )}
-              </Typography>
+                  {focus.stepNumber && (
+                    <Box component="span" sx={{ color: COLORS.text.faint, display: { xs: 'none', sm: 'inline' } }}>
+                      {' '}· step {focus.stepNumber} of {focus.totalSteps}
+                    </Box>
+                  )}
+                </Typography>
+                <ExpandMoreRoundedIcon sx={{ fontSize: 18, color: COLORS.text.subtle, flexShrink: 0 }} />
+              </Box>
               <SecondaryActionButton size="small" onClick={moveOnFromFocus} disabled={busy} sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
                 Skip / move on
               </SecondaryActionButton>
             </>
           ) : (
-            <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
-              All caught up ✓
-              {focus.skipped.length > 0 &&
-                ` · ${focus.skipped.length} skipped step${focus.skipped.length !== 1 ? 's' : ''} parked for later`}
-            </Typography>
+            <Box
+              component="button"
+              type="button"
+              onClick={(e: React.MouseEvent<HTMLElement>) => setSpineAnchor(e.currentTarget)}
+              aria-label="Show all planning steps"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.25,
+                border: 'none',
+                background: 'none',
+                p: 0,
+                cursor: 'pointer',
+                borderRadius: RADII.sm,
+                '&:hover': { bgcolor: COLORS.bg.subtle },
+              }}
+            >
+              <Typography variant="body2" sx={{ color: COLORS.text.muted }}>
+                All caught up ✓
+                {focus.skipped.length > 0 &&
+                  ` · ${focus.skipped.length} skipped step${focus.skipped.length !== 1 ? 's' : ''} parked for later`}
+              </Typography>
+              <ExpandMoreRoundedIcon sx={{ fontSize: 18, color: COLORS.text.subtle, flexShrink: 0 }} />
+            </Box>
           )}
+          {/* The spine checklist: every step with its state — pink ✓ done,
+              "skipped" parked, "now" current. Tap any step to jump back. */}
+          <PheraMenu
+            anchorEl={spineAnchor}
+            open={!!spineAnchor}
+            onClose={() => setSpineAnchor(null)}
+            PaperProps={{ sx: { minWidth: 264 } }}
+          >
+            {SPINE_STEPS.map((s, i) => {
+              const isDone = focus.done.includes(s.key);
+              const isSkipped = focus.skipped.includes(s.key);
+              const isCurrent = focus.step === s.key;
+              return (
+                <PheraMenuItem
+                  key={s.key}
+                  onClick={() => jumpToSpineStep(s.key, s.label)}
+                  selected={isCurrent}
+                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}
+                >
+                  <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                    <Box component="span" sx={{ color: COLORS.text.faint, width: 16, flexShrink: 0, textAlign: 'right' }}>
+                      {i + 1}
+                    </Box>
+                    <Box
+                      component="span"
+                      sx={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        fontWeight: isCurrent ? 700 : 500,
+                        color: isDone || isCurrent ? COLORS.text.strong : COLORS.text.muted,
+                      }}
+                    >
+                      {s.label}
+                    </Box>
+                  </Box>
+                  {isDone ? (
+                    <CheckRoundedIcon sx={{ fontSize: 18, color: COLORS.brand.primary, flexShrink: 0 }} />
+                  ) : isCurrent ? (
+                    <Typography variant="caption" sx={{ color: COLORS.brand.primary, fontWeight: 700, flexShrink: 0 }}>
+                      now
+                    </Typography>
+                  ) : isSkipped ? (
+                    <Typography variant="caption" sx={{ color: COLORS.text.faint, flexShrink: 0 }}>
+                      skipped
+                    </Typography>
+                  ) : null}
+                </PheraMenuItem>
+              );
+            })}
+          </PheraMenu>
         </Box>
       )}
       {isWelcomeEmpty ? (
@@ -1866,47 +2190,7 @@ export function AgentChatPanel({
           <Stack spacing={1.5}>
             {items.map((item, index) =>
               item.kind === 'confirm' ? (
-                <Box
-                  key={index}
-                  sx={{
-                    alignSelf: 'flex-start',
-                    border: `1px solid ${COLORS.brand.primaryBorder}`,
-                    bgcolor: COLORS.brand.primaryWash,
-                    borderRadius: RADII.lg,
-                    px: 2,
-                    py: 1.5,
-                    maxWidth: '85%',
-                  }}
-                >
-                  <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 600, mb: 1 }}>
-                    Confirm: {item.label}
-                  </Typography>
-                  {item.status === 'pending' || item.status === 'resolving' ? (
-                    <Stack direction="row" spacing={1}>
-                      <PrimaryActionButton
-                        size="small"
-                        loading={item.status === 'resolving'}
-                        disabled={busy}
-                        onClick={() => resolveAction(item.actionId, true)}
-                      >
-                        Confirm
-                      </PrimaryActionButton>
-                      <SecondaryActionButton
-                        size="small"
-                        disabled={busy}
-                        onClick={() => resolveAction(item.actionId, false)}
-                      >
-                        Decline
-                      </SecondaryActionButton>
-                    </Stack>
-                  ) : (
-                    <PheraChip
-                      size="small"
-                      tone={item.status === 'confirmed' ? 'success' : 'neutral'}
-                      label={item.status === 'confirmed' ? 'Confirmed ✓' : 'Declined'}
-                    />
-                  )}
-                </Box>
+                <ConfirmActionCard key={index} item={item} busy={busy} onResolve={resolveAction} />
               ) : item.kind === 'upgrade' ? (
                 <Box
                   key={index}
@@ -1948,11 +2232,46 @@ export function AgentChatPanel({
                 // Rendered in the bottom composer while pending; nothing inline.
                 null
               ) : item.kind === 'tool' ? (
-                // Only surface failures — successful tool runs are noise.
+                // Failures stay loud; a successful run with a receipt (summary
+                // and/or an undoable snapshot) renders as a muted one-liner;
+                // everything else stays invisible — success without detail is noise.
                 item.status === 'failed' ? (
                   <Box key={index} sx={{ alignSelf: 'flex-start' }}>
                     <PheraChip tone="danger" size="small" label={`${item.label} failed`} />
                   </Box>
+                ) : item.status === 'ok' && (item.summary || item.undoable) ? (
+                  <Stack
+                    key={index}
+                    direction="row"
+                    alignItems="center"
+                    spacing={0.75}
+                    sx={{ alignSelf: 'flex-start' }}
+                  >
+                    <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
+                      ✓ {item.label}
+                      {item.summary ? ` — ${item.summary}` : ''}
+                    </Typography>
+                    {item.undoable && (
+                      <Typography
+                        component="button"
+                        type="button"
+                        variant="caption"
+                        disabled={busy}
+                        onClick={() => send(`Undo that last change (${item.label.toLowerCase()}).`)}
+                        sx={{
+                          border: 'none',
+                          background: 'none',
+                          p: 0,
+                          color: COLORS.brand.primary,
+                          cursor: busy ? 'default' : 'pointer',
+                          opacity: busy ? 0.5 : 1,
+                          '&:hover': { textDecoration: busy ? 'none' : 'underline' },
+                        }}
+                      >
+                        Undo
+                      </Typography>
+                    )}
+                  </Stack>
                 ) : null
               ) : (
                 <Box

@@ -17,6 +17,8 @@ import { shagunTools } from './shagun';
 import { consentTools } from './consent';
 import { requestTools } from './requests';
 import { messagingTools } from './messaging';
+import { undoTools } from './undo';
+import { autonomyTools } from './autonomy';
 
 let registered = false;
 
@@ -43,6 +45,8 @@ export function ensureToolsRegistered() {
     ...consentTools,
     ...requestTools,
     ...messagingTools,
+    ...undoTools,
+    ...autonomyTools,
   ]);
 }
 

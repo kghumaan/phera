@@ -20,7 +20,21 @@ export interface AgentToolContext {
   conversationId: string;
   /** Whether the account is on a paid plan — gates Pro-only tools. */
   isPro: boolean;
+  /** Per-wedding autonomy overrides (tool name → mode): 'auto' skips the
+   *  Confirm card on a gated tool, 'ask' parks a write tool behind one.
+   *  Absent/empty = every tool runs at its declared risk. */
+  autonomy?: Record<string, 'auto' | 'ask'>;
 }
+
+/**
+ * Pre-write snapshot persisted to agent_actions.before so undo_last_action can
+ * reverse the write. Self-describing: 'update' writes the captured values back;
+ * 'delete' removes the row the action created (matched by natural key — the
+ * undo tool refuses unless the match hits exactly one row).
+ */
+export type AgentBeforeState =
+  | { restore: 'update'; table: string; match: Record<string, unknown>; values: Record<string, unknown> }
+  | { restore: 'delete'; table: string; match: Record<string, unknown> };
 
 export interface AgentToolDefinition {
   name: string;
@@ -35,6 +49,15 @@ export interface AgentToolDefinition {
    *  call is blocked and an in-chat upgrade card is shown. The string is the
    *  user-facing feature name, e.g. "Room assignments". */
   proFeature?: string;
+  /** Optional, for gated tools: resolve the raw input into ONE human-readable
+   *  sentence (names instead of UUIDs) shown on the Confirm card so the user
+   *  can inspect exactly what they're approving. Must not mutate anything. */
+  describe?: (input: Record<string, unknown>, ctx: AgentToolContext) => Promise<string>;
+  /** Optional, for mutating tools: capture exactly the state execute() will
+   *  overwrite (or a delete-matcher for a row it will create), so the action
+   *  can be reversed by undo_last_action. Runs just before execute(); a
+   *  failure here never blocks the write — it only makes it non-undoable. */
+  captureBefore?: (input: Record<string, unknown>, ctx: AgentToolContext) => Promise<AgentBeforeState | null>;
   execute: (input: Record<string, unknown>, ctx: AgentToolContext) => Promise<unknown>;
 }
 
@@ -58,15 +81,20 @@ export type AgentStreamEvent =
   | { type: 'conversation'; conversationId: string }
   | { type: 'text_delta'; text: string }
   | { type: 'tool_start'; name: string; label: string }
-  | { type: 'tool_done'; name: string; ok: boolean }
+  /** summary = one-line receipt of what the tool found/changed ("214 RSVPs ·
+   *  47 no reply"); undoable = a before-snapshot was captured, so the client
+   *  can offer an inline Undo on the receipt. */
+  | { type: 'tool_done'; name: string; ok: boolean; summary?: string; undoable?: boolean }
   /** A gated tool call is parked as a pending agent_actions row — the client
-   *  must render Confirm/Decline and call /api/agent/confirm to resolve it. */
+   *  must render Confirm/Decline and call /api/agent/confirm to resolve it.
+   *  summary = the tool's describe() output (names, not UUIDs) for the card. */
   | {
       type: 'confirmation_required';
       actionId: string;
       name: string;
       label: string;
       input: Record<string, unknown>;
+      summary?: string;
     }
   /** The agent asked structured questions — the client renders inputs and
    *  resolves via /api/agent/answer. */
@@ -88,8 +116,31 @@ export type AgentStreamEvent =
   /** The agent drafted a guest broadcast — the right pane shows it for review,
    *  audience confirmation, and a send choice (couple's number / Phera / wa.me). */
   | { type: 'broadcast_review'; draft: WhatsAppBroadcastDraft }
+  /** A read tool returned structured data (guest table, RSVP stats, schedule) —
+   *  render it as a right-pane panel instead of prose. Non-blocking. */
+  | { type: 'data_panel'; panel: AgentDataPanel }
   | { type: 'done' }
   | { type: 'error'; message: string };
+
+/**
+ * Generic structured-output payload a tool attaches under the `dataPanel` key
+ * of its execute() result (same directive pattern as faqReview/venueCards) —
+ * the ONE mechanism for "render this as a table/stats panel", so new tools
+ * never need bespoke plumbing. Rows are server-shaped: the model never
+ * re-types data, so no transcription errors and no wasted tokens.
+ */
+export type AgentDataPanel =
+  | {
+      kind: 'table';
+      title: string;
+      columns: { key: string; label: string }[];
+      rows: Record<string, string | number | null>[];
+    }
+  | {
+      kind: 'stats';
+      title: string;
+      items: { label: string; value: string; hint?: string }[];
+    };
 
 /** One venue/hotel/vendor match rendered as a listing card in the right pane.
  *  Built from a directory VendorRecord — see lib/agent/tools/directory.ts. */

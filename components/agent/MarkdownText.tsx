@@ -6,12 +6,12 @@ import { COLORS } from '@/lib/theme/tokens';
 
 /**
  * Minimal, injection-safe markdown for agent chat replies. Handles the small
- * subset the model actually emits — **bold**, *italic*, bullet lists, and
- * paragraph breaks — without pulling a full markdown dependency or ever using
- * dangerouslySetInnerHTML.
+ * subset the model actually emits — **bold**, *italic*, [links](/in-app or
+ * https), bullet lists, and paragraph breaks — without pulling a full markdown
+ * dependency or ever using dangerouslySetInnerHTML.
  */
 
-function renderInline(text: string, keyPrefix: string) {
+function renderEmphasis(text: string, keyPrefix: string) {
   // Split on **bold** and *italic* while keeping the delimiters.
   const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).filter(Boolean);
   return parts.map((part, i) => {
@@ -27,6 +27,48 @@ function renderInline(text: string, keyPrefix: string) {
     }
     return <Fragment key={`${keyPrefix}-${i}`}>{part}</Fragment>;
   });
+}
+
+const LINK_RE = /\[([^\]]+)\]\(([^)\s]+)\)/g;
+
+function renderInline(text: string, keyPrefix: string) {
+  // Links first ([label](href)), then bold/italic within the surrounding text.
+  const nodes: React.ReactNode[] = [];
+  let last = 0;
+  let idx = 0;
+  LINK_RE.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = LINK_RE.exec(text))) {
+    if (m.index > last) nodes.push(...renderEmphasis(text.slice(last, m.index), `${keyPrefix}-t${idx}`));
+    const href = m[2];
+    // Injection-safe: in-app paths navigate in place; https opens a new tab;
+    // anything else (javascript:, data:, …) renders as plain text.
+    if (href.startsWith('/') || href.startsWith('https://')) {
+      nodes.push(
+        <Box
+          component="a"
+          key={`${keyPrefix}-a${idx}`}
+          href={href}
+          {...(href.startsWith('https://') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          sx={{
+            color: COLORS.brand.primary,
+            fontWeight: 600,
+            textDecoration: 'underline',
+            textUnderlineOffset: '2px',
+            '&:hover': { color: COLORS.brand.primaryHover },
+          }}
+        >
+          {m[1]}
+        </Box>
+      );
+    } else {
+      nodes.push(<Fragment key={`${keyPrefix}-a${idx}`}>{m[1]}</Fragment>);
+    }
+    last = m.index + m[0].length;
+    idx++;
+  }
+  if (last < text.length) nodes.push(...renderEmphasis(text.slice(last), `${keyPrefix}-tail`));
+  return nodes;
 }
 
 export function MarkdownText({ text }: { text: string }) {

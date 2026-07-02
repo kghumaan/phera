@@ -11,9 +11,12 @@ export const maxDuration = 120;
 
 /**
  * POST /api/agent/confirm
- * Body: { actionId: string, approve: boolean }
- * Resolves a pending gated action and streams the agent's acknowledgment
- * turn as SSE (same event protocol as /api/agent/chat).
+ * Body: { actionId: string, approve: boolean, note?: string, alwaysAllow?: boolean }
+ * note (decline only): the user's "Edit…" correction — the agent re-proposes
+ * the amended action. alwaysAllow (approve only): persist an 'auto' autonomy
+ * override so this tool skips future Confirm cards. Resolves the pending gated
+ * action and streams the agent's acknowledgment turn as SSE (same event
+ * protocol as /api/agent/chat).
  */
 export async function POST(request: NextRequest) {
   const { supabase, user } = await getAuthenticatedClient();
@@ -21,7 +24,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  let body: { actionId?: string; approve?: boolean };
+  let body: { actionId?: string; approve?: boolean; note?: string; alwaysAllow?: boolean };
   try {
     body = await request.json();
   } catch {
@@ -31,6 +34,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing actionId or approve' }, { status: 400 });
   }
   const { actionId, approve } = body;
+  const note = typeof body.note === 'string' ? body.note.slice(0, 1000) : undefined;
+  const alwaysAllow = body.alwaysAllow === true;
 
   // RLS already scopes agent_actions to weddings this user administers,
   // but verify explicitly so a clear 403/404 comes back.
@@ -65,6 +70,8 @@ export async function POST(request: NextRequest) {
           supabase,
           actionId,
           approve,
+          note,
+          alwaysAllow,
           userId: user.id,
           provider: anthropicProvider,
           onEvent: send,

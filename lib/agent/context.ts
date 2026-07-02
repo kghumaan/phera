@@ -199,6 +199,9 @@ export async function buildWeddingSnapshot(
     `RSVP deadline: ${rsvpDeadline ?? 'not set'}`,
     `Guests: ${guestCount} (${respondedGuests} responded) | Events: ${eventCount} | Schedule days: ${scheduleDays}`,
     `Rooms: ${roomCount} | Vendors: ${vendorCount} | FAQs: ${faqCount} | Open tasks: ${openTasks}`,
+    // In-app pages the agent can link when handing off to a rich section —
+    // MarkdownText renders [label](/path) as a real link in the chat.
+    `App pages (markdown links you can share): [Website details](/admin/${weddingSlug}/details) · [Website design](/admin/${weddingSlug}/look-and-feel) · [Guest list](/admin/${weddingSlug}/guest-list) · [Schedule](/admin/${weddingSlug}/schedule) · [Room assignments](/admin/${weddingSlug}/room-assignments) · [FAQs](/admin/${weddingSlug}/faq)`,
     '',
     'Setup checklist:',
     ...completeness.map((c) => `- [${c.done ? 'x' : ' '}] ${c.label}${c.detail ? ` (${c.detail})` : ''}`),
