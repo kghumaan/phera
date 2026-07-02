@@ -8,9 +8,12 @@
  *
  * Usage:
  *   node scripts/agent-evals.mjs                 # run every scenario
- *   node scripts/agent-evals.mjs onboarding      # name filter (substring)
+ *   node scripts/agent-evals.mjs onboarding      # name filter (substring) or persona id (P5)
  *   node scripts/agent-evals.mjs --keep          # skip teardown (inspect in /agent-lab)
  *   node scripts/agent-evals.mjs --strict        # non-zero exit on any failure
+ *   node scripts/agent-evals.mjs --min-pass=0.9  # non-zero exit below a pass RATE —
+ *                                                # the CI-friendly gate: tolerates known-red
+ *                                                # regression targets + live-model variance
  *
  * Requires a running dev server (default http://localhost:3000) and
  * AGENT_LAB_TOKEN (read from env or .env.local). Each run costs real model
@@ -27,6 +30,8 @@ const BASE_URL = process.env.AGENT_LAB_BASE_URL || 'http://localhost:3000';
 const args = process.argv.slice(2);
 const keep = args.includes('--keep');
 const strict = args.includes('--strict');
+const minPassArg = args.find((a) => a.startsWith('--min-pass='));
+const minPass = minPassArg ? Number.parseFloat(minPassArg.split('=')[1]) : null;
 const filters = args.filter((a) => !a.startsWith('--'));
 
 function labToken() {
@@ -198,11 +203,19 @@ async function main() {
     report.push({ scenario: scenario.name, checks });
   }
 
-  console.log(`\n══ Scorecard: ${totalPass} pass / ${totalFail} fail ══`);
+  const rate = totalPass / Math.max(1, totalPass + totalFail);
+  console.log(`\n══ Scorecard: ${totalPass} pass / ${totalFail} fail (${(rate * 100).toFixed(1)}%) ══`);
   const reportPath = join(ROOT, 'agent-evals-report.json');
-  writeFileSync(reportPath, JSON.stringify({ ranAt: new Date().toISOString(), report }, null, 2));
+  writeFileSync(
+    reportPath,
+    JSON.stringify({ ranAt: new Date().toISOString(), passRate: rate, report }, null, 2)
+  );
   console.log(`Report: ${reportPath}`);
   if (strict && totalFail > 0) process.exit(1);
+  if (minPass !== null && rate < minPass) {
+    console.error(`Pass rate ${(rate * 100).toFixed(1)}% below --min-pass=${minPass}`);
+    process.exit(1);
+  }
 }
 
 main().catch((error) => {

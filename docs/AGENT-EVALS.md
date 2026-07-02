@@ -177,6 +177,9 @@ All fixtures in `tests/agent-evals/scenarios/` now carry a `persona` tag; run a 
 - Working-on bar behaviors once built (PLANNER-SPINE-TRACKER A1–A5): persisted current step, resume ("are you done with X?"), skip = defer-and-resurface.
 - Multi-turn `answer` round-trips via `resolveAgentAnswers` for the remaining P4/P7/E-matrix cases (triage short-circuit, planner-agency register, brain-dump parse).
 - An optional `llm-judge.ts` for "did it follow the spine" where regex is too brittle.
-- CI wiring: deterministic suites on every PR; live suite nightly / pre-release.
+
+### CI wiring (as of 2026-07-02)
+- **Every push/PR (`.github/workflows/ci.yml`)**: lint + the full vitest run — which includes all deterministic agent-eval suites AND the scenario-coverage enforcement test. This is the deploy signal (Vercel auto-deploys `main`; promote to a hard gate with branch protection when ready).
+- **Nightly + on-demand (`.github/workflows/agent-evals-nightly.yml`)**: builds and boots the app against **phera-test**, runs the LIVE scenario scorecard with `--min-pass=0.9` (tolerates known-red regression targets + model variance) plus the live invariant suite, and uploads `agent-evals-report.json` as an artifact. Costs ~$1–3/run in Anthropic tokens — deliberately NOT per-deploy. Self-skips with a notice until the `EVALS_*` / `ANTHROPIC_API_KEY` / `AGENT_LAB_TOKEN` repo secrets are configured.
 
 Each persona/edge case is one fixture. Adding a checkpoint to the spine = add/adjust its fixture first (eval-driven development of the agent).
