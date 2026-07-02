@@ -61,6 +61,10 @@ export const OPS_DELETE_TABLES: OpsTable[] = [
   { table: 'whatsapp_broadcasts', key: 'wedding_id', keyType: 'slug' },
   { table: 'whatsapp_messages', key: 'wedding_id', keyType: 'slug' },
   { table: 'whatsapp_opt_ins', key: 'wedding_id', keyType: 'slug' },
+  // agent_messages + agent_feedback cascade from agent_conversations (FK ON DELETE CASCADE)
+  { table: 'agent_conversations', key: 'wedding_id', keyType: 'slug' },
+  { table: 'agent_actions', key: 'wedding_id', keyType: 'slug' },
+  { table: 'agent_knowledge', key: 'wedding_id', keyType: 'slug' },
   { table: 'guests', key: 'wedding_id', keyType: 'slug' },
 
   // uuid-keyed tables (must delete before weddings row)

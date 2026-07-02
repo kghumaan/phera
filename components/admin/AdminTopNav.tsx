@@ -36,6 +36,7 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import { isDemoUser } from '@/lib/demo/coordinator-mock-data';
+import { isSuperAdminEmail } from '@/lib/constants/super-admins';
 
 import { Wedding } from '@/lib/supabase/wedding-service';
 import FeatureRequestModal from './FeatureRequestModal';
@@ -58,7 +59,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     const theme = useTheme();
     const router = useRouter();
     const { user, signOut } = useAuth();
-    const { plan, isPro, togglePlan } = usePlan();
+    const { isPro, isPlanner, togglePlan, setAccountType } = usePlan();
     const { isViewOnly } = useAdminRole();
     const { status: autoSaveStatus, message: autoSaveMessage, showStatus } = useAutoSaveStatus();
     const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
@@ -68,6 +69,8 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     const [upgradeModalOpen, setUpgradeModalOpen] = React.useState(false);
     const [homeModalOpen, setHomeModalOpen] = React.useState(false);
     const [signOutModalOpen, setSignOutModalOpen] = React.useState(false);
+    const [deleteAccountModalOpen, setDeleteAccountModalOpen] = React.useState(false);
+    const [deletingAccount, setDeletingAccount] = React.useState(false);
     const open = Boolean(anchorEl);
 
     const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -102,6 +105,27 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
         // first attempt appeared to do nothing.
         signOut();
         router.push('/');
+    };
+
+    const handleTogglePlanner = async () => {
+        await setAccountType(isPlanner ? 'couple' : 'planner');
+        // Layout + planner nav read account_type on mount — hard reload keeps them in sync.
+        window.location.reload();
+    };
+
+    const confirmDeleteAccount = async () => {
+        setDeletingAccount(true);
+        try {
+            const res = await fetch('/api/account/delete', { method: 'DELETE' });
+            const body = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(body.error || 'Failed to delete account');
+            signOut();
+            router.push('/auth/signup');
+        } catch (e) {
+            setDeletingAccount(false);
+            setDeleteAccountModalOpen(false);
+            showStatus('error', e instanceof Error ? e.message : 'Failed to delete account');
+        }
     };
 
     const handleClearData = async () => {
@@ -407,20 +431,35 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                         {/* <Divider sx={{ my: 1, opacity: 0.6 }} /> */}
 
                         {/* Dev Tools - Only visible to super admins */}
-                        {(user?.email === 'kv.s.ghumaan@gmail.com' || user?.email === 'simran@simmetrystudios.com') && (
+                        {isSuperAdminEmail(user?.email) && (
                             <Box sx={{ px: 2, py: 1.5 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                                     <Box>
                                         <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.subtle }}>
-                                            Test Mode
+                                            Pro Plan
                                         </Typography>
                                         <Typography variant="caption" sx={{ fontSize: '0.875rem', color: COLORS.text.faint }}>
-                                            Toggle plan for testing
+                                            Toggle free/pro for testing
                                         </Typography>
                                     </Box>
                                     <PheraSwitch
                                         checked={isPro}
                                         onChange={(e) => { e.stopPropagation(); togglePlan(); }}
+                                        size="small"
+                                    />
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                                    <Box>
+                                        <Typography variant="body2" sx={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.text.subtle }}>
+                                            Planner Mode
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ fontSize: '0.875rem', color: COLORS.text.faint }}>
+                                            Switch couple/planner account
+                                        </Typography>
+                                    </Box>
+                                    <PheraSwitch
+                                        checked={isPlanner}
+                                        onChange={(e) => { e.stopPropagation(); handleTogglePlanner(); }}
                                         size="small"
                                     />
                                 </Box>
@@ -446,6 +485,32 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                     }}
                                 >
                                     Clear Local Data
+                                </ActionButton>
+                                <ActionButton
+                                    fullWidth
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => {
+                                        handleMenuClose();
+                                        setDeleteAccountModalOpen(true);
+                                    }}
+                                    sx={{
+                                        mt: 1,
+                                        borderRadius: '100px',
+                                        textTransform: 'none',
+                                        fontWeight: 600,
+                                        fontSize: '0.875rem',
+                                        borderWidth: '1.5px',
+                                        borderColor: alpha(COLORS.brand.primary, 0.4),
+                                        color: COLORS.brand.primary,
+                                        '&:hover': {
+                                            borderWidth: '1.5px',
+                                            borderColor: COLORS.brand.primary,
+                                            bgcolor: alpha(COLORS.brand.primary, 0.05),
+                                        },
+                                    }}
+                                >
+                                    Delete Account & Restart
                                 </ActionButton>
                             </Box>
                         )}
@@ -620,6 +685,57 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                     </PrimaryActionButton>
                     <Button
                         onClick={() => setSignOutModalOpen(false)}
+                        sx={{
+                            color: COLORS.text.subtle,
+                            fontWeight: 600,
+                            textTransform: 'none',
+                            fontSize: '0.95rem',
+                            borderRadius: RADII.md,
+                            px: 3,
+                            py: 1,
+                            bgcolor: 'rgba(0, 0, 0, 0.04)',
+                            '&:hover': { bgcolor: 'rgba(0, 0, 0, 0.08)' },
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                </DialogActions>
+            </PheraDialog>
+
+            {/* Delete Account confirmation (super-admin dev tool) */}
+            <PheraDialog
+                open={deleteAccountModalOpen}
+                onClose={() => { if (!deletingAccount) setDeleteAccountModalOpen(false); }}
+                PaperProps={{ sx: { p: { xs: 2, md: 3 }, textAlign: 'center', maxWidth: '440px' } }}
+            >
+                <PheraDialogTitle
+                    onClose={() => { if (!deletingAccount) setDeleteAccountModalOpen(false); }}
+                    sx={{ justifyContent: 'center', pb: 1 }}
+                >
+                    Delete Account & Restart?
+                </PheraDialogTitle>
+                <DialogContent>
+                    <Typography variant="body1" sx={{ color: COLORS.text.subtle, fontSize: '1rem', mb: 1 }}>
+                        This permanently deletes your account ({user?.email}), every wedding you own and all its data.
+                        You&apos;ll be signed out and can sign up again to go through onboarding fresh. This cannot be undone.
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 2 }}>
+                    <PrimaryActionButton
+                        onClick={confirmDeleteAccount}
+                        disabled={deletingAccount}
+                        sx={{
+                            fontSize: '0.95rem',
+                            px: 4,
+                            py: 1,
+                            boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
+                        }}
+                    >
+                        {deletingAccount ? 'Deleting…' : 'Delete Everything'}
+                    </PrimaryActionButton>
+                    <Button
+                        onClick={() => setDeleteAccountModalOpen(false)}
+                        disabled={deletingAccount}
                         sx={{
                             color: COLORS.text.subtle,
                             fontWeight: 600,

@@ -5,14 +5,17 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuth } from './AuthContext';
 
 export type PlanType = 'phera' | 'phera_premium' | 'phera_grand' | 'planner';
+export type AccountType = 'couple' | 'planner';
 
 interface PlanContextType {
   plan: PlanType;
+  accountType: AccountType;
   isLoading: boolean;
   isPro: boolean;
   isPlanner: boolean;
   togglePlan: () => Promise<void>;
   setPlan: (plan: PlanType) => Promise<void>;
+  setAccountType: (type: AccountType) => Promise<void>;
 }
 
 const PlanContext = createContext<PlanContextType | undefined>(undefined);
@@ -20,6 +23,7 @@ const PlanContext = createContext<PlanContextType | undefined>(undefined);
 export function PlanProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [plan, setPlanState] = useState<PlanType>('phera');
+  const [accountType, setAccountTypeState] = useState<AccountType>('couple');
   const [isLoading, setIsLoading] = useState(true);
 
   // Load user's plan from Supabase
@@ -33,7 +37,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       // First try to get existing user_settings
       const { data, error } = await supabase
         .from('user_settings')
-        .select('subscription_tier')
+        .select('subscription_tier, account_type')
         .eq('user_id', user.id)
         .single();
 
@@ -48,6 +52,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         // Default to basic for new users
         setPlanState('phera');
       }
+      setAccountTypeState(data?.account_type === 'planner' ? 'planner' : 'couple');
     } catch (err) {
       console.error('Error loading plan:', err);
       setPlanState('phera');
@@ -94,15 +99,49 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     await setPlan(newPlan);
   }, [plan, setPlan]);
 
+  // Switching account type keeps subscription_tier in sync: planner mode
+  // implies the 'planner' tier (same as Stripe activate-pro), couple mode
+  // drops back to basic — matches how isPlanner is derived from the tier.
+  const setAccountType = useCallback(async (type: AccountType) => {
+    if (!user?.id) return;
+
+    const newTier: PlanType = type === 'planner' ? 'planner' : 'phera';
+    try {
+      const { error } = await supabase
+        .from('user_settings')
+        .upsert(
+          {
+            user_id: user.id,
+            account_type: type,
+            subscription_tier: newTier,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'user_id' }
+        );
+
+      if (error) {
+        console.error('Error saving account type:', error);
+        return;
+      }
+
+      setAccountTypeState(type);
+      setPlanState(newTier);
+    } catch (err) {
+      console.error('Error saving account type:', err);
+    }
+  }, [user?.id]);
+
   return (
     <PlanContext.Provider
       value={{
         plan,
+        accountType,
         isLoading,
         isPro: plan !== 'phera', // 'phera' = basic/free, anything else = Pro
         isPlanner: plan === 'planner',
         togglePlan,
         setPlan,
+        setAccountType,
       }}
     >
       {children}
