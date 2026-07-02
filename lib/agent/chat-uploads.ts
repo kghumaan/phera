@@ -2,10 +2,10 @@ import {
   parseCsv,
   parseXlsx,
   parseVCard,
-  autoMapColumns,
   applyColumnMapping,
   type ParsedRow,
 } from '@/lib/admin/guest-import-parsers';
+import { smartMapColumns } from '@/lib/admin/smart-column-mapping';
 import { roomsService } from '@/lib/supabase/rooms-service';
 
 /**
@@ -52,7 +52,11 @@ export async function importGuestsFromFile(
     throw new Error('Unsupported file — use CSV, Excel (.xlsx), or vCard (.vcf).');
   }
 
-  const guests = applyColumnMapping(rows, autoMapColumns(fields));
+  // The chat path imports without a preview step, so smart column mapping
+  // matters even more here — an unrecognized plus-one column would be
+  // silently dropped. Falls back to heuristics on any analyzer failure.
+  const { mapping } = await smartMapColumns(fields, rows);
+  const guests = applyColumnMapping(rows, mapping);
   if (guests.length === 0) {
     throw new Error("Couldn't find any guest names in that file.");
   }

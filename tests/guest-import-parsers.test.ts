@@ -6,8 +6,12 @@ import {
   parseVCard,
   autoMapColumns,
   applyColumnMapping,
+  mergeColumnMappings,
+  interpretCompanionCell,
+  looksLikeSerialColumn,
   AUTO_MAP,
 } from '@/lib/admin/guest-import-parsers';
+import { sanitizeColumnAnalysis } from '@/lib/admin/smart-column-mapping';
 
 // ─── CSV parsing ───────────────────────────────────────────────────
 
@@ -230,6 +234,142 @@ describe('autoMapColumns', () => {
     expect(AUTO_MAP['surname']).toBe('last_name');
     expect(AUTO_MAP['team']).toBe('group');
   });
+
+  it('maps additional-guest columns, allowing several at once', () => {
+    const map = autoMapColumns(['Name', 'Additional Guest', 'Guest 2', 'Guest 3', 'Spouse']);
+    expect(map).toEqual({
+      Name: 'name',
+      'Additional Guest': 'additional_guest_name',
+      'Guest 2': 'additional_guest_name',
+      'Guest 3': 'additional_guest_name',
+      Spouse: 'additional_guest_name',
+    });
+  });
+
+  it('maps "Guest Name 2" as an additional guest, not the primary name', () => {
+    const map = autoMapColumns(['Guest Name', 'Guest Name 2']);
+    expect(map).toEqual({
+      'Guest Name': 'name',
+      'Guest Name 2': 'additional_guest_name',
+    });
+  });
+});
+
+// ─── Companion cell interpretation (per-cell, mixed columns) ───────
+
+describe('interpretCompanionCell', () => {
+  it('treats a name as one named companion', () => {
+    expect(interpretCompanionCell('Aisha Mehta')).toEqual({ names: ['Aisha Mehta'], bump: 1, allowance: false });
+  });
+  it('treats yes/no flags as unnamed allowance', () => {
+    expect(interpretCompanionCell('Yes')).toEqual({ names: [], bump: 1, allowance: true });
+    expect(interpretCompanionCell('No')).toEqual({ names: [], bump: 0, allowance: false });
+    expect(interpretCompanionCell('TBD')).toEqual({ names: [], bump: 0, allowance: false });
+  });
+  it('treats integers as counts', () => {
+    expect(interpretCompanionCell('2')).toEqual({ names: [], bump: 2, allowance: true });
+    expect(interpretCompanionCell('0')).toEqual({ names: [], bump: 0, allowance: false });
+  });
+  it('splits multiple names in one cell', () => {
+    expect(interpretCompanionCell('Aarav, Meera & Dev').names).toEqual(['Aarav', 'Meera', 'Dev']);
+  });
+  it('keeps honorific couples together', () => {
+    expect(interpretCompanionCell('Mr & Mrs Sharma')).toEqual({ names: ['Mr & Mrs Sharma'], bump: 1, allowance: false });
+  });
+  it('coerces non-string values instead of crashing', () => {
+    expect(interpretCompanionCell(2 as unknown as string)).toEqual({ names: [], bump: 2, allowance: true });
+    expect(interpretCompanionCell(undefined)).toEqual({ names: [], bump: 0, allowance: false });
+  });
+});
+
+describe('looksLikeSerialColumn', () => {
+  it('detects a 1..N row-number column', () => {
+    expect(looksLikeSerialColumn(['1', '2', '3', '4', '5', '6'])).toBe(true);
+  });
+  it('detects a serial run even after a banner/duplicated-header row', () => {
+    expect(looksLikeSerialColumn(['No.', '1', '2', '3', '4', '5', '6'])).toBe(true);
+  });
+  it('detects short serial runs (4-row sheets)', () => {
+    expect(looksLikeSerialColumn(['1', '2', '3', '4'])).toBe(true);
+  });
+  it('does not flag genuine party sizes', () => {
+    expect(looksLikeSerialColumn(['2', '1', '4', '2', '3', '2'])).toBe(false);
+    expect(looksLikeSerialColumn(['2', '2', '3', '1'])).toBe(false);
+  });
+  it('handles numeric values without crashing', () => {
+    expect(looksLikeSerialColumn([1, 2, 3, 4] as unknown as string[])).toBe(true);
+  });
+});
+
+// ─── mergeColumnMappings (heuristic + LLM) ─────────────────────────
+
+describe('mergeColumnMappings', () => {
+  const headers = ['Name', 'Bringing Someone?', 'No.', 'Guest 2'];
+
+  it('lets the LLM claim columns heuristics missed', () => {
+    const heuristic = { Name: 'name', 'No.': 'party_size' };
+    const llm = { 'Bringing Someone?': 'plus_one_flag', 'No.': 'ignore', 'Guest 2': 'additional_guest_name' };
+    expect(mergeColumnMappings(heuristic, llm, headers)).toEqual({
+      Name: 'name',
+      'Bringing Someone?': 'plus_one_flag',
+      'Guest 2': 'additional_guest_name',
+    });
+  });
+
+  it('LLM ignore unmaps a heuristic false positive', () => {
+    const heuristic = { Name: 'name', 'No.': 'party_size' };
+    const llm = { 'No.': 'ignore' };
+    expect(mergeColumnMappings(heuristic, llm, headers)).toEqual({ Name: 'name' });
+  });
+
+  it('keeps non-repeatable fields unique with LLM claims winning', () => {
+    const heuristic = { Name: 'name', 'Guest 2': 'email' };
+    const llm = { 'Bringing Someone?': 'email' };
+    expect(mergeColumnMappings(heuristic, llm, headers)).toEqual({
+      Name: 'name',
+      'Bringing Someone?': 'email',
+    });
+  });
+});
+
+// ─── sanitizeColumnAnalysis (LLM output validation) ────────────────
+
+describe('sanitizeColumnAnalysis', () => {
+  const headers = ['Name', 'Plus One', 'Group'];
+
+  it('accepts valid columns and aliases tags → group', () => {
+    const raw = {
+      columns: [
+        { header: 'Name', field: 'name' },
+        { header: 'Plus One', field: 'plus_one_flag' },
+        { header: 'Group', field: 'tags' },
+      ],
+    };
+    expect(sanitizeColumnAnalysis(raw, headers)).toEqual({
+      Name: 'name',
+      'Plus One': 'plus_one_flag',
+      Group: 'group',
+    });
+  });
+
+  it('drops unknown headers, unknown fields, and malformed entries', () => {
+    const raw = {
+      columns: [
+        { header: 'Nope', field: 'name' },
+        { header: 'Name', field: 'made_up_field' },
+        { header: 'Plus One' },
+        'garbage',
+        { header: 'Group', field: 'group' },
+      ],
+    };
+    expect(sanitizeColumnAnalysis(raw, headers)).toEqual({ Group: 'group' });
+  });
+
+  it('returns empty for non-object input', () => {
+    expect(sanitizeColumnAnalysis(null, headers)).toEqual({});
+    expect(sanitizeColumnAnalysis('x', headers)).toEqual({});
+    expect(sanitizeColumnAnalysis({ columns: 'x' }, headers)).toEqual({});
+  });
 });
 
 // ─── applyColumnMapping (build payload) ────────────────────────────
@@ -276,6 +416,249 @@ describe('applyColumnMapping', () => {
     const rows = [{ Email: 'p@x.com' }];
     const result = applyColumnMapping(rows, { Email: 'email' });
     expect(result).toEqual([]);
+  });
+
+  // ── Plus-ones & companions ────────────────────────────────────────
+
+  it('keeps a plus-one NAME column as plus_one_name and bumps party size', () => {
+    const rows = [
+      { Name: 'Arjun Mehta', 'Plus One': 'Aisha Mehta' },
+      { Name: 'Priya Sharma', 'Plus One': '' },
+    ];
+    const result = applyColumnMapping(rows, { Name: 'name', 'Plus One': 'plus_one_name' });
+    expect(result[0]).toEqual({ name: 'Arjun Mehta', plus_one_name: 'Aisha Mehta', party_size: 2 });
+    expect(result[1]).toEqual({ name: 'Priya Sharma' });
+  });
+
+  it('treats a yes/no plus-one column as an allowance: party size + tag, no fake name', () => {
+    const rows = [
+      { Name: 'Arjun Mehta', 'Plus One': 'Yes', Group: 'family' },
+      { Name: 'Priya Sharma', 'Plus One': 'No', Group: 'family' },
+    ];
+    const result = applyColumnMapping(rows, { Name: 'name', 'Plus One': 'plus_one_name', Group: 'group' });
+    expect(result[0].plus_one_name).toBeUndefined();
+    expect(result[0].party_size).toBe(2);
+    expect(result[0].tags).toEqual(['family', 'plus-one-allowed']);
+    expect(result[1].party_size).toBeUndefined();
+    expect(result[1].tags).toBeUndefined();
+    expect(result[1].group).toBe('family');
+  });
+
+  it('treats an all-integer plus-one column as a count', () => {
+    const rows = [
+      { Name: 'Arjun Mehta', 'Plus Ones': '2' },
+      { Name: 'Priya Sharma', 'Plus Ones': '0' },
+    ];
+    const result = applyColumnMapping(rows, { Name: 'name', 'Plus Ones': 'plus_one_name' });
+    expect(result[0].party_size).toBe(3);
+    expect(result[0].tags).toContain('plus-one-allowed');
+    expect(result[1].party_size).toBeUndefined();
+  });
+
+  it('supports a dedicated plus_one_flag column', () => {
+    const rows = [{ Name: 'Arjun', 'Bringing someone?': 'Y' }];
+    const result = applyColumnMapping(rows, { Name: 'name', 'Bringing someone?': 'plus_one_flag' });
+    expect(result[0].party_size).toBe(2);
+    expect(result[0].tags).toEqual(['plus-one-allowed']);
+  });
+
+  it('collects multiple additional-guest columns into additional_guests', () => {
+    const rows = [
+      { Name: 'Arjun Mehta', 'Guest 2': 'Aisha Mehta', 'Guest 3': 'Rohan Mehta' },
+      { Name: 'Priya Sharma', 'Guest 2': 'Dev Sharma', 'Guest 3': '' },
+    ];
+    const map = { Name: 'name', 'Guest 2': 'additional_guest_name', 'Guest 3': 'additional_guest_name' };
+    const result = applyColumnMapping(rows, map);
+    expect(result[0].additional_guests).toEqual([
+      { name: 'Aisha Mehta', phone: '' },
+      { name: 'Rohan Mehta', phone: '' },
+    ]);
+    expect(result[0].party_size).toBe(3);
+    expect(result[1].additional_guests).toEqual([{ name: 'Dev Sharma', phone: '' }]);
+    expect(result[1].party_size).toBe(2);
+  });
+
+  it('splits several names inside one additional-guest cell', () => {
+    const rows = [{ Name: 'Arjun Mehta', 'Additional Guests': 'Aarav, Meera & Dev' }];
+    const result = applyColumnMapping(rows, { Name: 'name', 'Additional Guests': 'additional_guest_name' });
+    expect(result[0].additional_guests?.map((g) => g.name)).toEqual(['Aarav', 'Meera', 'Dev']);
+    expect(result[0].party_size).toBe(4);
+  });
+
+  it('pairs additional-guest phone columns by position', () => {
+    const rows = [{ Name: 'Arjun', 'Guest 2': 'Aisha', 'Guest 2 Phone': '+14155550101' }];
+    const map = {
+      Name: 'name',
+      'Guest 2': 'additional_guest_name',
+      'Guest 2 Phone': 'additional_guest_phone',
+    };
+    const result = applyColumnMapping(rows, map);
+    expect(result[0].additional_guests).toEqual([{ name: 'Aisha', phone: '+14155550101' }]);
+  });
+
+  it('treats a numeric companion column ("Kids") as an unnamed headcount bump', () => {
+    const rows = [
+      { Name: 'Arjun', Kids: '2' },
+      { Name: 'Priya', Kids: '0' },
+    ];
+    const result = applyColumnMapping(rows, { Name: 'name', Kids: 'additional_guest_name' });
+    expect(result[0].additional_guests).toBeUndefined();
+    expect(result[0].party_size).toBe(3);
+    expect(result[1].party_size).toBeUndefined();
+  });
+
+  // ── Party size ────────────────────────────────────────────────────
+
+  it('never reports a party size below what companion columns prove', () => {
+    const rows = [{ Name: 'Arjun', 'Plus One': 'Aisha', 'Party Size': '1' }];
+    const map = { Name: 'name', 'Plus One': 'plus_one_name', 'Party Size': 'party_size' };
+    const result = applyColumnMapping(rows, map);
+    expect(result[0].party_size).toBe(2);
+  });
+
+  it('respects a larger explicit party size', () => {
+    const rows = [{ Name: 'Arjun', 'Party Size': '5' }];
+    const result = applyColumnMapping(rows, { Name: 'name', 'Party Size': 'party_size' });
+    expect(result[0].party_size).toBe(5);
+  });
+
+  it('ignores a serial row-number column mapped to party_size', () => {
+    const rows = ['A', 'B', 'C', 'D', 'E', 'F'].map((n, i) => ({ Name: n, 'No.': String(i + 1) }));
+    const result = applyColumnMapping(rows, { Name: 'name', 'No.': 'party_size' });
+    expect(result.every((g) => g.party_size === undefined)).toBe(true);
+  });
+
+  it('still detects the serial column when a duplicated header row offsets it', () => {
+    const rows = [
+      { Name: 'Name', 'No.': 'No.' }, // duplicated header row
+      ...['A', 'B', 'C', 'D', 'E', 'F'].map((n, i) => ({ Name: n, 'No.': String(i + 1) })),
+    ];
+    const result = applyColumnMapping(rows, { Name: 'name', 'No.': 'party_size' });
+    expect(result).toHaveLength(6); // header row filtered by blocklist
+    expect(result.every((g) => g.party_size === undefined)).toBe(true);
+  });
+
+  // ── Regressions from the adversarial review ───────────────────────
+
+  it('handles a MIXED plus-one column per cell (names + Yes/No together)', () => {
+    const rows = [
+      { Name: 'Arjun', 'Plus One': 'Aisha Mehta' },
+      { Name: 'Priya', 'Plus One': 'No' },
+      { Name: 'Dev', 'Plus One': 'Yes' },
+    ];
+    const result = applyColumnMapping(rows, { Name: 'name', 'Plus One': 'plus_one_name' });
+    expect(result[0]).toEqual({ name: 'Arjun', plus_one_name: 'Aisha Mehta', party_size: 2 });
+    expect(result[1]).toEqual({ name: 'Priya' }); // no fake "No" companion
+    expect(result[2].plus_one_name).toBeUndefined(); // no fake "Yes" companion
+    expect(result[2].party_size).toBe(2);
+    expect(result[2].tags).toEqual(['plus-one-allowed']);
+  });
+
+  it('overflows a two-name plus-one cell into additional_guests', () => {
+    const rows = [{ Name: 'X', 'Plus One': 'Aarav & Meera' }];
+    const result = applyColumnMapping(rows, { Name: 'name', 'Plus One': 'plus_one_name' });
+    expect(result[0].plus_one_name).toBe('Aarav');
+    expect(result[0].additional_guests).toEqual([{ name: 'Meera', phone: '' }]);
+    expect(result[0].party_size).toBe(3);
+  });
+
+  it('keeps "Mr & Mrs Sharma" as a single companion', () => {
+    const rows = [{ Name: 'X', 'Guest 2': 'Mr & Mrs Sharma' }];
+    const result = applyColumnMapping(rows, { Name: 'name', 'Guest 2': 'additional_guest_name' });
+    expect(result[0].additional_guests).toEqual([{ name: 'Mr & Mrs Sharma', phone: '' }]);
+    expect(result[0].party_size).toBe(2);
+  });
+
+  it('pairs companion phones by header affinity, not blind position', () => {
+    // Phone only exists for Guest 3 — it must NOT attach to Guest 2.
+    const rows = [{ Name: 'X', 'Guest 2': 'Meera', 'Guest 3': 'Rohan', 'Guest 3 Phone': '+15551234' }];
+    const map = {
+      Name: 'name',
+      'Guest 2': 'additional_guest_name',
+      'Guest 3': 'additional_guest_name',
+      'Guest 3 Phone': 'additional_guest_phone',
+    };
+    const result = applyColumnMapping(rows, map);
+    expect(result[0].additional_guests).toEqual([
+      { name: 'Meera', phone: '' },
+      { name: 'Rohan', phone: '+15551234' },
+    ]);
+  });
+
+  it('does not crash on numeric cells (raw XLSX values)', () => {
+    const rows = [
+      { Name: 'Priya', 'No.': 1, 'Party Size': 2, Phone: 919876543210 },
+      { Name: 'Arjun', 'No.': 2, 'Party Size': 3, Phone: 14155551234 },
+      { Name: 'Dev', 'No.': 3, 'Party Size': 2, Phone: 0 },
+    ] as unknown as Record<string, string>[];
+    const map = { Name: 'name', 'No.': 'party_size', Phone: 'phone' };
+    const result = applyColumnMapping(rows, map);
+    expect(result).toHaveLength(3);
+    expect(result[0].phone).toBe('919876543210');
+  });
+});
+
+// ─── autoMapColumns regressions from the adversarial review ────────
+
+describe('autoMapColumns regressions', () => {
+  it('companion phone columns do not steal the primary phone field', () => {
+    const map = autoMapColumns(['Name', 'Guest 2', 'Guest 2 Phone', 'Phone']);
+    expect(map).toEqual({
+      Name: 'name',
+      'Guest 2': 'additional_guest_name',
+      'Guest 2 Phone': 'additional_guest_phone',
+      Phone: 'phone',
+    });
+  });
+
+  it('plus-one phone variants map to plus_one_phone even before the primary phone', () => {
+    const map = autoMapColumns(['Name', 'Plus One Mobile', 'Mobile']);
+    expect(map).toEqual({
+      Name: 'name',
+      'Plus One Mobile': 'plus_one_phone',
+      Mobile: 'phone',
+    });
+  });
+
+  it('headcount variants containing "guest" map to party_size, not name', () => {
+    expect(autoMapColumns(['Name', 'No of Guests'])).toEqual({ Name: 'name', 'No of Guests': 'party_size' });
+    expect(autoMapColumns(['Name', 'Guest Count'])).toEqual({ Name: 'name', 'Guest Count': 'party_size' });
+    expect(autoMapColumns(['Name', 'Total Guests'])).toEqual({ Name: 'name', 'Total Guests': 'party_size' });
+  });
+
+  it('a sheet whose only name-ish column is Spouse still imports (fallback re-purposes it)', () => {
+    const map = autoMapColumns(['Spouse', 'Phone']);
+    expect(map).toEqual({ Spouse: 'name', Phone: 'phone' });
+    const result = applyColumnMapping([{ Spouse: 'Priya Sharma', Phone: '+15551234' }], map);
+    expect(result).toEqual([{ name: 'Priya Sharma', phone: '+15551234' }]);
+  });
+});
+
+// ─── XLSX end-to-end with numeric cells (raw Excel behavior) ───────
+
+describe('XLSX numeric cells end-to-end', () => {
+  it('parses, maps, and applies a sheet with numeric No./Party Size/Phone columns', () => {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['Name', 'No.', 'Phone', 'Plus One'],
+      ['Priya Sharma', 1, 919876543210, 'Yes'],
+      ['Arjun Mehta', 2, 14155551234, 'No'],
+      ['Dev Patel', 3, 14155559999, 1],
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    const buffer = XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer;
+
+    const { headers, rows } = parseXlsx(buffer);
+    expect(rows[0]['No.']).toBe('1'); // coerced to string at the boundary
+    const map = autoMapColumns(headers);
+    const guests = applyColumnMapping(rows, map);
+    expect(guests).toHaveLength(3);
+    expect(guests[0].phone).toBe('919876543210');
+    expect(guests[0].party_size).toBe(2); // "Yes" plus-one
+    expect(guests[0].tags).toContain('plus-one-allowed');
+    expect(guests[1].party_size).toBeUndefined(); // "No"
+    expect(guests[2].party_size).toBe(2); // numeric 1
+    expect(guests.every((g) => g.party_size === undefined || g.party_size <= 2)).toBe(true); // serial No. ignored
   });
 });
 

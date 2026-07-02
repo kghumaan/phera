@@ -64,7 +64,11 @@ describe('POST /api/agent/onboard/start', () => {
     const created = mockCreateWedding.mock.calls[0][0] as Record<string, unknown>;
     expect(created.created_by).toBe('u1');
     expect(created.status).toBe('draft');
-    expect(String(created.slug)).toMatch(/^new-wedding-/);
+    // Draft slugs are unguessable raw UUIDs (renamed once the couple's names
+    // are known) — see app/api/agent/onboard/start/route.ts.
+    expect(String(created.slug)).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
     expect(created.venue_name).toBe('Venue TBD');
 
     const settingsUpsert = (fake.upserts['user_settings'] ?? []) as Array<Record<string, unknown>>;

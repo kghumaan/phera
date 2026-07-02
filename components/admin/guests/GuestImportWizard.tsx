@@ -63,7 +63,9 @@ import {
   autoMapColumns,
   applyColumnMapping,
   type ParsedRow,
+  type MappedGuest,
 } from '@/lib/admin/guest-import-parsers';
+import { smartMapColumns } from '@/lib/admin/smart-column-mapping';
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -139,6 +141,10 @@ export default function GuestImportWizard({
   const [result, setResult] = useState<ImportResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
+  // True while the LLM column analyzer is refining the heuristic mapping in
+  // the background. The preview updates in place when it lands.
+  const [smartChecking, setSmartChecking] = useState(false);
+  const analyzeRunId = useRef(0);
   // Required attestation before any import — host warrants lawful basis to
   // upload guest contact info per Terms § 5 (host indemnification clause).
   const [consentGiven, setConsentGiven] = useState(false);
@@ -183,6 +189,8 @@ export default function GuestImportWizard({
     setResult(null);
     setDragOver(false);
     setParseError(null);
+    analyzeRunId.current += 1;
+    setSmartChecking(false);
     setManualGuests([]);
     setManualForm({ name: '', email: '', phone: '', tags: [], plus_one_name: '', plus_one_phone: '', additional_guests: [], party_size: 1 });
     setTagDraft('');
@@ -245,6 +253,22 @@ export default function GuestImportWizard({
     setRows(data);
     setColumnMap(mapping);
     setStep('confirm');
+
+    // Refine the heuristic mapping with the LLM column analyzer in the
+    // background — catches plus-one / additional-guest columns the
+    // dictionary misses. The preview re-renders in place when it lands;
+    // on any failure the heuristic mapping stands.
+    const runId = ++analyzeRunId.current;
+    setSmartChecking(true);
+    smartMapColumns(fields, data)
+      .then(({ mapping: smart, source }) => {
+        if (analyzeRunId.current !== runId) return;
+        setSmartChecking(false);
+        if (source === 'llm') setColumnMap(smart);
+      })
+      .catch(() => {
+        if (analyzeRunId.current === runId) setSmartChecking(false);
+      });
   };
 
   // ─── Manual Guest Helpers ─────────────────────────────────────
@@ -325,14 +349,14 @@ export default function GuestImportWizard({
 
   // ─── Build Guest Array ───────────────────────────────────────
 
-  function buildGuestsFromMapping(): ParsedRow[] {
+  function buildGuestsFromMapping(): MappedGuest[] {
     return applyColumnMapping(rows, columnMap);
   }
 
   // ─── Import ──────────────────────────────────────────────────
 
   const handleImport = async () => {
-    if (!consentGiven) return;
+    if (!consentGiven || (tab === 0 && smartChecking)) return;
     setImporting(true);
     setStep('importing');
 
@@ -353,15 +377,9 @@ export default function GuestImportWizard({
               : undefined,
           party_size: g.party_size > 0 ? g.party_size : undefined,
         }))
-      : buildGuestsFromMapping().map((r) => {
-          // CSV path: coerce party_size from string → number so the API
-          // accepts it. Other fields are strings already.
-          const parsedSize = typeof r.party_size === 'string' ? parseInt(r.party_size, 10) : NaN;
-          return {
-            ...r,
-            party_size: Number.isFinite(parsedSize) && parsedSize > 0 ? parsedSize : undefined,
-          };
-        });
+      : // CSV path: applyColumnMapping already emits the API payload shape
+        // (typed party_size, additional_guests, derived tags).
+        buildGuestsFromMapping();
 
     try {
       const res = await fetch('/api/guests/import', {
@@ -995,14 +1013,33 @@ export default function GuestImportWizard({
             total: mapped.length,
             withEmail: mapped.filter((g) => g.email).length,
             withPhone: mapped.filter((g) => g.phone).length,
+            plusOnes: mapped.filter((g) => g.plus_one_name || g.tags?.includes('plus-one-allowed')).length,
+            companions: mapped.reduce((sum, g) => sum + (g.additional_guests?.length ?? 0), 0),
+            headcount: mapped.reduce((sum, g) => sum + (g.party_size ?? 1), 0),
           };
           const preview = mapped.slice(0, 5);
           return (
             <Box>
-              <Typography sx={{ fontSize: 14, color: COLORS.text.muted, mb: 2 }}>
-                Found <strong>{stats.total}</strong> guest{stats.total !== 1 ? 's' : ''} in your file.
-                {' '}<span style={{ color: COLORS.text.subtle }}>{stats.withEmail} with email · {stats.withPhone} with phone</span>
+              <Typography sx={{ fontSize: 14, color: COLORS.text.muted, mb: smartChecking ? 1 : 2 }}>
+                Found <strong>{stats.total}</strong> guest{stats.total !== 1 ? 's' : ''} in your file
+                {stats.headcount > stats.total ? (
+                  <>
+                    {' '}— <strong>{stats.headcount}</strong> expected attendees
+                    {stats.plusOnes > 0 && <> incl. {stats.plusOnes} plus-one{stats.plusOnes !== 1 ? 's' : ''}</>}
+                    {stats.companions > 0 && <> and {stats.companions} additional guest{stats.companions !== 1 ? 's' : ''}</>}
+                  </>
+                ) : null}
+                .{' '}<span style={{ color: COLORS.text.subtle }}>{stats.withEmail} with email · {stats.withPhone} with phone</span>
               </Typography>
+
+              {smartChecking && (
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+                  <CircularProgress size={13} sx={{ color: COLORS.brand.primary }} />
+                  <Typography sx={{ fontSize: 14, color: COLORS.text.subtle }}>
+                    Double-checking your columns with AI — plus-ones and extra guests will appear here if found…
+                  </Typography>
+                </Stack>
+              )}
 
               <Typography sx={{ fontSize: 14, fontWeight: 600, color: COLORS.text.strong, mb: 1 }}>
                 Preview (first {preview.length})
@@ -1025,18 +1062,34 @@ export default function GuestImportWizard({
                         <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, bgcolor: COLORS.bg.muted }}>Phone</TableCell>
                         <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, bgcolor: COLORS.bg.muted }}>Side</TableCell>
                         <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, bgcolor: COLORS.bg.muted }}>Tag</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, bgcolor: COLORS.bg.muted }}>Plus One</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, bgcolor: COLORS.bg.muted }}>No.</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody sx={{ bgcolor: COLORS.bg.white }}>
-                      {preview.map((row, i) => (
-                        <TableRow key={i} sx={{ bgcolor: i % 2 === 0 ? COLORS.bg.white : COLORS.bg.muted }}>
-                          <TableCell sx={{ color: COLORS.text.strong, fontSize: 14, fontWeight: 500 }}>{row.name || '—'}</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{row.email || '—'}</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{row.phone || '—'}</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{row.wedding_side || '—'}</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{row.group || '—'}</TableCell>
-                        </TableRow>
-                      ))}
+                      {preview.map((row, i) => {
+                        const extraCount = row.additional_guests?.length ?? 0;
+                        const plusOneLabel = row.plus_one_name
+                          || (row.tags?.includes('plus-one-allowed') ? 'Yes' : '');
+                        return (
+                          <TableRow key={i} sx={{ bgcolor: i % 2 === 0 ? COLORS.bg.white : COLORS.bg.muted }}>
+                            <TableCell sx={{ color: COLORS.text.strong, fontSize: 14, fontWeight: 500 }}>{row.name || '—'}</TableCell>
+                            <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{row.email || '—'}</TableCell>
+                            <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{row.phone || '—'}</TableCell>
+                            <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{row.wedding_side || '—'}</TableCell>
+                            <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{row.tags?.length ? row.tags.join(', ') : row.group || '—'}</TableCell>
+                            <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>
+                              {plusOneLabel || (extraCount > 0 ? '' : '—')}
+                              {extraCount > 0 && (
+                                <Box component="span" sx={{ color: COLORS.text.subtle }}>
+                                  {plusOneLabel ? ' ' : ''}+{extraCount} more
+                                </Box>
+                              )}
+                            </TableCell>
+                            <TableCell sx={{ color: COLORS.text.muted, fontSize: 14 }}>{row.party_size ?? 1}</TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </TableContainer>
@@ -1171,9 +1224,14 @@ export default function GuestImportWizard({
             <PrimaryActionButton
               onClick={handleImport}
               loading={importing}
-              disabled={buildGuestsFromMapping().length === 0 || !consentGiven}
+              // Block import while the column analyzer is in flight — importing
+              // with the stale heuristic mapping would silently drop the very
+              // plus-one/companion columns the analyzer exists to catch.
+              disabled={buildGuestsFromMapping().length === 0 || !consentGiven || smartChecking}
             >
-              Import {buildGuestsFromMapping().length} Guest{buildGuestsFromMapping().length !== 1 ? 's' : ''}
+              {smartChecking
+                ? 'Checking columns…'
+                : `Import ${buildGuestsFromMapping().length} Guest${buildGuestsFromMapping().length !== 1 ? 's' : ''}`}
             </PrimaryActionButton>
           )}
 
