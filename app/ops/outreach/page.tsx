@@ -115,7 +115,7 @@ export default function OutreachPage() {
     { ok: boolean; msg: string } | null
   >(null);
   const [activeTab, setActiveTab] = useState<'rendered' | 'subject' | 'plain' | 'html'>('rendered');
-  const [template, setTemplate] = useState<string>('onboarding_hello');
+  const [template, setTemplate] = useState<string>('beta_launch');
 
   // Delete user state
   const [deleteUser, setDeleteUser] = useState<UnonboardedUser | null>(null);
@@ -127,6 +127,12 @@ export default function OutreachPage() {
   const [bulkConfirm, setBulkConfirm] = useState(false);
   const [bulkRunning, setBulkRunning] = useState(false);
   const [bulkResults, setBulkResults] = useState<
+    Array<{ id: string; email: string; ok: boolean; msg: string }>
+  >([]);
+
+  // Bulk SEND — compose once, send an individual personalized email per user.
+  const [bulkTargets, setBulkTargets] = useState<UnonboardedUser[] | null>(null);
+  const [bulkSendResults, setBulkSendResults] = useState<
     Array<{ id: string; email: string; ok: boolean; msg: string }>
   >([]);
   const toggleOne = (id: string) =>
@@ -275,12 +281,86 @@ export default function OutreachPage() {
     setTemplate(t);
     if (testEmail) {
       await loadPreview(`testEmail=${encodeURIComponent(testEmail)}&template=${t}`);
+    } else if (bulkTargets && bulkTargets[0]) {
+      await loadPreview(`userId=${encodeURIComponent(bulkTargets[0].id)}&template=${t}`);
     } else if (openFor) {
       await loadPreview(`userId=${encodeURIComponent(openFor.id)}&template=${t}`);
     }
   };
 
+  // Open the compose modal for every selected user. The preview renders the
+  // template for the first recipient (representative); on send, each user gets
+  // their OWN personalized email (server re-renders per user), never a shared To.
+  const openBulkModal = async () => {
+    const targets = rows.filter((r) => selected.has(r.id) && r.email);
+    if (targets.length === 0) return;
+    setBulkTargets(targets);
+    setBulkSendResults([]);
+    setOpenFor(null);
+    setTestEmail(null);
+    setSendResult(null);
+    setNotes('');
+    setActiveTab('rendered');
+    await loadPreview(`userId=${encodeURIComponent(targets[0].id)}&template=${template}`);
+  };
+
+  const sendBulk = async () => {
+    if (!bulkTargets || bulkTargets.length === 0) return;
+    setSending(true);
+    setSendResult(null);
+    setBulkSendResults([]);
+    const results: typeof bulkSendResults = [];
+    const batchSize = 4;
+    for (let i = 0; i < bulkTargets.length; i += batchSize) {
+      const batch = bulkTargets.slice(i, i + batchSize);
+      const settled = await Promise.all(
+        batch.map(async (u) => {
+          try {
+            // Only pass subject/from/template — NOT html/text — so the server
+            // rebuilds a personalized copy (their own first name) for each user.
+            const res = await fetch('/api/ops/outreach/send', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({
+                userId: u.id,
+                subject,
+                from: fromAddr || undefined,
+                notes: notes || undefined,
+                template,
+              }),
+            });
+            const data = await res.json();
+            return {
+              id: u.id,
+              email: u.email || '',
+              ok: res.ok,
+              msg: res.ok ? data.providerMessageId || 'sent' : data.error || 'failed',
+            };
+          } catch (e) {
+            return { id: u.id, email: u.email || '', ok: false, msg: (e as Error).message };
+          }
+        }),
+      );
+      results.push(...settled);
+      setBulkSendResults([...results]);
+    }
+    setSending(false);
+    const okCount = results.filter((r) => r.ok).length;
+    setSendResult({
+      ok: okCount === results.length,
+      msg: `Sent ${okCount}/${results.length}${okCount === results.length ? '' : ' — see per-recipient results below'}`,
+    });
+    // Drop the successes from the selection; keep failures selected for retry.
+    setSelected(new Set(results.filter((r) => !r.ok).map((r) => r.id)));
+    await loadList();
+    await loadLog();
+  };
+
   const send = async () => {
+    if (bulkTargets) {
+      await sendBulk();
+      return;
+    }
     if (!openFor && !testEmail) return;
     setSending(true);
     setSendResult(null);
@@ -603,6 +683,9 @@ export default function OutreachPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ color: C.warn, fontSize: 12 }}>{selected.size} selected</span>
               <button onClick={clearSelected} style={btnGhost}>Clear</button>
+              <button onClick={openBulkModal} style={btnPrimary}>
+                Send to {selected.size}
+              </button>
               <button onClick={() => { setBulkConfirm(true); setBulkResults([]); }} style={btnDanger}>
                 Delete {selected.size}
               </button>
@@ -981,10 +1064,10 @@ export default function OutreachPage() {
         </div>
       )}
 
-      {/* Compose modal (user send OR arbitrary-email test send) */}
-      {(openFor || testEmail) && (
+      {/* Compose modal (single user, arbitrary-email test, OR bulk send) */}
+      {(openFor || testEmail || bulkTargets) && (
         <div
-          onClick={() => !sending && (setOpenFor(null), setTestEmail(null))}
+          onClick={() => !sending && (setOpenFor(null), setTestEmail(null), setBulkTargets(null))}
           style={{
             position: 'fixed',
             inset: 0,
@@ -1014,12 +1097,16 @@ export default function OutreachPage() {
             <div style={{ padding: '16px 20px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>
-                  {testEmail
+                  {bulkTargets
+                    ? `Send to ${bulkTargets.length} user${bulkTargets.length === 1 ? '' : 's'}`
+                    : testEmail
                     ? `Test send to ${testEmail}`
                     : `Send hello to ${openFor?.email}`}
                 </h2>
                 <div style={{ fontSize: 12, color: C.dim, marginTop: 2 }}>
-                  {testEmail
+                  {bulkTargets
+                    ? 'Each recipient gets their own personalized email — never a shared To. Preview shown for the first recipient.'
+                    : testEmail
                     ? 'One-off — not logged, no user record.'
                     : openFor
                     ? `${openFor.firstName ? `→ ${openFor.firstName} · ` : ''}signed up ${openFor.signupRelative}`
@@ -1027,7 +1114,7 @@ export default function OutreachPage() {
                 </div>
               </div>
               <button
-                onClick={() => { setOpenFor(null); setTestEmail(null); }}
+                onClick={() => { setOpenFor(null); setTestEmail(null); setBulkTargets(null); }}
                 disabled={sending}
                 style={btnGhost}
               >
@@ -1088,19 +1175,74 @@ export default function OutreachPage() {
                 </div>
                 <div style={{ display: 'flex', gap: 24, fontSize: 12, color: C.mute, paddingLeft: 70 }}>
                   <span><strong style={{ color: C.text }}>Reply-To:</strong> {previewData.replyTo || '—'}</span>
-                  <span><strong style={{ color: C.text }}>To:</strong> {testEmail || openFor?.email}</span>
+                  <span>
+                    <strong style={{ color: C.text }}>To:</strong>{' '}
+                    {bulkTargets
+                      ? `${bulkTargets.length} recipients — ${bulkTargets
+                          .slice(0, 3)
+                          .map((u) => u.email)
+                          .join(', ')}${bulkTargets.length > 3 ? `, +${bulkTargets.length - 3} more` : ''}`
+                      : testEmail || openFor?.email}
+                  </span>
                 </div>
+
+                {/* Subject — always visible, not buried in a tab */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <label style={{ fontSize: 11, color: C.dim, letterSpacing: 1, textTransform: 'uppercase', minWidth: 60 }}>
+                    Subject
+                  </label>
+                  <input
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '6px 10px',
+                      background: C.bg,
+                      border: `1px solid ${C.border}`,
+                      borderRadius: 6,
+                      color: C.text,
+                      fontSize: 13,
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+
+                {/* Notes — real sends only (logged, not emailed) */}
+                {!testEmail && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <label style={{ fontSize: 11, color: C.dim, letterSpacing: 1, textTransform: 'uppercase', minWidth: 60 }}>
+                      Notes
+                    </label>
+                    <input
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="for log — not sent (e.g. reached via LinkedIn first)"
+                      style={{
+                        flex: 1,
+                        padding: '6px 10px',
+                        background: C.bg,
+                        border: `1px solid ${C.border}`,
+                        borderRadius: 6,
+                        color: C.text,
+                        fontSize: 13,
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
 
             {/* tabs */}
             <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}`, gap: 2, padding: '0 12px' }}>
-              {([
-                ['rendered', 'Preview'],
-                ['subject', 'Subject'],
-                ['plain', 'Plain text'],
-                ['html', 'Raw HTML'],
-              ] as const).map(([k, label]) => (
+              {(bulkTargets
+                ? ([['rendered', 'Preview']] as const)
+                : ([
+                    ['rendered', 'Preview'],
+                    ['plain', 'Plain text'],
+                    ['html', 'Raw HTML'],
+                  ] as const)
+              ).map(([k, label]) => (
                 <button
                   key={k}
                   onClick={() => setActiveTab(k)}
@@ -1135,23 +1277,6 @@ export default function OutreachPage() {
                   />
                 </div>
               )}
-              {previewData && activeTab === 'subject' && (
-                <div>
-                  <label style={labelStyle}>Subject</label>
-                  <input
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    style={{ ...textFieldStyle, marginBottom: 20 }}
-                  />
-                  <label style={labelStyle}>Notes (for log — not sent)</label>
-                  <input
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="e.g. reached via LinkedIn first"
-                    style={textFieldStyle}
-                  />
-                </div>
-              )}
               {previewData && activeTab === 'plain' && (
                 <div>
                   <label style={labelStyle}>Plain-text body</label>
@@ -1176,6 +1301,27 @@ export default function OutreachPage() {
               )}
             </div>
 
+            {/* Bulk per-recipient results stream */}
+            {bulkTargets && bulkSendResults.length > 0 && (
+              <div style={{ borderTop: `1px solid ${C.border}`, maxHeight: 160, overflowY: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                  <tbody>
+                    {bulkSendResults.map((r) => (
+                      <tr key={r.id} style={{ borderBottom: `1px solid ${C.border}` }}>
+                        <td style={{ padding: '6px 12px', color: r.ok ? C.ok : C.danger, width: 24 }}>
+                          {r.ok ? '✓' : '✗'}
+                        </td>
+                        <td style={{ padding: '6px 12px', color: C.text }}>{r.email || r.id}</td>
+                        <td style={{ padding: '6px 12px', color: r.ok ? C.mute : C.danger, fontSize: 11 }}>
+                          {r.msg}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
             {/* footer */}
             {sendResult && (
               <div
@@ -1191,7 +1337,13 @@ export default function OutreachPage() {
               </div>
             )}
             <div style={{ padding: '12px 20px', borderTop: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-              {openFor ? (
+              {bulkTargets ? (
+                <span style={{ fontSize: 11, color: C.dim }}>
+                  {sending
+                    ? `Sending ${bulkSendResults.length} / ${bulkTargets.length}…`
+                    : `${bulkTargets.length} individual email${bulkTargets.length === 1 ? '' : 's'} — one per recipient.`}
+                </span>
+              ) : openFor ? (
                 <button onClick={skip} disabled={sending} style={btnGhost}>
                   Skip (mark contacted, no send)
                 </button>
@@ -1202,18 +1354,24 @@ export default function OutreachPage() {
               )}
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
-                  onClick={() => { setOpenFor(null); setTestEmail(null); }}
+                  onClick={() => { setOpenFor(null); setTestEmail(null); setBulkTargets(null); }}
                   disabled={sending}
                   style={btnGhost}
                 >
-                  Cancel
+                  {bulkTargets && bulkSendResults.length > 0 && !sending ? 'Close' : 'Cancel'}
                 </button>
                 <button
                   onClick={send}
-                  disabled={sending || !previewData}
-                  style={{ ...btnPrimary, opacity: sending ? 0.6 : 1 }}
+                  disabled={sending || !previewData || (!!bulkTargets && bulkSendResults.length > 0)}
+                  style={{ ...btnPrimary, opacity: sending || (!!bulkTargets && bulkSendResults.length > 0) ? 0.6 : 1 }}
                 >
-                  {sending ? 'Sending…' : testEmail ? 'Send test' : 'Send email'}
+                  {sending
+                    ? 'Sending…'
+                    : bulkTargets
+                    ? `Send ${bulkTargets.length} email${bulkTargets.length === 1 ? '' : 's'}`
+                    : testEmail
+                    ? 'Send test'
+                    : 'Send email'}
                 </button>
               </div>
             </div>

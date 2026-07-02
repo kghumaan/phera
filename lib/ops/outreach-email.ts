@@ -169,7 +169,7 @@ const CAL_LOGO = 'https://cal.com/android-chrome-512x512.png';
  * logo is hotlinked from their CDN (see CAL_LOGO) so it renders immediately.
  */
 export function buildBetaLaunchEmail(): { subject: string; html: string; text: string } {
-  const subject = 'Phera beta launch';
+  const subject = "Phera beta launch - You're invited!";
   const calLogo = CAL_LOGO;
 
   const html = `<!DOCTYPE html>
