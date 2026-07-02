@@ -5,18 +5,19 @@ import { buildWeddingSnapshot, type WeddingSnapshot } from '@/lib/agent/context'
 
 export const runtime = 'nodejs';
 
-/** Friendly "set this up next" CTA per completeness item key. */
+/** First-person "set this up next" CTA per completeness item key — phrased as
+ *  the user would type it (starters render as if the user tapped to send them). */
 const GAP_CTA: Record<string, string> = {
-  date: 'set your wedding date',
-  venue: 'lock in your venue',
-  events: 'add your ceremony events',
-  schedule: 'build your day-by-day schedule',
-  guests: 'add your guest list',
+  date: 'set my wedding date',
+  venue: 'lock in my venue',
+  events: 'add my ceremony events',
+  schedule: 'build my day-by-day schedule',
+  guests: 'add my guest list',
   rsvps: 'start collecting RSVPs',
   rsvp_deadline: 'set an RSVP deadline',
   rooms: 'set up room assignments',
-  vendors: 'track your vendors',
-  faqs: 'write your guest FAQs',
+  vendors: 'find and track my vendors',
+  faqs: 'write my guest FAQs',
 };
 
 /**
@@ -31,24 +32,24 @@ function buildStarters(snapshot: WeddingSnapshot): string[] {
   if (s.guestCount > 0) {
     const pending = s.guestCount - s.respondedGuests;
     if (s.respondedGuests === 0) {
-      out.push(`No RSVPs in yet from your ${s.guestCount} guests — want me to start chasing them?`);
+      out.push(`Help me chase RSVPs from my ${s.guestCount} guests.`);
     } else if (pending > 0) {
-      out.push(`${s.respondedGuests} of ${s.guestCount} guests have RSVP'd — want me to nudge the ${pending} who haven't?`);
+      out.push(`Nudge the ${pending} guests who haven't RSVP'd yet.`);
     } else {
-      out.push(`All ${s.guestCount} guests have responded — show me who's coming to each event.`);
+      out.push(`Show me who's coming to each event.`);
     }
   }
 
   if (s.daysToWedding !== null) {
-    if (s.daysToWedding > 1) out.push(`${s.daysToWedding} days to go — what should we lock down next?`);
-    else if (s.daysToWedding === 1) out.push(`Tomorrow's the big day — want the run-of-show?`);
-    else if (s.daysToWedding === 0) out.push(`It's today! Want the day-of run-of-show?`);
+    if (s.daysToWedding > 1) out.push(`${s.daysToWedding} days to go — help me plan what's next.`);
+    else if (s.daysToWedding === 1) out.push(`It's tomorrow — walk me through the run-of-show.`);
+    else if (s.daysToWedding === 0) out.push(`It's today — give me the day-of run-of-show.`);
   }
 
   const gap = snapshot.completeness.find((c) => !c.done);
-  if (gap && GAP_CTA[gap.key]) out.push(`Want to ${GAP_CTA[gap.key]} next?`);
+  if (gap && GAP_CTA[gap.key]) out.push(`Help me ${GAP_CTA[gap.key]}.`);
 
-  out.push("What's still missing from our setup?");
+  out.push("What's still missing from my setup?");
 
   return Array.from(new Set(out)).slice(0, 4);
 }

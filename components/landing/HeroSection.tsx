@@ -94,7 +94,7 @@ export default function HeroSection() {
               fontWeight: 400,
               letterSpacing: '-0.025em',
               lineHeight: 0.95,
-              fontSize: 'clamp(56px, 10.5vw, 156px)',
+              fontSize: 'clamp(56px, 9vw, 128px)',
               color: 'var(--text-strong)',
               maxWidth: '17ch',
               margin: 0,
@@ -183,21 +183,7 @@ export default function HeroSection() {
               lineHeight: 1.6,
             }}
           >
-            Free forever for your wedding site, guest list &amp; RSVPs.<br />
-            Full guest ops from $349 — one-time, per wedding.
-          </p>
-          {/* Planner wedge — gives a planner self-identifying as the buyer an
-              above-the-fold path to /planners without competing with the
-              couple-facing CTAs. */}
-          <p
-            className="hero-planner-line"
-            style={{
-              marginTop: 10,
-              fontSize: 'clamp(14px, 1vw, 15px)',
-              color: 'var(--text-subtle)',
-              lineHeight: 1.6,
-            }}
-          >
+           
             Planning weddings for clients?{' '}
             <Link
               href="/planners"

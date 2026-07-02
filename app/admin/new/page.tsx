@@ -70,6 +70,8 @@ function NewWeddingPageInner() {
   const [chargeIdem, setChargeIdem] = useState<{ name: string; key: string } | null>(null);
 
   const [upgradeOpen, setUpgradeOpen] = useState(false);
+  // A planner's first wedding is free; the $249 only kicks in from wedding #2.
+  const [firstWeddingFree, setFirstWeddingFree] = useState(false);
 
   const finalizeAfterCheckout = useCallback(
     async (sessionId: string) => {
@@ -184,6 +186,14 @@ function NewWeddingPageInner() {
         return;
       }
 
+      // A planner's first wedding is free — count theirs so the UI can skip the
+      // $249 charge (and the card prompt) for wedding #1.
+      const { count: plannerWeddingCount } = await supabase
+        .from('weddings')
+        .select('id', { count: 'exact', head: true })
+        .eq('created_by', user.id);
+      if (!cancelled) setFirstWeddingFree((plannerWeddingCount ?? 0) === 0);
+
       await loadBillingInfo();
       setCheckingAuth(false);
     })();
@@ -204,7 +214,31 @@ function NewWeddingPageInner() {
     }
 
     if (billing?.isPlanner) {
-      // Planner flow — payment required.
+      if (firstWeddingFree) {
+        // First wedding is free — create it directly, no charge or card needed.
+        setSubmitting(true);
+        setError(null);
+        try {
+          const res = await fetch('/api/stripe/charge-planner-wedding', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ coupleName: coupleName.trim() }),
+          });
+          const data = await res.json();
+          if (res.ok && data?.success) {
+            router.replace(`/admin/${data.slug}/details`);
+            return;
+          }
+          setError(data?.message || data?.error || 'Could not create your wedding. Please try again.');
+          setSubmitting(false);
+        } catch (err) {
+          console.error('Free wedding creation error:', err);
+          setError('An unexpected error occurred');
+          setSubmitting(false);
+        }
+        return;
+      }
+      // Planner 2nd+ wedding — payment required.
       if (billing.hasCard) {
         setConfirmError(null);
         const name = coupleName.trim();
@@ -330,7 +364,7 @@ function NewWeddingPageInner() {
   }
 
   const isPlanner = billing?.isPlanner ?? false;
-  const continueLabel = isPlanner ? 'Continue ($249)' : 'Continue';
+  const continueLabel = isPlanner ? (firstWeddingFree ? 'Continue (free)' : 'Continue ($249)') : 'Continue';
 
   return (
     <OptimizedBackground useAppDefault className="min-h-screen flex flex-col">
@@ -369,10 +403,16 @@ function NewWeddingPageInner() {
                     variant="body2"
                     sx={{ color: COLORS.text.muted, mt: 1.5, fontSize: '0.9rem' }}
                   >
-                    Phera is $249 per wedding for planners.
-                    {billing?.hasCard
-                      ? ' We\'ll charge your saved card on the next step.'
-                      : ' Your card is saved on the first checkout for one-click charges next time.'}
+                    {firstWeddingFree ? (
+                      'Your first wedding is on us — set it up and explore everything free. We only charge $249 from your second wedding on.'
+                    ) : (
+                      <>
+                        Phera is $249 per wedding for planners.
+                        {billing?.hasCard
+                          ? ' We\'ll charge your saved card on the next step.'
+                          : ' Your card is saved on the first checkout for one-click charges next time.'}
+                      </>
+                    )}
                   </Typography>
                 )}
               </Box>

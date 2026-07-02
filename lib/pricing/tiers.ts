@@ -67,7 +67,8 @@ export const PRICING_TIERS: PricingTier[] = [
       'We manage guest ops for you',
       'Priority support',
     ],
-    buttonText: 'Get White Glove — $599',
+    buttonText: 'Get in touch',
+    buttonHref: 'https://cal.com/simmetry-studios/phera',
     highlight: false,
   },
 ];

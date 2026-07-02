@@ -1143,7 +1143,7 @@ export default function GuestImportWizard({
                 />
               }
               label={
-                <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.8125rem', lineHeight: 1.5 }}>
+                <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.875rem', lineHeight: 1.5 }}>
                   I have a lawful basis to upload these contacts and have notified them of how their data will be used, where required by law (TCPA, GDPR, DPDPA, and similar). See our{' '}
                   <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-[#DE3F5E] hover:underline">Terms § 5</a>.
                 </Typography>

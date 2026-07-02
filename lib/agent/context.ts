@@ -55,7 +55,7 @@ export async function buildWeddingSnapshot(
     supabase
       .from('weddings')
       .select(
-        'couple_name, partner1_name, partner2_name, wedding_date, wedding_date_end, venue_name, venue_location, rsvp_deadline, status'
+        'couple_name, partner1_name, partner2_name, wedding_date, wedding_date_end, venue_name, venue_location, rsvp_deadline, status, created_by'
       )
       .eq('id', weddingUuid)
       .single(),
@@ -131,6 +131,22 @@ export async function buildWeddingSnapshot(
     /* knowledge table not available */
   }
 
+  // Is the owner a planner (running a CLIENT's wedding) vs the couple themselves?
+  // Changes how the agent addresses them during onboarding. Fail-open to couple.
+  let isPlanner = false;
+  try {
+    if (wedding.created_by) {
+      const { data } = await supabase
+        .from('user_settings')
+        .select('account_type')
+        .eq('user_id', wedding.created_by)
+        .maybeSingle();
+      isPlanner = data?.account_type === 'planner';
+    }
+  } catch {
+    /* settings unavailable — assume couple */
+  }
+
   const today = new Date().toISOString().slice(0, 10);
   const daysToWedding = dateSet
     ? Math.round((new Date(wedding.wedding_date).getTime() - Date.now()) / 86_400_000)
@@ -138,6 +154,11 @@ export async function buildWeddingSnapshot(
 
   const lines = [
     `Today's date: ${today}`,
+    `Account: ${
+      isPlanner
+        ? "PLANNER — you're helping a wedding planner set up their CLIENT's wedding (not the planner's own). Address the planner; ask for THE COUPLE's names (\"Whose wedding are you setting up?\"), and treat the guest list / dates / details as the couple's. Never congratulate the planner on an engagement."
+        : 'Couple — they are using Phera for their own wedding.'
+    }`,
     `Planning goals: ${goals || 'NOT SET — first ask what they want help with'}`,
     `Couple: ${wedding.couple_name ?? [wedding.partner1_name, wedding.partner2_name].filter(Boolean).join(' & ') ?? 'not set'}`,
     `Wedding date: ${dateSet ? wedding.wedding_date : 'NOT SET'}${dateSet && wedding.wedding_date_end ? ` to ${wedding.wedding_date_end}` : ''}${

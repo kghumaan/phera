@@ -15,7 +15,7 @@ export const goalsTools: AgentToolDefinition[] = [
       type: 'object',
       properties: {
         goals: { type: 'array', items: { type: 'string' }, description: 'The selected goals/areas they want help with' },
-        stage: { type: 'string', description: 'Where they are in planning, e.g. "Just getting started", "Venue booked"' },
+        stage: { type: 'string', description: 'Where they are in planning, e.g. "Just getting started", "Venue booked". They may be at more than one stage — join the selections with commas, e.g. "Venue booked, Vendors booked".' },
       },
       required: ['goals'],
       additionalProperties: false,

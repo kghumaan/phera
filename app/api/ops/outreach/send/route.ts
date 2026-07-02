@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { getOpsSupabaseAdmin } from '@/lib/ops/supabase-admin';
 import {
-  buildOutreachEmail,
+  buildOutreachTemplate,
   deriveFirstName,
   relativeTime,
 } from '@/lib/ops/outreach-email';
@@ -18,6 +18,7 @@ type Body = {
   from?: string; // e.g. "KV at Phera <kv@phera.io>" — must use a Resend-verified domain
   notes?: string;
   overrideFirstName?: string;
+  template?: string; // which template was composed — logged as `kind`
 };
 
 const DEFAULT_KIND = 'onboarding_hello';
@@ -79,7 +80,8 @@ export async function POST(request: NextRequest) {
       user_metadata: (user.user_metadata as Record<string, unknown> | null) ?? null,
     });
 
-  const built = buildOutreachEmail({
+  const template = body.template || DEFAULT_KIND;
+  const built = buildOutreachTemplate(template, {
     toEmail: user.email,
     firstName,
     signupRelative: relativeTime(user.created_at),
@@ -118,7 +120,7 @@ export async function POST(request: NextRequest) {
   const { error: logErr } = await supabase.from('ops_user_outreach').insert({
     user_id: user.id,
     user_email: user.email,
-    kind: DEFAULT_KIND,
+    kind: template,
     channel: 'email',
     from_email: fromEmail,
     subject,

@@ -115,6 +115,7 @@ export default function OutreachPage() {
     { ok: boolean; msg: string } | null
   >(null);
   const [activeTab, setActiveTab] = useState<'rendered' | 'subject' | 'plain' | 'html'>('rendered');
+  const [template, setTemplate] = useState<string>('onboarding_hello');
 
   // Delete user state
   const [deleteUser, setDeleteUser] = useState<UnonboardedUser | null>(null);
@@ -256,7 +257,7 @@ export default function OutreachPage() {
   const openModal = async (u: UnonboardedUser) => {
     setOpenFor(u);
     setTestEmail(null);
-    await loadPreview(`userId=${encodeURIComponent(u.id)}`);
+    await loadPreview(`userId=${encodeURIComponent(u.id)}&template=${template}`);
   };
 
   const openTestModal = async () => {
@@ -265,7 +266,18 @@ export default function OutreachPage() {
     setTestEmail(email);
     setOpenFor(null);
     setTestEmailInput('');
-    await loadPreview(`testEmail=${encodeURIComponent(email)}`);
+    await loadPreview(`testEmail=${encodeURIComponent(email)}&template=${template}`);
+  };
+
+  // Switch template inside an open compose modal — re-fetch the preview for the
+  // current recipient so subject/body/HTML all update to the chosen template.
+  const changeTemplate = async (t: string) => {
+    setTemplate(t);
+    if (testEmail) {
+      await loadPreview(`testEmail=${encodeURIComponent(testEmail)}&template=${t}`);
+    } else if (openFor) {
+      await loadPreview(`userId=${encodeURIComponent(openFor.id)}&template=${t}`);
+    }
   };
 
   const send = async () => {
@@ -282,6 +294,7 @@ export default function OutreachPage() {
             text,
             html,
             from: fromAddr || undefined,
+            template,
           }
         : {
             userId: openFor!.id,
@@ -290,6 +303,7 @@ export default function OutreachPage() {
             html,
             from: fromAddr || undefined,
             notes: notes || undefined,
+            template,
           };
       const res = await fetch(url, {
         method: 'POST',
@@ -1024,6 +1038,30 @@ export default function OutreachPage() {
             {/* from / reply-to / to — From is editable per send */}
             {previewData && (
               <div style={{ padding: '10px 20px', borderBottom: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <label style={{ fontSize: 11, color: C.dim, letterSpacing: 1, textTransform: 'uppercase', minWidth: 60 }}>
+                    Template
+                  </label>
+                  <select
+                    value={template}
+                    onChange={(e) => changeTemplate(e.target.value)}
+                    disabled={previewLoading}
+                    style={{
+                      flex: 1,
+                      padding: '6px 10px',
+                      background: C.bg,
+                      border: `1px solid ${C.border}`,
+                      borderRadius: 6,
+                      color: C.text,
+                      fontSize: 13,
+                      outline: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value="onboarding_hello">Onboarding hello — dashboard CTA</option>
+                    <option value="beta_launch">Beta launch invite — Cal.com booking CTA</option>
+                  </select>
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <label style={{ fontSize: 11, color: C.dim, letterSpacing: 1, textTransform: 'uppercase', minWidth: 60 }}>
                     From

@@ -162,13 +162,67 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  const withWedding = rows.filter((r) => r.hasWedding).length;
+  // --- collapse duplicate emails into one outreach row ---
+  // Multiple auth.users can share the same address (signed up with Google AND
+  // email/password, or a stray re-signup). For outreach we only ever want to
+  // hit an address once, so group by lowercased email and keep a single
+  // representative — preferring the account that owns a wedding — while merging
+  // every duplicate's wedding associations + newest contact record onto it.
+  const emailGroups = new Map<string, User[]>();
+  const noEmail: User[] = [];
+  for (const r of rows) {
+    const key = r.email?.trim().toLowerCase();
+    if (!key) {
+      noEmail.push(r); // phone-only / emailless accounts can't be collapsed
+      continue;
+    }
+    const arr = emailGroups.get(key) ?? [];
+    arr.push(r);
+    emailGroups.set(key, arr);
+  }
+
+  const deduped: User[] = [];
+  for (const group of emailGroups.values()) {
+    const rep = group.find((g) => g.hasWedding) ?? group[0];
+    for (const g of group) {
+      if (g === rep) continue;
+      rep.weddingsOwned = Array.from(
+        new Set([...rep.weddingsOwned, ...g.weddingsOwned]),
+      ).sort();
+      rep.guestOfWeddings = Array.from(
+        new Set([...rep.guestOfWeddings, ...g.guestOfWeddings]),
+      ).sort();
+      rep.hasWedding = rep.hasWedding || g.hasWedding;
+      if (
+        g.lastContact &&
+        (!rep.lastContact ||
+          new Date(g.lastContact.sent_at).getTime() >
+            new Date(rep.lastContact.sent_at).getTime())
+      ) {
+        rep.lastContact = g.lastContact;
+      }
+    }
+    deduped.push(rep);
+  }
+  deduped.push(...noEmail);
+  deduped.sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
+
+  // Outreach targets = admins / account creators only. Never surface someone
+  // who is just a guest of a wedding: keep a user only if they own a wedding
+  // (an admin) or aren't a guest of any wedding at all (a pure account creator).
+  const outreachable = deduped.filter(
+    (r) => r.weddingsOwned.length > 0 || r.guestOfWeddings.length === 0,
+  );
+
+  const withWedding = outreachable.filter((r) => r.hasWedding).length;
 
   return NextResponse.json({
-    total: rows.length,
+    total: outreachable.length,
     totalUsers: all.length,
     withWedding,
-    rows,
+    rows: outreachable,
     generatedAt: new Date().toISOString(),
   });
 }

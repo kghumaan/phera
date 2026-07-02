@@ -284,19 +284,29 @@
   pointer-events: none;
   opacity: 0.96;
   filter: drop-shadow(0 8px 18px rgba(180,80,0,0.12));
-  animation: phera-garland-sway 7s ease-in-out infinite;
+  animation: phera-garland-sway 4.5s ease-in-out infinite;
   transform-origin: top center;
 }
 .phera-landing .hero-garland-left { left: 0; }
-.phera-landing .hero-garland-right { right: 0; animation-delay: -3.5s; transform-origin: top center; animation-name: phera-garland-sway-r; }
+.phera-landing .hero-garland-right { right: 0; animation-delay: -2.25s; transform-origin: top center; animation-name: phera-garland-sway-r; }
 
+/* Pendulum-style dangle — wider swing with an eased settle so the garlands
+   feel like they're hanging and gently swaying, not just tilting. */
 @keyframes phera-garland-sway {
-  0%, 100% { transform: rotate(-1.4deg); }
-  50% { transform: rotate(1.4deg); }
+  0%, 100% { transform: rotate(-3.6deg); }
+  25% { transform: rotate(1.4deg); }
+  50% { transform: rotate(3.6deg); }
+  75% { transform: rotate(-1.4deg); }
 }
 @keyframes phera-garland-sway-r {
-  0%, 100% { transform: rotate(1.4deg); }
-  50% { transform: rotate(-1.4deg); }
+  0%, 100% { transform: rotate(3.6deg); }
+  25% { transform: rotate(-1.4deg); }
+  50% { transform: rotate(-3.6deg); }
+  75% { transform: rotate(1.4deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phera-landing .hero-garland { animation: none; }
 }
 
 @media (max-width: 768px) {

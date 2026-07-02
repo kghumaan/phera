@@ -34,7 +34,7 @@ interface CardTier {
   highlight: boolean;
 }
 
-export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerClick, loadingTier }: PricingProps) {
+export default function PricingSection({ onBaseClick, onPlannerClick, loadingTier }: PricingProps) {
   // Map our PRICING_TIERS data into the design's card shape, preserving
   // the design's MOST CHOSEN highlight on the middle (Base) tier.
   const tiers: (CardTier & { tierId: 'base' | 'premium' | null })[] = PRICING_TIERS.map((t) => {
@@ -53,10 +53,12 @@ export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerC
           : 'Your wedding site, guest list, and RSVPs — the essentials, on us.'),
       features: t.features,
       cta: t.buttonText,
-      href: isBase || isWhiteGlove ? undefined : (t.buttonHref || '/auth/signup'),
-      onClick: isBase ? onBaseClick : isWhiteGlove ? onPremiumClick : undefined,
+      // White Glove now links out to Cal.com (t.buttonHref); only Base opens the
+      // in-app checkout via onClick.
+      href: isBase ? undefined : (t.buttonHref || '/auth/signup'),
+      onClick: isBase ? onBaseClick : undefined,
       highlight: t.highlight,
-      tierId: isBase ? 'base' : isWhiteGlove ? 'premium' : null,
+      tierId: isBase ? 'base' : null,
     };
   });
 
@@ -174,6 +176,8 @@ export default function PricingSection({ onBaseClick, onPremiumClick, onPlannerC
                 ) : (
                   <Link
                     href={t.href || '/auth/signup'}
+                    target={/^https?:\/\//.test(t.href || '') ? '_blank' : undefined}
+                    rel={/^https?:\/\//.test(t.href || '') ? 'noopener noreferrer' : undefined}
                     className={t.highlight ? 'btn btn-primary' : 'btn btn-ghost'}
                     style={{
                       marginTop: 28,

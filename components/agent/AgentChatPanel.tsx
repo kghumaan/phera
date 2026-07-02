@@ -444,13 +444,15 @@ const COMPOSER_INPUT_SX = {
   // top-align in a box taller than one line).
   '& .MuiInputBase-root': { py: 0, alignItems: 'center' },
   '& .MuiInputBase-input': { py: 1.25 },
+  // Darker, more legible placeholder than the default faint grey.
+  '& .MuiInputBase-input::placeholder': { color: COLORS.text.faint, opacity: 1 },
 } as const;
 
 const DEFAULT_STARTERS = [
-  'How is our planning going so far?',
-  "What's still missing from our setup?",
-  'How many guests have RSVPed?',
-  'Which rooms still have space?',
+  'Help me create my wedding website.',
+  'Can we refine my wedding schedule?',
+  'Help me find a photographer.',
+  "What's still missing from my setup?",
 ];
 
 /** Rebuild the user bubble a form answer showed, from its persisted
@@ -1706,7 +1708,7 @@ export function AgentChatPanel({
             alignItems: 'center',
             gap: 0.5,
             bgcolor: COLORS.bg.white,
-            border: `1px solid ${COLORS.border.faint}`,
+            border: `1px solid ${COLORS.border.default}`,
             borderRadius: RADII.lg,
             px: 1.25,
             py: 0.75,
@@ -2004,7 +2006,7 @@ export function AgentChatPanel({
             gap: 0.5,
             alignItems: 'center',
             bgcolor: COLORS.bg.white,
-            border: `1px solid ${COLORS.border.faint}`,
+            border: `1px solid ${COLORS.border.default}`,
             borderRadius: RADII.lg,
             px: 1,
             py: 0.5,

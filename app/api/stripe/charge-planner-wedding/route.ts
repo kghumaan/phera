@@ -72,6 +72,34 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Planner account required' }, { status: 403 });
   }
 
+  // A planner's FIRST wedding is free — only charge from the 2nd onward. If they
+  // have none yet, create it directly (no card required) and skip payment.
+  const { count: existingWeddingCount } = await admin
+    .from('weddings')
+    .select('id', { count: 'exact', head: true })
+    .eq('created_by', user.id);
+
+  if ((existingWeddingCount ?? 0) === 0) {
+    const baseSlugFree = generateWeddingSlug(coupleName);
+    if (!baseSlugFree) {
+      return NextResponse.json({ error: 'Invalid couple name' }, { status: 400 });
+    }
+    const freeSlug = await findUniqueSlug(baseSlugFree, async (candidate) => {
+      const { data, error } = await admin.from('weddings').select('slug').eq('slug', candidate).maybeSingle();
+      if (error) throw error;
+      return !data;
+    });
+    const { error: freeWeddingError } = await admin
+      .from('weddings')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(buildPlannerWeddingDefaults(freeSlug, coupleName, user.id) as any);
+    if (freeWeddingError) {
+      console.error('Failed to insert free first planner wedding:', freeWeddingError);
+      return NextResponse.json({ error: 'wedding_create_failed' }, { status: 500 });
+    }
+    return NextResponse.json({ success: true, slug: freeSlug, free: true });
+  }
+
   if (!settings.stripe_customer_id || !settings.stripe_default_payment_method_id) {
     return NextResponse.json(
       { error: 'no_saved_card', message: 'No saved card on file' },

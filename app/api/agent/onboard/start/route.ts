@@ -30,9 +30,9 @@ export async function POST() {
   }
 
   const service = new WeddingService(supabase as never);
-  // Unique, unguessable draft slug — renamed later once the couple is known.
-  const suffix = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}`).replace(/-/g, '').slice(0, 10);
-  const slug = `new-wedding-${suffix}`;
+  // Unique, unguessable draft slug — a raw UUID, renamed later once the couple
+  // is known. (No "new-wedding-" prefix so drafts don't share a guessable namespace.)
+  const slug = globalThis.crypto?.randomUUID?.() ?? `w-${Date.now()}`;
 
   const wedding = await service.createWedding({
     slug,

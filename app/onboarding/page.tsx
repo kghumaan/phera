@@ -46,27 +46,7 @@ import { onboardingAnalytics } from '@/lib/analytics/onboarding';
 import { useOnboardingExitTracking } from '@/lib/analytics/useOnboardingExitTracking';
 
 // --- Types ---
-type OnboardingStep = 1 | 2 | 3;
-
-interface OnboardingGoal {
-  id: string;
-  label: string;
-  subtext: string;
-}
-
-// Deliberately shuffled so related items don't cluster — we want users to
-// scan the whole list before picking.
-const ONBOARDING_GOALS: OnboardingGoal[] = [
-  { id: 'save_the_dates',   label: 'Send out Save The Dates',    subtext: 'Share the news with your guests.' },
-  { id: 'guest_list',       label: 'Manage my guest list',       subtext: 'One organized place for every invite.' },
-  { id: 'wedding_website',  label: 'Build Wedding Website',      subtext: 'A branded site for schedule, travel, and RSVPs.' },
-  { id: 'rsvp_invites',     label: 'Send RSVP invites to guests', subtext: 'Bulk RSVP requests via email or WhatsApp.' },
-  { id: 'rsvp_gather',      label: 'Gather RSVPs',                subtext: 'Track yes / no / maybe responses in one view.' },
-  { id: 'broadcast',        label: 'Broadcast messages',          subtext: 'Send a note to all guests at once.' },
-  { id: 'room_assignments', label: 'Room Assignments',            subtext: 'Place guests into hotel rooms from a floorplan.' },
-  { id: 'guest_logistics',  label: 'Guest Logistics',             subtext: 'Shuttles, airport pickups, and transfers.' },
-  { id: 'vendor_mgmt',      label: 'Vendor Management',           subtext: 'Track vendor conversations and stay organized.' },
-];
+type OnboardingStep = 1 | 2;
 
 type UserRole = 'couple' | 'planner';
 
@@ -193,7 +173,6 @@ export default function OnboardingPage() {
   const completedRef = useRef(false);
   const [role, setRole] = useState<UserRole | null>(null);
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [plan, setPlan] = useState<'basic' | 'pro'>('basic');
   const [coupleName, setCoupleName] = useState('');
   const [partnerName, setPartnerName] = useState('');
@@ -339,7 +318,7 @@ export default function OnboardingPage() {
     completed: completedRef.current,
     hadInput: Boolean(
       coupleName || partnerName || venueName || weddingDate ||
-      companyName || plannerLocation || selectedGoals.length || selectedFeatures.length
+      companyName || plannerLocation || selectedFeatures.length
     ),
   }));
 
@@ -430,7 +409,6 @@ export default function OnboardingPage() {
     venueName?: string | null,
     venueLocation?: string | null,
     selectedFeatures: string[],
-    selectedGoals?: string[],
     companyName?: string,
     plannerLocation?: string,
   }) => {
@@ -453,12 +431,6 @@ export default function OnboardingPage() {
         avatar_svg: avatar.svg,
         avatar_color: null,
       };
-      // Persist onboarding goals if the column exists. If the migration hasn't
-      // been run the upsert will error out below and we'll fall back to the
-      // contact_submissions record created in handleSubmit.
-      if (data.selectedGoals && data.selectedGoals.length > 0) {
-        settingsToSave.onboarding_goals = data.selectedGoals;
-      }
       console.log('[Onboarding DEBUG] Data to upsert:', settingsToSave);
 
       const { data: upsertData, error: settingsError } = await (supabase as any)
@@ -568,12 +540,78 @@ export default function OnboardingPage() {
         }
       }
 
-      // Planners don't create a wedding during onboarding — send them straight
-      // into creating their first client wedding instead of an empty dashboard.
+      // Planners land in a free, blank first wedding's Planner chat rather than
+      // the $249 paywall — give them a workspace to start in immediately.
       if (data.role === 'planner') {
-        console.log('[Onboarding DEBUG] Planner onboarding complete, sending to first wedding creation...');
-        setLoadingMessage("All set! Let's set up your first wedding...");
-        router.push('/admin/new');
+        console.log('[Onboarding DEBUG] Planner onboarding complete, creating free first wedding...');
+        setLoadingMessage('All set! Opening your first wedding…');
+
+        const baseSlug = 'wedding';
+        let slug = baseSlug;
+        let counter = 1;
+
+        let isAvailable = await weddingService.checkSlugAvailability(slug);
+        while (!isAvailable) {
+          slug = `${baseSlug}-${counter}`;
+          counter++;
+          isAvailable = await weddingService.checkSlugAvailability(slug);
+        }
+
+        console.log('[Onboarding DEBUG] Planner first-wedding slug decided:', slug);
+
+        let plannerWedding = null;
+        let creationAttempts = 0;
+        const maxAttempts = 3;
+
+        while (creationAttempts < maxAttempts) {
+          try {
+            plannerWedding = await weddingService.createWedding({
+              slug,
+              couple_name: 'New Wedding',
+              partner1_name: 'New',
+              partner2_name: null,
+              wedding_date: new Date(0).toISOString(),
+              wedding_date_end: null,
+              wedding_date_display: 'Dates TBD',
+              venue_name: 'Venue TBD',
+              venue_location: '',
+              rsvp_deadline: '',
+              status: 'draft',
+              created_by: data.userId,
+              background_image: '/images/backgrounds/blue-clouds.webp',
+              primary_color: COLORS.brand.primary,
+              couple_images: ['/images/couple/placeholder1.png', '/images/couple/placeholder2.png'],
+              couple_image_url: '/images/couple/placeholder1.png',
+            });
+
+            if (plannerWedding) break;
+
+            // If creation failed (returned null), it might be a race condition slug conflict
+            console.warn(`[Onboarding DEBUG] Planner wedding creation attempt ${creationAttempts + 1} failed. Retrying with new slug...`);
+            counter++;
+            slug = `${baseSlug}-${counter}`;
+            let isStillAvailable = await weddingService.checkSlugAvailability(slug);
+            while (!isStillAvailable) {
+              counter++;
+              slug = `${baseSlug}-${counter}`;
+              isStillAvailable = await weddingService.checkSlugAvailability(slug);
+            }
+          } catch (e) {
+            console.error(`[Onboarding DEBUG] Exception during planner wedding creation attempt ${creationAttempts + 1}:`, e);
+          }
+          creationAttempts++;
+        }
+
+        if (plannerWedding) {
+          console.log('[Onboarding DEBUG] Planner first wedding created, opening assistant...');
+          router.push(`/admin/${slug}/assistant?welcome=1`);
+          return;
+        }
+
+        // Couldn't create a wedding after retries — fall back to the planner
+        // dashboard rather than the $249 /admin/new wall.
+        console.error('[Onboarding DEBUG] Planner wedding creation failed after all attempts, falling back to dashboard');
+        router.push('/admin');
         return;
       }
 
@@ -604,7 +642,7 @@ export default function OnboardingPage() {
 
   const handleNext = () => {
     console.log('[Onboarding] handleNext clicked', { step });
-    if (step < 3) {
+    if (step < 2) {
       onboardingAnalytics.stepCompleted(step, role);
       setStep((step + 1) as OnboardingStep);
     }
@@ -629,7 +667,7 @@ export default function OnboardingPage() {
     console.log('[Onboarding DEBUG] handleSubmit: Finalizing onboarding...');
 
     console.log('[Onboarding DEBUG] handleSubmit: Finalizing FREE plan onboarding...');
-    onboardingAnalytics.stepCompleted(3, role);
+    onboardingAnalytics.stepCompleted(2, role);
     setLoading(true);
     setLoadingMessage('Creating your wedding workspace...');
     setSubmitting(true);
@@ -648,33 +686,17 @@ export default function OnboardingPage() {
         venueName: venueTbd ? 'TBD' : venueName,
         venueLocation: venueTbd ? null : venueLocation,
         selectedFeatures,
-        selectedGoals,
         companyName,
         plannerLocation,
       });
 
       onboardingAnalytics.completed({
         role: role as UserRole,
-        goalCount: selectedGoals.length,
+        goalCount: 0,
         hasVenue: Boolean(venueName) && !venueTbd,
         hasDate: Boolean(weddingDate) && !dateTbd,
         plan,
       });
-
-      // Record onboarding goals for product research — non-fatal on error.
-      if (selectedGoals.length > 0 && authUser?.email) {
-        try {
-          await (supabase as any).from('contact_submissions').insert([
-            {
-              name: coupleName || companyName || authUser?.email || 'Onboarded user',
-              email: authUser.email.toLowerCase(),
-              message: `Onboarding goals: ${selectedGoals.join(', ')}`,
-            },
-          ]);
-        } catch (err) {
-          console.error('[Onboarding] Failed to record goals:', err);
-        }
-      }
     } catch (error) {
       console.error('[Onboarding DEBUG] handleSubmit: Error completing onboarding:', error);
       completedRef.current = false;
@@ -1058,83 +1080,6 @@ export default function OnboardingPage() {
                       </Box>
                     )}
 
-                    {/* STEP 3: ONBOARDING GOALS — multi-select topics */}
-                    {step === 3 && (
-                      <Box>
-                        <Typography variant="h4" sx={{ fontFamily: FONTS.display, fontStyle: 'italic', mb: 0.5, color: COLORS.text.strong, fontWeight: 400, fontSize: { xs: '1.6rem', md: '2rem' } }}>
-                          What do you want to get done?
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 3, fontWeight: 400, fontSize: { xs: '0.9rem', md: '1rem' } }}>
-                          Pick everything that sounds useful — we'll tailor your setup around it. You can change this later.
-                        </Typography>
-
-                        <Grid container spacing={1.5} sx={{ maxWidth: '720px', mx: 'auto' }}>
-                          {ONBOARDING_GOALS.map((goal) => {
-                            const selected = selectedGoals.includes(goal.id);
-                            return (
-                              <Grid size={{ xs: 12, sm: 6 }} key={goal.id}>
-                                <Card
-                                  elevation={0}
-                                  sx={{
-                                    borderRadius: RADII.md,
-                                    border: '2px solid',
-                                    borderColor: selected ? COLORS.brand.primary : 'transparent',
-                                    bgcolor: selected ? alpha(COLORS.brand.primary, 0.06) : COLORS.bg.muted,
-                                    transition: 'all 0.2s ease',
-                                    height: '100%',
-                                  }}
-                                >
-                                  <CardActionArea
-                                    sx={{ p: 2, height: '100%', textAlign: 'left' }}
-                                    onClick={() =>
-                                      setSelectedGoals((prev) =>
-                                        prev.includes(goal.id)
-                                          ? prev.filter((g) => g !== goal.id)
-                                          : [...prev, goal.id],
-                                      )
-                                    }
-                                  >
-                                    <Typography
-                                      variant="subtitle2"
-                                      sx={{
-                                        fontWeight: 700,
-                                        mb: 0.25,
-                                        fontSize: '0.9rem',
-                                        color: selected ? COLORS.brand.primary : COLORS.text.strong,
-                                        transition: 'color 0.2s ease',
-                                      }}
-                                    >
-                                      {goal.label}
-                                    </Typography>
-                                    <Typography
-                                      variant="caption"
-                                      sx={{
-                                        color: COLORS.text.subtle,
-                                        fontSize: '0.875rem',
-                                        lineHeight: 1.4,
-                                        display: 'block',
-                                      }}
-                                    >
-                                      {goal.subtext}
-                                    </Typography>
-                                  </CardActionArea>
-                                </Card>
-                              </Grid>
-                            );
-                          })}
-                        </Grid>
-
-                        {selectedGoals.length > 0 && (
-                          <Typography
-                            variant="caption"
-                            sx={{ display: 'block', color: COLORS.brand.primary, mt: 2, fontWeight: 600, textAlign: 'center' }}
-                          >
-                            {selectedGoals.length} selected — you can skip or select more.
-                          </Typography>
-                        )}
-                      </Box>
-                    )}
-
                     {/* Navigation Buttons — hidden on step 1 (role cards auto-advance) */}
                     {step > 1 && (
                       <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 5 }}>
@@ -1175,7 +1120,7 @@ export default function OnboardingPage() {
                             '&:hover': { bgcolor: COLORS.brand.primaryHover },
                           }}
                         >
-                          {step === 3 ? (submitting ? 'Setting up...' : 'Get Started') : 'Continue'}
+                          {step === 2 ? (submitting ? 'Setting up...' : 'Get Started') : 'Continue'}
                         </Button>
                       </Stack>
                     )}
@@ -1186,7 +1131,7 @@ export default function OnboardingPage() {
 
           {/* Progress Dots */}
           <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 3 }}>
-            {[1, 2, 3].map(s => (
+            {[1, 2].map(s => (
               <Box
                 key={s}
                 sx={{

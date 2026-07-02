@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { buildOutreachEmail } from '@/lib/ops/outreach-email';
+import { buildOutreachTemplate } from '@/lib/ops/outreach-email';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +11,7 @@ type Body = {
   text?: string;
   from?: string;
   replyTo?: string;
+  template?: string;
 };
 
 // Send a one-off copy of the outreach email to an arbitrary address.
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
   const replyTo = (body.replyTo?.trim() || envReplyTo).trim();
   const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://phera.io';
 
-  const built = buildOutreachEmail({
+  const built = buildOutreachTemplate(body.template, {
     toEmail,
     firstName: null,
     signupRelative: '',

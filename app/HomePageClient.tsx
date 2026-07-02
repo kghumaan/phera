@@ -40,6 +40,7 @@ import IPhoneMockup from '@/components/ui/IPhoneMockup';
 import HomePostAuthModalOpener from './HomePostAuthModalOpener';
 import { ActionButton } from '@/components/admin/ActionButton';
 import HomeNavLinks from '@/components/landing/HomeNavLinks';
+import LandingAnnouncementBar from '@/components/landing/LandingAnnouncementBar';
 
 import HeroSection from '@/components/landing/HeroSection';
 import MeetYourPlannerSection from '@/components/landing/MeetYourPlannerSection';
@@ -426,6 +427,8 @@ function LandingPageContent() {
           </div>
         </Box>
       </Box>
+
+      <LandingAnnouncementBar />
 
       <UpgradeModal
         open={upgradeModalOpen}

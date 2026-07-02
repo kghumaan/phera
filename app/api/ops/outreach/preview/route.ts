@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOpsSupabaseAdmin } from '@/lib/ops/supabase-admin';
 import {
-  buildOutreachEmail,
+  buildOutreachTemplate,
   deriveFirstName,
   relativeTime,
 } from '@/lib/ops/outreach-email';
@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const userId = url.searchParams.get('userId');
   const testEmail = url.searchParams.get('testEmail');
+  const template = url.searchParams.get('template') || 'onboarding_hello';
   if (!userId && !testEmail) {
     return NextResponse.json({ error: 'userId or testEmail required' }, { status: 400 });
   }
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
     user_metadata: (user.user_metadata as Record<string, unknown> | null) ?? null,
   });
 
-  const built = buildOutreachEmail({
+  const built = buildOutreachTemplate(template, {
     toEmail: user.email ?? '',
     firstName,
     signupRelative: relativeTime(user.created_at),
@@ -77,6 +78,7 @@ export async function GET(request: NextRequest) {
       email: user.email ?? null,
       firstName,
     },
+    template,
     from:
       process.env.OPS_OUTREACH_FROM_EMAIL ||
       'KV at Phera <kv@phera.io>',

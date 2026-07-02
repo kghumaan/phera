@@ -495,8 +495,16 @@ export async function cloneDemoWedding(userId: string): Promise<string> {
     cloneSimpleTable(supabase, 'concierge_knowledge_base', template.id, newWeddingId),
     cloneSimpleTable(supabase, 'transportation_settings', template.id, newWeddingId),
     cloneSimpleTable(supabase, 'wedding_tasks', template.id, newWeddingId),
-    cloneSimpleTable(supabase, 'guest_flights', template.id, newWeddingId),
-    cloneSimpleTable(supabase, 'travel_bus_signups', template.id, newWeddingId),
+    // guest_flights + travel_bus_signups are keyed by the wedding SLUG in the app
+    // (see lib/ops/constants.ts keyType:'slug' and the ai-handler slug reads), so
+    // they must be cloned slug→slug. The old (template.id, newWeddingId) form wrote
+    // the UUID: that both hid the rows from the demo (app reads by slug) AND
+    // orphaned them from the slug-based demo cleanup. Template has 0 rows in these
+    // today, so this is a no-op now but correct if seeded later.
+    // NOTE: cloneSimpleTable does not remap guest_flights.guest_id — if these are
+    // ever seeded, add guest_id remapping via guestIdMapping (built below).
+    cloneSimpleTable(supabase, 'guest_flights', TEMPLATE_SLUG, newSlug),
+    cloneSimpleTable(supabase, 'travel_bus_signups', TEMPLATE_SLUG, newSlug),
     cloneSimpleTable(supabase, 'vendors', template.id, newWeddingId),
   ];
 
@@ -892,6 +900,16 @@ const UUID_NO_CASCADE_TABLES = [
   'feature_requests',
 ] as const;
 
+// Slug-keyed agent tables. Not written by the clone, but a demo user chatting
+// with the agent creates these keyed by the demo slug. agent_messages +
+// agent_feedback cascade from agent_conversations, so they aren't listed.
+// Swept alongside SLUG_CHILD_TABLES; none FK guests, so order is free.
+const AGENT_SLUG_TABLES = [
+  'agent_actions',
+  'agent_conversations',
+  'agent_knowledge',
+] as const;
+
 // Skip Postgres "relation does not exist" (42P01) — schema drift between envs is OK.
 function isMissingTable(error: any): boolean {
   return error?.code === '42P01' || /does not exist/i.test(error?.message || '');
@@ -919,6 +937,49 @@ async function deleteWeddingFully(
   if (error) throw new Error(`delete weddings row (uuid=${weddingId}): ${error.message}`);
 }
 
+/**
+ * Backstop that makes cleanup self-healing. deleteWeddingFully() finds demos via
+ * the weddings table, so any child left behind by an interrupted or older
+ * cleanup (its wedding row already gone) becomes invisible to it forever — which
+ * is exactly how ~1,900 orphan rows accumulated historically. This sweep re-finds
+ * them by slug: a 'demo-*' wedding_id can only belong to a demo, so any such row
+ * whose wedding_id isn't a currently-live demo wedding is an orphan and is
+ * deleted. Slug-keyed tables only; vendor UUID-keyed rows are removed inline by
+ * deleteWeddingFully before the wedding row goes, and UUID orphans can't be
+ * attributed to a demo after the fact.
+ */
+async function sweepOrphanedDemoData(supabase: ReturnType<typeof getServiceClient>) {
+  // Live demo weddings (incl. the template) — everything else demo-slugged is orphaned.
+  const { data: liveDemos, error: listErr } = await supabase
+    .from('weddings')
+    .select('slug')
+    .like('slug', `${DEMO_SLUG_PREFIX}%`);
+  if (listErr) {
+    console.error('[demo-cleanup] orphan sweep: listing live demos failed:', listErr.message);
+    return;
+  }
+  const keep = new Set<string>([TEMPLATE_SLUG, ...((liveDemos ?? []) as Array<{ slug: string }>).map((w) => w.slug)]);
+  const keepList = `(${Array.from(keep).join(',')})`;
+
+  // guests LAST (other slug tables NO ACTION-FK it); agent tables first (independent).
+  const sweepTables = [...AGENT_SLUG_TABLES, ...SLUG_CHILD_TABLES];
+  let swept = 0;
+  for (const table of sweepTables) {
+    const { data, error } = await supabase
+      .from(table as any)
+      .delete()
+      .like('wedding_id', `${DEMO_SLUG_PREFIX}%`)
+      .not('wedding_id', 'in', keepList)
+      .select('wedding_id');
+    if (error) {
+      if (!isMissingTable(error)) console.error(`[demo-cleanup] orphan sweep ${table}: ${error.message}`);
+      continue;
+    }
+    swept += data?.length ?? 0;
+  }
+  if (swept > 0) console.log(`[demo-cleanup] orphan sweep removed ${swept} orphaned demo row(s)`);
+}
+
 export async function cleanupExpiredDemoWeddings(_userId?: string) {
   const supabase = getServiceClient();
   const cutoff = new Date(Date.now() - DEMO_MAX_AGE_MS).toISOString();
@@ -933,23 +994,25 @@ export async function cleanupExpiredDemoWeddings(_userId?: string) {
 
   if (findErr) {
     console.error('[demo-cleanup] failed to list expired demos:', findErr.message);
-    return;
-  }
-  if (!expired?.length) return;
-
-  console.log(`[demo-cleanup] purging ${expired.length} expired demo wedding(s)`);
-  let ok = 0;
-  let failed = 0;
-  for (const w of expired) {
-    try {
-      await deleteWeddingFully(supabase, w.id, w.slug);
-      ok++;
-    } catch (err: any) {
-      failed++;
-      console.error(`[demo-cleanup] ${w.slug}: ${err?.message || err}`);
+  } else if (expired?.length) {
+    console.log(`[demo-cleanup] purging ${expired.length} expired demo wedding(s)`);
+    let ok = 0;
+    let failed = 0;
+    for (const w of expired) {
+      try {
+        await deleteWeddingFully(supabase, w.id, w.slug);
+        ok++;
+      } catch (err: any) {
+        failed++;
+        console.error(`[demo-cleanup] ${w.slug}: ${err?.message || err}`);
+      }
     }
+    console.log(`[demo-cleanup] done: ${ok} purged, ${failed} failed`);
   }
-  console.log(`[demo-cleanup] done: ${ok} purged, ${failed} failed`);
+
+  // Always run the backstop — even when nothing was expired this pass, it clears
+  // any historical/interrupted orphans so demo data can never linger past a run.
+  await sweepOrphanedDemoData(supabase);
 }
 
 async function cloneTransportationData(
