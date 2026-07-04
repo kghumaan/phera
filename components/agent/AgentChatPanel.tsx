@@ -2188,14 +2188,16 @@ export function AgentChatPanel({
         </Box>
         <Stack direction="row" flexWrap="wrap" justifyContent="center" gap={1} sx={{ maxWidth: 640 }}>
           {resolvedStarters.map((starter) => (
-            <PheraChip key={starter} tone="brand" label={starter} onClick={() => send(starter)} sx={{ cursor: 'pointer' }} />
+            <PheraChip key={starter} tone="neutral" label={starter} onClick={() => send(starter)} sx={{ cursor: 'pointer' }} />
           ))}
         </Stack>
       </Box>
       ) : (
       <>
       <Box sx={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-      <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: { xs: 1.5, md: 3 } }}>
+      {/* overscrollBehavior contain: hitting the top/bottom of the message
+          list must not chain into rubber-banding the page on mobile. */}
+      <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', overscrollBehavior: 'contain', p: { xs: 1.5, md: 3 } }}>
         {loadingHistory || (onboarding && items.length === 0) ? (
           // During onboarding the kickoff fires immediately — show a spinner,
           // not the generic starter prompts, so we land straight on the greeting.
@@ -2216,7 +2218,7 @@ export function AgentChatPanel({
               {resolvedStarters.map((starter) => (
                 <PheraChip
                   key={starter}
-                  tone="brand"
+                  tone="neutral"
                   label={starter}
                   onClick={() => send(starter)}
                   sx={{ cursor: 'pointer' }}
