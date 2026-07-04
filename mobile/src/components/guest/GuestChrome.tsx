@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View, type ImageSourcePropType } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import bgAquarium from '@/assets/images/backgrounds/aquarium.webp';
@@ -23,7 +23,7 @@ import { COLORS, FONT, SPACING, TEXT } from '@/lib/theme/tokens';
  */
 export type GuestBackground = 'clouds' | 'pearl' | 'jade' | 'aquarium' | 'theme';
 
-const BUNDLED: Record<string, number> = {
+const BUNDLED: Record<string, ImageSourcePropType> = {
   '/images/backgrounds/blue-clouds.webp': bgClouds,
   '/images/backgrounds/pearl.webp': bgPearl,
   '/images/backgrounds/jade.webp': bgJade,
@@ -34,14 +34,14 @@ const BUNDLED: Record<string, number> = {
  * Resolve the couple's chosen background: bundled asset when we ship it,
  * remote URI for anything else (expo-image loads URLs), clouds fallback.
  */
-export function resolveWeddingBackground(path?: string | null): number | { uri: string } {
+export function resolveWeddingBackground(path?: string | null): ImageSourcePropType {
   if (!path) return bgClouds;
   if (BUNDLED[path]) return BUNDLED[path]!;
   if (path.startsWith('http')) return { uri: path };
   return { uri: `https://phera.io${path}` };
 }
 
-const BACKGROUNDS: Record<Exclude<GuestBackground, 'theme'>, number> = {
+const BACKGROUNDS: Record<Exclude<GuestBackground, 'theme'>, ImageSourcePropType> = {
   clouds: bgClouds,
   pearl: bgPearl,
   jade: bgJade,

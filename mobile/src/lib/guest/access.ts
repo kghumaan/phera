@@ -30,6 +30,29 @@ export async function verifyPassword(weddingSlug: string, password: string): Pro
   return json.valid;
 }
 
+/**
+ * Per-guest event visibility — mirrors web events/page.tsx:33: default-true
+ * opt-out via guest_event_access. Returns null when everything is visible
+ * (no guest picked, preview mode, or the API is unreachable — the web
+ * fails open the same way).
+ */
+export async function fetchInvitedEventIds(
+  weddingSlug: string,
+  guestId: string | null,
+): Promise<string[] | null> {
+  if (isPreviewMode || !guestId) return null;
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/access/events/${weddingSlug}?guestId=${encodeURIComponent(guestId)}`,
+    );
+    if (!res.ok) return null;
+    const json = (await res.json()) as { invitedEventIds?: string[] };
+    return Array.isArray(json.invitedEventIds) ? json.invitedEventIds : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function matchName(
   weddingSlug: string,
   query: string,

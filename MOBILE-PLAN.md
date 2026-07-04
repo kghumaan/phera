@@ -142,7 +142,7 @@ Statuses: `[ ]` todo · `[~]` in progress · `[x]` built + verified
 ### Phase 5 — Guest experience (mobile routes live under `/guest/[weddingSlug]` to avoid admin path collision)
 - [x] Guest access/auth — two-step gate (wedding password → name match) calling the same `/api/access/*` routes; session mirrors web localStorage keys in AsyncStorage with 24h TTL, "switch guest" supported
 - [~] Wedding home ✓ (serif hero, radius-24 RSVP/View Details CTAs) + **details hub** ✓ + FAQ ✓ (accordions); registry + where-to-shop pending
-- [~] **Schedule & events** ✓ (guest views with dress codes + ritual names); per-guest `guest_event_access` filtering still TODO (needs API reachability)
+- [x] **Schedule & events** — guest views with dress codes + ritual names; per-guest `guest_event_access` filtering wired via `/api/access/events/[slug]` (fails open like web; all events in preview)
 - [x] **RSVP flow** — attending picker, party-size stepper, food-preference chips, dietary + message, submit works (upsert contract matches web `submitRSVP`: `guest_id,event_id,wedding_id`, event 'general')
 - [ ] **Travel form + travel details** (flight collection, `guest_flights` conventions)
 - [ ] **Transportation** (shuttle times, pickup info)

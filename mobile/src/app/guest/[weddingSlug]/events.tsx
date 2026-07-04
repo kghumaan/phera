@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { EmptyState, PheraCard, PheraText } from '@/components/ui';
 import { GuestScreen } from '@/components/guest/GuestChrome';
 import { useEvents, useWedding } from '@/lib/data/hooks';
+import { useInvitedEventIds } from '@/lib/guest/hooks';
 import { COLORS } from '@/lib/theme/tokens';
 import { useWeddingSlug } from '@/lib/nav';
 
@@ -16,11 +17,13 @@ function prettyDate(iso: string): string {
 export default function GuestEventsScreen() {
   const weddingSlug = useWeddingSlug();
   const wedding = useWedding(weddingSlug);
-  // TODO(Phase 5 follow-up): filter by guest_event_access via
-  // /api/access/events/[slug]?guestId=… — preview shows all events.
   const events = useEvents(wedding.data?.id);
+  const invited = useInvitedEventIds(weddingSlug);
 
-  const list = events.data ?? [];
+  // Default-true opt-out (web event-filter contract): null = show all.
+  const list = (events.data ?? []).filter(
+    (e) => invited.data == null || invited.data.includes(e.id),
+  );
 
   return (
     <GuestScreen title="Events" background="aquarium">
