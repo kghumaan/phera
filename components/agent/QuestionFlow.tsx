@@ -24,6 +24,13 @@ import type { AgentQuestion } from '@/lib/agent/types';
 const INPUT_MAX_WIDTH = 460;
 const INPUT_HEIGHT = 48;
 
+/** ≥16px inputs on mobile — anything smaller makes iOS Safari auto-zoom the
+ *  page on focus, cutting off the top of the chat. The doubled `&&` outranks
+ *  the admin layout's mobile typography override. */
+const MOBILE_INPUT_FONT_SX = {
+  '&& .MuiInputBase-input': { '@media (max-width: 899.95px)': { fontSize: '1rem' } },
+} as const;
+
 /**
  * Outlined-input styling for the form fields. PheraTextField shallow-merges
  * `{ ...ENHANCED, ...sx }`, so any consumer that overrides
@@ -64,6 +71,7 @@ const DATE_SLOT_PROPS = {
       '& .MuiOutlinedInput-root': INPUT_ROOT_SX,
       '& .MuiOutlinedInput-input': { color: '#000 !important', WebkitTextFillColor: '#000 !important' },
       '& .MuiInputAdornment-root .MuiSvgIcon-root': { color: COLORS.brand.primary },
+      '&& .MuiInputBase-input': { '@media (max-width: 899.95px)': { fontSize: '1rem' } },
     },
   },
   actionBar: {
@@ -108,6 +116,8 @@ const TIME_INPUT_SX = {
   color: COLORS.text.strong,
   fontFamily: FONTS.body,
   fontSize: '0.95rem',
+  // ≥16px on mobile so iOS doesn't auto-zoom the page when the field focuses.
+  '@media (max-width: 899.95px)': { fontSize: '1rem' },
   '&:hover': { borderColor: COLORS.brand.primary },
   '&:focus': { outline: 'none', borderColor: COLORS.brand.primary, borderWidth: '2px' },
 } as const;
@@ -472,7 +482,7 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
                 commit(text.trim());
               }
             }}
-            sx={{ '& .MuiOutlinedInput-root': INPUT_ROOT_SX }}
+            sx={{ '& .MuiOutlinedInput-root': INPUT_ROOT_SX, ...MOBILE_INPUT_FONT_SX }}
           />
           <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
             {voiceButton}
@@ -615,7 +625,7 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
             value={text}
             disabled={disabled}
             onChange={(e) => setText(e.target.value)}
-            sx={{ maxWidth: INPUT_MAX_WIDTH }}
+            sx={{ maxWidth: INPUT_MAX_WIDTH, ...MOBILE_INPUT_FONT_SX }}
           />
           <Stack direction="row" spacing={1}>{voiceButton}{actionButtons}</Stack>
         </>
@@ -708,7 +718,7 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
                       addOther();
                     }
                   }}
-                  sx={{ flex: 1, '& .MuiOutlinedInput-root': INPUT_ROOT_SX }}
+                  sx={{ flex: 1, '& .MuiOutlinedInput-root': INPUT_ROOT_SX, ...MOBILE_INPUT_FONT_SX }}
                 />
                 {/* Always visible (disabled until they type) — buttons never
                     appear out of nowhere. */}
@@ -796,6 +806,7 @@ const RangeInput = forwardRef<
         cursor: 'pointer',
         '& .MuiOutlinedInput-root': { ...INPUT_ROOT_SX, cursor: 'pointer' },
         '& .MuiOutlinedInput-input': { cursor: 'pointer', color: '#000 !important', WebkitTextFillColor: '#000 !important' },
+        ...MOBILE_INPUT_FONT_SX,
       }}
     />
   );

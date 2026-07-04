@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Checkbox, Stack, Typography, CircularProgress, LinearProgress, Tooltip, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { Box, Checkbox, Stack, Typography, CircularProgress, LinearProgress, Tooltip, Table, TableBody, TableCell, TableHead, TableRow, useMediaQuery, useTheme } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
@@ -623,6 +623,10 @@ const COMPOSER_INPUT_SX = {
   // top-align in a box taller than one line).
   '& .MuiInputBase-root': { py: 0, alignItems: 'center' },
   '& .MuiInputBase-input': { py: 1.25 },
+  // 16px on mobile — anything smaller makes iOS Safari auto-zoom the page on
+  // focus, which shoves the chat under the fixed top nav. The doubled `&&`
+  // outranks the admin layout's mobile typography override.
+  '&& .MuiInputBase-input': { '@media (max-width: 899.95px)': { fontSize: '1rem' } },
   // Darker, more legible placeholder than the default faint grey.
   '& .MuiInputBase-input::placeholder': { color: COLORS.text.faint, opacity: 1 },
 } as const;
@@ -751,6 +755,10 @@ export function AgentChatPanel({
   onboarding,
   defaultVoice,
 }: AgentChatPanelProps) {
+  const theme = useTheme();
+  // Mobile gets a different form treatment: panels render inline in the chat
+  // stream instead of a side pane stacked above the conversation.
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [items, setItems] = useState<ChatItem[]>([]);
   // Analytical, wedding-specific starter prompts for a returning couple ("41 of
   // 280 RSVPs are in…"), fetched from /api/agent/summary. A caller-supplied
@@ -989,7 +997,9 @@ export function AgentChatPanel({
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [items, busy]);
+    // The panel states matter on mobile, where the active form renders inline
+    // at the end of the conversation — reveal it the moment it appears.
+  }, [items, busy, faqReview, venueCards, pairingStatus, broadcastDraft, dataPanel]);
 
   const handleEvent = useCallback((event: AgentStreamEvent) => {
     // FAQ review drives its own right-pane state, not the chat item list.
@@ -1643,9 +1653,56 @@ export function AgentChatPanel({
   const hasDataPanel = !!dataPanel;
   const formPaneOpen =
     !!pendingQuestions || hasFaqReview || hasVenueCards || hasPairing || hasBroadcast || hasDataPanel || facts.length > 0;
+  // The concrete interactive panel in front of the couple right now (facts
+  // alone don't count — they're commentary, not something to act on).
+  const hasActivePanel =
+    !!pendingQuestions || hasFaqReview || hasVenueCards || hasPairing || hasBroadcast || hasDataPanel;
+  // Desktop keeps the side-by-side pane. On mobile that pane would stack on
+  // top and shove the whole conversation down-screen, so the active panel
+  // renders inline in the chat stream instead.
+  const sidePaneOpen = !isMobile && formPaneOpen;
+  const mobilePanelOpen = isMobile && hasActivePanel;
+
+  /** The active form/review panel, shared between the desktop side pane
+   *  (large) and the mobile inline chat card (compact). */
+  const renderActivePanel = (large: boolean) =>
+    pendingQuestions ? (
+      <QuestionFlow
+        key={pendingQuestions.actionId}
+        questions={pendingQuestions.questions}
+        disabled={busy}
+        large={large}
+        dateRange={weddingDateRange}
+        onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
+      />
+    ) : hasFaqReview && faqReview ? (
+      <FaqReviewPanel faqs={faqReview} disabled={busy} onApprove={approveFaqs} />
+    ) : hasVenueCards && venueCards ? (
+      <VenueCardsPanel vendors={venueCards} disabled={busy} onSelect={selectVenue} onSkip={skipVenues} />
+    ) : hasPairing && pairingStatus ? (
+      <WhatsAppPairingPanel
+        weddingSlug={weddingSlug}
+        initialStatus={pairingStatus}
+        disabled={busy}
+        onConnected={onWhatsAppConnected}
+      />
+    ) : hasBroadcast && broadcastDraft ? (
+      <BroadcastPanel
+        weddingSlug={weddingSlug}
+        draft={broadcastDraft}
+        disabled={busy}
+        onSent={onBroadcastSent}
+        onCancel={cancelBroadcast}
+      />
+    ) : hasDataPanel && dataPanel ? (
+      <DataPanel panel={dataPanel} disabled={busy} onDismiss={() => setDataPanel(null)} />
+    ) : null;
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight }}>
+    // On mobile a fixed minimum would overflow short viewports (keyboard open,
+    // small phones) and push the composer off-screen — fill whatever height
+    // the page gives us instead. Desktop keeps the caller's minimum.
+    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: { xs: 0, md: minHeight } }}>
       {/* File pickers live at the root so they work from both the voice
           action panel and the typed composer. */}
       <input
@@ -1872,7 +1929,7 @@ export function AgentChatPanel({
           runs full-width (ChatGPT-style) on open and the pane slides in on the
           first form. DOM-first so it stacks on top on mobile when present. */}
       <AnimatePresence initial={false}>
-        {formPaneOpen && (
+        {sidePaneOpen && (
           <Box
             component={motion.div}
             key="form-pane"
@@ -1895,37 +1952,7 @@ export function AgentChatPanel({
                 facts strip) pin the strip to the bottom while keeping this
                 centered; when content overflows, the auto margins collapse. */}
             <Box sx={{ mt: 'auto', mx: 'auto', width: '100%', maxWidth: 460 }}>
-              {pendingQuestions ? (
-                <QuestionFlow
-                  key={pendingQuestions.actionId}
-                  questions={pendingQuestions.questions}
-                  disabled={busy}
-                  large
-                  dateRange={weddingDateRange}
-                  onComplete={(answers) => resolveAnswers(pendingQuestions.actionId, answers, pendingQuestions.questions)}
-                />
-              ) : hasFaqReview && faqReview ? (
-                <FaqReviewPanel faqs={faqReview} disabled={busy} onApprove={approveFaqs} />
-              ) : hasVenueCards && venueCards ? (
-                <VenueCardsPanel vendors={venueCards} disabled={busy} onSelect={selectVenue} onSkip={skipVenues} />
-              ) : hasPairing && pairingStatus ? (
-                <WhatsAppPairingPanel
-                  weddingSlug={weddingSlug}
-                  initialStatus={pairingStatus}
-                  disabled={busy}
-                  onConnected={onWhatsAppConnected}
-                />
-              ) : hasBroadcast && broadcastDraft ? (
-                <BroadcastPanel
-                  weddingSlug={weddingSlug}
-                  draft={broadcastDraft}
-                  disabled={busy}
-                  onSent={onBroadcastSent}
-                  onCancel={cancelBroadcast}
-                />
-              ) : hasDataPanel && dataPanel ? (
-                <DataPanel panel={dataPanel} disabled={busy} onDismiss={() => setDataPanel(null)} />
-              ) : (
+              {renderActivePanel(true) ?? (
                 <Stack spacing={1.5} sx={{ alignItems: 'flex-start' }}>
                   <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 30 }} />
                   <Typography variant="body2" sx={{ color: COLORS.text.muted, lineHeight: 1.6 }}>
@@ -2003,7 +2030,10 @@ export function AgentChatPanel({
                 <ExpandMoreRoundedIcon sx={{ fontSize: 18, color: COLORS.text.subtle, flexShrink: 0 }} />
               </Box>
               <SecondaryActionButton size="small" onClick={moveOnFromFocus} disabled={busy} sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
-                Skip / move on
+                Skip
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, whiteSpace: 'pre' }}>
+                  {' / move on'}
+                </Box>
               </SecondaryActionButton>
             </>
           ) : (
@@ -2148,7 +2178,7 @@ export function AgentChatPanel({
       ) : (
       <>
       <Box sx={{ position: 'relative', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-      <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: 3 }}>
+      <Box ref={scrollRef} sx={{ flex: 1, overflowY: 'auto', p: { xs: 1.5, md: 3 } }}>
         {loadingHistory || (onboarding && items.length === 0) ? (
           // During onboarding the kickoff fires immediately — show a spinner,
           // not the generic starter prompts, so we land straight on the greeting.
@@ -2158,7 +2188,7 @@ export function AgentChatPanel({
               Setting up your planner…
             </Typography>
           </Stack>
-        ) : items.length === 0 ? (
+        ) : items.length === 0 && !mobilePanelOpen ? (
           <Stack spacing={2} alignItems="center" justifyContent="center" sx={{ minHeight: '100%', py: 6 }}>
             <AutoAwesomeRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 32 }} />
             <Typography variant="body1" sx={{ color: COLORS.text.muted, textAlign: 'center', maxWidth: 420 }}>
@@ -2301,6 +2331,33 @@ export function AgentChatPanel({
                 </Box>
               )
             )}
+            {/* Mobile: the active form/review panel rides inline at the end of
+                the conversation — a white card in the stream — instead of a
+                pane that shoves the chat down-screen. */}
+            {mobilePanelOpen && (
+              <Box
+                component={motion.div}
+                key={pendingQuestions?.actionId ?? 'mobile-panel'}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                sx={{
+                  alignSelf: 'stretch',
+                  bgcolor: COLORS.bg.white,
+                  border: `1px solid ${COLORS.border.light}`,
+                  borderRadius: RADII.lg,
+                  boxShadow: SHADOWS.card,
+                  p: 2,
+                }}
+              >
+                {renderActivePanel(false)}
+                {/* The captured-facts sentence lives under the form here (the
+                    side pane that usually hosts it doesn't exist on mobile). */}
+                {!!pendingQuestions && facts.length > 0 && (
+                  <Box sx={{ pt: 2, mt: 2, borderTop: `1px solid ${COLORS.border.faint}` }}>{renderFactSentence()}</Box>
+                )}
+              </Box>
+            )}
             {((busy && items[items.length - 1]?.kind !== 'assistant') || importProgress) && (
               <Stack spacing={0.75} sx={{ pl: 0.5, maxWidth: 320 }}>
                 <Stack direction="row" spacing={1} alignItems="center">
@@ -2380,7 +2437,7 @@ export function AgentChatPanel({
         )}
       </Box>
 
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ p: { xs: 1.25, md: 2 } }}>
         {(voice.error || voiceMode.error) && (
           <Typography variant="caption" sx={{ color: COLORS.text.subtle, px: 0.5, pb: 1, display: 'block' }}>
             {voice.error || voiceMode.error}
@@ -2413,7 +2470,9 @@ export function AgentChatPanel({
               voice.state === 'recording'
                 ? 'Listening… tap the mic again when you’re done'
                 : awaitingQuestions
-                  ? 'Use the form on the right, or just type / say it here…'
+                  ? isMobile
+                    ? 'Answer above, or just type it here…'
+                    : 'Use the form on the right, or just type / say it here…'
                   : 'Tell me what’s happening — Enter to send'
             }
             value={input}

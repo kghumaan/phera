@@ -204,6 +204,11 @@ function OnboardingLayoutContent({
 
   const TOP_NAV_HEIGHT = { xs: '48px', md: '56px' };
 
+  // The assistant (Planner) page is a full-height chat surface — on mobile it
+  // needs to own nearly the whole viewport, so the layout's page padding is
+  // tightened to a slim gutter there. Desktop is unchanged.
+  const isAssistantPage = pathname.endsWith('/assistant') || pathname.endsWith('/assistant/');
+
   return (
     <AdminRoleProvider role={adminRole}>
     <AutoSaveProvider>
@@ -215,7 +220,18 @@ function OnboardingLayoutContent({
           onMenuToggle={() => setMobileOpen(!mobileOpen)}
         />
 
-        <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+        {/* 100dvh (not 100vh) so the row matches the VISIBLE mobile viewport —
+            with 100vh the browser URL bar makes the page taller than the
+            screen, pushing the chat composer off-screen and letting content
+            slide under the fixed top nav. */}
+        <Box
+          sx={{
+            display: 'flex',
+            height: '100vh',
+            '@supports (height: 100dvh)': { height: '100dvh' },
+            overflow: 'hidden',
+          }}
+        >
           {/* Left Sidebar Navigation */}
           <OnboardingSidebar
             weddingSlug={weddingSlug}
@@ -253,8 +269,11 @@ function OnboardingLayoutContent({
                   })()
                 },
                 bgcolor: COLORS.bg.white,
-                p: { xs: 2, md: 4 },
-                pt: { xs: `calc(${TOP_NAV_HEIGHT.xs} + 8px)`, md: `calc(${TOP_NAV_HEIGHT.md} + 32px)` },
+                p: { xs: isAssistantPage ? 1 : 2, md: 4 },
+                pt: {
+                  xs: `calc(${TOP_NAV_HEIGHT.xs} + ${isAssistantPage ? '4px' : '8px'})`,
+                  md: `calc(${TOP_NAV_HEIGHT.md} + 32px)`,
+                },
                 height: '100%',
                 overflowY: 'auto',
                 position: 'relative',
