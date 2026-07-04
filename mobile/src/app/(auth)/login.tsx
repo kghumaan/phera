@@ -154,6 +154,17 @@ export default function LoginScreen() {
                 Preview mode — any email works, data is mocked
               </PheraText>
             ) : null}
+
+            <PheraText
+              variant="body2"
+              align="center"
+              color={COLORS.brand.primary}
+              onPress={() => router.push('/guest/priya-rahul-2026' as never)}
+              accessibilityRole="link"
+              testID="guest-entry-link"
+            >
+              I&apos;m a wedding guest →
+            </PheraText>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

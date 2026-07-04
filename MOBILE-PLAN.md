@@ -128,14 +128,14 @@ Statuses: `[ ]` todo · `[~]` in progress · `[x]` built + verified
 - [ ] **Knowledge bank** — `admin/[slug]/knowledge-bank`
 - [ ] **WhatsApp bot** settings — `admin/[slug]/whatsapp-bot`
 
-### Phase 5 — Guest experience (`(guest)/[weddingSlug]` portal)
-- [ ] Guest access/auth (name-match / password / pin flows via `/api/access/*`)
-- [ ] Wedding home + **details** + FAQ + registry + where-to-shop
-- [ ] **Schedule & events** (guest view, per-event access rules)
-- [ ] **RSVP flow** (multi-event, guest_count, dietary; CTA radius 24) 
-- [ ] **Travel form + travel details** (flight collection, `logistics_data` conventions)
+### Phase 5 — Guest experience (mobile routes live under `/guest/[weddingSlug]` to avoid admin path collision)
+- [x] Guest access/auth — two-step gate (wedding password → name match) calling the same `/api/access/*` routes; session mirrors web localStorage keys in AsyncStorage with 24h TTL, "switch guest" supported
+- [~] Wedding home ✓ (serif hero, radius-24 RSVP/View Details CTAs) + **details hub** ✓ + FAQ ✓ (accordions); registry + where-to-shop pending
+- [~] **Schedule & events** ✓ (guest views with dress codes + ritual names); per-guest `guest_event_access` filtering still TODO (needs API reachability)
+- [x] **RSVP flow** — attending picker, party-size stepper, food-preference chips, dietary + message, submit works (upsert contract matches web `submitRSVP`: `guest_id,event_id,wedding_id`, event 'general')
+- [ ] **Travel form + travel details** (flight collection, `guest_flights` conventions)
 - [ ] **Transportation** (shuttle times, pickup info)
-- [ ] **Cultural guide** (the "reverse destination guest" feature)
+- [ ] **Cultural guide** (derived from wedding_events — the "reverse destination guest" feature)
 
 ### Phase 6 — Remaining admin + account
 - [ ] Collaborators, Event access, RSVP-form builder (read/simple-edit; complex building links to web), FAQ editor, Registry editor, Where-to-shop editor
@@ -173,6 +173,7 @@ Phases ship in order; within a phase, screens ship one at a time, each fully ver
 
 ## 8. Session log
 
+- **2026-07-04 (session 5)** — Guest portal (Phase 5 core): access gate (password → name match, preview accepts any 4+ char password), home hero, details hub, guest schedule/events/FAQ, and a working RSVP flow (verified end-to-end: gate → pick Anita → RSVP yes, party 2, vegetarian → submitted). Guest routes live at `/guest/[weddingSlug]`; session helpers in `src/lib/guest/`. Login screen gained an "I'm a wedding guest →" entry link. All zero page errors; mobile 8/8, root 1444 green.
 - **2026-07-04 (session 4)** — Room Assignments, Tasks (with working move-column mutation), Messaging (broadcast delivery/reply progress), Concierge (stats + conversations). Preview sessions now persist across reloads (AsyncStorage). Screen scroll content got safe-area bottom padding (+48) so nothing crowds the home indicator. All four screens + full tab/detail regression sweeps verified at 390×844, zero page errors; mobile 8/8, root 1444 green. wedding_id key cheat-sheet: rooms/broadcasts = slug; tasks/chat_history = UUID.
 - **2026-07-04 (session 3)** — Wedding Details, Travel (guest flights by arrival day + shuttle prefs), Transportation (vehicles with live capacity, reservations, direction toggle). **Navigation restructure:** admin is now a Stack containing a `(tabs)` group, with detail screens (responses/details/travel/transportation) pushed above the tab bar — hidden-tab (`href: null`) screens broke back-navigation on web (scene overlay kept intercepting taps). **Bug fixed by verification:** `useLocalSearchParams` returns `{}` on tab screens mounted by tab press — all screens now use `useWeddingSlug()` (`src/lib/nav.ts`) which falls back to `useGlobalSearchParams`. Travel/transport tables key on wedding UUID (like schedule); `guest_flights`/`guest_hotels` are dedicated tables, NOT `logistics_data`. All flows re-verified (details/travel/transport sweep + full tab regression), zero page errors; mobile 8/8, root 1444 green.
 - **2026-07-04 (session 2)** — Data layer + core screens. `src/lib/data/` hooks run the same Supabase queries as web (guests/rsvps by slug, events/schedule by UUID — a `weddings` table DOES exist despite older CLAUDE.md wording; `useWeddings` unions owned + `wedding_admins`). Preview mode routes the same hooks to fixtures. Shipped: wedding switcher, real Overview stats, Guest List (search/filters/detail sheet/add guest with in-preview persistence), Guest Responses, Schedule timeline, Planner chat UI with streaming (mock script in preview), PheraSheet, pull-to-refresh + haptics. All flows exercised end-to-end via Playwright at 390×844, zero page errors. **Environment gotchas learned:** Metro's file watcher doesn't work in this container — restart `expo start` after editing before re-verifying; RNW drops `testID` on Pressable/View (works on TextInput) — use `accessibilityLabel` for e2e selectors.

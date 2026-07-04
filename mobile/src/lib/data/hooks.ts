@@ -4,6 +4,7 @@ import {
   FIXTURE_BROADCASTS,
   FIXTURE_CONCIERGE,
   FIXTURE_EVENTS,
+  FIXTURE_FAQS,
   FIXTURE_FLIGHTS,
   FIXTURE_GUESTS,
   FIXTURE_RESERVATIONS,
@@ -393,6 +394,83 @@ export function useConcierge(weddingId: string | undefined) {
         avgResponseTimeSec: gapCount ? Math.round(gapSum / gapCount) : null,
         conversations,
       };
+    },
+  });
+}
+
+export interface WeddingFaq {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+export function useFaqs(weddingId: string | undefined) {
+  return useQuery({
+    queryKey: ['faqs', weddingId],
+    enabled: !!weddingId,
+    queryFn: async (): Promise<WeddingFaq[]> => {
+      if (!supabase) return FIXTURE_FAQS;
+      const { data, error } = await supabase
+        .from('wedding_faqs')
+        .select('*')
+        .eq('wedding_id', weddingId!) // UUID
+        .order('order_index', { ascending: true });
+      if (error) throw error;
+      return data as WeddingFaq[];
+    },
+  });
+}
+
+export interface GuestRsvpInput {
+  guestId: string;
+  attending: 'yes' | 'no' | 'maybe';
+  guestCount: number;
+  foodPreference: string[];
+  dietaryRestrictions: string;
+  specialMessage: string;
+}
+
+export function useSubmitGuestRsvp(slug: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: GuestRsvpInput) => {
+      if (!supabase) {
+        previewGuests = previewGuests.map((g) =>
+          g.id === input.guestId
+            ? {
+                ...g,
+                rsvps: [
+                  {
+                    attending: input.attending,
+                    guest_count: input.attending === 'no' ? 0 : input.guestCount,
+                    created_at: new Date().toISOString(),
+                  },
+                ],
+              }
+            : g,
+        );
+        return;
+      }
+      // Same upsert contract as web submitRSVP (rsvp-service.ts):
+      // one row per guest, event_id 'general', slug-keyed.
+      const { error } = await supabase.from('rsvps').upsert(
+        {
+          guest_id: input.guestId,
+          wedding_id: slug,
+          event_id: 'general',
+          attending: input.attending,
+          guest_count: input.attending === 'no' ? 0 : input.guestCount,
+          food_preference: input.foodPreference.length ? input.foodPreference : null,
+          dietary_restrictions: input.dietaryRestrictions || null,
+          special_message: input.specialMessage || null,
+        },
+        { onConflict: 'guest_id,event_id,wedding_id' },
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['rsvps', slug] });
+      qc.invalidateQueries({ queryKey: ['guests', slug] });
     },
   });
 }

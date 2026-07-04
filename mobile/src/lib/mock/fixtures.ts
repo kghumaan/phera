@@ -178,6 +178,19 @@ export const FIXTURE_CONCIERGE: ConciergeStats = {
   ],
 };
 
+export interface FixtureFaq {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+export const FIXTURE_FAQS: FixtureFaq[] = [
+  { id: 'q1', question: 'What should I wear?', answer: 'Indian festive attire is encouraged but not required — bright colors welcome! The haldi is casual (wear yellow if you can, and nothing you mind getting turmeric on). The reception is black tie / formal Indian.' },
+  { id: 'q2', question: 'Can I bring a plus-one?', answer: 'Check your invitation — if your RSVP shows a plus-one option, yes! Otherwise message us on WhatsApp and we will do our best.' },
+  { id: 'q3', question: 'Will there be vegetarian food?', answer: 'Absolutely. Every meal has vegetarian, vegan, and Jain options. Tell us about allergies in your RSVP.' },
+  { id: 'q4', question: 'Is there a shuttle from the airport?', answer: 'Yes — share your flight details after you RSVP and we will assign you a pickup on arrival day.' },
+];
+
 export const MOCK_USER = {
   id: 'preview-user',
   email: 'preview@phera.io',
