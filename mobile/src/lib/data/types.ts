@@ -96,6 +96,44 @@ export interface ScheduleDay {
   events: ScheduleItem[];
 }
 
+export interface GuestFlight {
+  id: string;
+  guest_id: string | null;
+  airline: string | null;
+  flight_number: string | null;
+  departure_airport: string | null;
+  arrival_airport: string | null;
+  departure_datetime: string | null; // "YYYY-MM-DDTHH:mm:00"
+  arrival_datetime: string | null;
+  shuttle_preference_time: string | null;
+  /** Embedded via select('*, guest:guests(id, name, email, phone)'). */
+  guest: { id: string; name: string } | null;
+}
+
+export interface Vehicle {
+  id: string;
+  direction: 'arrival' | 'departure';
+  vehicle_name: string | null;
+  capacity: number;
+  departure_datetime: string;
+  pickup_location: string | null;
+  dropoff_location: string | null;
+  /** Computed client-side from non-cancelled reservations (web pattern). */
+  booked: number;
+  available: number;
+}
+
+export interface Reservation {
+  id: string;
+  guest_id: string | null;
+  direction: 'arrival' | 'departure';
+  vehicle_id: string | null;
+  party_size: number | null;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  notes: string | null; // manual entries store the guest name here
+  guest: { id: string; name: string } | null;
+}
+
 /** Client-side RSVP aggregate — mirrors web overview/guest-responses math. */
 export interface RsvpStats {
   attendingResponses: number;

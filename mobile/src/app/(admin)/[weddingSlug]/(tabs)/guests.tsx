@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 
@@ -18,6 +17,7 @@ import {
 import { useAddGuest, useGuests } from '@/lib/data/hooks';
 import type { Attending, Guest, WeddingSide } from '@/lib/data/types';
 import { COLORS, RADII } from '@/lib/theme/tokens';
+import { useWeddingSlug } from '@/lib/nav';
 
 const SIDE_TONE: Record<WeddingSide, PheraChipTone> = {
   bride: 'side-bride',
@@ -254,7 +254,7 @@ function AddGuestSheet({
 }
 
 export default function GuestsScreen() {
-  const { weddingSlug } = useLocalSearchParams<{ weddingSlug: string }>();
+  const weddingSlug = useWeddingSlug();
   const guests = useGuests(weddingSlug);
 
   const [search, setSearch] = useState('');

@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 
 import { Screen } from '@/components/Screen';
@@ -8,6 +8,7 @@ import { useGuests, useRsvps, useWedding } from '@/lib/data/hooks';
 import { aggregateRsvps } from '@/lib/data/types';
 import { FIXTURE_NEXT_ACTIONS } from '@/lib/mock/fixtures';
 import { COLORS } from '@/lib/theme/tokens';
+import { useWeddingSlug } from '@/lib/nav';
 
 function daysToGo(dateISO: string): number {
   const diff = new Date(dateISO).getTime() - Date.now();
@@ -15,7 +16,7 @@ function daysToGo(dateISO: string): number {
 }
 
 export default function OverviewScreen() {
-  const { weddingSlug } = useLocalSearchParams<{ weddingSlug: string }>();
+  const weddingSlug = useWeddingSlug();
   const router = useRouter();
 
   const wedding = useWedding(weddingSlug);

@@ -1,64 +1,23 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Redirect, Tabs } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 
 import { useAuth } from '@/lib/auth/AuthContext';
-import { COLORS, FONT } from '@/lib/theme/tokens';
 
-export default function AdminTabsLayout() {
+/**
+ * Admin navigator: a stack whose base is the tab bar, with detail
+ * screens (responses, details, travel, transportation) pushed above it.
+ */
+export default function AdminStackLayout() {
   const { user, loading } = useAuth();
 
   if (!loading && !user) return <Redirect href="/login" />;
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: COLORS.brand.primary,
-        tabBarInactiveTintColor: COLORS.text.subtle,
-        tabBarLabelStyle: { fontFamily: FONT.medium, fontSize: 11 },
-        tabBarStyle: {
-          backgroundColor: COLORS.bg.white,
-          borderTopColor: COLORS.border.light,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="overview"
-        options={{
-          title: 'Overview',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="guests"
-        options={{
-          title: 'Guests',
-          tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="planner"
-        options={{
-          title: 'Planner',
-          tabBarIcon: ({ color, size }) => <Ionicons name="sparkles-outline" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="schedule"
-        options={{
-          title: 'Schedule',
-          tabBarIcon: ({ color, size }) => <Ionicons name="calendar-outline" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="more"
-        options={{
-          title: 'More',
-          tabBarIcon: ({ color, size }) => <Ionicons name="menu-outline" size={size} color={color} />,
-        }}
-      />
-      {/* Stack-style screens that live under the tabs but not in the bar. */}
-      <Tabs.Screen name="responses" options={{ href: null }} />
-    </Tabs>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="responses" />
+      <Stack.Screen name="details" />
+      <Stack.Screen name="travel" />
+      <Stack.Screen name="transportation" />
+    </Stack>
   );
 }

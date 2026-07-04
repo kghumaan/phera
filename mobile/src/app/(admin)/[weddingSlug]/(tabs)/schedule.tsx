@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, View } from 'react-native';
 
 import { Screen } from '@/components/Screen';
@@ -13,6 +12,7 @@ import {
 import { useSchedule, useWedding } from '@/lib/data/hooks';
 import type { ScheduleItem } from '@/lib/data/types';
 import { COLORS } from '@/lib/theme/tokens';
+import { useWeddingSlug } from '@/lib/nav';
 
 function prettyDate(iso: string): string {
   const d = new Date(`${iso}T00:00:00`);
@@ -64,7 +64,7 @@ function TimelineRow({ item, last }: { item: ScheduleItem; last: boolean }) {
 }
 
 export default function ScheduleScreen() {
-  const { weddingSlug } = useLocalSearchParams<{ weddingSlug: string }>();
+  const weddingSlug = useWeddingSlug();
   const wedding = useWedding(weddingSlug);
   const schedule = useSchedule(wedding.data?.id);
 

@@ -6,17 +6,27 @@ import { Screen } from '@/components/Screen';
 import { PageHeading, PheraButton, PheraCard, PheraText } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { COLORS } from '@/lib/theme/tokens';
+import { useWeddingSlug } from '@/lib/nav';
 
-const ITEMS = [
-  { icon: 'airplane-outline', label: 'Travel', hint: 'Phase 3' },
-  { icon: 'bus-outline', label: 'Transportation', hint: 'Phase 3' },
+type Item = {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  route?: 'details' | 'travel' | 'transportation';
+  hint?: string;
+};
+
+const ITEMS: Item[] = [
+  { icon: 'information-circle-outline', label: 'Wedding details', route: 'details' },
+  { icon: 'airplane-outline', label: 'Travel', route: 'travel' },
+  { icon: 'bus-outline', label: 'Transportation', route: 'transportation' },
   { icon: 'bed-outline', label: 'Room assignments', hint: 'Phase 3' },
   { icon: 'chatbubbles-outline', label: 'Messaging', hint: 'Phase 4' },
   { icon: 'headset-outline', label: 'Concierge', hint: 'Phase 4' },
   { icon: 'settings-outline', label: 'Settings', hint: 'Phase 6' },
-] as const;
+];
 
 export default function MoreScreen() {
+  const weddingSlug = useWeddingSlug();
   const router = useRouter();
   const { user, signOut } = useAuth();
 
@@ -26,15 +36,23 @@ export default function MoreScreen() {
 
       <View style={{ gap: 10 }}>
         {ITEMS.map((item) => (
-          <PheraCard key={item.label}>
+          <PheraCard
+            key={item.label}
+            accessibilityLabel={item.route ? `Open ${item.label}` : undefined}
+            onPress={item.route ? () => router.push(`/${weddingSlug}/${item.route}` as never) : undefined}
+          >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <Ionicons name={item.icon} size={20} color={COLORS.text.muted} />
               <PheraText variant="body" weight={500} style={{ flex: 1 }}>
                 {item.label}
               </PheraText>
-              <PheraText variant="body2" color={COLORS.text.faint}>
-                {item.hint}
-              </PheraText>
+              {item.route ? (
+                <Ionicons name="chevron-forward" size={18} color={COLORS.text.faint} />
+              ) : (
+                <PheraText variant="body2" color={COLORS.text.faint}>
+                  {item.hint}
+                </PheraText>
+              )}
             </View>
           </PheraCard>
         ))}

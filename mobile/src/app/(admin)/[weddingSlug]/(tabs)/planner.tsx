@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
   FlatList,
@@ -20,6 +19,7 @@ import {
 } from '@/lib/agent/client';
 import { isPreviewMode } from '@/lib/supabase/client';
 import { COLORS, FONT, RADII, TEXT } from '@/lib/theme/tokens';
+import { useWeddingSlug } from '@/lib/nav';
 
 type ChatItem =
   | { kind: 'user'; id: string; text: string }
@@ -36,7 +36,7 @@ const uid = () => `m${++nextId}`;
  * starter chips on the empty state.
  */
 export default function PlannerScreen() {
-  const { weddingSlug } = useLocalSearchParams<{ weddingSlug: string }>();
+  const weddingSlug = useWeddingSlug();
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<ChatItem>>(null);
 

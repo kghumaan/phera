@@ -2,17 +2,23 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   FIXTURE_EVENTS,
+  FIXTURE_FLIGHTS,
   FIXTURE_GUESTS,
+  FIXTURE_RESERVATIONS,
   FIXTURE_RSVPS,
   FIXTURE_SCHEDULE,
+  FIXTURE_VEHICLES,
   FIXTURE_WEDDING,
 } from '@/lib/mock/fixtures';
 import { supabase } from '@/lib/supabase/client';
 import type {
   Guest,
+  GuestFlight,
+  Reservation,
   Rsvp,
   ScheduleDay,
   ScheduleItem,
+  Vehicle,
   Wedding,
   WeddingEvent,
 } from './types';
@@ -168,6 +174,68 @@ export function useEvents(weddingId: string | undefined) {
         .order('order_index', { ascending: true });
       if (error) throw error;
       return data as WeddingEvent[];
+    },
+  });
+}
+
+export function useGuestFlights(weddingId: string | undefined) {
+  return useQuery({
+    queryKey: ['guest-flights', weddingId],
+    enabled: !!weddingId,
+    queryFn: async (): Promise<GuestFlight[]> => {
+      if (!supabase) return FIXTURE_FLIGHTS;
+      // Same join as web getAllGuestFlights (travel-service.ts:255).
+      const { data, error } = await supabase
+        .from('guest_flights')
+        .select('*, guest:guests(id, name, email, phone)')
+        .eq('wedding_id', weddingId!) // UUID
+        .order('arrival_datetime', { ascending: true });
+      if (error) throw error;
+      return data as unknown as GuestFlight[];
+    },
+  });
+}
+
+export function useVehiclesWithCapacity(weddingId: string | undefined) {
+  return useQuery({
+    queryKey: ['vehicles', weddingId],
+    enabled: !!weddingId,
+    queryFn: async (): Promise<Vehicle[]> => {
+      if (!supabase) return FIXTURE_VEHICLES;
+      // Mirrors web getAllVehiclesWithCapacity (transportation-service.ts:649):
+      // embed reservations, sum non-cancelled party sizes client-side.
+      const { data, error } = await supabase
+        .from('transportation_vehicles')
+        .select('*, transportation_reservations(party_size, status)')
+        .eq('wedding_id', weddingId!) // UUID
+        .order('order_index', { ascending: true });
+      if (error) throw error;
+      type Row = Omit<Vehicle, 'booked' | 'available'> & {
+        transportation_reservations: { party_size: number | null; status: string | null }[];
+      };
+      return (data as unknown as Row[]).map(({ transportation_reservations, ...v }) => {
+        const booked = transportation_reservations
+          .filter((r) => r.status !== 'cancelled')
+          .reduce((sum, r) => sum + (r.party_size ?? 1), 0);
+        return { ...v, booked, available: Math.max(0, v.capacity - booked) };
+      });
+    },
+  });
+}
+
+export function useReservations(weddingId: string | undefined) {
+  return useQuery({
+    queryKey: ['reservations', weddingId],
+    enabled: !!weddingId,
+    queryFn: async (): Promise<Reservation[]> => {
+      if (!supabase) return FIXTURE_RESERVATIONS;
+      const { data, error } = await supabase
+        .from('transportation_reservations')
+        .select('*, guest:guests(id, name)')
+        .eq('wedding_id', weddingId!) // UUID
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data as unknown as Reservation[];
     },
   });
 }

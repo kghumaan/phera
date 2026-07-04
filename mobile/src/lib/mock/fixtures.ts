@@ -1,7 +1,10 @@
 import type {
   Guest,
+  GuestFlight,
+  Reservation,
   Rsvp,
   ScheduleDay,
+  Vehicle,
   Wedding,
   WeddingEvent,
 } from '@/lib/data/types';
@@ -116,6 +119,26 @@ export const FIXTURE_SCHEDULE: ScheduleDay[] = [
       { id: 'si7', schedule_id: 's3', name: 'Reception & Dinner', time: '7:30 PM', location: 'Grand Ballroom', description: 'Cocktails, dinner & dancing', order_index: 0, is_major_event: true },
     ],
   },
+];
+
+export const FIXTURE_FLIGHTS: GuestFlight[] = [
+  { id: 'f1', guest_id: 'g1', airline: 'United', flight_number: 'UA 48', departure_airport: 'SFO', arrival_airport: 'UDR', departure_datetime: '2026-11-16T21:15:00', arrival_datetime: '2026-11-17T14:30:00', shuttle_preference_time: '3:00 PM', guest: { id: 'g1', name: 'Anita Sharma' } },
+  { id: 'f2', guest_id: 'g2', airline: 'Air India', flight_number: 'AI 172', departure_airport: 'SFO', arrival_airport: 'UDR', departure_datetime: '2026-11-16T23:40:00', arrival_datetime: '2026-11-17T16:05:00', shuttle_preference_time: '5:00 PM', guest: { id: 'g2', name: 'Vikram Mehta' } },
+  { id: 'f3', guest_id: 'g5', airline: 'IndiGo', flight_number: '6E 214', departure_airport: 'BOM', arrival_airport: 'UDR', departure_datetime: '2026-11-17T09:10:00', arrival_datetime: '2026-11-17T10:25:00', shuttle_preference_time: null, guest: { id: 'g5', name: 'Meera & Raj Kapoor' } },
+  { id: 'f4', guest_id: 'g8', airline: 'British Airways', flight_number: 'BA 139', departure_airport: 'LHR', arrival_airport: 'UDR', departure_datetime: '2026-11-17T10:20:00', arrival_datetime: '2026-11-18T04:45:00', shuttle_preference_time: '6:00 AM', guest: { id: 'g8', name: 'Rohan Gupta' } },
+];
+
+export const FIXTURE_VEHICLES: Vehicle[] = [
+  { id: 'v1', direction: 'arrival', vehicle_name: 'Shuttle A — Airport loop', capacity: 12, departure_datetime: '2026-11-17T15:00:00', pickup_location: 'Udaipur Airport', dropoff_location: 'The Oberoi Udaivilas', booked: 8, available: 4 },
+  { id: 'v2', direction: 'arrival', vehicle_name: 'Shuttle B — Evening pickup', capacity: 12, departure_datetime: '2026-11-17T18:00:00', pickup_location: 'Udaipur Airport', dropoff_location: 'The Oberoi Udaivilas', booked: 12, available: 0 },
+  { id: 'v3', direction: 'departure', vehicle_name: 'Return coach', capacity: 30, departure_datetime: '2026-11-21T09:00:00', pickup_location: 'The Oberoi Udaivilas', dropoff_location: 'Udaipur Airport', booked: 11, available: 19 },
+];
+
+export const FIXTURE_RESERVATIONS: Reservation[] = [
+  { id: 'tr1', guest_id: 'g1', direction: 'arrival', vehicle_id: 'v1', party_size: 2, status: 'confirmed', notes: null, guest: { id: 'g1', name: 'Anita Sharma' } },
+  { id: 'tr2', guest_id: 'g2', direction: 'arrival', vehicle_id: 'v2', party_size: 1, status: 'pending', notes: null, guest: { id: 'g2', name: 'Vikram Mehta' } },
+  { id: 'tr3', guest_id: 'g8', direction: 'arrival', vehicle_id: null, party_size: 2, status: 'pending', notes: null, guest: { id: 'g8', name: 'Rohan Gupta' } },
+  { id: 'tr4', guest_id: null, direction: 'departure', vehicle_id: 'v3', party_size: 3, status: 'confirmed', notes: 'Sharma cousins (manual)', guest: null },
 ];
 
 export const MOCK_USER = {

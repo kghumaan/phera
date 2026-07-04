@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 
 import { Screen } from '@/components/Screen';
@@ -14,6 +14,7 @@ import {
 import { useRsvps } from '@/lib/data/hooks';
 import { aggregateRsvps, type Rsvp } from '@/lib/data/types';
 import { COLORS } from '@/lib/theme/tokens';
+import { useWeddingSlug } from '@/lib/nav';
 
 function attendingChip(attending: Rsvp['attending']) {
   switch (attending) {
@@ -38,7 +39,7 @@ function StatPill({ value, label, color }: { value: number; label: string; color
 }
 
 export default function ResponsesScreen() {
-  const { weddingSlug } = useLocalSearchParams<{ weddingSlug: string }>();
+  const weddingSlug = useWeddingSlug();
   const router = useRouter();
   const rsvps = useRsvps(weddingSlug);
 
