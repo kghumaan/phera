@@ -8,7 +8,6 @@
     "scheme": "phera",
     "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/expo.icon",
       "bundleIdentifier": "io.phera.app",
       "supportsTablet": false
     },

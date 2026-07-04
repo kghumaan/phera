@@ -1,56 +1,56 @@
-# Welcome to your Expo app 👋
+# Phera Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+React Native app (Expo SDK 57 + expo-router) for iOS and Android.
+Grand plan + living screen tracker: [`../MOBILE-PLAN.md`](../MOBILE-PLAN.md).
 
-## Get started
+## Run it on your iPhone today (Expo Go)
 
-1. Install dependencies
-
+1. Install **Expo Go** from the App Store.
+2. On your Mac (same Wi-Fi as the phone):
    ```bash
+   cd mobile
    npm install
-   ```
-
-2. Start the app
-
-   ```bash
    npx expo start
    ```
+3. Scan the QR code with the iPhone camera → opens in Expo Go.
 
-In the output, you'll find options to open the app in a
+**No `.env` needed** — without one the app runs in **preview mode** (mock
+Priya & Rahul wedding, "Preview data" badge, every screen browsable, writes
+persist in-session). For live data, copy `.env.example` → `.env` and fill in
+the Supabase URL + anon key (same values as the web app's
+`NEXT_PUBLIC_SUPABASE_*`), then restart `expo start`.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Web preview (no phone): `npx expo start --web`.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## TestFlight (when you want real installs)
 
-## Get a fresh project
-
-When you're ready, run:
+One-time setup: an [Expo account](https://expo.dev) (free) and an Apple
+Developer membership ($99/yr). Then:
 
 ```bash
-npm run reset-project
+npm install -g eas-cli
+eas login
+cd mobile
+eas build --platform ios --profile production   # cloud build, ~15 min
+eas submit --platform ios                        # uploads to TestFlight
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+`eas.json` profiles are already configured (development / preview /
+production). First run walks you through Apple credentials automatically.
+Android internal testing works the same with `--platform android`.
 
-### Other setup steps
+## Development
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npm run typecheck   # tsc --noEmit
+npm test            # vitest (includes web↔mobile token-sync test)
+```
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Design tokens: `src/lib/theme/tokens.ts` — must stay in sync with the web
+  `lib/theme/tokens.ts` (enforced by `tests/token-sync.test.ts`).
+- Guest background convention: see `src/components/guest/GuestChrome.tsx`
+  and MOBILE-PLAN.md §2 — check the web page's `OptimizedBackground` before
+  adding a screen.
+- Visual verification loop (cloud sessions): web app runs with
+  `NEXT_PUBLIC_PHERA_MOCK=1` as the screenshot baseline; every mobile screen
+  is compared at 390×844 before it ships.

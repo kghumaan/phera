@@ -151,7 +151,7 @@ Statuses: `[ ]` todo · `[~]` in progress · `[x]` built + verified
 ### Phase 6 — Remaining admin + account
 - [ ] Collaborators, Event access, RSVP-form builder (read/simple-edit; complex building links to web), FAQ editor, Registry editor, Where-to-shop editor
 - [ ] Vendor management + marketplace (browse/save/contact)
-- [ ] Settings, Account (billing status; upgrade → web checkout in in-app browser sheet), Support
+- [~] Settings ✓ (guest-site link with native share, wedding password reveal, publish + concierge status, signed-in account, sign out); Account billing/upgrade + Support pending
 - [ ] Onboarding for new couples (port `app/onboarding` wizard, or v1: "create your wedding on web" hand-off — decide when we get here)
 
 ### Phase 7 — Native polish & store readiness
@@ -159,8 +159,8 @@ Statuses: `[ ]` todo · `[~]` in progress · `[x]` built + verified
 - [ ] Deep links + universal links (`phera.io/*` → app), magic-link auth via deep link
 - [ ] Offline behavior (Query persistence, optimistic writes, retry queues)
 - [ ] Haptics, pull-to-refresh everywhere, skeleton loaders, error boundaries
-- [ ] App icons, splash, store listings, privacy manifests (Apple privacy nutrition labels; DPDPA-aligned data disclosure)
-- [ ] EAS Build profiles (dev/preview/production), TestFlight + Play internal track
+- [~] App icons ✓ (lotus-flame on brand pink, generated from public/logo-lotus-flame assets: iOS icon, Android adaptive set, splash on paper, favicon); store listings + privacy manifests pending
+- [x] EAS Build profiles (dev/preview/production in `mobile/eas.json`); TestFlight submission steps documented in `mobile/README.md` — needs Kanwar's Expo login + Apple Developer account, runs from his machine
 - [ ] Sentry React Native
 
 ---
@@ -184,6 +184,7 @@ Phases ship in order; within a phase, screens ship one at a time, each fully ver
 
 ## 8. Session log
 
+- **2026-07-04 (session 7)** — Store readiness + Settings. Phera-branded app icons generated from the lotus-flame logo (iOS 1024, Android adaptive fg/bg/mono, splash on paper, favicon), `eas.json` build profiles, rewritten `mobile/README.md` with Expo Go and TestFlight instructions. Guest backgrounds corrected to the audited web sources (pearl/jade/aquarium/theme-resolver) earlier this session. New admin Settings screen (guest link share, password reveal, publish/concierge status chips, account + sign out) wired from More. Verified, zero page errors, tests green.
 - **2026-07-04 (session 6)** — **Web-comparison workflow + guest visual parity.** Added env-gated web mock mode (`lib/mock/mock-wedding-data.ts` + a guarded early-return in `WeddingContext.fetchWeddingData`, active only when `NEXT_PUBLIC_PHERA_MOCK=1`; production untouched) so `next dev` renders guest pages without a DB — these are now the screenshot baseline. Rebuilt the guest screens that diverged: **RSVP is now the web's multi-step wizard** (X + tracked title, white card with dark border, segmented progress, exact step headings/copy/emojis, list-row radios, uppercase BACK/NEXT; login step intentionally skipped — mobile guests are already gate-identified), **details hub** is the centered caps menu with champagne diamond ornaments on ivory texture, **schedule** matches the web day-cards (caps day headings, pink accent bars, time right, location pins, More Details links) on sage texture, **home** has the live countdown pill + serif hero + pinned RSVP pill, and events/FAQ/cultural/travel adopted the shared `GuestScreen` chrome (circular back button + tracked caps title). Global top-padding bump (admin screens `insets.top+24`; guest header is its own 56px row). All flows re-verified, zero page errors; mobile 8/8, root 1444 green.
 - **2026-07-04 (session 5)** — Guest portal (Phase 5 core): access gate (password → name match, preview accepts any 4+ char password), home hero, details hub, guest schedule/events/FAQ, and a working RSVP flow (verified end-to-end: gate → pick Anita → RSVP yes, party 2, vegetarian → submitted). Guest routes live at `/guest/[weddingSlug]`; session helpers in `src/lib/guest/`. Login screen gained an "I'm a wedding guest →" entry link. All zero page errors; mobile 8/8, root 1444 green.
 - **2026-07-04 (session 4)** — Room Assignments, Tasks (with working move-column mutation), Messaging (broadcast delivery/reply progress), Concierge (stats + conversations). Preview sessions now persist across reloads (AsyncStorage). Screen scroll content got safe-area bottom padding (+48) so nothing crowds the home indicator. All four screens + full tab/detail regression sweeps verified at 390×844, zero page errors; mobile 8/8, root 1444 green. wedding_id key cheat-sheet: rooms/broadcasts = slug; tasks/chat_history = UUID.

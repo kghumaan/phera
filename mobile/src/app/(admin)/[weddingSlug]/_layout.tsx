@@ -22,6 +22,7 @@ export default function AdminStackLayout() {
       <Stack.Screen name="tasks" />
       <Stack.Screen name="messaging" />
       <Stack.Screen name="concierge" />
+      <Stack.Screen name="settings" />
     </Stack>
   );
 }

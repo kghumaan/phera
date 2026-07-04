@@ -454,6 +454,28 @@ export function useConcierge(weddingId: string | undefined) {
   });
 }
 
+export interface WeddingSettings {
+  wedding_password: string | null;
+  concierge_enabled: boolean | null;
+}
+
+export function useSettings(weddingId: string | undefined) {
+  return useQuery({
+    queryKey: ['settings', weddingId],
+    enabled: !!weddingId,
+    queryFn: async (): Promise<WeddingSettings | null> => {
+      if (!supabase) return { wedding_password: 'udaipur2026', concierge_enabled: true };
+      const { data, error } = await supabase
+        .from('wedding_settings')
+        .select('wedding_password, concierge_enabled')
+        .eq('wedding_id', weddingId!) // UUID
+        .maybeSingle();
+      if (error) throw error;
+      return data as WeddingSettings | null;
+    },
+  });
+}
+
 export interface WeddingFaq {
   id: string;
   question: string;

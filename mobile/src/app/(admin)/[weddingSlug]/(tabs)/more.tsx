@@ -11,7 +11,7 @@ import { useWeddingSlug } from '@/lib/nav';
 type Item = {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
-  route?: 'details' | 'travel' | 'transportation' | 'rooms' | 'tasks' | 'messaging' | 'concierge';
+  route?: 'details' | 'travel' | 'transportation' | 'rooms' | 'tasks' | 'messaging' | 'concierge' | 'settings';
   hint?: string;
 };
 
@@ -23,7 +23,7 @@ const ITEMS: Item[] = [
   { icon: 'checkbox-outline', label: 'Tasks', route: 'tasks' },
   { icon: 'chatbubbles-outline', label: 'Messaging', route: 'messaging' },
   { icon: 'headset-outline', label: 'Concierge', route: 'concierge' },
-  { icon: 'settings-outline', label: 'Settings', hint: 'Phase 6' },
+  { icon: 'settings-outline', label: 'Settings', route: 'settings' },
 ];
 
 export default function MoreScreen() {
