@@ -1,4 +1,6 @@
 import type {
+  Broadcast,
+  ConciergeStats,
   Guest,
   GuestFlight,
   Reservation,
@@ -7,6 +9,8 @@ import type {
   Vehicle,
   Wedding,
   WeddingEvent,
+  WeddingRoom,
+  WeddingTask,
 } from '@/lib/data/types';
 
 /**
@@ -140,6 +144,39 @@ export const FIXTURE_RESERVATIONS: Reservation[] = [
   { id: 'tr3', guest_id: 'g8', direction: 'arrival', vehicle_id: null, party_size: 2, status: 'pending', notes: null, guest: { id: 'g8', name: 'Rohan Gupta' } },
   { id: 'tr4', guest_id: null, direction: 'departure', vehicle_id: 'v3', party_size: 3, status: 'confirmed', notes: 'Sharma cousins (manual)', guest: null },
 ];
+
+export const FIXTURE_ROOMS: WeddingRoom[] = [
+  { id: 'rm1', room_number: '204', floor: '2', hotel_name: 'The Oberoi Udaivilas', bed_type: 'King', capacity: 2, notes: null, assigned_guest_ids: ['g1'] },
+  { id: 'rm2', room_number: '205', floor: '2', hotel_name: 'The Oberoi Udaivilas', bed_type: 'Twin', capacity: 2, notes: 'Near elevator', assigned_guest_ids: ['g2', 'g3'] },
+  { id: 'rm3', room_number: '310', floor: '3', hotel_name: 'The Oberoi Udaivilas', bed_type: 'Suite', capacity: 4, notes: null, assigned_guest_ids: ['g5'] },
+  { id: 'rm4', room_number: '12', floor: '1', hotel_name: 'Trident Udaipur', bed_type: 'Queen', capacity: 2, notes: null, assigned_guest_ids: [] },
+];
+
+export const FIXTURE_TASKS: WeddingTask[] = [
+  { id: 't1', title: 'Finalize sangeet venue', description: 'Two options shortlisted — need decision by Friday', column: 'todo', tags: ['venue'], order_index: 0, created_at: '2026-06-20T10:00:00Z' },
+  { id: 't2', title: 'Send RSVP reminders', description: null, column: 'todo', tags: ['guests'], order_index: 1, created_at: '2026-06-21T10:00:00Z' },
+  { id: 't3', title: 'Book airport shuttles', description: 'Confirm 2 shuttles for Nov 17 arrivals', column: 'doing', tags: ['travel'], order_index: 0, created_at: '2026-06-18T10:00:00Z' },
+  { id: 't4', title: 'Approve mehndi artist quote', description: null, column: 'doing', tags: ['vendors'], order_index: 1, created_at: '2026-06-22T10:00:00Z' },
+  { id: 't5', title: 'Send save-the-dates', description: null, column: 'done', tags: ['guests'], order_index: 0, created_at: '2026-05-10T10:00:00Z' },
+];
+
+export const FIXTURE_BROADCASTS: Broadcast[] = [
+  { id: 'b1', message: 'Namaste! 🎉 Save the date — Priya & Rahul are getting married Nov 18–20 in Udaipur. RSVP link coming soon!', target_type: 'all', status: 'sent', sent_at: '2026-05-15T14:00:00Z', sent_count: 138, failed_count: 4, created_at: '2026-05-15T13:58:00Z', recipient_count: 142, delivered_count: 131, replied_count: 87 },
+  { id: 'b2', message: 'RSVP reminder: we need your response by Sep 30 to finalize catering. Tap below to reply — takes 30 seconds!', target_type: 'tags', status: 'sent', sent_at: '2026-06-28T11:30:00Z', sent_count: 41, failed_count: 0, created_at: '2026-06-28T11:28:00Z', recipient_count: 41, delivered_count: 40, replied_count: 12 },
+  { id: 'b3', message: 'Shuttle schedule for arrival day — please share your flight details so we can assign your pickup.', target_type: 'specific', status: 'sending', sent_at: null, sent_count: 18, failed_count: 0, created_at: '2026-07-04T09:00:00Z', recipient_count: 37, delivered_count: 9, replied_count: 2 },
+];
+
+export const FIXTURE_CONCIERGE: ConciergeStats = {
+  guestsReached: 64,
+  messagesHandled: 211,
+  avgResponseTimeSec: 8,
+  conversations: [
+    { guestId: 'g1', guestName: 'Anita Sharma', lastMessageAt: '2026-07-04T08:45:00Z', lastMessagePreview: 'Perfect, thank you! And is there a dress code for the sangeet?', messageCount: 9 },
+    { guestId: 'g4', guestName: 'Dev Patel', lastMessageAt: '2026-07-03T22:10:00Z', lastMessagePreview: 'Can I bring my kids to the reception?', messageCount: 4 },
+    { guestId: 'g6', guestName: 'James Wilson', lastMessageAt: '2026-07-03T16:02:00Z', lastMessagePreview: 'What should a non-Indian guest wear to the haldi? 😅', messageCount: 12 },
+    { guestId: 'g5', guestName: 'Meera & Raj Kapoor', lastMessageAt: '2026-07-02T19:30:00Z', lastMessagePreview: 'We land at 10:25 AM on the 17th.', messageCount: 6 },
+  ],
+};
 
 export const MOCK_USER = {
   id: 'preview-user',

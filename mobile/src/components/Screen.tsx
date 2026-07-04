@@ -45,7 +45,9 @@ export function Screen({ children, scroll = true, onRefresh, refreshing = false 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: COLORS.bg.muted }}
-      contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 32 }}
+      // Generous bottom padding: content must never sit against the home
+      // indicator or tab bar — breathing room is part of the design.
+      contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: insets.bottom + 48 }}
       refreshControl={
         onRefresh ? (
           <RefreshControl

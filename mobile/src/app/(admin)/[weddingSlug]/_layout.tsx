@@ -18,6 +18,10 @@ export default function AdminStackLayout() {
       <Stack.Screen name="details" />
       <Stack.Screen name="travel" />
       <Stack.Screen name="transportation" />
+      <Stack.Screen name="rooms" />
+      <Stack.Screen name="tasks" />
+      <Stack.Screen name="messaging" />
+      <Stack.Screen name="concierge" />
     </Stack>
   );
 }

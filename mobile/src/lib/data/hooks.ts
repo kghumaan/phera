@@ -1,26 +1,36 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
+  FIXTURE_BROADCASTS,
+  FIXTURE_CONCIERGE,
   FIXTURE_EVENTS,
   FIXTURE_FLIGHTS,
   FIXTURE_GUESTS,
   FIXTURE_RESERVATIONS,
+  FIXTURE_ROOMS,
   FIXTURE_RSVPS,
   FIXTURE_SCHEDULE,
+  FIXTURE_TASKS,
   FIXTURE_VEHICLES,
   FIXTURE_WEDDING,
 } from '@/lib/mock/fixtures';
 import { supabase } from '@/lib/supabase/client';
 import type {
+  Broadcast,
+  ConciergeConversation,
+  ConciergeStats,
   Guest,
   GuestFlight,
   Reservation,
   Rsvp,
   ScheduleDay,
   ScheduleItem,
+  TaskColumn,
   Vehicle,
   Wedding,
   WeddingEvent,
+  WeddingRoom,
+  WeddingTask,
 } from './types';
 
 /**
@@ -31,8 +41,9 @@ import type {
  * interactions (add guest, etc.) feeling real within a session.
  */
 
-// Mutable copy so preview-mode writes show up in subsequent reads.
+// Mutable copies so preview-mode writes show up in subsequent reads.
 let previewGuests: Guest[] = [...FIXTURE_GUESTS];
+let previewTasks: WeddingTask[] = [...FIXTURE_TASKS];
 
 const GUEST_SELECT =
   'id, name, email, phone, wedding_side, logistics_data, initials, avatar_color, created_at, rsvps(attending, guest_count, created_at)';
@@ -236,6 +247,152 @@ export function useReservations(weddingId: string | undefined) {
         .order('created_at', { ascending: true });
       if (error) throw error;
       return data as unknown as Reservation[];
+    },
+  });
+}
+
+export function useRooms(slug: string) {
+  return useQuery({
+    queryKey: ['rooms', slug],
+    queryFn: async (): Promise<WeddingRoom[]> => {
+      if (!supabase) return FIXTURE_ROOMS;
+      // Same ordering as web roomsService.list (rooms-service.ts:57).
+      const { data, error } = await supabase
+        .from('wedding_rooms')
+        .select('*')
+        .eq('wedding_id', slug) // slug, not UUID
+        .order('hotel_name', { ascending: true })
+        .order('floor', { ascending: true })
+        .order('room_number', { ascending: true });
+      if (error) throw error;
+      return data as WeddingRoom[];
+    },
+  });
+}
+
+export function useTasks(weddingId: string | undefined) {
+  return useQuery({
+    queryKey: ['tasks', weddingId],
+    enabled: !!weddingId,
+    queryFn: async (): Promise<WeddingTask[]> => {
+      if (!supabase) return previewTasks;
+      const { data, error } = await supabase
+        .from('wedding_tasks')
+        .select('*')
+        .eq('wedding_id', weddingId!) // UUID
+        .order('order_index', { ascending: true })
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data as WeddingTask[];
+    },
+  });
+}
+
+export function useMoveTask(weddingId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, column }: { id: string; column: TaskColumn }) => {
+      if (!supabase) {
+        previewTasks = previewTasks.map((t) => (t.id === id ? { ...t, column } : t));
+        return;
+      }
+      const { error } = await supabase.from('wedding_tasks').update({ column }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks', weddingId] }),
+  });
+}
+
+export function useBroadcasts(slug: string) {
+  return useQuery({
+    queryKey: ['broadcasts', slug],
+    queryFn: async (): Promise<Broadcast[]> => {
+      if (!supabase) return FIXTURE_BROADCASTS;
+      // Same rollup as web broadcastsService.list (broadcasts-service.ts:54).
+      const { data, error } = await supabase
+        .from('concierge_broadcasts')
+        .select('*, concierge_broadcast_recipients(id, delivery_status, replied_at)')
+        .eq('wedding_id', slug) // slug
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      type Row = Broadcast & {
+        concierge_broadcast_recipients: { delivery_status: string; replied_at: string | null }[];
+      };
+      return (data as unknown as Row[]).map(({ concierge_broadcast_recipients: r, ...b }) => ({
+        ...b,
+        recipient_count: r.length,
+        delivered_count: r.filter((x) => x.delivery_status === 'delivered' || x.delivery_status === 'read').length,
+        replied_count: r.filter((x) => !!x.replied_at).length,
+      }));
+    },
+  });
+}
+
+export function useConcierge(weddingId: string | undefined) {
+  return useQuery({
+    queryKey: ['concierge', weddingId],
+    enabled: !!weddingId,
+    queryFn: async (): Promise<ConciergeStats> => {
+      if (!supabase) return FIXTURE_CONCIERGE;
+      // Mirrors /api/concierge/stats + /conversations grouping. Note the web
+      // conversations route uses the service role; if RLS blocks this direct
+      // read for couple accounts we fall back to the API in Phase 4 wiring.
+      const { data, error } = await supabase
+        .from('whatsapp_chat_history')
+        .select('id, guest_id, role, content, created_at')
+        .eq('wedding_id', weddingId!) // UUID
+        .in('role', ['user', 'assistant'])
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      type Msg = { guest_id: string | null; role: string; content: string; created_at: string };
+      const msgs = (data ?? []) as Msg[];
+
+      const byGuest = new Map<string, Msg[]>();
+      for (const m of msgs) {
+        if (!m.guest_id) continue;
+        byGuest.set(m.guest_id, [...(byGuest.get(m.guest_id) ?? []), m]);
+      }
+      const guestIds = [...byGuest.keys()];
+      const names = new Map<string, string>();
+      if (guestIds.length) {
+        const { data: guestRows } = await supabase.from('guests').select('id, name').in('id', guestIds);
+        for (const g of (guestRows ?? []) as { id: string; name: string }[]) names.set(g.id, g.name);
+      }
+
+      // Avg response time: mean user→next-assistant gap under 5 minutes.
+      let gapSum = 0;
+      let gapCount = 0;
+      for (const list of byGuest.values()) {
+        for (let i = 0; i < list.length - 1; i++) {
+          if (list[i]!.role === 'user' && list[i + 1]!.role === 'assistant') {
+            const gap = (new Date(list[i + 1]!.created_at).getTime() - new Date(list[i]!.created_at).getTime()) / 1000;
+            if (gap >= 0 && gap < 300) {
+              gapSum += gap;
+              gapCount++;
+            }
+          }
+        }
+      }
+
+      const conversations: ConciergeConversation[] = [...byGuest.entries()]
+        .map(([guestId, list]) => {
+          const last = list[list.length - 1]!;
+          return {
+            guestId,
+            guestName: names.get(guestId) ?? 'Unrecognized guest',
+            lastMessageAt: last.created_at,
+            lastMessagePreview: last.content.slice(0, 120),
+            messageCount: list.length,
+          };
+        })
+        .sort((a, b) => b.lastMessageAt.localeCompare(a.lastMessageAt));
+
+      return {
+        guestsReached: new Set(msgs.filter((m) => m.role === 'user' && m.guest_id).map((m) => m.guest_id)).size,
+        messagesHandled: msgs.filter((m) => m.role === 'assistant').length,
+        avgResponseTimeSec: gapCount ? Math.round(gapSum / gapCount) : null,
+        conversations,
+      };
     },
   });
 }

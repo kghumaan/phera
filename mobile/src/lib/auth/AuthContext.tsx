@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   createContext,
   useContext,
@@ -10,6 +11,8 @@ import type { Session } from '@supabase/supabase-js';
 
 import { MOCK_USER } from '@/lib/mock/fixtures';
 import { isPreviewMode, supabase } from '@/lib/supabase/client';
+
+const PREVIEW_SESSION_KEY = 'phera-preview-session';
 
 export interface AuthUser {
   id: string;
@@ -32,11 +35,27 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
-  const [previewUser, setPreviewUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(!isPreviewMode);
+  const [previewUser, setPreviewUserState] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Preview sessions survive reloads (AsyncStorage → localStorage on web)
+  // so demos and store-screenshot runs don't bounce back to login.
+  const setPreviewUser = (u: AuthUser | null) => {
+    setPreviewUserState(u);
+    if (u) AsyncStorage.setItem(PREVIEW_SESSION_KEY, JSON.stringify(u)).catch(() => {});
+    else AsyncStorage.removeItem(PREVIEW_SESSION_KEY).catch(() => {});
+  };
 
   useEffect(() => {
-    if (!supabase) return;
+    if (!supabase) {
+      AsyncStorage.getItem(PREVIEW_SESSION_KEY)
+        .then((raw) => {
+          if (raw) setPreviewUserState(JSON.parse(raw) as AuthUser);
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+      return;
+    }
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);

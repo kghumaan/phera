@@ -134,6 +134,62 @@ export interface Reservation {
   guest: { id: string; name: string } | null;
 }
 
+/** wedding_rooms — keyed by SLUG. Guests assigned via uuid[] column. */
+export interface WeddingRoom {
+  id: string;
+  room_number: string;
+  floor: string | null;
+  hotel_name: string | null;
+  bed_type: string | null;
+  capacity: number | null;
+  notes: string | null;
+  assigned_guest_ids: string[];
+}
+
+export type TaskColumn = 'todo' | 'doing' | 'done';
+
+/** wedding_tasks — keyed by wedding UUID. Kanban board. */
+export interface WeddingTask {
+  id: string;
+  title: string;
+  description?: string | null;
+  column: TaskColumn;
+  tags?: string[] | null;
+  order_index: number;
+  created_at: string;
+}
+
+/** concierge_broadcasts — keyed by SLUG. Includes client-side rollups. */
+export interface Broadcast {
+  id: string;
+  message: string;
+  target_type: 'all' | 'tags' | 'specific';
+  status: 'draft' | 'sending' | 'sent' | 'failed';
+  sent_at: string | null;
+  sent_count: number;
+  failed_count: number;
+  created_at: string;
+  recipient_count: number;
+  delivered_count: number;
+  replied_count: number;
+}
+
+/** Grouped from whatsapp_chat_history (keyed by wedding UUID). */
+export interface ConciergeConversation {
+  guestId: string;
+  guestName: string;
+  lastMessageAt: string;
+  lastMessagePreview: string;
+  messageCount: number;
+}
+
+export interface ConciergeStats {
+  guestsReached: number;
+  messagesHandled: number;
+  avgResponseTimeSec: number | null;
+  conversations: ConciergeConversation[];
+}
+
 /** Client-side RSVP aggregate — mirrors web overview/guest-responses math. */
 export interface RsvpStats {
   attendingResponses: number;
