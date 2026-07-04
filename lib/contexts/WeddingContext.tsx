@@ -15,6 +15,7 @@ import {
   ScheduleItem,
 } from '@/lib/supabase/wedding-service';
 import { getPublicSupabaseClient } from '@/lib/supabase/client';
+import { isMockWeddingEnabled, MOCK_WEDDING_SNAPSHOT } from '@/lib/mock/mock-wedding-data';
 
 interface WeddingContextType {
   wedding: Wedding | null;
@@ -74,6 +75,23 @@ export function WeddingProvider({ children, weddingSlug, mode = 'preview' }: Wed
       if (!isRetry) {
         setError(null);
         setRetryCount(0);
+      }
+
+      // DEV-ONLY: hydrate from the mock snapshot when NEXT_PUBLIC_PHERA_MOCK=1
+      // (never set in production). Lets guest pages render without a database
+      // as the visual-comparison baseline for the mobile app port.
+      if (isMockWeddingEnabled(weddingSlug)) {
+        const snap = MOCK_WEDDING_SNAPSHOT;
+        setWedding(snap.wedding as unknown as Wedding);
+        setEvents(snap.events as unknown as WeddingEvent[]);
+        setSettings(snap.settings as unknown as WeddingSettings);
+        setFaqs(snap.faqs as unknown as WeddingFAQ[]);
+        setSchedule(snap.schedule as unknown as Array<WeddingSchedule & { events: ScheduleItem[] }>);
+        setTravelCards([]);
+        setRegistry([]);
+        setShops([]);
+        setIsLoading(false);
+        return;
       }
 
       console.log(`🔄 Fetching wedding data (attempt ${retryCount + 1})...`);

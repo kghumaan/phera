@@ -1,11 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 
-import { EmptyState, PageHeading, PheraCard, PheraText } from '@/components/ui';
+import { EmptyState, PheraCard, PheraText } from '@/components/ui';
+import { GuestScreen } from '@/components/guest/GuestChrome';
 import { useEvents, useWedding } from '@/lib/data/hooks';
-import { COLORS, SPACING } from '@/lib/theme/tokens';
+import { COLORS } from '@/lib/theme/tokens';
 import { useWeddingSlug } from '@/lib/nav';
 
 function prettyDate(iso: string): string {
@@ -16,8 +15,6 @@ function prettyDate(iso: string): string {
 
 export default function GuestEventsScreen() {
   const weddingSlug = useWeddingSlug();
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
   const wedding = useWedding(weddingSlug);
   // TODO(Phase 5 follow-up): filter by guest_event_access via
   // /api/access/events/[slug]?guestId=… — preview shows all events.
@@ -26,22 +23,7 @@ export default function GuestEventsScreen() {
   const list = events.data ?? [];
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: COLORS.bg.paper }}
-      contentContainerStyle={{
-        paddingTop: insets.top + 12,
-        paddingBottom: insets.bottom + 48,
-        paddingHorizontal: SPACING.screenX,
-        gap: 14,
-      }}
-    >
-      <PageHeading
-        title="Events"
-        subtitle="Every celebration, and what to wear"
-        action={
-          <Ionicons name="close" size={24} color={COLORS.text.muted} onPress={() => router.back()} />
-        }
-      />
+    <GuestScreen title="Events" background="clouds">
       {list.length === 0 ? (
         <EmptyState icon="sparkles-outline" title="Events coming soon" subtitle="The couple is still adding event details." />
       ) : (
@@ -69,6 +51,6 @@ export default function GuestEventsScreen() {
           </PheraCard>
         ))
       )}
-    </ScrollView>
+    </GuestScreen>
   );
 }

@@ -45,6 +45,7 @@ import type {
 // Mutable copies so preview-mode writes show up in subsequent reads.
 let previewGuests: Guest[] = [...FIXTURE_GUESTS];
 let previewTasks: WeddingTask[] = [...FIXTURE_TASKS];
+let previewFlights: GuestFlight[] = [...FIXTURE_FLIGHTS];
 
 const GUEST_SELECT =
   'id, name, email, phone, wedding_side, logistics_data, initials, avatar_color, created_at, rsvps(attending, guest_count, created_at)';
@@ -190,12 +191,67 @@ export function useEvents(weddingId: string | undefined) {
   });
 }
 
+export interface FlightInput {
+  guestId: string;
+  airline: string;
+  flightNumber: string;
+  departureAirport: string;
+  arrivalAirport: string;
+  arrivalDate: string; // YYYY-MM-DD
+  arrivalTime: string; // HH:mm
+  shuttlePreferenceTime: string | null;
+}
+
+export function useUpsertGuestFlight(weddingId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: FlightInput) => {
+      const arrival = `${input.arrivalDate}T${input.arrivalTime}:00`;
+      if (!supabase) {
+        const flight: GuestFlight = {
+          id: `pf-${input.guestId}`,
+          guest_id: input.guestId,
+          airline: input.airline,
+          flight_number: input.flightNumber,
+          departure_airport: input.departureAirport.toUpperCase(),
+          arrival_airport: input.arrivalAirport.toUpperCase(),
+          departure_datetime: null,
+          arrival_datetime: arrival,
+          shuttle_preference_time: input.shuttlePreferenceTime,
+          guest: {
+            id: input.guestId,
+            name: previewGuests.find((g) => g.id === input.guestId)?.name ?? 'Guest',
+          },
+        };
+        previewFlights = [...previewFlights.filter((f) => f.guest_id !== input.guestId), flight];
+        return;
+      }
+      // Same upsert contract as web upsertGuestFlight (travel-service.ts:201).
+      const { error } = await supabase.from('guest_flights').upsert(
+        {
+          guest_id: input.guestId,
+          wedding_id: weddingId!,
+          airline: input.airline,
+          flight_number: input.flightNumber,
+          departure_airport: input.departureAirport.toUpperCase(),
+          arrival_airport: input.arrivalAirport.toUpperCase(),
+          arrival_datetime: arrival,
+          shuttle_preference_time: input.shuttlePreferenceTime,
+        },
+        { onConflict: 'guest_id,wedding_id' },
+      );
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['guest-flights', weddingId] }),
+  });
+}
+
 export function useGuestFlights(weddingId: string | undefined) {
   return useQuery({
     queryKey: ['guest-flights', weddingId],
     enabled: !!weddingId,
     queryFn: async (): Promise<GuestFlight[]> => {
-      if (!supabase) return FIXTURE_FLIGHTS;
+      if (!supabase) return previewFlights;
       // Same join as web getAllGuestFlights (travel-service.ts:255).
       const { data, error } = await supabase
         .from('guest_flights')

@@ -85,10 +85,10 @@ export const FIXTURE_RSVPS: Rsvp[] = FIXTURE_GUESTS.filter((gu) => gu.rsvps.leng
 );
 
 export const FIXTURE_EVENTS: WeddingEvent[] = [
-  { id: 'e1', name: 'Haldi', slug: 'haldi', date: '2026-11-18', time: '10:00 AM', dress_code: 'Yellow & casual', ritual_name: 'Haldi ceremony', order_index: 0 },
-  { id: 'e2', name: 'Sangeet', slug: 'sangeet', date: '2026-11-18', time: '7:00 PM', dress_code: 'Festive Indian', ritual_name: null, order_index: 1 },
-  { id: 'e3', name: 'Wedding Ceremony', slug: 'wedding', date: '2026-11-19', time: '9:00 AM', dress_code: 'Traditional', ritual_name: 'Pheras', order_index: 2 },
-  { id: 'e4', name: 'Reception', slug: 'reception', date: '2026-11-20', time: '7:30 PM', dress_code: 'Black tie / formal Indian', ritual_name: null, order_index: 3 },
+  { id: 'e1', name: 'Haldi', slug: 'haldi', date: '2026-11-18', time: '10:00 AM', dress_code: 'Yellow & casual', dress_code_description: "Wear yellow if you can — and nothing you'd mind getting turmeric on. It WILL get messy, joyfully so.", ritual_name: 'Haldi ceremony', ritual_description: 'Turmeric paste is applied to the couple by family and friends — a blessing for glowing skin and good luck before the wedding. Expect singing, laughter, and everyone getting a little yellow.', order_index: 0 },
+  { id: 'e2', name: 'Sangeet', slug: 'sangeet', date: '2026-11-18', time: '7:00 PM', dress_code: 'Festive Indian', dress_code_description: 'Bright lehengas, saris, kurtas, or a colorful cocktail outfit. Comfortable shoes — you will dance.', ritual_name: null, ritual_description: 'A night of music and choreographed dances performed by both families. Guests are often pulled onto the floor — say yes!', order_index: 1 },
+  { id: 'e3', name: 'Wedding Ceremony', slug: 'wedding', date: '2026-11-19', time: '9:00 AM', dress_code: 'Traditional', dress_code_description: 'Traditional Indian attire preferred; pastels and jewel tones welcome. Avoid red (reserved for the bride) and black.', ritual_name: 'Pheras', ritual_description: 'The couple circles the sacred fire seven times, each phera a vow. The baraat (groom’s procession) arrives first with dancing — join in! The ceremony ends with the vidaai, an emotional send-off.', order_index: 2 },
+  { id: 'e4', name: 'Reception', slug: 'reception', date: '2026-11-20', time: '7:30 PM', dress_code: 'Black tie / formal Indian', dress_code_description: 'Formal — a gown, suit, or your finest Indian formalwear.', ritual_name: null, ritual_description: 'Dinner, toasts, and dancing to celebrate the newlyweds. The relaxed one — just show up and celebrate.', order_index: 3 },
 ];
 
 export const FIXTURE_SCHEDULE: ScheduleDay[] = [

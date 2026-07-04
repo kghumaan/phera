@@ -73,7 +73,9 @@ export interface WeddingEvent {
   date: string;
   time: string;
   dress_code: string;
+  dress_code_description: string | null;
   ritual_name: string | null;
+  ritual_description: string | null;
   order_index: number;
 }
 
