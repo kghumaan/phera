@@ -47,6 +47,17 @@ const nextConfig: NextConfig = {
       { source: '/features', destination: '/#features', permanent: true },
     ];
   },
+  async rewrites() {
+    // Mobile-app web preview: public/app/ holds the Expo web export (SPA).
+    // These run after the filesystem check, so real files (/app/_expo/*,
+    // /app/assets/*) serve as-is and only virtual SPA routes fall through
+    // to index.html. Preview-only — remove with public/app before merging
+    // to main. See MOBILE-PLAN.md.
+    return [
+      { source: '/app', destination: '/app/index.html' },
+      { source: '/app/:path*', destination: '/app/index.html' },
+    ];
+  },
   async headers() {
     return [
       {
