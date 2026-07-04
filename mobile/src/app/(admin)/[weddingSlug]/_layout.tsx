@@ -23,6 +23,7 @@ export default function AdminStackLayout() {
       <Stack.Screen name="messaging" />
       <Stack.Screen name="concierge" />
       <Stack.Screen name="settings" />
+      <Stack.Screen name="collaborators" />
     </Stack>
   );
 }

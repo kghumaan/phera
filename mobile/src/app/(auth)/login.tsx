@@ -46,11 +46,15 @@ function GoogleIcon() {
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { user, isPreviewMode, signInWithPassword } = useAuth();
+  const { user, isPreviewMode, signInWithPassword, verifyOtp, resendOtp, signInWithGoogle } =
+    useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<'form' | 'otp'>('form');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpBusy, setOtpBusy] = useState(false);
 
   if (user) return <Redirect href="/" />;
 
@@ -61,11 +65,39 @@ export default function LoginScreen() {
       return;
     }
     const result = await signInWithPassword(email, password);
-    if (result.error) {
-      setError(result.error);
+    if (result.status === 'error') {
+      setError(result.message);
+      return;
+    }
+    if (result.status === 'otp') {
+      setStep('otp');
       return;
     }
     router.replace('/');
+  };
+
+  const handleOtpChange = async (value: string) => {
+    const code = value.replace(/\D/g, '').slice(0, 6);
+    setOtpCode(code);
+    setError(null);
+    if (code.length === 6 && !otpBusy) {
+      setOtpBusy(true);
+      const { error: otpError } = await verifyOtp(email, code);
+      setOtpBusy(false);
+      if (otpError) {
+        setError(otpError);
+        setOtpCode('');
+        return;
+      }
+      router.replace('/');
+    }
+  };
+
+  const handleGoogle = async () => {
+    setError(null);
+    const { error: googleError } = await signInWithGoogle();
+    if (googleError) setError(googleError);
+    // Success lands via the auth-state listener → <Redirect href="/" />.
   };
 
   return (
@@ -88,30 +120,61 @@ export default function LoginScreen() {
           <View style={styles.card}>
             <View style={{ gap: 6, alignItems: 'center' }}>
               <PheraText variant="h2" align="center">
-                Welcome to Phera
+                {step === 'form' ? 'Welcome to Phera' : 'Verify Your Email'}
               </PheraText>
               <PheraText variant="body2" align="center">
-                Sign in or create an account to get started
+                {step === 'form'
+                  ? 'Sign in or create an account to get started'
+                  : `We sent a 6-digit code to ${email}`}
               </PheraText>
             </View>
 
             {error ? <WarningAlert onClose={() => setError(null)}>{error}</WarningAlert> : null}
 
+            {step === 'otp' ? (
+              <View style={{ gap: 16 }}>
+                <PheraInput
+                  label="Verification code"
+                  value={otpCode}
+                  onChangeText={(v) => void handleOtpChange(v)}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  editable={!otpBusy}
+                  placeholder="••••••"
+                  style={{ textAlign: 'center', letterSpacing: 10, fontSize: 22 }}
+                  testID="login-otp"
+                />
+                <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 24 }}>
+                  <PheraText
+                    variant="body2"
+                    weight={600}
+                    onPress={() => {
+                      setStep('form');
+                      setOtpCode('');
+                      setError(null);
+                    }}
+                  >
+                    Go back
+                  </PheraText>
+                  <PheraText
+                    variant="body2"
+                    weight={600}
+                    color={COLORS.brand.primary}
+                    onPress={() => void resendOtp(email)}
+                  >
+                    Resend code
+                  </PheraText>
+                </View>
+              </View>
+            ) : (
+              <>
             <PheraButton
               variant="secondary"
               fullWidth
               size="lg"
               borderRadius={RADII.pill}
               icon={<GoogleIcon />}
-              onPress={() => {
-                // TODO(Phase 1): native Google OAuth via expo-web-browser +
-                // supabase.auth.signInWithOAuth deep-link flow.
-                setError(
-                  isPreviewMode
-                    ? 'Google sign-in is not available in preview mode'
-                    : 'Google sign-in is coming to the mobile app soon',
-                );
-              }}
+              onPress={handleGoogle}
             >
               Continue with Google
             </PheraButton>
@@ -165,6 +228,8 @@ export default function LoginScreen() {
             >
               I&apos;m a wedding guest →
             </PheraText>
+              </>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

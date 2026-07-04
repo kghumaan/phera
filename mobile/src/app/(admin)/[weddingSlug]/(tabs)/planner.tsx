@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { PheraChip, PheraText } from '@/components/ui';
+import { PheraChip, PheraText, WarningAlert } from '@/components/ui';
 import {
   PLANNER_STARTERS,
   WELCOME_PLACEHOLDER,
@@ -43,6 +43,8 @@ export default function PlannerScreen() {
   const [items, setItems] = useState<ChatItem[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [conversationId, setConversationId] = useState<string | undefined>();
+  const [failure, setFailure] = useState<string | null>(null);
 
   const scrollToEnd = () => {
     requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
@@ -61,10 +63,13 @@ export default function PlannerScreen() {
     setItems((prev) => [...prev, { kind: 'user', id: uid(), text: message }]);
     scrollToEnd();
 
+    setFailure(null);
     try {
       let assistantStarted = false;
-      for await (const event of streamChat({ weddingSlug, message })) {
-        if (event.type === 'tool') {
+      for await (const event of streamChat({ weddingSlug, message, conversationId })) {
+        if (event.type === 'conversation') {
+          setConversationId(event.conversationId);
+        } else if (event.type === 'tool') {
           setItems((prev) => [...prev, { kind: 'tool', id: uid(), label: event.label }]);
         } else if (event.type === 'text_delta') {
           setItems((prev) => {
@@ -86,6 +91,8 @@ export default function PlannerScreen() {
           it.id === assistantId && it.kind === 'assistant' ? { ...it, streaming: false } : it,
         ),
       );
+    } catch (e) {
+      setFailure(e instanceof Error ? e.message : 'The planner had trouble responding — try again.');
     } finally {
       setBusy(false);
     }
@@ -177,6 +184,11 @@ export default function PlannerScreen() {
           />
         )}
 
+        {failure ? (
+          <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>
+            <WarningAlert onClose={() => setFailure(null)}>{failure}</WarningAlert>
+          </View>
+        ) : null}
         <View
           style={{
             flexDirection: 'row',

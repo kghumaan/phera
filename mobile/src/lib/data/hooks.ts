@@ -454,6 +454,66 @@ export function useConcierge(weddingId: string | undefined) {
   });
 }
 
+export interface Collaborator {
+  id: string;
+  email: string; // 'Team Member' when unresolvable (web has the same limit)
+  role: 'owner' | 'admin' | 'viewer';
+  pending?: boolean;
+}
+
+export function useCollaborators(weddingId: string | undefined, ownerId?: string | null) {
+  return useQuery({
+    queryKey: ['collaborators', weddingId],
+    enabled: !!weddingId,
+    queryFn: async (): Promise<Collaborator[]> => {
+      if (!supabase) {
+        return [
+          { id: 'c1', email: 'preview@phera.io', role: 'owner' },
+          { id: 'c2', email: 'Team Member', role: 'admin' },
+          { id: 'c3', email: 'mom@example.com', role: 'viewer', pending: true },
+        ];
+      }
+      // Mirrors web getTeamMembers + getWeddingInvites (wedding-service.ts:977).
+      const { data: auth } = await supabase.auth.getUser();
+      const me = auth.user;
+      const [adminsRes, invitesRes] = await Promise.all([
+        supabase.from('wedding_admins').select('*').eq('wedding_id', weddingId!),
+        supabase
+          .from('wedding_invites')
+          .select('*')
+          .eq('wedding_id', weddingId!)
+          .order('created_at', { ascending: false }),
+      ]);
+      const list: Collaborator[] = [];
+      if (me && ownerId && me.id === ownerId) {
+        list.push({ id: 'owner', email: me.email ?? 'Owner', role: 'owner' });
+      } else if (ownerId) {
+        list.push({ id: 'owner', email: 'Owner', role: 'owner' });
+      }
+      type AdminRow = { id: string; user_id: string | null; role: string };
+      for (const a of (adminsRes.data ?? []) as AdminRow[]) {
+        if (a.user_id && a.user_id === ownerId) continue;
+        list.push({
+          id: a.id,
+          email: me && a.user_id === me.id ? (me.email ?? 'You') : 'Team Member',
+          role: (a.role as Collaborator['role']) ?? 'admin',
+        });
+      }
+      type InviteRow = { id: string; email: string; role: string | null; accepted_at?: string | null };
+      for (const inv of (invitesRes.data ?? []) as InviteRow[]) {
+        if (inv.accepted_at) continue;
+        list.push({
+          id: inv.id,
+          email: inv.email,
+          role: (inv.role as Collaborator['role']) ?? 'admin',
+          pending: true,
+        });
+      }
+      return list;
+    },
+  });
+}
+
 export interface WeddingSettings {
   wedding_password: string | null;
   concierge_enabled: boolean | null;

@@ -1,14 +1,21 @@
+import { fetch as expoFetch } from 'expo/fetch';
+
+import { isPreviewMode, supabase } from '@/lib/supabase/client';
+
 /**
  * Streaming client for the Phera Agent chat.
  *
- * `streamChat` yields events the UI renders incrementally. In preview mode
- * (no env) a scripted mock streams canned replies so the chat UX is fully
- * exercisable offline. The real implementation POSTs to
- * `${EXPO_PUBLIC_API_BASE_URL}/api/agent/chat` (SSE) with the Supabase
- * bearer token — wired in Phase 2 once the route accepts bearer auth.
+ * Live mode POSTs to `${EXPO_PUBLIC_API_BASE_URL}/api/agent/chat` with the
+ * Supabase bearer token and reads the SSE stream via expo/fetch (streaming
+ * bodies work on native + web). Event shapes mirror the server's
+ * AgentStreamEvent union (lib/agent/types.ts on web) — unknown types are
+ * ignored so the UI degrades gracefully as the agent grows.
+ *
+ * Preview mode streams a scripted mock so the chat is exercisable offline.
  */
 
 export type AgentStreamEvent =
+  | { type: 'conversation'; conversationId: string }
   | { type: 'text_delta'; text: string }
   | { type: 'tool'; label: string }
   | { type: 'done' };
@@ -16,9 +23,15 @@ export type AgentStreamEvent =
 export interface ChatTurnInput {
   weddingSlug: string;
   message: string;
+  conversationId?: string;
 }
 
+const API_BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://phera.io';
+
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+// ── Preview: scripted replies referencing the same fixtures the rest of
+// preview mode shows (142 guests, 98 attending…). ──
 
 interface MockScript {
   match: RegExp;
@@ -26,8 +39,6 @@ interface MockScript {
   reply: string;
 }
 
-// Replies mirror the tone of the web planner and reference the same mock
-// fixtures the rest of preview mode shows (142 guests, 98 attending…).
 const MOCK_SCRIPTS: MockScript[] = [
   {
     match: /rsvp|respond|pending/i,
@@ -68,9 +79,76 @@ async function* mockStream(input: ChatTurnInput): AsyncGenerator<AgentStreamEven
   yield { type: 'done' };
 }
 
+// ── Live: real SSE against the deployed agent route. ──
+
+async function* liveStream(input: ChatTurnInput): AsyncGenerator<AgentStreamEvent> {
+  const { data } = await supabase!.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) throw new Error('Not signed in');
+
+  const res = await expoFetch(`${API_BASE}/api/agent/chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      weddingSlug: input.weddingSlug,
+      message: input.message,
+      conversationId: input.conversationId,
+    }),
+  });
+  if (!res.ok || !res.body) {
+    throw new Error(`Planner unavailable (${res.status})`);
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      // SSE frames are separated by a blank line; each carries `data: {json}`.
+      let sep: number;
+      while ((sep = buffer.indexOf('\n\n')) !== -1) {
+        const frame = buffer.slice(0, sep);
+        buffer = buffer.slice(sep + 2);
+        for (const line of frame.split('\n')) {
+          if (!line.startsWith('data:')) continue;
+          let event: Record<string, unknown>;
+          try {
+            event = JSON.parse(line.slice(5).trim());
+          } catch {
+            continue;
+          }
+          switch (event.type) {
+            case 'conversation':
+              yield { type: 'conversation', conversationId: String(event.conversationId) };
+              break;
+            case 'text_delta':
+              yield { type: 'text_delta', text: String(event.text ?? '') };
+              break;
+            case 'tool_start':
+              yield { type: 'tool', label: String(event.label ?? event.name ?? 'working') };
+              break;
+            // tool_done / confirmation_required / question rendering comes
+            // with the confirmation UI phase — safely ignored until then.
+          }
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  yield { type: 'done' };
+}
+
 export function streamChat(input: ChatTurnInput): AsyncGenerator<AgentStreamEvent> {
-  // TODO(Phase 2): real SSE against /api/agent/chat when env is configured.
-  return mockStream(input);
+  return isPreviewMode ? mockStream(input) : liveStream(input);
 }
 
 export const PLANNER_STARTERS = [

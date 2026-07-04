@@ -8,7 +8,10 @@ import {
   Outfit_600SemiBold,
   Outfit_700Bold,
 } from '@expo-google-fonts/outfit';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { QueryClient } from '@tanstack/react-query';
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -23,8 +26,16 @@ SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { staleTime: 30_000, retry: 2 },
+    // gcTime must outlive maxAge for persisted queries to rehydrate.
+    queries: { staleTime: 30_000, retry: 2, gcTime: 24 * 60 * 60 * 1000 },
   },
+});
+
+// Offline cache: the last-known wedding data renders instantly on cold
+// start (spotty venue Wi-Fi is the norm at weddings), then refetches.
+const persister = createAsyncStoragePersister({
+  storage: AsyncStorage,
+  key: 'phera-query-cache',
 });
 
 export default function RootLayout() {
@@ -47,12 +58,15 @@ export default function RootLayout() {
 
   return (
     <TamaguiProvider config={config} defaultTheme="light">
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister, maxAge: 24 * 60 * 60 * 1000 }}
+      >
         <AuthProvider>
           <StatusBar style="dark" />
           <Stack screenOptions={{ headerShown: false }} />
         </AuthProvider>
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     </TamaguiProvider>
   );
 }

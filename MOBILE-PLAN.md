@@ -109,8 +109,8 @@ Statuses: `[ ]` todo · `[~]` in progress · `[x]` built + verified
 - [x] Token-sync unit test (8 passing); `npm run typecheck` + `npm test` scripts
 
 ### Phase 1 — Auth + Admin core (the daily-driver screens)
-- [~] Login (email/password ✓; OTP step, Google OAuth native flow, magic link pending) — mirrors `app/auth/login`
-- [ ] Signup + auth callback / deep-link session handling
+- [x] Login — full web parity: sign-in with sign-up fallback (identities-empty wrong-password detection), OTP verification step (auto-verifies at 6 digits, resend/go-back), native Google OAuth via expo-web-browser + PKCE code exchange
+- [x] Signup (merged into login, web pattern) + deep-link session handling — `phera://` links resolve via `createSessionFromUrl` (PKCE code or token-hash forms); magic links land automatically
 - [x] Wedding switcher (single-wedding accounts route straight in; multi shows picker; `useWeddings` = owned + `wedding_admins` collaborations)
 - [x] **Overview** dashboard — real hooks (`useRsvps` aggregate matches web math: head-count, pending, declined), tappable stat cards, pull-to-refresh
 - [~] **Guest list** — search ✓, RSVP filters ✓, side chips ✓, guest detail sheet ✓, add guest ✓ (edit/delete + CSV import pending)
@@ -119,11 +119,11 @@ Statuses: `[ ]` todo · `[~]` in progress · `[x]` built + verified
 - [x] Admin tab bar: Overview · Guests · Planner · Schedule · More
 
 ### Phase 2 — AI Planner (the differentiator)
-- [~] Planner chat screen — full UI shipped (streaming bubbles, tool chips, starter chips, keyboard handling, haptics; web visual contract: primarySubtle user bubbles at radius 16, plain assistant text). Streams from a scripted mock in preview; real SSE from `/api/agent/chat` pending env + bearer auth
-- [ ] In-chat confirmation flow for gated/write tools (mirror web contract from `lib/agent/`)
+- [x] Planner chat — real SSE from `/api/agent/chat` when live (expo/fetch streaming, bearer auth, conversationId continuity, error surface), scripted mock in preview. tool_done/confirmation/question panels still to come
+- [ ] In-chat confirmation flow for gated/write tools (confirmation_required events → Confirm/Decline → /api/agent/confirm)
 - [ ] Conversation list / resume (`/api/agent/conversations`)
 - [ ] Voice input (expo-av → existing transcribe route) — stretch, flag if API needs work
-- [ ] **Web-side change:** bearer-token auth acceptance on agent routes (new helper, no modification to DO-NOT-MODIFY files)
+- [x] **Web-side change:** `getAuthenticatedClient` (lib/utils/auth-helpers.ts) now accepts `Authorization: Bearer` alongside cookies — every route using it is mobile-callable
 
 ### Phase 3 — Logistics (Phera's operational core)
 - [~] **Schedule / events** admin — day-by-day timeline view ✓ (major-event markers, Venue-TBD warnings, real `wedding_schedule`/`schedule_items` queries); create/edit pending
@@ -149,7 +149,7 @@ Statuses: `[ ]` todo · `[~]` in progress · `[x]` built + verified
 - [ ] **Cultural guide** (derived from wedding_events — the "reverse destination guest" feature)
 
 ### Phase 6 — Remaining admin + account
-- [ ] Collaborators, Event access, RSVP-form builder (read/simple-edit; complex building links to web), FAQ editor, Registry editor, Where-to-shop editor
+- [~] Collaborators ✓ (owner/admins/pending invites with role chips — same email-resolution limits as web); Event access, RSVP-form builder, FAQ/Registry/Where-to-shop editors stay web-first
 - [ ] Vendor management + marketplace (browse/save/contact)
 - [~] Settings ✓ (guest-site link with native share, wedding password reveal, publish + concierge status, signed-in account, sign out); Account billing/upgrade + Support pending
 - [ ] Onboarding for new couples (port `app/onboarding` wizard, or v1: "create your wedding on web" hand-off — decide when we get here)
@@ -157,7 +157,7 @@ Statuses: `[ ]` todo · `[~]` in progress · `[x]` built + verified
 ### Phase 7 — Native polish & store readiness
 - [ ] Push notifications (expo-notifications; new `device_tokens` table + web API route; RSVP/escalation/agent-reply notifications)
 - [ ] Deep links + universal links (`phera.io/*` → app), magic-link auth via deep link
-- [ ] Offline behavior (Query persistence, optimistic writes, retry queues)
+- [x] Offline behavior — TanStack Query cache persists to AsyncStorage (24h), cold starts render last-known data instantly then refetch
 - [ ] Haptics, pull-to-refresh everywhere, skeleton loaders, error boundaries
 - [~] App icons ✓ (lotus-flame on brand pink, generated from public/logo-lotus-flame assets: iOS icon, Android adaptive set, splash on paper, favicon); store listings + privacy manifests pending
 - [x] EAS Build profiles (dev/preview/production in `mobile/eas.json`); TestFlight submission steps documented in `mobile/README.md` — needs Kanwar's Expo login + Apple Developer account, runs from his machine
