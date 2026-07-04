@@ -1,6 +1,8 @@
+import * as Haptics from 'expo-haptics';
 import { useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -54,6 +56,9 @@ export function PheraButton({
 
   const handlePress = () => {
     if (!onPress || isLoading) return;
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    }
     const result = onPress();
     if (result && typeof (result as Promise<unknown>).then === 'function') {
       setInternalLoading(true);

@@ -8,7 +8,7 @@ import {
 } from 'react';
 import type { Session } from '@supabase/supabase-js';
 
-import { MOCK_USER } from '@/lib/mock/wedding';
+import { MOCK_USER } from '@/lib/mock/fixtures';
 import { isPreviewMode, supabase } from '@/lib/supabase/client';
 
 export interface AuthUser {

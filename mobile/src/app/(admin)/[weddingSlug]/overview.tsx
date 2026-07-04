@@ -1,9 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
-import { View } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ActivityIndicator, View } from 'react-native';
 
 import { Screen } from '@/components/Screen';
 import { PageHeading, PheraCard, PheraText, SectionHeading, StatCard } from '@/components/ui';
-import { MOCK_NEXT_ACTIONS, MOCK_STATS, MOCK_WEDDING } from '@/lib/mock/wedding';
+import { useGuests, useRsvps, useWedding } from '@/lib/data/hooks';
+import { aggregateRsvps } from '@/lib/data/types';
+import { FIXTURE_NEXT_ACTIONS } from '@/lib/mock/fixtures';
 import { COLORS } from '@/lib/theme/tokens';
 
 function daysToGo(dateISO: string): number {
@@ -12,48 +15,74 @@ function daysToGo(dateISO: string): number {
 }
 
 export default function OverviewScreen() {
-  // TODO(Phase 1): replace mock fixtures with Supabase queries (guests,
-  // rsvps aggregates) via src/lib/data hooks. Layout is the keeper.
-  const stats = MOCK_STATS;
+  const { weddingSlug } = useLocalSearchParams<{ weddingSlug: string }>();
+  const router = useRouter();
+
+  const wedding = useWedding(weddingSlug);
+  const guests = useGuests(weddingSlug);
+  const rsvps = useRsvps(weddingSlug);
+
+  const refresh = () => Promise.all([wedding.refetch(), guests.refetch(), rsvps.refetch()]);
+
+  if (wedding.isLoading || !wedding.data) {
+    return (
+      <Screen>
+        <View style={{ paddingTop: 120, alignItems: 'center' }}>
+          <ActivityIndicator color={COLORS.brand.primary} />
+        </View>
+      </Screen>
+    );
+  }
+
+  const w = wedding.data;
+  // Same math as web overview (guest-responses aggregation).
+  const stats = aggregateRsvps(rsvps.data ?? []);
+  const guestCount = guests.data?.length ?? 0;
+  const noRsvpYet = Math.max(0, guestCount - (rsvps.data?.length ?? 0));
+  const pendingTotal = stats.pending + noRsvpYet;
 
   return (
-    <Screen>
+    <Screen onRefresh={refresh} refreshing={rsvps.isRefetching}>
       <PageHeading
-        title={MOCK_WEDDING.coupleNames}
-        subtitle={`${MOCK_WEDDING.city} · ${daysToGo(MOCK_WEDDING.weddingDate)} days to go`}
+        title={w.couple_name}
+        subtitle={`${w.venue_location} · ${daysToGo(w.wedding_date)} days to go`}
       />
 
       <View style={{ gap: 12 }}>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <StatCard
             icon={<Ionicons name="people-outline" size={20} color={COLORS.brand.primary} />}
-            value={stats.totalGuests}
-            label="Total guests"
+            value={guestCount}
+            label="Guest parties"
+            onPress={() => router.push(`/${weddingSlug}/guests`)}
           />
           <StatCard
             icon={<Ionicons name="checkmark-circle-outline" size={20} color={COLORS.accent.success} />}
-            value={stats.rsvpYes}
-            label="Attending"
+            value={stats.totalGuestsComing}
+            label="Attending (head-count)"
+            onPress={() => router.push(`/${weddingSlug}/responses`)}
           />
         </View>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <StatCard
             icon={<Ionicons name="hourglass-outline" size={20} color={COLORS.accent.warning} />}
-            value={stats.rsvpPending}
+            value={pendingTotal}
             label="RSVPs pending"
+            onPress={() => router.push(`/${weddingSlug}/responses`)}
           />
           <StatCard
-            icon={<Ionicons name="airplane-outline" size={20} color={COLORS.side.groom} />}
-            value={stats.travelCollected}
-            label="Travel collected"
+            icon={<Ionicons name="close-circle-outline" size={20} color={COLORS.text.subtle} />}
+            value={stats.notAttending}
+            label="Not attending"
+            onPress={() => router.push(`/${weddingSlug}/responses`)}
           />
         </View>
       </View>
 
       <View style={{ gap: 12 }}>
         <SectionHeading title="Next actions" subtitle="What Phera suggests doing today" />
-        {MOCK_NEXT_ACTIONS.map((action) => (
-          <PheraCard key={action.id} onPress={() => {}}>
+        {FIXTURE_NEXT_ACTIONS.map((action) => (
+          <PheraCard key={action.id} onPress={() => router.push(`/${weddingSlug}/planner`)}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <View
                 style={{

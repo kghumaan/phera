@@ -12,6 +12,7 @@ export interface PheraCardProps {
   padding?: number;
   style?: StyleProp<ViewStyle>;
   testID?: string;
+  accessibilityLabel?: string;
 }
 
 const VARIANTS: Record<PheraCardVariant, ViewStyle> = {
@@ -52,6 +53,7 @@ export function PheraCard({
   padding = 16,
   style,
   testID,
+  accessibilityLabel,
 }: PheraCardProps) {
   const base = [VARIANTS[variant], { padding }, style];
 
@@ -60,6 +62,7 @@ export function PheraCard({
       <Pressable
         testID={testID}
         accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
         onPress={onPress}
         style={({ pressed }) => [...base, pressed && { opacity: 0.85 }]}
       >

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ScrollView, View } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PheraChip } from '@/components/ui';
@@ -10,14 +10,17 @@ interface ScreenProps {
   children: ReactNode;
   /** Set false for screens that manage their own scrolling (lists, chat). */
   scroll?: boolean;
+  /** Pull-to-refresh handler (scroll mode only). */
+  onRefresh?: () => Promise<unknown>;
+  refreshing?: boolean;
 }
 
 /**
- * Standard admin screen chrome: safe-area padding, paper background,
- * 20px horizontal padding, and the "Preview data" badge when running
- * against mock fixtures.
+ * Standard admin screen chrome: safe-area padding, muted background,
+ * 20px horizontal padding, pull-to-refresh, and the "Preview data" badge
+ * when running against mock fixtures.
  */
-export function Screen({ children, scroll = true }: ScreenProps) {
+export function Screen({ children, scroll = true, onRefresh, refreshing = false }: ScreenProps) {
   const insets = useSafeAreaInsets();
 
   const inner = (
@@ -43,6 +46,16 @@ export function Screen({ children, scroll = true }: ScreenProps) {
     <ScrollView
       style={{ flex: 1, backgroundColor: COLORS.bg.muted }}
       contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 32 }}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void onRefresh()}
+            tintColor={COLORS.brand.primary}
+            colors={[COLORS.brand.primary]}
+          />
+        ) : undefined
+      }
     >
       {inner}
     </ScrollView>

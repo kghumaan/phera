@@ -19,7 +19,6 @@ import {
   WarningAlert,
 } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { MOCK_WEDDING } from '@/lib/mock/wedding';
 import { COLORS, RADII, SHADOWS } from '@/lib/theme/tokens';
 
 function GoogleIcon() {
@@ -53,7 +52,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  if (user) return <Redirect href={`/${MOCK_WEDDING.slug}/overview`} />;
+  if (user) return <Redirect href="/" />;
 
   const handleLogin = async () => {
     setError(null);
@@ -66,7 +65,7 @@ export default function LoginScreen() {
       setError(result.error);
       return;
     }
-    router.replace(`/${MOCK_WEDDING.slug}/overview`);
+    router.replace('/');
   };
 
   return (

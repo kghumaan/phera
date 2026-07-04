@@ -90,7 +90,7 @@ Statuses: `[ ]` todo · `[~]` in progress · `[x]` built + verified
 - [x] Expo scaffold in `mobile/` (SDK 57, RN 0.86), TypeScript strict, expo-router
 - [x] Tamagui config themed with Phera tokens; Outfit + Instrument Serif bundled and loading
 - [x] Core UI primitives: `PheraText`, `PheraButton` (primary/secondary/ghost + loading treatment), `PheraCard` (default/muted/feature/hero), `PheraInput`, `PheraChip` (all 9 tones), `PheraSwitch`, `PageHeading`/`SectionHeading`, `EmptyState`, `StatCard`, alerts (Info/Success/Warning/Error)
-- [ ] `PheraSheet` (mobile stand-in for PheraDialog) — build with first screen that needs a modal
+- [x] `PheraSheet` (mobile stand-in for PheraDialog) — animated bottom sheet with handle, title row, pinned footer
 - [x] Design-gallery dev screen (`/gallery`) rendering every primitive (visual regression anchor)
 - [x] Supabase client + AuthProvider (session persist/refresh) + preview-mode fallback
 - [~] TanStack Query provider wired; typed bearer-auth API fetcher still to come (with Phase 2)
@@ -98,24 +98,24 @@ Statuses: `[ ]` todo · `[~]` in progress · `[x]` built + verified
 - [x] Token-sync unit test (8 passing); `npm run typecheck` + `npm test` scripts
 
 ### Phase 1 — Auth + Admin core (the daily-driver screens)
-- [ ] Login (email/password + magic link) — mirrors `app/auth/login`
+- [~] Login (email/password ✓; OTP step, Google OAuth native flow, magic link pending) — mirrors `app/auth/login`
 - [ ] Signup + auth callback / deep-link session handling
-- [ ] Wedding switcher (multi-wedding accounts land here; single-wedding goes straight in)
-- [ ] **Overview** dashboard (stat cards, next actions) — `admin/[slug]/overview`
-- [ ] **Guest list** (search, filters, side chips, guest detail sheet, add/edit guest, CSV import → links out or "do it on web" empty-action) — `admin/[slug]/guest-list`
-- [ ] **Guest responses / RSVPs** (per-event attending yes/no/maybe, counts, dietary) — `admin/[slug]/guest-responses`
+- [x] Wedding switcher (single-wedding accounts route straight in; multi shows picker; `useWeddings` = owned + `wedding_admins` collaborations)
+- [x] **Overview** dashboard — real hooks (`useRsvps` aggregate matches web math: head-count, pending, declined), tappable stat cards, pull-to-refresh
+- [~] **Guest list** — search ✓, RSVP filters ✓, side chips ✓, guest detail sheet ✓, add guest ✓ (edit/delete + CSV import pending)
+- [x] **Guest responses / RSVPs** — summary pills, dietary-needs section, response cards with party size + messages (`/responses`, reached from Overview)
 - [ ] **Wedding details** (venues, dates, couple info; TBD placeholders honored) — `admin/[slug]/details`
-- [ ] Admin tab bar: Overview · Guests · Planner (Phase 2) · Schedule · More
+- [x] Admin tab bar: Overview · Guests · Planner · Schedule · More
 
 ### Phase 2 — AI Planner (the differentiator)
-- [ ] Planner chat screen with SSE streaming from `/api/agent/chat` (port of `admin/[slug]/assistant`) — native keyboard handling, streaming bubbles, starter chips
+- [~] Planner chat screen — full UI shipped (streaming bubbles, tool chips, starter chips, keyboard handling, haptics; web visual contract: primarySubtle user bubbles at radius 16, plain assistant text). Streams from a scripted mock in preview; real SSE from `/api/agent/chat` pending env + bearer auth
 - [ ] In-chat confirmation flow for gated/write tools (mirror web contract from `lib/agent/`)
 - [ ] Conversation list / resume (`/api/agent/conversations`)
 - [ ] Voice input (expo-av → existing transcribe route) — stretch, flag if API needs work
 - [ ] **Web-side change:** bearer-token auth acceptance on agent routes (new helper, no modification to DO-NOT-MODIFY files)
 
 ### Phase 3 — Logistics (Phera's operational core)
-- [ ] **Schedule / events** admin (event list, create/edit, per-event access) — `admin/[slug]/schedule`
+- [~] **Schedule / events** admin — day-by-day timeline view ✓ (major-event markers, Venue-TBD warnings, real `wedding_schedule`/`schedule_items` queries); create/edit pending
 - [ ] **Travel** dashboard (arrivals/departures, flight statuses, guest travel detail) — `admin/[slug]/travel`
 - [ ] **Transportation** (shuttles, vehicles, assignments) — `admin/[slug]/transportation`
 - [ ] **Room assignments** (hotels, rooms, drag-assign → tap-assign pattern on mobile) — `admin/[slug]/room-assignments`
@@ -173,4 +173,5 @@ Phases ship in order; within a phase, screens ship one at a time, each fully ver
 
 ## 8. Session log
 
+- **2026-07-04 (session 2)** — Data layer + core screens. `src/lib/data/` hooks run the same Supabase queries as web (guests/rsvps by slug, events/schedule by UUID — a `weddings` table DOES exist despite older CLAUDE.md wording; `useWeddings` unions owned + `wedding_admins`). Preview mode routes the same hooks to fixtures. Shipped: wedding switcher, real Overview stats, Guest List (search/filters/detail sheet/add guest with in-preview persistence), Guest Responses, Schedule timeline, Planner chat UI with streaming (mock script in preview), PheraSheet, pull-to-refresh + haptics. All flows exercised end-to-end via Playwright at 390×844, zero page errors. **Environment gotchas learned:** Metro's file watcher doesn't work in this container — restart `expo start` after editing before re-verifying; RNW drops `testID` on Pressable/View (works on TextInput) — use `accessibilityLabel` for e2e selectors.
 - **2026-07-04** — Branch `claude/react-native-mobile-app-1s5eu5` off `main`. Plan authored. Phase 0 built and visually verified via Expo Web at 390×844 (login, overview, guests, planner/schedule placeholders, more, full design gallery — zero console errors). Login screen is a line-by-line port of `app/auth/login/page.tsx` (cloud background, frosted card, Google pill, pink CTA). Overview + Guest List render against mock fixtures with the "Preview data" badge. **Environment note:** this cloud session's network policy blocks `phera.io`, so production screenshot comparison wasn't possible — colors/radii are instead enforced by `mobile/tests/token-sync.test.ts` against the web token file, and Kanwar should spot-check on a real device via Expo Go (`cd mobile && npx expo start`). OTP step, Google OAuth, magic links, and real Supabase queries are the next Phase 1 items.

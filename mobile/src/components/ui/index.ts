@@ -8,3 +8,4 @@ export { StatCard } from './StatCard';
 export { PageHeading, SectionHeading } from './PageHeading';
 export { EmptyState } from './EmptyState';
 export { PheraSwitch } from './PheraSwitch';
+export { PheraSheet } from './PheraSheet';

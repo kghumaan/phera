@@ -57,6 +57,8 @@ export default function AdminTabsLayout() {
           tabBarIcon: ({ color, size }) => <Ionicons name="menu-outline" size={size} color={color} />,
         }}
       />
+      {/* Stack-style screens that live under the tabs but not in the bar. */}
+      <Tabs.Screen name="responses" options={{ href: null }} />
     </Tabs>
   );
 }
