@@ -19,7 +19,7 @@ export default function CulturalGuideScreen() {
   const list = events.data ?? [];
 
   return (
-    <GuestScreen title="Cultural Guide" background="ivory">
+    <GuestScreen title="Cultural Guide" themeBackgroundPath={wedding.data?.background_image}>
       <PheraCard variant="muted">
         <PheraText variant="body2">
           Indian weddings are multi-day celebrations, each event with its own meaning, dress code,

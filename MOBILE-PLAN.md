@@ -55,6 +55,17 @@ mobile/
 - `expo-router`, `expo-font`, `expo-image`, `expo-haptics`, `expo-web-browser`, `expo-notifications` (Phase 7), `react-native-svg`
 - `zod` for API payload validation at the boundary
 
+### Guest background convention (audited from web source — do not guess)
+| Guest page | Background | Web source |
+|---|---|---|
+| Home, FAQ, Cultural Guide, Travel, access gate | couple's `wedding.background_image` → fallback app default `blue-clouds.webp` | `OptimizedBackground src={wedding?.background_image} useAppDefault` |
+| RSVP | app default `blue-clouds.webp` | `rsvp/page.tsx` `useAppDefault={true}` |
+| Details hub | `pearl.webp` (hardcoded) | `details/page.tsx:247` |
+| Schedule | `jade.webp` (hardcoded) | `schedule/page.tsx:517` |
+| Events | `aquarium.webp` (hardcoded) | `events/page.tsx:64` |
+
+Mobile implements this in `GuestChrome.tsx`: `background="pearl|jade|aquarium|clouds"` for the hardcoded pages, `background="theme"` + `themeBackgroundPath={wedding.background_image}` elsewhere (`resolveWeddingBackground` maps bundled paths to assets and loads anything else as a remote URI). When adding a guest screen, check the web page's `OptimizedBackground` src first — never pick a texture by eye.
+
 ### Design-token strategy
 `mobile/lib/theme/tokens.ts` mirrors `lib/theme/tokens.ts` **with RN-native values** (numbers instead of `'12px'`, font family names instead of CSS vars). A unit test asserts the color hexes stay in sync with the web file (reads both, compares) so drift is caught in CI. Tamagui theme maps: `$brandPrimary`, `$textStrong`, `$bgPaper`, etc. Fonts: **Outfit** (body) + **Instrument Serif** (display ≥ 32px) bundled via `expo-font`. All the CLAUDE.md design rules apply on mobile: 14px minimum text, `RADII.md`=12 for buttons/inputs, `RADII.cta`=24 for guest CTAs, destructive = brand pink never red.
 

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import bgClouds from '@/assets/images/backgrounds/blue-clouds.webp';
+import { resolveWeddingBackground } from '@/components/guest/GuestChrome';
 import { PheraButton, PheraInput, PheraText, WarningAlert } from '@/components/ui';
 import { useWedding } from '@/lib/data/hooks';
 import { matchName, verifyPassword, type NameMatch } from '@/lib/guest/access';
@@ -125,7 +125,7 @@ export default function GuestHomeScreen() {
   if (step !== 'home') {
     return (
       <View style={styles.root}>
-        <Image source={bgClouds} alt="" style={StyleSheet.absoluteFill} contentFit="cover" />
+        <Image source={resolveWeddingBackground(w.background_image)} alt="" style={StyleSheet.absoluteFill} contentFit="cover" />
         <ScrollView contentContainerStyle={styles.gateScroll} keyboardShouldPersistTaps="handled">
           <View style={styles.card}>
             <PheraText variant="display" align="center">
@@ -224,7 +224,7 @@ export default function GuestHomeScreen() {
 
   return (
     <View style={styles.root}>
-      <Image source={bgClouds} alt="" style={StyleSheet.absoluteFill} contentFit="cover" />
+      <Image source={resolveWeddingBackground(w.background_image)} alt="" style={StyleSheet.absoluteFill} contentFit="cover" />
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1,

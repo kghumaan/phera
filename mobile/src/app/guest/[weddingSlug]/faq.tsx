@@ -17,7 +17,7 @@ export default function GuestFaqScreen() {
   const list = faqs.data ?? [];
 
   return (
-    <GuestScreen title="Q + A">
+    <GuestScreen title="Q + A" themeBackgroundPath={wedding.data?.background_image}>
       {list.length === 0 ? (
         <EmptyState icon="help-circle-outline" title="No questions yet" subtitle="Ask the couple anything on WhatsApp." />
       ) : (

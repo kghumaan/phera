@@ -62,7 +62,7 @@ export default function GuestTravelScreen() {
   };
 
   return (
-    <GuestScreen title="Your Travel" background="clouds">
+    <GuestScreen title="Your Travel" themeBackgroundPath={wedding.data?.background_image}>
       {saved ? <SuccessAlert>Flight saved — your airport pickup will be arranged! ✈️</SuccessAlert> : null}
       {error ? <WarningAlert onClose={() => setError(null)}>{error}</WarningAlert> : null}
 

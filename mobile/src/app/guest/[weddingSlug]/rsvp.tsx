@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
@@ -10,6 +11,8 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import bgClouds from '@/assets/images/backgrounds/blue-clouds.webp';
 
 import {
   PheraInput,
@@ -351,6 +354,9 @@ export default function GuestRsvpScreen() {
 
   return (
     <View style={styles.root}>
+      {/* Web RSVP renders on the app-default clouds background (rsvp/page.tsx
+          passes useAppDefault) — same here. */}
+      <Image source={bgClouds} alt="" style={StyleSheet.absoluteFill} contentFit="cover" />
       {/* Header: X left, tracked uppercase title centered (web FullScreenFormContainer) */}
       <View style={[styles.header, { marginTop: insets.top + 12 }]}>
         <Pressable
@@ -456,7 +462,7 @@ export default function GuestRsvpScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#DCEDF5' },
+  root: { flex: 1, backgroundColor: COLORS.bg.paper },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

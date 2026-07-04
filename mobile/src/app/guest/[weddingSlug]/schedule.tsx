@@ -66,7 +66,7 @@ export default function GuestScheduleScreen() {
   const days = schedule.data ?? [];
 
   return (
-    <GuestScreen title="Schedule & Events" background="sage">
+    <GuestScreen title="Schedule & Events" background="jade">
       {days.length === 0 ? (
         <EmptyState icon="calendar-outline" title="Schedule coming soon" subtitle="The couple is still finalizing timings — check back!" />
       ) : (

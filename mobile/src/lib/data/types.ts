@@ -25,6 +25,8 @@ export interface Wedding {
   venue_location: string;
   status: string; // 'draft' | 'live'
   created_by: string | null;
+  /** Couple's chosen guest-site background (path under /images/backgrounds). */
+  background_image: string | null;
 }
 
 export interface GuestRsvpSummary {

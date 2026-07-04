@@ -5,18 +5,47 @@ import type { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import bgAquarium from '@/assets/images/backgrounds/aquarium.webp';
 import bgClouds from '@/assets/images/backgrounds/blue-clouds.webp';
-import bgIvory from '@/assets/images/backgrounds/ivory-linen.webp';
-import bgSage from '@/assets/images/backgrounds/bamboo-sage.webp';
+import bgJade from '@/assets/images/backgrounds/jade.webp';
+import bgPearl from '@/assets/images/backgrounds/pearl.webp';
 import { PheraText } from '@/components/ui';
 import { COLORS, FONT, SPACING, TEXT } from '@/lib/theme/tokens';
 
-export type GuestBackground = 'clouds' | 'ivory' | 'sage';
+/**
+ * Background convention — mirrors the web guest pages exactly
+ * (see MOBILE-PLAN.md §3 and each web page's OptimizedBackground src):
+ *   details hub → pearl.webp (hardcoded on web)
+ *   schedule    → jade.webp (hardcoded)
+ *   events      → aquarium.webp (hardcoded)
+ *   home/FAQ/cultural/travel/RSVP → the couple's wedding.background_image,
+ *   falling back to the app default blue-clouds.webp.
+ */
+export type GuestBackground = 'clouds' | 'pearl' | 'jade' | 'aquarium' | 'theme';
 
-const BACKGROUNDS: Record<GuestBackground, number> = {
+const BUNDLED: Record<string, number> = {
+  '/images/backgrounds/blue-clouds.webp': bgClouds,
+  '/images/backgrounds/pearl.webp': bgPearl,
+  '/images/backgrounds/jade.webp': bgJade,
+  '/images/backgrounds/aquarium.webp': bgAquarium,
+};
+
+/**
+ * Resolve the couple's chosen background: bundled asset when we ship it,
+ * remote URI for anything else (expo-image loads URLs), clouds fallback.
+ */
+export function resolveWeddingBackground(path?: string | null): number | { uri: string } {
+  if (!path) return bgClouds;
+  if (BUNDLED[path]) return BUNDLED[path]!;
+  if (path.startsWith('http')) return { uri: path };
+  return { uri: `https://phera.io${path}` };
+}
+
+const BACKGROUNDS: Record<Exclude<GuestBackground, 'theme'>, number> = {
   clouds: bgClouds,
-  ivory: bgIvory,
-  sage: bgSage,
+  pearl: bgPearl,
+  jade: bgJade,
+  aquarium: bgAquarium,
 };
 
 /**
@@ -27,13 +56,16 @@ const BACKGROUNDS: Record<GuestBackground, number> = {
  */
 export function GuestScreen({
   title,
-  background = 'clouds',
+  background = 'theme',
+  themeBackgroundPath,
   children,
   scroll = true,
   centered = false,
 }: {
   title?: string;
   background?: GuestBackground;
+  /** wedding.background_image — used when background='theme'. */
+  themeBackgroundPath?: string | null;
   children: ReactNode;
   scroll?: boolean;
   /** Vertically center content (details-hub style). */
@@ -41,6 +73,8 @@ export function GuestScreen({
 }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const bgSource =
+    background === 'theme' ? resolveWeddingBackground(themeBackgroundPath) : BACKGROUNDS[background];
 
   const header = (
     <View style={[styles.header, { marginTop: insets.top + 12 }]}>
@@ -59,7 +93,7 @@ export function GuestScreen({
 
   return (
     <View style={styles.root}>
-      <Image source={BACKGROUNDS[background]} alt="" style={StyleSheet.absoluteFill} contentFit="cover" />
+      <Image source={bgSource} alt="" style={StyleSheet.absoluteFill} contentFit="cover" />
       {header}
       {scroll ? (
         <ScrollView

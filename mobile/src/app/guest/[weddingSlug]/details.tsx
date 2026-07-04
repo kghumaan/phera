@@ -23,7 +23,7 @@ export default function GuestDetailsScreen() {
   const router = useRouter();
 
   return (
-    <GuestScreen background="ivory" centered>
+    <GuestScreen background="pearl" centered>
       {ITEMS.map((item, i) => (
         <Fragment key={item.route}>
           {i > 0 ? <DiamondSeparator /> : null}

@@ -33,6 +33,7 @@ export const FIXTURE_WEDDING: Wedding = {
   venue_location: 'Udaipur, Rajasthan',
   status: 'live',
   created_by: 'preview-user',
+  background_image: '/images/backgrounds/blue-clouds.webp',
 };
 
 const g = (

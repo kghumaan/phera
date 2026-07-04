@@ -23,7 +23,7 @@ export default function GuestEventsScreen() {
   const list = events.data ?? [];
 
   return (
-    <GuestScreen title="Events" background="clouds">
+    <GuestScreen title="Events" background="aquarium">
       {list.length === 0 ? (
         <EmptyState icon="sparkles-outline" title="Events coming soon" subtitle="The couple is still adding event details." />
       ) : (
