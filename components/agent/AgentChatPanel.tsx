@@ -329,6 +329,22 @@ function bubbleLabelFor(prompt: string): string | null {
   return null;
 }
 
+/** ISO dates in an answer bubble read like a database dump — render them the
+ *  way a person would say them: "2026-07-09 to 2026-07-11" → "Jul 9–11, 2026",
+ *  "2026-12-30 to 2027-01-02" → "Dec 30, 2026 – Jan 2, 2027", a single
+ *  "2026-07-09" → "Jul 9, 2026". Anything else passes through unchanged. */
+function prettyAnswerValue(value: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?: to (\d{4})-(\d{2})-(\d{2}))?$/.exec(value.trim());
+  if (!m) return value;
+  const [, y1, mo1, d1, y2, mo2, d2] = m;
+  const start = `${MONTHS[Number(mo1) - 1] ?? ''} ${Number(d1)}`;
+  if (!y2) return `${start}, ${y1}`;
+  if (y1 === y2 && mo1 === mo2) return `${start}–${Number(d2)}, ${y1}`;
+  const end = `${MONTHS[Number(mo2) - 1] ?? ''} ${Number(d2)}`;
+  if (y1 === y2) return `${start} – ${end}, ${y1}`;
+  return `${start}, ${y1} – ${end}, ${y2}`;
+}
+
 /**
  * Turn answered (prompt → answer) pairs into the bubble the couple sees. A pure
  * event date/time batch becomes a readable, day-then-time-sorted schedule list
@@ -355,9 +371,10 @@ function summarizePairs(pairs: { prompt: string; answer: string }[]): string {
     } else if (!skipped) {
       nonEventCount++;
       const lbl = bubbleLabelFor(p.prompt);
-      labeled.push(lbl ? `**${lbl}:** ${ans}` : ans);
+      const display = prettyAnswerValue(ans);
+      labeled.push(lbl ? `**${lbl}:** ${display}` : display);
     }
-    if (!skipped) allValues.push(ans);
+    if (!skipped) allValues.push(prettyAnswerValue(ans));
   }
   if (events.size > 1 && nonEventCount === 0) {
     const lines = Array.from(events.entries())
