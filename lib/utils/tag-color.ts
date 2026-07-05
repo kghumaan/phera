@@ -3,9 +3,13 @@
  * to the same palette entry so family/side/group tags read consistently across
  * the guest list, room assignments, broadcasts, and anywhere else tags surface.
  *
- * Palette is soft pastels tuned to sit next to the Phera brand pink without
- * clashing. We keep foreground text dark enough for AA contrast on the tint.
+ * Palette mirrors the Figma guest-list tag pills: bg = scale 100, text = the
+ * step the designer picked per scale for AA contrast (pink 700, sky 800,
+ * plum 800, butter 600). Pills render borderless; `border` is kept for hover
+ * accents (e.g. TagPicker suggestions).
  */
+
+import { COLORS, SCALES } from '@/lib/theme/tokens';
 
 export interface TagColor {
   bg: string;
@@ -14,20 +18,16 @@ export interface TagColor {
 }
 
 const TAG_PALETTE: TagColor[] = [
-  { bg: 'rgba(244, 63, 94, 0.12)',  fg: '#9F1239', border: 'rgba(244, 63, 94, 0.28)' },   // rose
-  { bg: 'rgba(59, 130, 246, 0.12)', fg: '#1E40AF', border: 'rgba(59, 130, 246, 0.28)' },  // blue
-  { bg: 'rgba(16, 185, 129, 0.12)', fg: '#065F46', border: 'rgba(16, 185, 129, 0.28)' },  // emerald
-  { bg: 'rgba(168, 85, 247, 0.12)', fg: '#6B21A8', border: 'rgba(168, 85, 247, 0.28)' },  // violet
-  { bg: 'rgba(245, 158, 11, 0.12)', fg: '#92400E', border: 'rgba(245, 158, 11, 0.28)' },  // amber
-  { bg: 'rgba(14, 165, 233, 0.12)', fg: '#0C4A6E', border: 'rgba(14, 165, 233, 0.28)' },  // sky
-  { bg: 'rgba(236, 72, 153, 0.12)', fg: '#9D174D', border: 'rgba(236, 72, 153, 0.28)' },  // pink
-  { bg: 'rgba(20, 184, 166, 0.12)', fg: '#134E4A', border: 'rgba(20, 184, 166, 0.28)' },  // teal
+  { bg: SCALES.raniPink[100],     fg: SCALES.raniPink[700],     border: SCALES.raniPink[200] },
+  { bg: SCALES.skyBlue[100],      fg: SCALES.skyBlue[800],      border: SCALES.skyBlue[200] },
+  { bg: SCALES.plum[100],         fg: SCALES.plum[800],         border: SCALES.plum[200] },
+  { bg: SCALES.butterYellow[100], fg: SCALES.butterYellow[600], border: SCALES.butterYellow[200] },
 ];
 
 const NEUTRAL: TagColor = {
-  bg: 'rgba(0, 0, 0, 0.05)',
-  fg: '#1a1a1a',
-  border: 'rgba(0, 0, 0, 0.12)',
+  bg: SCALES.black[50],
+  fg: COLORS.text.strong,
+  border: SCALES.black[100],
 };
 
 export function getTagColor(tag: string | null | undefined): TagColor {

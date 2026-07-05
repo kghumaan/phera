@@ -10,12 +10,103 @@
  *   ❌  color: '#DE3F5E'
  */
 
+// ─── Color scales ───────────────────────────────────────────────────
+// Mirror of the designer's Figma "Color Styles" (Phera.io file, exported
+// 2026-07-05). These are the raw ramps; the semantic COLORS below resolve
+// to steps in these scales. Reach for a scale directly only when a
+// component needs a specific step (e.g. tag pills = 100 bg + 700/800 text).
+
+export const SCALES = {
+  /** Primary — Rani Pink. 500 is the brand pink. */
+  raniPink: {
+    50: '#FFF7F9',
+    100: '#F8D8DE',
+    200: '#F2B1BE',
+    300: '#EA8599',
+    400: '#E45E78',
+    500: '#DE3F5E',
+    600: '#C71F51',
+    700: '#9D174D',
+    800: '#70103D',
+    900: '#4C0A2C',
+    950: '#360721',
+  },
+  /** Secondary — Sky Blue. */
+  skyBlue: {
+    50: '#EEF9FB',
+    100: '#DAF1F6',
+    200: '#B5E2EE',
+    300: '#8BD2E4',
+    400: '#66C4DB',
+    500: '#49B9D4',
+    600: '#2C9DBA',
+    700: '#227A91',
+    800: '#185767',
+    900: '#103B46',
+    950: '#0C2A32',
+  },
+  /** Secondary — Plum. */
+  plum: {
+    50: '#F5F3F6',
+    100: '#EAE5EB',
+    200: '#D4CAD8',
+    300: '#BCADC2',
+    400: '#A792AF',
+    500: '#967EA0',
+    600: '#805591',
+    700: '#663C77',
+    800: '#4B2759',
+    900: '#33193E',
+    950: '#25112D',
+  },
+  /** Secondary — Butter Yellow. */
+  butterYellow: {
+    50: '#FEF9EC',
+    100: '#FCF1D4',
+    200: '#F9E2A9',
+    300: '#F6D079',
+    400: '#F4BC4E',
+    500: '#F4AA2A',
+    600: '#DC8409',
+    700: '#AC6206',
+    800: '#7C4204',
+    900: '#552A02',
+    950: '#3C1D02',
+  },
+  /** Primary neutrals — "Black" ramp. `base` is the full-strength ink. */
+  black: {
+    base: '#141414',
+    900: '#1F1F1F',
+    800: '#303030',
+    700: '#474747',
+    600: '#686868',
+    500: '#858585',
+    400: '#969696',
+    300: '#A8A8A8',
+    200: '#BCBCBC',
+    100: '#D6D6D6',
+    50: '#EBEBEB',
+  },
+  /** White/warm-cream opacities for dark or photo backgrounds. */
+  whiteAlpha: {
+    100: 'rgba(255, 255, 255, 1)',
+    80: 'rgba(255, 255, 255, 0.8)',
+    72: 'rgba(247, 244, 236, 0.7)',
+    56: 'rgba(247, 244, 236, 0.56)',
+    32: 'rgba(247, 244, 236, 0.32)',
+    24: 'rgba(247, 244, 236, 0.24)',
+    12: 'rgba(247, 244, 236, 0.12)',
+    8: 'rgba(247, 244, 236, 0.08)',
+    4: 'rgba(247, 244, 236, 0.04)',
+  },
+} as const;
+
 // ─── Colors ─────────────────────────────────────────────────────────
 
 export const COLORS = {
   brand: {
-    primary: '#DE3F5E',
-    primaryHover: '#C8365A',
+    primary: SCALES.raniPink[500],
+    primaryHover: SCALES.raniPink[600],
     primaryDisabled: 'rgba(222, 63, 94, 0.35)',
     primarySubtle: 'rgba(222, 63, 94, 0.08)',
     primaryWash: 'rgba(222, 63, 94, 0.04)',
@@ -69,9 +160,9 @@ export const COLORS = {
     purple: '#6C5CE7',
   },
   side: {
-    bride: '#DE3F5E',   // brand pink
-    groom: '#3b82f6',   // blue
-    both: '#8b5cf6',   // purple
+    bride: SCALES.raniPink[500],   // brand pink
+    groom: SCALES.skyBlue[600],    // sky blue (designer secondary)
+    both: SCALES.plum[600],        // plum (designer secondary)
   },
   // Brand-accurate WhatsApp palette. Used ONLY in the WhatsApp message
   // preview component so the mockup looks true to what guests will see.

@@ -45,7 +45,7 @@ import GuestDetailDrawer, { type GuestDetailRecord } from '@/components/admin/gu
 import GroupGuestsDialog from '@/components/admin/guests/GroupGuestsDialog';
 import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
-import { COLORS, RADII, SHADOWS } from '@/lib/theme/tokens';
+import { COLORS, RADII, SCALES, SHADOWS } from '@/lib/theme/tokens';
 import { getTagColor } from '@/lib/utils/tag-color';
 import { Groups } from '@mui/icons-material';
 
@@ -235,7 +235,8 @@ const DragTagChip = memo(function DragTagChip({
           fontWeight: 600,
           bgcolor: c.bg,
           color: c.fg,
-          border: `1px solid ${c.border}`,
+          borderRadius: RADII.pill,
+          px: 0.5,
           cursor: 'inherit',
           '& .MuiChip-deleteIcon': {
             color: c.fg,
@@ -320,7 +321,7 @@ const GuestRow = memo(function GuestRow({
       sx={{
         '&:hover .row-actions': { opacity: 1 },
         '&:hover .fill-handle': { opacity: 1 },
-        '&.Mui-selected': { bgcolor: COLORS.brand.primaryWash },
+        '&.Mui-selected': { bgcolor: SCALES.raniPink[50] },
         '&.Mui-selected:hover': { bgcolor: COLORS.brand.primarySubtle },
         ...(isOver && {
           outline: `2px solid ${COLORS.brand.primary}`,
@@ -444,10 +445,20 @@ const GuestRow = memo(function GuestRow({
           )}
         </Stack>
       </TableCell>
-      {/* Status — derived from the latest rsvp record for this guest. */}
+      {/* Status — derived from the latest rsvp record for this guest.
+          "No response" renders as quiet placeholder text (per Figma); real
+          responses keep their colored status pill. */}
       <TableCell onClick={openDetails} sx={{ ...bodyCell, ...EDIT_HINT, py: 1.75 }}>
         {(() => {
-          const meta = RSVP_STATUS_META[getRsvpStatus(g)];
+          const status = getRsvpStatus(g);
+          const meta = RSVP_STATUS_META[status];
+          if (status === 'no_response') {
+            return (
+              <Typography variant="body2" sx={{ color: SCALES.black[300] }}>
+                {meta.label}
+              </Typography>
+            );
+          }
           const Icon = meta.Icon;
           return (
             <Chip
@@ -1266,8 +1277,8 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
       <Paper
         elevation={0}
         sx={{
-          borderRadius: RADII.md,
-          border: `1px solid ${COLORS.border.faint}`,
+          borderRadius: RADII.xl,
+          border: `1px solid ${SCALES.black[50]}`,
           bgcolor: COLORS.bg.white,
           overflow: 'hidden',
         }}
@@ -1294,7 +1305,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                   : guests.length
             }
             size="small"
-            sx={{ fontSize: '0.875rem', fontWeight: 600, bgcolor: 'rgba(0,0,0,0.05)', color: COLORS.text.muted }}
+            sx={{ fontSize: '0.875rem', fontWeight: 600, bgcolor: SCALES.black[50], color: COLORS.text.muted }}
           />
           {existingTags.length > 0 && (
             <Typography variant="body2" sx={{ color: COLORS.text.faint, ml: 1 }}>
@@ -1332,13 +1343,17 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
               sx={{
                 ml: 2,
                 width: { xs: '100%', sm: 280, md: 320 },
+                // Quiet filled input per Figma — gray wash, border only appears
+                // on hover/focus.
                 '& .MuiOutlinedInput-root': {
                   borderRadius: RADII.md,
-                  bgcolor: COLORS.bg.white,
+                  bgcolor: COLORS.bg.subtle,
                   fontSize: '0.875rem',
                   '& input': { py: 0.75, color: COLORS.text.strong },
-                  '& fieldset': { borderColor: COLORS.border.default },
-                  '&:hover fieldset': { borderColor: COLORS.brand.primary },
+                  '& input::placeholder': { color: SCALES.black[400], opacity: 1 },
+                  '& fieldset': { borderColor: 'transparent' },
+                  '&:hover fieldset': { borderColor: COLORS.border.default },
+                  '&.Mui-focused': { bgcolor: COLORS.bg.white },
                   '&.Mui-focused fieldset': {
                     borderColor: COLORS.brand.primary,
                     borderWidth: '1.5px',
@@ -1367,8 +1382,8 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                     alignItems: 'center',
                     px: 1.25,
                     borderRadius: RADII.pill,
-                    bgcolor: COLORS.brand.primarySubtle,
-                    color: COLORS.brand.primary,
+                    bgcolor: SCALES.raniPink[100],
+                    color: SCALES.raniPink[700],
                     fontWeight: 700,
                     fontSize: '0.875rem',
                   }}
@@ -1439,7 +1454,8 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                         fontWeight: 600,
                         bgcolor: c.bg,
                         color: c.fg,
-                        border: `1px solid ${c.border}`,
+                        borderRadius: RADII.pill,
+                        px: 0.5,
                         '& .MuiChip-deleteIcon': {
                           color: c.fg,
                           opacity: 0.6,
@@ -1530,12 +1546,10 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                     sx={{
                       width: 32,
                       height: 32,
-                      color: COLORS.brand.primary,
-                      border: `1px solid ${COLORS.brand.primaryBorder}`,
-                      '&:hover': {
-                        bgcolor: COLORS.brand.primarySubtle,
-                        borderColor: COLORS.brand.primary,
-                      },
+                      borderRadius: RADII.sm,
+                      color: SCALES.raniPink[600],
+                      bgcolor: SCALES.raniPink[100],
+                      '&:hover': { bgcolor: SCALES.raniPink[200] },
                     }}
                   >
                     <Delete sx={{ fontSize: 18 }} />
@@ -1661,7 +1675,8 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                     fontWeight: 600,
                     bgcolor: c.bg,
                     color: c.fg,
-                    border: `1px solid ${c.border}`,
+                    borderRadius: RADII.pill,
+                    px: 0.5,
                     boxShadow: SHADOWS.popover,
                     cursor: 'grabbing',
                   }}
