@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Redirect, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { useState } from 'react';
@@ -228,6 +229,22 @@ export default function LoginScreen() {
             >
               I&apos;m a wedding guest →
             </PheraText>
+
+            {__DEV__ ? (
+              <PheraText
+                variant="body2"
+                align="center"
+                color={COLORS.text.subtle}
+                onPress={() => {
+                  void AsyncStorage.removeItem('phera_onboarded').then(() =>
+                    router.replace('/welcome' as never),
+                  );
+                }}
+                testID="replay-intro"
+              >
+                Replay the intro (dev only)
+              </PheraText>
+            ) : null}
               </>
             )}
           </View>
