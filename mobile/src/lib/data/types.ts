@@ -27,6 +27,13 @@ export interface Wedding {
   created_by: string | null;
   /** Couple's chosen guest-site background (path under /images/backgrounds). */
   background_image: string | null;
+  // Lock-screen customisations (web PinEntry) — all optional per wedding.
+  pin_entry_text: string | null;
+  pin_entry_subtitle_text: string | null;
+  pin_entry_background: string | null;
+  pin_entry_primary_color: string | null;
+  pin_entry_font_color: string | null;
+  pin_entry_button_font_color: string | null;
 }
 
 export interface GuestRsvpSummary {

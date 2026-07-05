@@ -5,12 +5,11 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'reac
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { resolveWeddingBackground } from '@/components/guest/GuestChrome';
-import { PheraButton, PheraInput, PheraText, WarningAlert } from '@/components/ui';
+import { PinEntryGate } from '@/components/guest/PinEntryGate';
+import { PheraButton, PheraText } from '@/components/ui';
 import { useWedding } from '@/lib/data/hooks';
-import { matchName, verifyPassword, type NameMatch } from '@/lib/guest/access';
 import { clearGuestSession, getGuestSession, setGuestSession, type GuestSession } from '@/lib/guest/session';
-import { isPreviewMode } from '@/lib/supabase/client';
-import { COLORS, PALETTE, RADII, SHADOWS } from '@/lib/theme/tokens';
+import { COLORS, PALETTE, RADII } from '@/lib/theme/tokens';
 import { useWeddingSlug } from '@/lib/nav';
 
 type GateStep = 'loading' | 'password' | 'name' | 'home';
@@ -68,11 +67,6 @@ export default function GuestHomeScreen() {
 
   const [step, setStep] = useState<GateStep>('loading');
   const [session, setSession] = useState<GuestSession | null>(null);
-  const [password, setPassword] = useState('');
-  const [query, setQuery] = useState('');
-  const [matches, setMatches] = useState<NameMatch[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getGuestSession(weddingSlug).then((s) => {
@@ -81,31 +75,7 @@ export default function GuestHomeScreen() {
     });
   }, [weddingSlug]);
 
-  const submitPassword = async () => {
-    setError(null);
-    setBusy(true);
-    try {
-      const ok = await verifyPassword(weddingSlug, password);
-      if (!ok) {
-        setError('That password does not match — check your invitation.');
-        return;
-      }
-      setStep('name');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const searchName = async (text: string) => {
-    setQuery(text);
-    if (text.trim().length < 2) {
-      setMatches([]);
-      return;
-    }
-    setMatches(await matchName(weddingSlug, text, password));
-  };
-
-  const pickGuest = async (m: NameMatch) => {
+  const pickGuest = async (m: { id: string; name: string }) => {
     const s = { guestId: m.id, guestName: m.name };
     await setGuestSession(weddingSlug, s);
     setSession(s);
@@ -123,95 +93,7 @@ export default function GuestHomeScreen() {
   }
 
   if (step !== 'home') {
-    return (
-      <View style={styles.root}>
-        <Image source={resolveWeddingBackground(w.background_image)} alt="" style={StyleSheet.absoluteFill} contentFit="cover" />
-        <ScrollView contentContainerStyle={styles.gateScroll} keyboardShouldPersistTaps="handled">
-          <View style={styles.card}>
-            <PheraText variant="display" align="center">
-              {w.couple_name}
-            </PheraText>
-            <PheraText variant="body2" align="center">
-              {w.wedding_date_display}
-            </PheraText>
-            {error ? <WarningAlert onClose={() => setError(null)}>{error}</WarningAlert> : null}
-            {step === 'password' ? (
-              <View style={{ gap: 14 }}>
-                <PheraInput
-                  label="Wedding password"
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="From your invitation"
-                  autoCapitalize="none"
-                  testID="guest-password"
-                />
-                <PheraButton
-                  fullWidth
-                  size="lg"
-                  borderRadius={RADII.cta}
-                  loading={busy}
-                  onPress={submitPassword}
-                  testID="guest-password-submit"
-                >
-                  Continue
-                </PheraButton>
-                {isPreviewMode ? (
-                  <PheraText variant="body2" align="center" color={COLORS.text.subtle}>
-                    Preview — any password of 4+ characters works
-                  </PheraText>
-                ) : null}
-              </View>
-            ) : (
-              <View style={{ gap: 14 }}>
-                <PheraInput
-                  label="Find your name"
-                  value={query}
-                  onChangeText={searchName}
-                  placeholder="Start typing your name…"
-                  autoCorrect={false}
-                  testID="guest-name"
-                />
-                {matches.map((m) => (
-                  <Pressable
-                    key={m.id}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Pick ${m.name}`}
-                    onPress={() => void pickGuest(m)}
-                    style={styles.matchRow}
-                  >
-                    <View
-                      style={[styles.matchAvatar, { backgroundColor: m.avatarColor ?? COLORS.brand.primary }]}
-                    >
-                      <PheraText variant="body2" weight={600} color={COLORS.text.inverse}>
-                        {m.initials ??
-                          m.name
-                            .split(/\s+/)
-                            .slice(0, 2)
-                            .map((p) => p[0]?.toUpperCase() ?? '')
-                            .join('')}
-                      </PheraText>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <PheraText variant="body" weight={500}>
-                        {m.name}
-                      </PheraText>
-                      {m.partySize > 1 ? (
-                        <PheraText variant="body2">Party of {m.partySize}</PheraText>
-                      ) : null}
-                    </View>
-                  </Pressable>
-                ))}
-                {query.trim().length >= 2 && matches.length === 0 ? (
-                  <PheraText variant="body2" align="center">
-                    No match — try just your first name.
-                  </PheraText>
-                ) : null}
-              </View>
-            )}
-          </View>
-        </ScrollView>
-      </View>
-    );
+    return <PinEntryGate wedding={w} onSelect={(m) => void pickGuest(m)} />;
   }
 
   // ── Home hero — mirrors the web guest home: date, serif couple name,
@@ -264,9 +146,6 @@ export default function GuestHomeScreen() {
             onPress={async () => {
               await clearGuestSession(weddingSlug);
               setSession(null);
-              setPassword('');
-              setQuery('');
-              setMatches([]);
               setStep('password');
             }}
           >
@@ -306,34 +185,6 @@ export default function GuestHomeScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.bg.paper },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  gateScroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
-  card: {
-    backgroundColor: PALETTE.white[100],
-    borderRadius: RADII.dialog,
-    padding: 24,
-    gap: 12,
-    width: '100%',
-    maxWidth: 440,
-    alignSelf: 'center',
-    ...SHADOWS.dialog,
-  },
-  matchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 12,
-    borderRadius: RADII.md,
-    borderWidth: 1,
-    borderColor: COLORS.border.light,
-    backgroundColor: COLORS.bg.white,
-  },
-  matchAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   countdownPill: {
     flexDirection: 'row',
     justifyContent: 'space-between',

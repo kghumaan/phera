@@ -4,3 +4,9 @@ declare module '*.webp' {
   const asset: number;
   export default asset;
 }
+
+// SVG is in Metro's assetExts (expo-image renders it natively + on web).
+declare module '*.svg' {
+  const asset: number;
+  export default asset;
+}

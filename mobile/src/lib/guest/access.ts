@@ -12,21 +12,39 @@ import { isPreviewMode } from '@/lib/supabase/client';
 export interface NameMatch {
   id: string;
   name: string;
+  plusOneName?: string | null;
   partySize: number;
   avatarColor: string | null;
   initials: string | null;
 }
 
-export async function verifyPassword(weddingSlug: string, password: string): Promise<boolean> {
-  if (isPreviewMode) return password.trim().length >= 4;
-  const res = await fetch(`${API_BASE}/api/access/verify-password`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ weddingSlug, password }),
-  });
-  if (!res.ok) return false;
-  const json = (await res.json()) as { valid: boolean };
-  return json.valid;
+export interface PasswordResult {
+  valid: boolean;
+  /** Server-provided reason (rate limit, no password configured, …). */
+  error?: string;
+}
+
+export async function verifyPassword(
+  weddingSlug: string,
+  password: string,
+): Promise<PasswordResult> {
+  if (isPreviewMode) {
+    return password.trim().length >= 4
+      ? { valid: true }
+      : { valid: false, error: 'Incorrect password. Please try again.' };
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/access/verify-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ weddingSlug, password }),
+    });
+    const json = (await res.json()) as { valid?: boolean; error?: string };
+    if (json.valid) return { valid: true };
+    return { valid: false, error: json.error || 'Incorrect password. Please try again.' };
+  } catch {
+    return { valid: false, error: 'Something went wrong. Please try again.' };
+  }
 }
 
 /**

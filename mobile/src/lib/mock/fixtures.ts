@@ -34,6 +34,12 @@ export const FIXTURE_WEDDING: Wedding = {
   status: 'live',
   created_by: 'preview-user',
   background_image: '/images/backgrounds/blue-clouds.webp',
+  pin_entry_text: null,
+  pin_entry_subtitle_text: null,
+  pin_entry_background: null,
+  pin_entry_primary_color: null,
+  pin_entry_font_color: null,
+  pin_entry_button_font_color: null,
 };
 
 const g = (
