@@ -1,3 +1,4 @@
+import { API_BASE } from '@/lib/config';
 import { FIXTURE_GUESTS } from '@/lib/mock/fixtures';
 import { isPreviewMode } from '@/lib/supabase/client';
 
@@ -7,8 +8,6 @@ import { isPreviewMode } from '@/lib/supabase/client';
  * 2. loose name match             (POST /api/access/match-name)
  * Preview mode: any password ≥4 chars works; matches come from fixtures.
  */
-
-const API_BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://phera.io';
 
 export interface NameMatch {
   id: string;

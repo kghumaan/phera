@@ -1,11 +1,12 @@
 import { fetch as expoFetch } from 'expo/fetch';
 
+import { API_BASE } from '@/lib/config';
 import { isPreviewMode, supabase } from '@/lib/supabase/client';
 
 /**
  * Streaming client for the Phera Agent chat.
  *
- * Live mode POSTs to `${EXPO_PUBLIC_API_BASE_URL}/api/agent/chat` with the
+ * Live mode POSTs to `${API_BASE}/api/agent/chat` (config.ts) with the
  * Supabase bearer token and reads the SSE stream via expo/fetch (streaming
  * bodies work on native + web). Event shapes mirror the server's
  * AgentStreamEvent union (lib/agent/types.ts on web) — unknown types are
@@ -26,8 +27,6 @@ export interface ChatTurnInput {
   message: string;
   conversationId?: string;
 }
-
-const API_BASE = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://phera.io';
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
