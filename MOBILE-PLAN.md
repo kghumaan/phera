@@ -120,7 +120,7 @@ Statuses: `[ ]` todo · `[~]` in progress · `[x]` built + verified
 
 ### Phase 2 — AI Planner (the differentiator)
 - [x] Planner chat — real SSE from `/api/agent/chat` when live (expo/fetch streaming, bearer auth, conversationId continuity, error surface), scripted mock in preview. tool_done/confirmation/question panels still to come
-- [ ] In-chat confirmation flow for gated/write tools (confirmation_required events → Confirm/Decline → /api/agent/confirm)
+- [x] In-chat confirmation flow — confirmation_required events render an action card (shield, summary, Decline/Confirm), resolution POSTs /api/agent/confirm and streams the agent's follow-up; success/warning haptics; preview mock exercises the whole loop
 - [ ] Conversation list / resume (`/api/agent/conversations`)
 - [ ] Voice input (expo-av → existing transcribe route) — stretch, flag if API needs work
 - [x] **Web-side change:** `getAuthenticatedClient` (lib/utils/auth-helpers.ts) now accepts `Authorization: Bearer` alongside cookies — every route using it is mobile-callable

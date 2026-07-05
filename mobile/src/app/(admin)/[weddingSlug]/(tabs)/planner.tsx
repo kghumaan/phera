@@ -16,6 +16,8 @@ import {
   PLANNER_STARTERS,
   WELCOME_PLACEHOLDER,
   streamChat,
+  streamConfirm,
+  type AgentStreamEvent,
 } from '@/lib/agent/client';
 import { isPreviewMode } from '@/lib/supabase/client';
 import { COLORS, FONT, RADII, TEXT } from '@/lib/theme/tokens';
@@ -24,7 +26,15 @@ import { useWeddingSlug } from '@/lib/nav';
 type ChatItem =
   | { kind: 'user'; id: string; text: string }
   | { kind: 'assistant'; id: string; text: string; streaming?: boolean }
-  | { kind: 'tool'; id: string; label: string };
+  | { kind: 'tool'; id: string; label: string }
+  | {
+      kind: 'confirm';
+      id: string;
+      actionId: string;
+      label: string;
+      summary?: string;
+      status: 'pending' | 'approved' | 'declined';
+    };
 
 let nextId = 0;
 const uid = () => `m${++nextId}`;
@@ -65,34 +75,76 @@ export default function PlannerScreen() {
 
     setFailure(null);
     try {
-      let assistantStarted = false;
-      for await (const event of streamChat({ weddingSlug, message, conversationId })) {
-        if (event.type === 'conversation') {
-          setConversationId(event.conversationId);
-        } else if (event.type === 'tool') {
-          setItems((prev) => [...prev, { kind: 'tool', id: uid(), label: event.label }]);
-        } else if (event.type === 'text_delta') {
-          setItems((prev) => {
-            if (!assistantStarted) {
-              assistantStarted = true;
-              return [...prev, { kind: 'assistant', id: assistantId, text: event.text, streaming: true }];
-            }
-            return prev.map((it) =>
-              it.id === assistantId && it.kind === 'assistant'
-                ? { ...it, text: it.text + event.text }
-                : it,
-            );
-          });
-        }
-        scrollToEnd();
-      }
-      setItems((prev) =>
-        prev.map((it) =>
-          it.id === assistantId && it.kind === 'assistant' ? { ...it, streaming: false } : it,
-        ),
-      );
+      await consume(streamChat({ weddingSlug, message, conversationId }), assistantId);
     } catch (e) {
       setFailure(e instanceof Error ? e.message : 'The planner had trouble responding — try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** Feed a stream's events into the transcript (shared by send + confirm). */
+  const consume = async (stream: AsyncGenerator<AgentStreamEvent>, assistantId: string) => {
+    let assistantStarted = false;
+    for await (const event of stream) {
+      if (event.type === 'conversation') {
+        setConversationId(event.conversationId);
+      } else if (event.type === 'tool') {
+        setItems((prev) => [...prev, { kind: 'tool', id: uid(), label: event.label }]);
+      } else if (event.type === 'confirmation_required') {
+        setItems((prev) => [
+          ...prev,
+          {
+            kind: 'confirm',
+            id: uid(),
+            actionId: event.actionId,
+            label: event.label,
+            summary: event.summary,
+            status: 'pending',
+          },
+        ]);
+      } else if (event.type === 'text_delta') {
+        setItems((prev) => {
+          if (!assistantStarted) {
+            assistantStarted = true;
+            return [...prev, { kind: 'assistant', id: assistantId, text: event.text, streaming: true }];
+          }
+          return prev.map((it) =>
+            it.id === assistantId && it.kind === 'assistant'
+              ? { ...it, text: it.text + event.text }
+              : it,
+          );
+        });
+      }
+      scrollToEnd();
+    }
+    setItems((prev) =>
+      prev.map((it) =>
+        it.id === assistantId && it.kind === 'assistant' ? { ...it, streaming: false } : it,
+      ),
+    );
+  };
+
+  const resolveConfirmation = async (item: ChatItem & { kind: 'confirm' }, approve: boolean) => {
+    if (busy || item.status !== 'pending') return;
+    setBusy(true);
+    setFailure(null);
+    setItems((prev) =>
+      prev.map((it) =>
+        it.id === item.id && it.kind === 'confirm'
+          ? { ...it, status: approve ? 'approved' : 'declined' }
+          : it,
+      ),
+    );
+    if (Platform.OS !== 'web') {
+      Haptics.notificationAsync(
+        approve ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning,
+      ).catch(() => {});
+    }
+    try {
+      await consume(streamConfirm(item.actionId, approve), uid());
+    } catch (e) {
+      setFailure(e instanceof Error ? e.message : 'Could not resolve the action — try again.');
     } finally {
       setBusy(false);
     }
@@ -148,6 +200,75 @@ export default function PlannerScreen() {
                     }}
                   >
                     <PheraText variant="body">{item.text}</PheraText>
+                  </View>
+                );
+              }
+              if (item.kind === 'confirm') {
+                return (
+                  <View
+                    style={{
+                      alignSelf: 'stretch',
+                      backgroundColor: COLORS.bg.white,
+                      borderWidth: 1.5,
+                      borderColor: COLORS.brand.primaryBorder,
+                      borderRadius: RADII.lg,
+                      padding: 16,
+                      gap: 10,
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <Ionicons name="shield-checkmark-outline" size={18} color={COLORS.brand.primary} />
+                      <PheraText variant="h3" style={{ flex: 1 }}>
+                        {item.label}
+                      </PheraText>
+                      {item.status !== 'pending' ? (
+                        <PheraChip
+                          label={item.status === 'approved' ? 'Approved' : 'Declined'}
+                          tone={item.status === 'approved' ? 'success' : 'neutral'}
+                        />
+                      ) : null}
+                    </View>
+                    {item.summary ? <PheraText variant="body2">{item.summary}</PheraText> : null}
+                    {item.status === 'pending' ? (
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <Pressable
+                          accessibilityRole="button"
+                          testID="confirm-decline"
+                          onPress={() => void resolveConfirmation(item, false)}
+                          style={{
+                            flex: 1,
+                            height: 44,
+                            borderRadius: RADII.md,
+                            borderWidth: 1.5,
+                            borderColor: COLORS.text.strong,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: COLORS.bg.white,
+                          }}
+                        >
+                          <PheraText variant="body2" weight={600}>
+                            Decline
+                          </PheraText>
+                        </Pressable>
+                        <Pressable
+                          accessibilityRole="button"
+                          testID="confirm-approve"
+                          onPress={() => void resolveConfirmation(item, true)}
+                          style={{
+                            flex: 1,
+                            height: 44,
+                            borderRadius: RADII.md,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: COLORS.brand.primary,
+                          }}
+                        >
+                          <PheraText variant="body2" weight={600} color={COLORS.text.inverse}>
+                            Confirm
+                          </PheraText>
+                        </Pressable>
+                      </View>
+                    ) : null}
                   </View>
                 );
               }
