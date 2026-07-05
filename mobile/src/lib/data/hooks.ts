@@ -525,13 +525,36 @@ export function useSettings(weddingId: string | undefined) {
     enabled: !!weddingId,
     queryFn: async (): Promise<WeddingSettings | null> => {
       if (!supabase) return { wedding_password: 'udaipur2026', concierge_enabled: true };
-      const { data, error } = await supabase
-        .from('wedding_settings')
-        .select('wedding_password, concierge_enabled')
-        .eq('wedding_id', weddingId!) // UUID
-        .maybeSingle();
-      if (error) throw error;
-      return data as WeddingSettings | null;
+      // Password lives in wedding_secrets (admin-only RLS); settings holds
+      // the benign flags. Legacy-column fallback until 20260705b drops it.
+      const [settingsRes, secretRes, legacyRes] = await Promise.all([
+        supabase
+          .from('wedding_settings')
+          .select('concierge_enabled')
+          .eq('wedding_id', weddingId!) // UUID
+          .maybeSingle(),
+        supabase
+          .from('wedding_secrets')
+          .select('wedding_password')
+          .eq('wedding_id', weddingId!)
+          .maybeSingle(),
+        // Errors once 20260705b drops the column — ignored below.
+        supabase
+          .from('wedding_settings')
+          .select('wedding_password')
+          .eq('wedding_id', weddingId!)
+          .maybeSingle(),
+      ]);
+      if (settingsRes.error) throw settingsRes.error;
+      return {
+        concierge_enabled:
+          (settingsRes.data as { concierge_enabled: boolean | null } | null)?.concierge_enabled ??
+          null,
+        wedding_password:
+          (secretRes.data as { wedding_password: string | null } | null)?.wedding_password ??
+          (legacyRes.data as { wedding_password: string | null } | null)?.wedding_password ??
+          null,
+      };
     },
   });
 }

@@ -2384,6 +2384,32 @@ export type Database = {
           },
         ]
       }
+      wedding_secrets: {
+        Row: {
+          updated_at: string | null
+          wedding_id: string
+          wedding_password: string | null
+        }
+        Insert: {
+          updated_at?: string | null
+          wedding_id: string
+          wedding_password?: string | null
+        }
+        Update: {
+          updated_at?: string | null
+          wedding_id?: string
+          wedding_password?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_secrets_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: true
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wedding_shops: {
         Row: {
           created_at: string | null
