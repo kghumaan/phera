@@ -157,7 +157,7 @@ export default function PlannerScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{ flex: 1, backgroundColor: COLORS.bg.muted }}
     >
-      <View style={{ flex: 1, paddingTop: insets.top + 12 }}>
+      <View style={{ flex: 1, paddingTop: insets.top }}>
         {empty ? (
           <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24, gap: 20 }}>
             <View style={{ gap: 8, alignItems: 'center' }}>

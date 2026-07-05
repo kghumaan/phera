@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { TextInput, View, type TextInputProps } from 'react-native';
 
-import { COLORS, RADII, TEXT, fontForWeight } from '@/lib/theme/tokens';
+import { COLORS, PALETTE, RADII, TEXT, fontForWeight } from '@/lib/theme/tokens';
 import { PheraText } from './PheraText';
 
 export interface PheraInputProps extends TextInputProps {
@@ -57,7 +57,7 @@ export function PheraInput({
         placeholderTextColor={COLORS.text.placeholder}
         style={[
           {
-            backgroundColor: editable ? COLORS.bg.white : 'rgba(255, 255, 255, 0.8)',
+            backgroundColor: editable ? COLORS.bg.white : PALETTE.white[80],
             borderWidth: focused || error ? 2 : 1,
             borderColor,
             borderRadius: RADII.md,

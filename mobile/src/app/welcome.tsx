@@ -16,7 +16,7 @@ import artCouple from '@/assets/images/onboarding/slide-couple.webp';
 import artGuest from '@/assets/images/onboarding/slide-guest.webp';
 import artIntro from '@/assets/images/onboarding/slide-intro.webp';
 import { PheraButton, PheraText } from '@/components/ui';
-import { COLORS, FONT, RADII, TEXT } from '@/lib/theme/tokens';
+import { COLORS, FONT, PALETTE, RADII, TEXT } from '@/lib/theme/tokens';
 
 export const ONBOARDED_KEY = 'phera_onboarded';
 
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     // Soft paper wash so the headline stays legible over any artwork.
-    backgroundColor: 'rgba(251, 247, 241, 0.72)',
+    backgroundColor: PALETTE.white[72],
     borderRadius: 24,
     paddingVertical: 18,
     paddingHorizontal: 16,
@@ -207,6 +207,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(0, 0, 0, 0.18)',
+    backgroundColor: COLORS.border.default,
   },
 });

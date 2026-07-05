@@ -358,7 +358,7 @@ export default function GuestRsvpScreen() {
           passes useAppDefault) — same here. */}
       <Image source={bgClouds} alt="" style={StyleSheet.absoluteFill} contentFit="cover" />
       {/* Header: X left, tracked uppercase title centered (web FullScreenFormContainer) */}
-      <View style={[styles.header, { marginTop: insets.top + 12 }]}>
+      <View style={[styles.header, { marginTop: insets.top }]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Close"

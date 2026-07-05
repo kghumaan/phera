@@ -47,7 +47,7 @@ export default function GalleryScreen() {
     <ScrollView
       style={{ flex: 1, backgroundColor: COLORS.bg.muted }}
       contentContainerStyle={{
-        paddingTop: insets.top + 12,
+        paddingTop: insets.top,
         paddingBottom: 48,
         paddingHorizontal: SPACING.screenX,
         gap: 24,

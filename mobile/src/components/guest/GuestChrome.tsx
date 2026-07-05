@@ -10,7 +10,7 @@ import bgClouds from '@/assets/images/backgrounds/blue-clouds.webp';
 import bgJade from '@/assets/images/backgrounds/jade.webp';
 import bgPearl from '@/assets/images/backgrounds/pearl.webp';
 import { PheraText } from '@/components/ui';
-import { COLORS, FONT, SPACING, TEXT } from '@/lib/theme/tokens';
+import { COLORS, FONT, PALETTE, SPACING, TEXT } from '@/lib/theme/tokens';
 
 /**
  * Background convention — mirrors the web guest pages exactly
@@ -77,7 +77,7 @@ export function GuestScreen({
     background === 'theme' ? resolveWeddingBackground(themeBackgroundPath) : BACKGROUNDS[background];
 
   const header = (
-    <View style={[styles.header, { marginTop: insets.top + 12 }]}>
+    <View style={[styles.header, { marginTop: insets.top }]}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Go back"
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    backgroundColor: PALETTE.white[32],
   },
   title: {
     flex: 1,

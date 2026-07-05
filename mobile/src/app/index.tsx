@@ -71,7 +71,7 @@ export default function Index() {
       style={{
         flex: 1,
         backgroundColor: COLORS.bg.muted,
-        paddingTop: insets.top + 12,
+        paddingTop: insets.top,
         paddingHorizontal: SPACING.screenX,
         gap: 16,
       }}

@@ -36,7 +36,7 @@ export function Screen({ children, scroll = true, onRefresh, refreshing = false 
 
   if (!scroll) {
     return (
-      <View style={{ flex: 1, backgroundColor: COLORS.bg.muted, paddingTop: insets.top + 24 }}>
+      <View style={{ flex: 1, backgroundColor: COLORS.bg.muted, paddingTop: insets.top }}>
         {inner}
       </View>
     );
@@ -45,9 +45,9 @@ export function Screen({ children, scroll = true, onRefresh, refreshing = false 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: COLORS.bg.muted }}
-      // Generous padding top AND bottom: content must never crowd the
-      // status bar, notch, home indicator, or tab bar.
-      contentContainerStyle={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + 48 }}
+      // Safe-area top only; generous bottom so content never crowds the
+      // home indicator or tab bar.
+      contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 48 }}
       refreshControl={
         onRefresh ? (
           <RefreshControl

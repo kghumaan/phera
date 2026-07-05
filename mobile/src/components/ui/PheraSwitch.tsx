@@ -9,9 +9,9 @@ import { COLORS } from '@/lib/theme/tokens';
 export function PheraSwitch(props: SwitchProps) {
   return (
     <Switch
-      trackColor={{ false: 'rgba(0, 0, 0, 0.15)', true: COLORS.brand.primary }}
+      trackColor={{ false: COLORS.border.default, true: COLORS.brand.primary }}
       thumbColor={COLORS.bg.white}
-      ios_backgroundColor="rgba(0, 0, 0, 0.15)"
+      ios_backgroundColor={COLORS.border.default}
       {...props}
     />
   );

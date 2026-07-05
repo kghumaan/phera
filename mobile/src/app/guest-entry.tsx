@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import bgClouds from '@/assets/images/backgrounds/blue-clouds.webp';
 import { PheraButton, PheraInput, PheraText, WarningAlert } from '@/components/ui';
 import { isPreviewMode, supabase } from '@/lib/supabase/client';
-import { COLORS, RADII, SHADOWS } from '@/lib/theme/tokens';
+import { COLORS, PALETTE, RADII, SHADOWS } from '@/lib/theme/tokens';
 
 /**
  * Guest landing: turn whatever the guest has — the phera.io link from
@@ -53,11 +53,15 @@ export default function GuestEntryScreen() {
   return (
     <View style={styles.root}>
       <Image source={bgClouds} alt="" style={StyleSheet.absoluteFill} contentFit="cover" />
-      <View style={[styles.header, { marginTop: insets.top + 12 }]}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.back}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.text.strong} />
-        </Pressable>
-      </View>
+      {/* Overlay back button — keeps the form centered on the full screen. */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+        onPress={() => router.back()}
+        style={[styles.back, { top: insets.top + 8 }]}
+      >
+        <Ionicons name="arrow-back" size={22} color={COLORS.text.strong} />
+      </Pressable>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.card}>
@@ -114,18 +118,20 @@ export default function GuestEntryScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.bg.paper },
-  header: { flexDirection: 'row', paddingHorizontal: 12, height: 56, alignItems: 'center' },
   back: {
+    position: 'absolute',
+    left: 12,
+    zIndex: 10,
     width: 44,
     height: 44,
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+    backgroundColor: PALETTE.white[32],
   },
   scroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: PALETTE.white[100],
     borderRadius: RADII.dialog,
     padding: 24,
     gap: 16,

@@ -20,7 +20,7 @@ import {
   WarningAlert,
 } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { COLORS, RADII, SHADOWS } from '@/lib/theme/tokens';
+import { COLORS, PALETTE, RADII, SHADOWS } from '@/lib/theme/tokens';
 
 function GoogleIcon() {
   return (
@@ -182,7 +182,7 @@ export default function LoginScreen() {
 
             <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
-              <PheraText variant="body2" color="#858585">
+              <PheraText variant="body2" color={PALETTE.black[500]}>
                 or
               </PheraText>
               <View style={styles.dividerLine} />
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: PALETTE.white[100],
     borderRadius: RADII.dialog,
     padding: 24,
     gap: 20,
@@ -278,5 +278,5 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 4,
   },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#E0E0E0' },
+  dividerLine: { flex: 1, height: 1, backgroundColor: PALETTE.black[50] },
 });

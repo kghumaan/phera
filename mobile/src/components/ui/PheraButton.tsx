@@ -116,7 +116,7 @@ export function PheraButton({
             return [
               base,
               {
-                backgroundColor: pressed ? 'rgba(0, 0, 0, 0.04)' : COLORS.bg.white,
+                backgroundColor: pressed ? COLORS.bg.wash : COLORS.bg.white,
                 borderWidth: 1.5,
                 borderColor: disabled ? COLORS.border.default : COLORS.text.strong,
                 opacity: disabled ? 0.6 : 1,

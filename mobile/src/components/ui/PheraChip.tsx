@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, PALETTE, RADII } from '@/lib/theme/tokens';
 import { PheraText } from './PheraText';
 
 export type PheraChipTone =
@@ -22,8 +22,8 @@ const TONES: Record<PheraChipTone, { bg: string; text: string }> = {
   danger: { bg: COLORS.accent.dangerBg, text: COLORS.accent.dangerText },
   info: { bg: COLORS.accent.infoBg, text: COLORS.accent.infoText },
   'side-bride': { bg: COLORS.brand.primarySubtle, text: COLORS.side.bride },
-  'side-groom': { bg: 'rgba(59, 130, 246, 0.08)', text: COLORS.side.groom },
-  'side-both': { bg: 'rgba(139, 92, 246, 0.08)', text: COLORS.side.both },
+  'side-groom': { bg: PALETTE.skyBlue[50], text: COLORS.side.groom },
+  'side-both': { bg: PALETTE.plum[50], text: COLORS.side.both },
 };
 
 export interface PheraChipProps {

@@ -10,7 +10,7 @@ import { useWedding } from '@/lib/data/hooks';
 import { matchName, verifyPassword, type NameMatch } from '@/lib/guest/access';
 import { clearGuestSession, getGuestSession, setGuestSession, type GuestSession } from '@/lib/guest/session';
 import { isPreviewMode } from '@/lib/supabase/client';
-import { COLORS, RADII, SHADOWS } from '@/lib/theme/tokens';
+import { COLORS, PALETTE, RADII, SHADOWS } from '@/lib/theme/tokens';
 import { useWeddingSlug } from '@/lib/nav';
 
 type GateStep = 'loading' | 'password' | 'name' | 'home';
@@ -230,7 +230,7 @@ export default function GuestHomeScreen() {
           flexGrow: 1,
           justifyContent: 'center',
           padding: 24,
-          paddingTop: insets.top + 40,
+          paddingTop: insets.top,
           paddingBottom: 16,
         }}
       >
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   gateScroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: PALETTE.white[100],
     borderRadius: RADII.dialog,
     padding: 24,
     gap: 12,
@@ -350,6 +350,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 12,
     gap: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.55)',
+    backgroundColor: PALETTE.white[56],
   },
 });
