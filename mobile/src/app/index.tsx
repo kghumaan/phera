@@ -1,4 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Redirect, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -32,8 +34,13 @@ export default function Index() {
   const { user, loading } = useAuth();
   const weddings = useWeddings();
   const insets = useSafeAreaInsets();
+  const [onboarded, setOnboarded] = useState<boolean | null>(null);
 
-  if (loading || (user && weddings.isLoading)) {
+  useEffect(() => {
+    AsyncStorage.getItem('phera_onboarded').then((v) => setOnboarded(v === 'true'));
+  }, []);
+
+  if (loading || onboarded === null || (user && weddings.isLoading)) {
     return (
       <Centered>
         <ActivityIndicator color={COLORS.brand.primary} />
@@ -41,7 +48,7 @@ export default function Index() {
     );
   }
 
-  if (!user) return <Redirect href="/login" />;
+  if (!user) return <Redirect href={onboarded ? '/login' : ('/welcome' as never)} />;
 
   const list = weddings.data ?? [];
 

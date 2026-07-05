@@ -222,7 +222,7 @@ export default function LoginScreen() {
               variant="body2"
               align="center"
               color={COLORS.brand.primary}
-              onPress={() => router.push('/guest/priya-rahul-2026' as never)}
+              onPress={() => router.push('/guest-entry' as never)}
               accessibilityRole="link"
               testID="guest-entry-link"
             >
