@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
@@ -13,9 +12,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import bgClouds from '@/assets/images/backgrounds/blue-clouds.webp';
-import bgJade from '@/assets/images/backgrounds/jade.webp';
-import bgPearl from '@/assets/images/backgrounds/pearl.webp';
+import artCouple from '@/assets/images/onboarding/slide-couple.webp';
+import artGuest from '@/assets/images/onboarding/slide-guest.webp';
+import artIntro from '@/assets/images/onboarding/slide-intro.webp';
 import { PheraButton, PheraText } from '@/components/ui';
 import { COLORS, FONT, RADII, TEXT } from '@/lib/theme/tokens';
 
@@ -28,35 +27,30 @@ import type { ImageSourcePropType } from 'react-native';
 interface Slide {
   key: string;
   bg: ImageSourcePropType;
-  icon: keyof typeof Ionicons.glyphMap;
   title: string;
-  body: string;
+  caption: string;
 }
 
-// First-launch walkthrough — full-screen carousel, then the role fork
-// (couple → login, guest → wedding-code entry). Runs once; the flag lives
-// in AsyncStorage and Settings could reset it later if we ever want to.
+// First-launch walkthrough — full-bleed generated artwork, one line of
+// copy each, then the role fork (couple → login, guest → link entry).
 const SLIDES: Slide[] = [
   {
     key: 'intro',
-    bg: bgClouds,
-    icon: 'heart',
+    bg: artIntro,
     title: 'Beautiful chaos,\nhandled.',
-    body: '300+ guests, 3–5 days of events, family flying in from everywhere. Phera takes care of the guest logistics so you can be present for the celebration.',
+    caption: 'Indian wedding guest logistics, done for you',
   },
   {
     key: 'couple',
-    bg: bgPearl,
-    icon: 'sparkles',
-    title: 'Planning your\nwedding?',
-    body: 'Track RSVPs, travel, rooms, and tasks — and chat with your AI planner who does the chasing for you, right from your pocket.',
+    bg: artCouple,
+    title: 'Plan it from\nyour pocket.',
+    caption: 'RSVPs, travel & an AI planner that does the chasing',
   },
   {
     key: 'guest',
-    bg: bgJade,
-    icon: 'mail-open',
-    title: 'Invited to one?',
-    body: 'RSVP in a minute, see the schedule and dress codes, share your flight for airport pickup — everything for the big week in one place.',
+    bg: artGuest,
+    title: 'Invited?\nIt\u2019s all here.',
+    caption: 'RSVP, schedule, dress codes & your airport pickup',
   },
 ];
 
@@ -94,13 +88,10 @@ export default function WelcomeScreen() {
         renderItem={({ item }) => (
           <View style={{ width: SCREEN_W, height: SCREEN_H }}>
             <Image source={item.bg} alt="" style={StyleSheet.absoluteFill} contentFit="cover" />
-            <View style={[styles.slideContent, { paddingTop: insets.top + 80 }]}>
-              <View style={styles.iconBadge}>
-                <Ionicons name={item.icon} size={30} color={COLORS.text.inverse} />
-              </View>
+            <View style={styles.slideContent}>
               <PheraText style={styles.title}>{item.title}</PheraText>
-              <PheraText variant="body" align="center" color={COLORS.text.muted} style={{ maxWidth: 310 }}>
-                {item.body}
+              <PheraText variant="body" align="center" color={COLORS.text.muted} style={{ maxWidth: 300 }}>
+                {item.caption}
               </PheraText>
             </View>
           </View>
@@ -182,19 +173,18 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.bg.paper },
   slideContent: {
-    flex: 1,
+    position: 'absolute',
+    left: 28,
+    right: 28,
+    // Sits in the artwork's clean lower third, above dots + buttons.
+    bottom: 200,
     alignItems: 'center',
-    gap: 18,
-    paddingHorizontal: 28,
-  },
-  iconBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 999,
-    backgroundColor: COLORS.brand.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
+    gap: 10,
+    // Soft paper wash so the headline stays legible over any artwork.
+    backgroundColor: 'rgba(251, 247, 241, 0.72)',
+    borderRadius: 24,
+    paddingVertical: 18,
+    paddingHorizontal: 16,
   },
   title: {
     fontFamily: FONT.display,
