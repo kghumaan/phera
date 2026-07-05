@@ -10,23 +10,109 @@
  *   ❌  color: '#DE3F5E'
  */
 
+// ─── Palette ────────────────────────────────────────────────────────
+// The exact brand color ramps (design source, July 2026). Every COLORS
+// entry below resolves to one of these stops (or a black/white opacity).
+// When you need a new color, pick a stop from here — do not invent hues.
+
+export const PALETTE = {
+  raniPink: {
+    50: '#FFF7F9',
+    100: '#F8D8DE',
+    200: '#F2B1BE',
+    300: '#EA8599',
+    400: '#E45E78',
+    500: '#DE3F5E', // Rani Pink — the brand color
+    600: '#C71F51',
+    700: '#9D174D',
+    800: '#70103D',
+    900: '#4C0A2C',
+    950: '#360721',
+  },
+  // Warm-white opacity stops. 100/80 are pure white; 72 and below are the
+  // warm base #F7F4EC at decreasing opacity (washes over photos/textures).
+  white: {
+    100: 'rgba(255, 255, 255, 1)',
+    80: 'rgba(255, 255, 255, 0.8)',
+    72: 'rgba(247, 244, 236, 0.7)',
+    56: 'rgba(247, 244, 236, 0.56)',
+    32: 'rgba(247, 244, 236, 0.32)',
+    24: 'rgba(247, 244, 236, 0.24)',
+    12: 'rgba(247, 244, 236, 0.12)',
+    8: 'rgba(247, 244, 236, 0.08)',
+    4: 'rgba(247, 244, 236, 0.04)',
+  },
+  black: {
+    950: '#141414', // primary black
+    900: '#1F1F1F',
+    800: '#303030',
+    700: '#474747',
+    600: '#686868',
+    500: '#858585',
+    400: '#969696',
+    300: '#A8A8A8',
+    200: '#BCBCBC',
+    100: '#D6D6D6',
+    50: '#EBEBEB',
+  },
+  skyBlue: {
+    50: '#EEF9FB',
+    100: '#DAF1F6',
+    200: '#B5E2EE',
+    300: '#8BD2E4',
+    400: '#66C4DB',
+    500: '#49B9D4', // Sky Blue
+    600: '#2C9DBA',
+    700: '#227A91',
+    800: '#185767',
+    900: '#103B46',
+    950: '#0C2A32',
+  },
+  plum: {
+    50: '#F5F3F6',
+    100: '#EAE5EB',
+    200: '#D4CAD8',
+    300: '#BCADC2',
+    400: '#A792AF',
+    500: '#967EA0',
+    600: '#805591',
+    700: '#663C77', // Plum
+    800: '#4B2759',
+    900: '#33193E',
+    950: '#25112D',
+  },
+  butterYellow: {
+    50: '#FEF9EC',
+    100: '#FCF1D4', // Butter Yellow
+    200: '#F9E2A9',
+    300: '#F6D079',
+    400: '#F4BC4E',
+    500: '#F4AA2A',
+    600: '#DC8409',
+    700: '#AC6206',
+    800: '#7C4204',
+    900: '#552A02',
+    950: '#3C1D02',
+  },
+} as const;
+
 // ─── Colors ─────────────────────────────────────────────────────────
 
 export const COLORS = {
   brand: {
-    primary: '#DE3F5E',
-    primaryHover: '#C8365A',
-    primaryDisabled: 'rgba(222, 63, 94, 0.35)',
-    primarySubtle: 'rgba(222, 63, 94, 0.08)',
-    primaryWash: 'rgba(222, 63, 94, 0.04)',
-    primaryBorder: 'rgba(222, 63, 94, 0.18)',
+    primary: PALETTE.raniPink[500],
+    primaryHover: PALETTE.raniPink[600],
+    primaryDisabled: 'rgba(222, 63, 94, 0.35)', // raniPink.500 @ 35%
+    primarySubtle: 'rgba(222, 63, 94, 0.08)', // raniPink.500 @ 8%
+    primaryWash: 'rgba(222, 63, 94, 0.04)', // raniPink.500 @ 4%
+    primaryBorder: 'rgba(222, 63, 94, 0.18)', // raniPink.500 @ 18%
   },
   text: {
-    strong: '#1a1a1a',
-    muted: '#4a4a4a',
-    subtle: '#6a6a6a',
-    faint: '#9a9a9a',
-    placeholder: '#C2C2C2',
+    strong: PALETTE.black[950],
+    muted: PALETTE.black[700],
+    subtle: PALETTE.black[600],
+    faint: PALETTE.black[400],
+    placeholder: PALETTE.black[200],
     inverse: '#ffffff',
   },
   bg: {
@@ -34,10 +120,9 @@ export const COLORS = {
     muted: '#FAFAFA',
     subtle: '#F8F8F8',
     wash: 'rgba(0, 0, 0, 0.03)',
-    // Warm cream "paper" — matches landing CSS var(--paper). Used as the
-    // base for textured sections (e.g. landing 'full kit', vertical-scroll
-    // left content panel).
-    paper: '#FBF7F1',
+    // Warm cream "paper" — the palette's warm-white base (PALETTE.white
+    // stops 72↓ are this color at opacity). Base for textured sections.
+    paper: '#F7F4EC',
   },
   border: {
     faint: 'rgba(0, 0, 0, 0.06)',
@@ -46,18 +131,20 @@ export const COLORS = {
     strong: 'rgba(0, 0, 0, 0.23)',
   },
   accent: {
+    // success/danger stay semantic red/green — the brand palette has no
+    // green, and danger is reserved for status dots (never buttons).
     success: '#10B981',
     successBg: '#E8F5E9',
     successText: '#2E7D32',
-    warning: '#F59E0B',
-    warningBg: '#FFF3E0',
-    warningText: '#E65100',
+    warning: PALETTE.butterYellow[500],
+    warningBg: PALETTE.butterYellow[50],
+    warningText: PALETTE.butterYellow[700],
     danger: '#EF4444',
     dangerBg: '#FFEBEE',
     dangerText: '#C62828',
-    info: '#3B82F6',
-    infoBg: 'rgba(59, 130, 246, 0.08)',
-    infoText: '#1d4ed8',
+    info: PALETTE.skyBlue[600],
+    infoBg: PALETTE.skyBlue[50],
+    infoText: PALETTE.skyBlue[700],
   },
   cultural: {
     gold: '#D4AF37',
@@ -69,9 +156,9 @@ export const COLORS = {
     purple: '#6C5CE7',
   },
   side: {
-    bride: '#DE3F5E',   // brand pink
-    groom: '#3b82f6',   // blue
-    both: '#8b5cf6',   // purple
+    bride: PALETTE.raniPink[500],
+    groom: PALETTE.skyBlue[600],
+    both: PALETTE.plum[600],
   },
   // Brand-accurate WhatsApp palette. Used ONLY in the WhatsApp message
   // preview component so the mockup looks true to what guests will see.
