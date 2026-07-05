@@ -70,12 +70,7 @@ Mobile implements this in `GuestChrome.tsx`: `background="pearl|jade|aquarium|cl
 `mobile/lib/theme/tokens.ts` mirrors `lib/theme/tokens.ts` **with RN-native values** (numbers instead of `'12px'`, font family names instead of CSS vars). A unit test asserts the color hexes stay in sync with the web file (reads both, compares) so drift is caught in CI. Tamagui theme maps: `$brandPrimary`, `$textStrong`, `$bgPaper`, etc. Fonts: **Outfit** (body) + **Instrument Serif** (display ≥ 32px) bundled via `expo-font`. All the CLAUDE.md design rules apply on mobile: 14px minimum text, `RADII.md`=12 for buttons/inputs, `RADII.cta`=24 for guest CTAs, destructive = brand pink never red.
 
 ### Environment
-```
-EXPO_PUBLIC_SUPABASE_URL=       # same project as web
-EXPO_PUBLIC_SUPABASE_ANON_KEY=
-EXPO_PUBLIC_API_BASE_URL=https://phera.io   # or http://localhost:3000 in dev
-```
-`mobile/.env.example` documents these. **Preview mode:** when env vars are absent (e.g. cloud dev sessions, App Store screenshot generation), the app boots against `lib/mock/` fixtures with a visible "Preview data" badge. This is also what powers screenshot verification in CI-like environments.
+**Zero-setup live mode (July 2026):** production defaults are baked into `mobile/src/lib/config.ts` — Supabase URL + public anon key (a public client credential; it ships in the phera.io web bundle, RLS enforces access) and API base `https://www.phera.io`. A fresh clone with no `.env` connects to the real backend. `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` / `EXPO_PUBLIC_API_BASE_URL` env vars override the defaults (e.g. `localhost:3000` while running `next dev`, or the localhost relay in cloud sessions). **Preview mode is explicit opt-in:** `EXPO_PUBLIC_PREVIEW=1` boots the app against `lib/mock/` fixtures with a visible "Preview data" badge — used for App Store screenshot generation and offline screenshot verification. `mobile/.env.example` documents all of it.
 
 ---
 

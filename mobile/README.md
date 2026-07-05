@@ -14,11 +14,18 @@ Grand plan + living screen tracker: [`../MOBILE-PLAN.md`](../MOBILE-PLAN.md).
    ```
 3. Scan the QR code with the iPhone camera → opens in Expo Go.
 
-**No `.env` needed** — without one the app runs in **preview mode** (mock
-Priya & Rahul wedding, "Preview data" badge, every screen browsable, writes
-persist in-session). For live data, copy `.env.example` → `.env` and fill in
-the Supabase URL + anon key (same values as the web app's
-`NEXT_PUBLIC_SUPABASE_*`), then restart `expo start`.
+**No `.env` needed** — the app connects to the **production backend** out
+of the box (Supabase + phera.io API defaults are baked into
+`src/lib/config.ts`; the anon key is a public client credential, RLS
+enforces access). Sign in with your real Phera account and everything —
+guests, RSVPs, the Planner agent — is live.
+
+To run against **mock fixtures** instead (no network, any email signs in,
+"Preview data" badge), copy `.env.example` → `.env` and set
+`EXPO_PUBLIC_PREVIEW=1`. Other overrides (different Supabase project,
+`localhost:3000` API during `next dev`) are documented in `.env.example`.
+Restart `expo start` after any `.env` change — the values are inlined at
+bundle time.
 
 Web preview (no phone): `npx expo start --web`.
 
