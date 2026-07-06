@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQueryClient } from '@tanstack/react-query';
 import { Redirect, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { useState } from 'react';
@@ -20,6 +21,7 @@ import {
   WarningAlert,
 } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { enableDemoMode } from '@/lib/supabase/client';
 import { COLORS, PALETTE, RADII, SHADOWS } from '@/lib/theme/tokens';
 
 function GoogleIcon() {
@@ -47,8 +49,9 @@ function GoogleIcon() {
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { user, isPreviewMode, signInWithPassword, verifyOtp, resendOtp, signInWithGoogle } =
+  const { user, isPreviewMode, signInWithPassword, verifyOtp, resendOtp, signInWithGoogle, enterPreview } =
     useAuth();
+  const queryClient = useQueryClient();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -228,6 +231,22 @@ export default function LoginScreen() {
               testID="guest-entry-link"
             >
               I&apos;m a wedding guest →
+            </PheraText>
+
+            <PheraText
+              variant="body2"
+              align="center"
+              color={COLORS.text.muted}
+              onPress={() => {
+                enableDemoMode();
+                enterPreview();
+                queryClient.clear();
+                router.replace('/');
+              }}
+              accessibilityRole="button"
+              testID="login-demo"
+            >
+              Just exploring? Browse a sample wedding →
             </PheraText>
 
             {__DEV__ ? (

@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
@@ -16,6 +17,8 @@ import artCouple from '@/assets/images/onboarding/slide-couple.webp';
 import artGuest from '@/assets/images/onboarding/slide-guest.webp';
 import artIntro from '@/assets/images/onboarding/slide-intro.webp';
 import { PheraButton, PheraText } from '@/components/ui';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { enableDemoMode } from '@/lib/supabase/client';
 import { COLORS, FONT, PALETTE, RADII, TEXT } from '@/lib/theme/tokens';
 
 export const ONBOARDED_KEY = 'phera_onboarded';
@@ -59,6 +62,18 @@ export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<Slide>>(null);
   const [index, setIndex] = useState(0);
+  const { enterPreview } = useAuth();
+  const queryClient = useQueryClient();
+
+  // New-user path: no account, no invitation — tour the fixture wedding
+  // as its couple. Session-only; the badge in Screen exits back out.
+  const enterDemo = async () => {
+    enableDemoMode();
+    enterPreview();
+    queryClient.clear();
+    await AsyncStorage.setItem(ONBOARDED_KEY, 'true');
+    router.replace('/');
+  };
 
   const onViewable = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
     const first = viewableItems[0];
@@ -149,6 +164,17 @@ export default function WelcomeScreen() {
             >
               I&apos;m a wedding guest
             </PheraButton>
+            <PheraText
+              variant="body2"
+              align="center"
+              weight={600}
+              color={COLORS.text.muted}
+              onPress={() => void enterDemo()}
+              accessibilityRole="button"
+              testID="onboarding-demo"
+            >
+              Just exploring? Browse a sample wedding →
+            </PheraText>
           </View>
         ) : (
           <PheraButton
