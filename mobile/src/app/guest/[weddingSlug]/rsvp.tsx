@@ -125,6 +125,8 @@ export default function GuestRsvpScreen() {
   const [attending, setAttending] = useState<Attending>('');
   const [plusOne, setPlusOne] = useState<'' | 'yes' | 'no'>('');
   const [plusOneName, setPlusOneName] = useState('');
+  const [partyCount, setPartyCount] = useState(1);
+  const [maybeComment, setMaybeComment] = useState('');
   const [food, setFood] = useState<string[]>([]);
   const [dietary, setDietary] = useState('');
   const [side, setSide] = useState<Side>('');
@@ -185,11 +187,19 @@ export default function GuestRsvpScreen() {
     try {
       await submit.mutateAsync({
         guestId: session.guestId,
+        name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+        phone: phone.trim(),
         attending: (attending || 'maybe') as 'yes' | 'no' | 'maybe',
-        guestCount: attending === 'yes' ? (plusOne === 'yes' ? 2 : 1) : 0,
+        guestCount: Math.max(partyCount, plusOne === 'yes' ? 2 : 1),
+        plusOne: plusOne === 'yes',
+        plusOneName: plusOneName.trim(),
         foodPreference: food,
         dietaryRestrictions: dietary,
+        songRequest: song.trim(),
         specialMessage: message,
+        maybeComment: maybeComment.trim(),
+        side,
+        consentGiven: consent,
       });
       setDone(true);
     } catch (e) {
@@ -265,6 +275,16 @@ export default function GuestRsvpScreen() {
                 testID={`rsvp-attending-${o.value}`}
               />
             ))}
+            {attending === 'maybe' ? (
+              <View style={{ marginTop: 16 }}>
+                <PheraInput
+                  label="Tell us what you're figuring out"
+                  value={maybeComment}
+                  onChangeText={setMaybeComment}
+                  multiline
+                />
+              </View>
+            ) : null}
           </View>
         );
       case 'plusone':
@@ -276,7 +296,10 @@ export default function GuestRsvpScreen() {
                 key={o.value}
                 label={o.label}
                 selected={plusOne === o.value}
-                onPress={() => setPlusOne(o.value as 'yes' | 'no')}
+                onPress={() => {
+                  setPlusOne(o.value as 'yes' | 'no');
+                  setPartyCount((c) => Math.max(c, o.value === 'yes' ? 2 : 1));
+                }}
                 last={i === PLUS_ONE_OPTIONS.length - 1}
               />
             ))}
@@ -285,6 +308,33 @@ export default function GuestRsvpScreen() {
                 <PheraInput label="Plus-one's name" value={plusOneName} onChangeText={setPlusOneName} />
               </View>
             ) : null}
+            {/* Web party stepper: "Total number in your party (including kids)?" */}
+            <View style={{ marginTop: 20, gap: 8 }}>
+              <PheraText variant="body" weight={500}>
+                Total number in your party (including kids)?
+              </PheraText>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18 }}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Fewer guests"
+                  onPress={() =>
+                    setPartyCount((c) => Math.max(plusOne === 'yes' ? 2 : 1, c - 1))
+                  }
+                  style={styles.stepperButton}
+                >
+                  <Ionicons name="remove" size={20} color={COLORS.text.strong} />
+                </Pressable>
+                <PheraText variant="h2">{partyCount}</PheraText>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="More guests"
+                  onPress={() => setPartyCount((c) => Math.min(10, c + 1))}
+                  style={styles.stepperButton}
+                >
+                  <Ionicons name="add" size={20} color={COLORS.text.strong} />
+                </Pressable>
+              </View>
+            </View>
           </View>
         );
       case 'dining':
@@ -463,6 +513,16 @@ export default function GuestRsvpScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: COLORS.bg.paper },
+  stepperButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: COLORS.border.default,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.bg.white,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
