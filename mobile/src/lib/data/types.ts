@@ -87,9 +87,12 @@ export interface Rsvp {
   attending: Attending;
   guest_count: number | null;
   plus_one: boolean | null;
+  plus_one_name: string | null;
   food_preference: string[] | null;
   dietary_restrictions: string | null;
+  song_request: string | null;
   special_message: string | null;
+  maybe_comment: string | null;
   created_at: string | null;
   /** Embedded guest row via select('*, guest:guests(*)'). */
   guest: Pick<Guest, 'id' | 'name' | 'avatar_color' | 'wedding_side'> | null;
@@ -223,8 +226,11 @@ export interface ConciergeStats {
 
 /** Client-side RSVP aggregate — mirrors web overview/guest-responses math. */
 export interface RsvpStats {
+  total: number;
   attendingResponses: number;
   notAttending: number;
+  maybe: number;
+  /** Web overview "Pending": maybe + records with no attending value. */
   pending: number;
   /** Head-count: sum of guest_count over attending==='yes'. */
   totalGuestsComing: number;
@@ -232,8 +238,10 @@ export interface RsvpStats {
 
 export function aggregateRsvps(rsvps: Pick<Rsvp, 'attending' | 'guest_count'>[]): RsvpStats {
   return {
+    total: rsvps.length,
     attendingResponses: rsvps.filter((r) => r.attending === 'yes').length,
     notAttending: rsvps.filter((r) => r.attending === 'no').length,
+    maybe: rsvps.filter((r) => r.attending === 'maybe').length,
     pending: rsvps.filter((r) => r.attending === 'maybe' || !r.attending).length,
     totalGuestsComing: rsvps
       .filter((r) => r.attending === 'yes')

@@ -305,6 +305,52 @@ export function useReservations(weddingId: string | undefined) {
   });
 }
 
+/** Web overview QuickLinks parity: per-step setup completion detection. */
+export interface RoadmapStatus {
+  guests: boolean;
+  details: boolean;
+  whatsappBot: boolean;
+  rooms: boolean;
+  transportation: boolean;
+  vendors: boolean;
+}
+
+export function useRoadmap(slug: string, wedding: Wedding | null | undefined) {
+  return useQuery({
+    queryKey: ['roadmap', slug, wedding?.id],
+    enabled: !!wedding,
+    queryFn: async (): Promise<RoadmapStatus> => {
+      const details = !!(
+        wedding!.couple_name &&
+        wedding!.venue_name &&
+        wedding!.wedding_date_display
+      );
+      if (inMockMode() || !supabase) {
+        return { guests: true, details, whatsappBot: true, rooms: true, transportation: true, vendors: false };
+      }
+      const wid = wedding!.id;
+      const [g, r, t, v, s] = await Promise.all([
+        supabase.from('guests').select('id', { count: 'exact', head: true }).eq('wedding_id', slug),
+        supabase.from('wedding_rooms').select('id', { count: 'exact', head: true }).eq('wedding_id', slug),
+        supabase
+          .from('transportation_vehicles')
+          .select('id', { count: 'exact', head: true })
+          .eq('wedding_id', wid),
+        supabase.from('vendors').select('id', { count: 'exact', head: true }).eq('wedding_id', wid),
+        supabase.from('wedding_settings').select('concierge_enabled').eq('wedding_id', wid).maybeSingle(),
+      ]);
+      return {
+        guests: (g.count ?? 0) > 0,
+        details,
+        whatsappBot: !!(s.data as { concierge_enabled?: boolean } | null)?.concierge_enabled,
+        rooms: (r.count ?? 0) > 0,
+        transportation: (t.count ?? 0) > 0,
+        vendors: (v.count ?? 0) > 0,
+      };
+    },
+  });
+}
+
 export function useRooms(slug: string) {
   return useQuery({
     queryKey: ['rooms', slug],
@@ -315,8 +361,8 @@ export function useRooms(slug: string) {
         .from('wedding_rooms')
         .select('*')
         .eq('wedding_id', slug) // slug, not UUID
-        .order('hotel_name', { ascending: true })
-        .order('floor', { ascending: true })
+        .order('hotel_name', { ascending: true, nullsFirst: true })
+        .order('floor', { ascending: true, nullsFirst: false })
         .order('room_number', { ascending: true });
       if (error) throw error;
       return data as WeddingRoom[];

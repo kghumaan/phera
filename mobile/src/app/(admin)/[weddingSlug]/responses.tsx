@@ -16,15 +16,35 @@ import { aggregateRsvps, type Rsvp } from '@/lib/data/types';
 import { COLORS } from '@/lib/theme/tokens';
 import { useWeddingSlug } from '@/lib/nav';
 
-function attendingChip(attending: Rsvp['attending']) {
-  switch (attending) {
-    case 'yes':
-      return <PheraChip label="Attending" tone="success" />;
-    case 'no':
-      return <PheraChip label="Not attending" tone="danger" />;
-    default:
-      return <PheraChip label="Maybe" tone="warning" />;
-  }
+// Web guest-responses parity: status chips use the BASE accent colors at
+// 10% alpha (a deliberate divergence from the guest-list Text/Bg chips).
+const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
+  yes: { label: 'Attending', color: COLORS.accent.success, bg: 'rgba(16, 185, 129, 0.1)' },
+  no: { label: 'Not Attending', color: COLORS.accent.danger, bg: 'rgba(239, 68, 68, 0.1)' },
+  maybe: { label: 'Maybe', color: COLORS.accent.warning, bg: 'rgba(244, 170, 42, 0.1)' },
+};
+
+function AttendingChip({ attending }: { attending: Rsvp['attending'] }) {
+  const meta = STATUS_META[attending] ?? {
+    label: 'No response',
+    color: COLORS.text.subtle,
+    bg: 'rgba(104, 104, 104, 0.1)',
+  };
+  return (
+    <View
+      style={{
+        backgroundColor: meta.bg,
+        borderRadius: 16,
+        paddingHorizontal: 12,
+        paddingVertical: 5,
+        alignSelf: 'flex-start',
+      }}
+    >
+      <PheraText variant="body2" weight={700} color={meta.color}>
+        {meta.label}
+      </PheraText>
+    </View>
+  );
 }
 
 function StatPill({ value, label, color }: { value: number; label: string; color: string }) {
@@ -64,11 +84,18 @@ export default function ResponsesScreen() {
         }
       />
 
+      {/* Web stat cards: Total · Attending (head-count incl. plus-ones) ·
+          Maybe · Not Attending */}
       <PheraCard>
         <View style={{ flexDirection: 'row' }}>
-          <StatPill value={stats.totalGuestsComing} label="Coming" color={COLORS.accent.successText} />
-          <StatPill value={stats.pending} label="Maybe" color={COLORS.accent.warningText} />
-          <StatPill value={stats.notAttending} label="Declined" color={COLORS.text.subtle} />
+          <StatPill value={stats.total} label="RSVPs" color={COLORS.brand.primary} />
+          <StatPill
+            value={stats.totalGuestsComing}
+            label="Attending"
+            color={COLORS.accent.success}
+          />
+          <StatPill value={stats.maybe} label="Maybe" color={COLORS.accent.warning} />
+          <StatPill value={stats.notAttending} label="Not Attending" color={COLORS.accent.danger} />
         </View>
       </PheraCard>
 
@@ -122,12 +149,23 @@ export default function ResponsesScreen() {
                   <PheraText variant="body" weight={500}>
                     {r.guest?.name ?? 'Guest'}
                   </PheraText>
+                  {r.plus_one && r.plus_one_name ? (
+                    <PheraText variant="body2" color={COLORS.text.subtle}>
+                      + {r.plus_one_name}
+                    </PheraText>
+                  ) : null}
                   <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
-                    {attendingChip(r.attending)}
+                    <AttendingChip attending={r.attending} />
                     {r.attending === 'yes' && (r.guest_count ?? 1) > 1 ? (
                       <PheraChip label={`Party of ${r.guest_count}`} tone="info" />
                     ) : null}
                   </View>
+                  {r.attending === 'maybe' && r.maybe_comment ? (
+                    <PheraText variant="body2">{r.maybe_comment}</PheraText>
+                  ) : null}
+                  {r.song_request ? (
+                    <PheraText variant="body2">🎵 {r.song_request}</PheraText>
+                  ) : null}
                   {r.special_message ? (
                     <PheraText variant="body2" style={{ fontStyle: 'italic' }}>
                       “{r.special_message}”
