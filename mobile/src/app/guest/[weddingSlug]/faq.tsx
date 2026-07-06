@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Linking from 'expo-linking';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { GuestScreen } from '@/components/guest/GuestChrome';
 import { EmptyState, PheraCard, PheraText } from '@/components/ui';
 import { useFaqs, useWedding } from '@/lib/data/hooks';
-import { COLORS } from '@/lib/theme/tokens';
+import { COLORS, RADII } from '@/lib/theme/tokens';
 import { useWeddingSlug } from '@/lib/nav';
 
 export default function GuestFaqScreen() {
@@ -19,7 +20,7 @@ export default function GuestFaqScreen() {
   return (
     <GuestScreen title="Q + A" themeBackgroundPath={wedding.data?.background_image}>
       {list.length === 0 ? (
-        <EmptyState icon="help-circle-outline" title="No questions yet" subtitle="Ask the couple anything on WhatsApp." />
+        <EmptyState icon="help-circle-outline" title="No FAQs available yet." subtitle="Check back soon." />
       ) : (
         list.map((f) => {
           const expanded = open === f.id;
@@ -43,6 +44,28 @@ export default function GuestFaqScreen() {
                     />
                   </View>
                   {expanded ? <PheraText variant="body2">{f.answer}</PheraText> : null}
+                  {expanded && f.button_text && f.button_link ? (
+                    <Pressable
+                      accessibilityRole="link"
+                      onPress={() => void Linking.openURL(f.button_link!)}
+                      style={{
+                        borderWidth: 1.5,
+                        borderColor: COLORS.brand.primary,
+                        borderRadius: RADII.lg,
+                        paddingVertical: 10,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <PheraText
+                        variant="body2"
+                        weight={700}
+                        color={COLORS.brand.primary}
+                        style={{ textTransform: 'uppercase', letterSpacing: 1 }}
+                      >
+                        {f.button_text}
+                      </PheraText>
+                    </Pressable>
+                  ) : null}
                 </View>
               </PheraCard>
             </Pressable>

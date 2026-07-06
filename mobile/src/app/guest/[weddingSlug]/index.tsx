@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { resolveWeddingBackground } from '@/components/guest/GuestChrome';
 import { PinEntryGate } from '@/components/guest/PinEntryGate';
 import { PheraButton, PheraText } from '@/components/ui';
-import { useWedding } from '@/lib/data/hooks';
+import { useGuestRsvp, useWedding } from '@/lib/data/hooks';
 import { clearGuestSession, getGuestSession, setGuestSession, type GuestSession } from '@/lib/guest/session';
 import { COLORS, PALETTE, RADII } from '@/lib/theme/tokens';
 import { useWeddingSlug } from '@/lib/nav';
@@ -24,9 +24,12 @@ function Countdown({ targetISO }: { targetISO: string }) {
     return () => clearInterval(t);
   }, []);
 
+  // Web CountdownTimer parity: avg month = 30.44 days; hidden for the
+  // epoch-0 "TBD" sentinel (handled by the caller).
+  const MONTH_SECS = Math.floor(30.44 * 86400);
   const total = Math.max(0, Math.floor((target - now) / 1000));
-  const months = Math.floor(total / (30 * 86400));
-  const days = Math.floor((total % (30 * 86400)) / 86400);
+  const months = Math.floor(total / MONTH_SECS);
+  const days = Math.floor((total % MONTH_SECS) / 86400);
   const hours = Math.floor((total % 86400) / 3600);
   const mins = Math.floor((total % 3600) / 60);
   const secs = total % 60;
@@ -67,6 +70,7 @@ export default function GuestHomeScreen() {
 
   const [step, setStep] = useState<GateStep>('loading');
   const [session, setSession] = useState<GuestSession | null>(null);
+  const rsvp = useGuestRsvp(weddingSlug, session?.guestId);
 
   useEffect(() => {
     getGuestSession(weddingSlug).then((s) => {
@@ -97,12 +101,19 @@ export default function GuestHomeScreen() {
   }
 
   // ── Home hero — mirrors the web guest home: date, serif couple name,
-  // underlined venue, live countdown pill, RSVP pill pinned at bottom. ──
-  const rsvpDeadline = new Date(`${w.rsvp_deadline}T00:00:00`).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  // venue (revealed after RSVP), live countdown pill, sticky CTA bar
+  // showing RSVP before responding and View Details after. ──
+  const rsvpDeadline =
+    w.rsvp_deadline && w.rsvp_deadline !== 'TBD'
+      ? new Date(`${w.rsvp_deadline}T00:00:00`).toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        })
+      : null;
+  const hasRsvped = rsvp.data === 'yes' || rsvp.data === 'no' || rsvp.data === 'maybe';
+  // Epoch-0 wedding_date is the "TBD" sentinel — web hides the countdown.
+  const dateTbd = !w.wedding_date || new Date(w.wedding_date).getTime() <= 0;
 
   return (
     <View style={styles.root}>
@@ -130,17 +141,28 @@ export default function GuestHomeScreen() {
           >
             {w.couple_name}
           </PheraText>
-          <PheraText
-            variant="body"
-            align="center"
-            style={{ fontSize: 19, lineHeight: 26, textDecorationLine: 'underline' }}
-          >
-            {w.venue_name}, {w.venue_location} 🇮🇳
-          </PheraText>
-          <Countdown targetISO={w.wedding_date} />
-          <PheraText variant="body" align="center" color={COLORS.text.muted}>
-            We are getting married!
-          </PheraText>
+          {hasRsvped ? (
+            <PheraText
+              variant="body"
+              align="center"
+              style={{ fontSize: 19, lineHeight: 26, textDecorationLine: 'underline' }}
+            >
+              {[w.venue_name, w.venue_location].filter(Boolean).join(', ')} 🇮🇳
+            </PheraText>
+          ) : (
+            <PheraText variant="body" align="center" style={{ fontSize: 19, lineHeight: 26 }}>
+              <PheraText variant="body" weight={700} style={{ fontSize: 19 }}>
+                RSVP
+              </PheraText>{' '}
+              to see location
+            </PheraText>
+          )}
+          {!dateTbd ? <Countdown targetISO={w.wedding_date} /> : null}
+          {w.welcome_text ? (
+            <PheraText variant="body" align="center" color={COLORS.text.muted}>
+              {w.welcome_text}
+            </PheraText>
+          ) : null}
           <Pressable
             accessibilityRole="button"
             onPress={async () => {
@@ -155,28 +177,37 @@ export default function GuestHomeScreen() {
           </Pressable>
         </View>
       </ScrollView>
+      {/* Web mobile sticky bar: RSVP (+deadline) before responding,
+          View Details after. */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 16 }]}>
-        <PheraButton
-          fullWidth
-          size="lg"
-          borderRadius={RADII.pill}
-          onPress={() => router.push(`/guest/${weddingSlug}/rsvp` as never)}
-          testID="home-rsvp"
-        >
-          RSVP
-        </PheraButton>
-        <PheraButton
-          variant="secondary"
-          fullWidth
-          size="lg"
-          borderRadius={RADII.pill}
-          onPress={() => router.push(`/guest/${weddingSlug}/details` as never)}
-        >
-          View Details
-        </PheraButton>
-        <PheraText variant="body2" align="center" color={COLORS.text.muted}>
-          Please RSVP by {rsvpDeadline}
-        </PheraText>
+        {!hasRsvped ? (
+          <>
+            <PheraButton
+              fullWidth
+              size="lg"
+              borderRadius={RADII.pill}
+              onPress={() => router.push(`/guest/${weddingSlug}/rsvp` as never)}
+              testID="home-rsvp"
+            >
+              RSVP
+            </PheraButton>
+            {rsvpDeadline ? (
+              <PheraText variant="body2" align="center" color={COLORS.text.muted}>
+                Please RSVP by {rsvpDeadline}
+              </PheraText>
+            ) : null}
+          </>
+        ) : (
+          <PheraButton
+            fullWidth
+            size="lg"
+            borderRadius={RADII.pill}
+            onPress={() => router.push(`/guest/${weddingSlug}/details` as never)}
+            testID="home-view-details"
+          >
+            View Details
+          </PheraButton>
+        )}
       </View>
     </View>
   );

@@ -27,6 +27,7 @@ export interface Wedding {
   created_by: string | null;
   /** Couple's chosen guest-site background (path under /images/backgrounds). */
   background_image: string | null;
+  welcome_text: string | null;
   // Lock-screen customisations (web PinEntry) — all optional per wedding.
   pin_entry_text: string | null;
   pin_entry_subtitle_text: string | null;
@@ -120,6 +121,10 @@ export interface ScheduleItem {
   description: string | null;
   order_index: number;
   is_major_event: boolean | null;
+  /** Hex → major-event accent bar color (web getBarColor); else brand pink. */
+  gradient_background?: string | null;
+  dress_code?: string | null;
+  linked_event_id?: string | null;
 }
 
 export interface ScheduleDay {

@@ -34,6 +34,7 @@ export const FIXTURE_WEDDING: Wedding = {
   status: 'live',
   created_by: 'preview-user',
   background_image: '/images/backgrounds/blue-clouds.webp',
+  welcome_text: 'We are getting married!',
   pin_entry_text: null,
   pin_entry_subtitle_text: null,
   pin_entry_background: null,
@@ -132,6 +133,51 @@ export const FIXTURE_SCHEDULE: ScheduleDay[] = [
     events: [
       { id: 'si7', schedule_id: 's3', name: 'Reception & Dinner', time: '7:30 PM', location: 'Grand Ballroom', description: 'Cocktails, dinner & dancing', order_index: 0, is_major_event: true },
     ],
+  },
+];
+
+// Guest "Travel & Stay" info sections (web travel_sections table).
+export const FIXTURE_TRAVEL_SECTIONS = [
+  {
+    id: 'ts1',
+    type: 'flight' as const,
+    title: 'Getting There',
+    subtitle: null,
+    content:
+      'Fly into Udaipur (UDR) — nonstops from Delhi and Mumbai daily.\n\nWe recommend arriving by November 17 so you don’t miss the Haldi.',
+    image_url: null,
+    more_details: null,
+    address: null,
+    phone: null,
+    price_level: null,
+    visible: true,
+  },
+  {
+    id: 'ts2',
+    type: 'hotel' as const,
+    title: 'The Oberoi Udaivilas',
+    subtitle: null,
+    content: 'Our room block is reserved under “Sharma–Kapoor Wedding”. Book by Sep 15.',
+    image_url: null,
+    more_details: null,
+    address: 'Haridasji Ki Magri, Udaipur 313001',
+    phone: '+91 294 243 3300',
+    price_level: 4,
+    visible: true,
+  },
+  {
+    id: 'ts3',
+    type: 'travel_note' as const,
+    title: 'Visas & Sim Cards',
+    subtitle: null,
+    content:
+      'Most visitors need an Indian e-visa — apply at least 2 weeks out. Airtel kiosks at the airport sell tourist SIMs.',
+    image_url: null,
+    more_details: null,
+    address: null,
+    phone: null,
+    price_level: null,
+    visible: true,
   },
 ];
 

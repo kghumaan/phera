@@ -12,12 +12,14 @@ import {
   FIXTURE_RSVPS,
   FIXTURE_SCHEDULE,
   FIXTURE_TASKS,
+  FIXTURE_TRAVEL_SECTIONS,
   FIXTURE_VEHICLES,
   FIXTURE_WEDDING,
 } from '@/lib/mock/fixtures';
 import { inMockMode, supabase } from '@/lib/supabase/client';
 import { generateFallbackColor } from '@/lib/theme/tag-color';
 import type {
+  Attending,
   Broadcast,
   ConciergeConversation,
   ConciergeStats,
@@ -301,6 +303,88 @@ export function useReservations(weddingId: string | undefined) {
         .order('created_at', { ascending: true });
       if (error) throw error;
       return data as unknown as Reservation[];
+    },
+  });
+}
+
+// Web travel page parity (travel/page.tsx): travel_sections is the primary
+// source; legacy wedding_travel_cards convert to 'travel' sections.
+export interface TravelSection {
+  id: string;
+  type: 'travel' | 'flight' | 'travel_note' | 'accommodation' | 'hotel';
+  title: string | null;
+  subtitle: string | null;
+  content: string | null;
+  image_url: string | null;
+  more_details: string | null;
+  address: string | null;
+  phone: string | null;
+  price_level: number | null;
+  visible: boolean | null;
+}
+
+export function useTravelSections(weddingId: string | undefined) {
+  return useQuery({
+    queryKey: ['travel-sections', weddingId],
+    enabled: !!weddingId,
+    queryFn: async (): Promise<TravelSection[]> => {
+      if (inMockMode() || !supabase) return FIXTURE_TRAVEL_SECTIONS;
+      const { data, error } = await supabase
+        .from('travel_sections')
+        .select('*')
+        .eq('wedding_id', weddingId!) // UUID
+        .order('order_index', { ascending: true });
+      if (error) throw error;
+      if (data && data.length > 0) return data as TravelSection[];
+      // Legacy fallback: wedding_travel_cards → 'travel' sections.
+      const { data: cards } = await supabase
+        .from('wedding_travel_cards')
+        .select('*')
+        .eq('wedding_id', weddingId!)
+        .order('order_index', { ascending: true });
+      return ((cards ?? []) as { id: string; title: string | null; content: unknown; image_url: string | null }[]).map(
+        (c) => ({
+          id: c.id,
+          type: 'travel' as const,
+          title: c.title,
+          subtitle: null,
+          content: Array.isArray(c.content)
+            ? (c.content as ({ p?: string } | string)[])
+                .map((p) => (typeof p === 'string' ? p : (p?.p ?? '')))
+                .filter(Boolean)
+                .join('\n\n')
+            : typeof c.content === 'string'
+              ? c.content
+              : null,
+          image_url: c.image_url,
+          more_details: null,
+          address: null,
+          phone: null,
+          price_level: null,
+          visible: true,
+        }),
+      );
+    },
+  });
+}
+
+/** The picked guest's own RSVP answer (gates "Travel Details" in the hub). */
+export function useGuestRsvp(slug: string, guestId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['guest-rsvp', slug, guestId],
+    enabled: !!guestId,
+    queryFn: async (): Promise<Attending | null> => {
+      if (inMockMode() || !supabase) return 'yes';
+      const { data } = await supabase
+        .from('rsvps')
+        .select('attending, created_at')
+        .eq('wedding_id', slug)
+        .eq('guest_id', guestId!)
+        .eq('event_id', 'general')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return ((data as { attending?: string } | null)?.attending as Attending) ?? null;
     },
   });
 }
@@ -606,6 +690,8 @@ export interface WeddingFaq {
   id: string;
   question: string;
   answer: string;
+  button_text?: string | null;
+  button_link?: string | null;
 }
 
 export function useFaqs(weddingId: string | undefined) {
@@ -627,17 +713,27 @@ export function useFaqs(weddingId: string | undefined) {
 
 export interface GuestRsvpInput {
   guestId: string;
+  name?: string;
+  phone?: string;
   attending: 'yes' | 'no' | 'maybe';
   guestCount: number;
+  plusOne?: boolean;
+  plusOneName?: string;
   foodPreference: string[];
   dietaryRestrictions: string;
+  songRequest?: string;
   specialMessage: string;
+  maybeComment?: string;
+  side?: 'bride' | 'groom' | 'both' | '';
+  consentGiven?: boolean;
 }
 
 export function useSubmitGuestRsvp(slug: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: GuestRsvpInput) => {
+      // Web submitRSVP parity: guest_count is 0 unless attending==='yes'.
+      const guestCount = input.attending === 'yes' ? input.guestCount || 1 : 0;
       if (inMockMode() || !supabase) {
         previewGuests = previewGuests.map((g) =>
           g.id === input.guestId
@@ -646,7 +742,7 @@ export function useSubmitGuestRsvp(slug: string) {
                 rsvps: [
                   {
                     attending: input.attending,
-                    guest_count: input.attending === 'no' ? 0 : input.guestCount,
+                    guest_count: guestCount,
                     created_at: new Date().toISOString(),
                   },
                 ],
@@ -655,26 +751,61 @@ export function useSubmitGuestRsvp(slug: string) {
         );
         return;
       }
-      // Same upsert contract as web submitRSVP (rsvp-service.ts):
-      // one row per guest, event_id 'general', slug-keyed.
+      // 1. Guest row update (web rsvp-service.ts:submitRSVP step 2): name,
+      //    phone, side, and DPDPA consent stamps (never cleared).
+      const guestUpdate: Record<string, unknown> = {};
+      if (input.name?.trim()) guestUpdate.name = input.name.trim();
+      if (input.phone?.trim()) guestUpdate.phone = input.phone.trim();
+      if (input.side) guestUpdate.wedding_side = input.side;
+      if (input.consentGiven) {
+        guestUpdate.consent_given_at = new Date().toISOString();
+        guestUpdate.consent_language = 'en';
+      }
+      if (Object.keys(guestUpdate).length > 0) {
+        await supabase.from('guests').update(guestUpdate).eq('id', input.guestId);
+      }
+      // 2. Same upsert contract as web submitRSVP: one row per guest,
+      //    event_id 'general', slug-keyed, full payload.
       const { error } = await supabase.from('rsvps').upsert(
         {
           guest_id: input.guestId,
           wedding_id: slug,
           event_id: 'general',
           attending: input.attending,
-          guest_count: input.attending === 'no' ? 0 : input.guestCount,
+          guest_count: guestCount,
+          plus_one: input.plusOne ?? false,
+          plus_one_name: input.plusOne ? input.plusOneName || null : null,
           food_preference: input.foodPreference.length ? input.foodPreference : null,
           dietary_restrictions: input.dietaryRestrictions || null,
+          song_request: input.songRequest || null,
           special_message: input.specialMessage || null,
+          maybe_comment: input.maybeComment || null,
         },
         { onConflict: 'guest_id,event_id,wedding_id' },
       );
       if (error) throw error;
+      // 3. Guest-book comment (web step 4): only when there's a message and
+      //    the guest hasn't left one already.
+      if (input.specialMessage?.trim()) {
+        const { data: existing } = await supabase
+          .from('comments')
+          .select('id')
+          .eq('guest_id', input.guestId)
+          .eq('wedding_id', slug)
+          .maybeSingle();
+        if (!existing) {
+          await supabase.from('comments').insert({
+            guest_id: input.guestId,
+            wedding_id: slug,
+            message: input.specialMessage.trim(),
+          });
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['rsvps', slug] });
       qc.invalidateQueries({ queryKey: ['guests', slug] });
+      qc.invalidateQueries({ queryKey: ['guest-rsvp', slug] });
     },
   });
 }

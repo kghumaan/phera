@@ -23,17 +23,28 @@ function dayHeading(iso: string): string {
 }
 
 function Row({ item, last }: { item: ScheduleItem; last: boolean }) {
+  // Web parity: a time containing '-' renders each part on its own line;
+  // major-event bars use the item's own hex when one is set.
+  const timeParts = (item.time ?? '').includes('-')
+    ? item.time.split('-').map((p) => p.trim())
+    : [item.time];
+  const barColor =
+    item.gradient_background?.startsWith('#') ? item.gradient_background : COLORS.brand.primary;
   return (
     <View style={[styles.row, !last && styles.rowDivider]}>
-      {item.is_major_event ? <View style={styles.accentBar} /> : null}
+      {item.is_major_event ? <View style={[styles.accentBar, { backgroundColor: barColor }]} /> : null}
       <View style={{ flex: 1, gap: 6, paddingLeft: item.is_major_event ? 14 : 0 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <PheraText variant="h2" style={{ flex: 1 }}>
             {item.name}
           </PheraText>
-          <PheraText variant="h3" weight={600}>
-            {item.time}
-          </PheraText>
+          <View style={{ alignItems: 'flex-end' }}>
+            {timeParts.map((t, i) => (
+              <PheraText key={i} variant="h3" weight={600}>
+                {t}
+              </PheraText>
+            ))}
+          </View>
         </View>
         {item.description ? <PheraText variant="body2" style={{ fontSize: TEXT.base }}>{item.description}</PheraText> : null}
         {item.location ? (
@@ -73,9 +84,20 @@ export default function GuestScheduleScreen() {
         days.map((day) => (
           <View key={day.id} style={styles.dayCard}>
             <PheraText style={styles.dayHeading}>{dayHeading(day.date)}</PheraText>
-            {day.events.map((item, i) => (
-              <Row key={item.id} item={item} last={i === day.events.length - 1} />
-            ))}
+            {day.events.length === 0 ? (
+              <PheraText
+                variant="body"
+                align="center"
+                color={COLORS.text.faint}
+                style={{ fontStyle: 'italic', paddingVertical: 16 }}
+              >
+                Stay Tuned...
+              </PheraText>
+            ) : (
+              day.events.map((item, i) => (
+                <Row key={item.id} item={item} last={i === day.events.length - 1} />
+              ))
+            )}
           </View>
         ))
       )}
