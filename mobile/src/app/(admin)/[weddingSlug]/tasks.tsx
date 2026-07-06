@@ -106,7 +106,7 @@ export default function TasksScreen() {
               {t.tags?.length ? (
                 <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
                   {t.tags.map((tag) => (
-                    <PheraChip key={tag} label={tag} tone="neutral" />
+                    <PheraChip key={tag} label={tag} tone="brand" />
                   ))}
                 </View>
               ) : null}

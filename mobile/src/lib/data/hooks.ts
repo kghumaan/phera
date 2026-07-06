@@ -16,6 +16,7 @@ import {
   FIXTURE_VEHICLES,
   FIXTURE_WEDDING,
 } from '@/lib/mock/fixtures';
+import { API_BASE } from '@/lib/config';
 import { inMockMode, supabase } from '@/lib/supabase/client';
 import { generateFallbackColor } from '@/lib/theme/tag-color';
 import type {
@@ -518,9 +519,50 @@ export function useConcierge(weddingId: string | undefined) {
     enabled: !!weddingId,
     queryFn: async (): Promise<ConciergeStats> => {
       if (inMockMode() || !supabase) return FIXTURE_CONCIERGE;
-      // Mirrors /api/concierge/stats + /conversations grouping. Note the web
-      // conversations route uses the service role; if RLS blocks this direct
-      // read for couple accounts we fall back to the API in Phase 4 wiring.
+      // Web parity: the conversations API uses the service role because RLS
+      // truncates direct reads. Prefer it (bearer-authed); fall back to the
+      // direct read if the API is unreachable.
+      try {
+        const { data: sess } = await supabase.auth.getSession();
+        const token = sess.session?.access_token;
+        if (token) {
+          const res = await fetch(
+            `${API_BASE}/api/concierge/conversations?weddingId=${encodeURIComponent(weddingId!)}`,
+            { headers: { Authorization: `Bearer ${token}` } },
+          );
+          if (res.ok) {
+            const json = (await res.json()) as {
+              conversations?: {
+                guestId: string;
+                guestName: string;
+                lastMessageAt: string;
+                lastMessagePreview: string;
+                messageCount: number;
+                messages?: { role: string }[];
+              }[];
+            };
+            const convs = json.conversations ?? [];
+            const assistantCount = convs.reduce(
+              (sum, c) => sum + (c.messages?.filter((m) => m.role === 'assistant').length ?? 0),
+              0,
+            );
+            return {
+              guestsReached: convs.length,
+              messagesHandled: assistantCount,
+              avgResponseTimeSec: null,
+              conversations: convs.map((c) => ({
+                guestId: c.guestId,
+                guestName: c.guestName,
+                lastMessageAt: c.lastMessageAt,
+                lastMessagePreview: c.lastMessagePreview,
+                messageCount: c.messageCount,
+              })),
+            };
+          }
+        }
+      } catch {
+        // fall through to the direct read
+      }
       const { data, error } = await supabase
         .from('whatsapp_chat_history')
         .select('id, guest_id, role, content, created_at')
