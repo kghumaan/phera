@@ -42,6 +42,37 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 /**
+ * Web login parity (processInvitesForUser): on sign-in, convert any
+ * wedding_invites addressed to this email into wedding_admins rows and
+ * delete the invite. Failures are silent — same as web.
+ */
+async function processInvitesForUser(email: string | null | undefined, userId: string) {
+  if (!supabase || !email) return;
+  try {
+    const { data: invites } = await supabase
+      .from('wedding_invites')
+      .select('id, wedding_id, role')
+      .eq('email', email.toLowerCase());
+    for (const inv of invites ?? []) {
+      const { data: existing } = await supabase
+        .from('wedding_admins')
+        .select('id')
+        .eq('wedding_id', inv.wedding_id)
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (!existing) {
+        await supabase
+          .from('wedding_admins')
+          .insert({ wedding_id: inv.wedding_id, user_id: userId, role: inv.role ?? 'admin' });
+      }
+      await supabase.from('wedding_invites').delete().eq('id', inv.id);
+    }
+  } catch {
+    // non-fatal — invites can be accepted on next web login
+  }
+}
+
+/**
  * Create a session from an auth redirect/deep link (OAuth return or magic
  * link). Handles both PKCE `?code=` and implicit `#access_token=` forms.
  */
@@ -74,8 +105,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session);
       setLoading(false);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
       setSession(next);
+      // Covers password, OTP, and Google sign-ins alike.
+      if (event === 'SIGNED_IN' && next?.user) {
+        void processInvitesForUser(next.user.email, next.user.id);
+      }
     });
     // Magic links / OAuth returns arrive as phera:// deep links.
     const linkSub = Linking.addEventListener('url', ({ url }) => {

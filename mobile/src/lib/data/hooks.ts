@@ -683,9 +683,61 @@ export function useCollaborators(weddingId: string | undefined, ownerId?: string
   });
 }
 
+/** Web TeamPage invite flow: insert wedding_invites, then ask the API to
+ *  email it (failure tolerated — web shows the same soft fallback). */
+export function useSendInvite(weddingId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { email: string; role: 'admin' | 'viewer' }) => {
+      if (inMockMode() || !supabase || !weddingId) return;
+      const { data: auth } = await supabase.auth.getUser();
+      const { data, error } = await supabase
+        .from('wedding_invites')
+        .insert({
+          wedding_id: weddingId,
+          email: input.email.trim().toLowerCase(),
+          role: input.role,
+          invited_by: auth.user?.id ?? null,
+        })
+        .select('id')
+        .single();
+      if (error) throw error;
+      try {
+        const { data: sess } = await supabase.auth.getSession();
+        const token = sess.session?.access_token;
+        if (token && data?.id) {
+          await fetch(`${API_BASE}/api/invites/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ inviteId: data.id, weddingId }),
+          });
+        }
+      } catch {
+        // Invite row exists; email notification failed — same as web fallback.
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['collaborators', weddingId] }),
+  });
+}
+
+export function useCancelInvite(weddingId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (inviteId: string) => {
+      if (inMockMode() || !supabase) return;
+      const { error } = await supabase.from('wedding_invites').delete().eq('id', inviteId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['collaborators', weddingId] }),
+  });
+}
+
 export interface WeddingSettings {
   wedding_password: string | null;
   concierge_enabled: boolean | null;
+  whatsapp_group_link: string | null;
+  google_sheets_id: string | null;
+  pin_codes: unknown[] | null;
 }
 
 export function useSettings(weddingId: string | undefined) {
@@ -693,13 +745,20 @@ export function useSettings(weddingId: string | undefined) {
     queryKey: ['settings', weddingId],
     enabled: !!weddingId,
     queryFn: async (): Promise<WeddingSettings | null> => {
-      if (inMockMode() || !supabase) return { wedding_password: 'udaipur2026', concierge_enabled: true };
+      if (inMockMode() || !supabase)
+        return {
+          wedding_password: 'udaipur2026',
+          concierge_enabled: true,
+          whatsapp_group_link: 'https://chat.whatsapp.com/pr2026',
+          google_sheets_id: null,
+          pin_codes: [1234],
+        };
       // Password lives in wedding_secrets (admin-only RLS); settings holds
       // the benign flags. Legacy-column fallback until 20260705b drops it.
       const [settingsRes, secretRes, legacyRes] = await Promise.all([
         supabase
           .from('wedding_settings')
-          .select('concierge_enabled')
+          .select('concierge_enabled, whatsapp_group_link, google_sheets_id, pin_codes')
           .eq('wedding_id', weddingId!) // UUID
           .maybeSingle(),
         supabase
@@ -715,16 +774,63 @@ export function useSettings(weddingId: string | undefined) {
           .maybeSingle(),
       ]);
       if (settingsRes.error) throw settingsRes.error;
+      const s = settingsRes.data as {
+        concierge_enabled: boolean | null;
+        whatsapp_group_link: string | null;
+        google_sheets_id: string | null;
+        pin_codes: unknown[] | null;
+      } | null;
       return {
-        concierge_enabled:
-          (settingsRes.data as { concierge_enabled: boolean | null } | null)?.concierge_enabled ??
-          null,
+        concierge_enabled: s?.concierge_enabled ?? null,
+        whatsapp_group_link: s?.whatsapp_group_link ?? null,
+        google_sheets_id: s?.google_sheets_id ?? null,
+        pin_codes: s?.pin_codes ?? null,
         wedding_password:
           (secretRes.data as { wedding_password: string | null } | null)?.wedding_password ??
           (legacyRes.data as { wedding_password: string | null } | null)?.wedding_password ??
           null,
       };
     },
+  });
+}
+
+/** Web Settings & Publish: publish/deactivate toggles weddings.status. */
+export function useUpdateWeddingStatus(slug: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { weddingId: string; status: 'live' | 'draft' }) => {
+      if (inMockMode() || !supabase) return;
+      const { error } = await supabase
+        .from('weddings')
+        .update({ status: input.status })
+        .eq('id', input.weddingId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['wedding', slug] }),
+  });
+}
+
+/** Web Integrations autosave: whatsapp_group_link + google_sheets_id. */
+export function useUpdateIntegrations(weddingId: string | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { whatsappGroupLink: string; googleSheetsId: string }) => {
+      if (inMockMode() || !supabase || !weddingId) return;
+      const { data: existing } = await supabase
+        .from('wedding_settings')
+        .select('id')
+        .eq('wedding_id', weddingId)
+        .maybeSingle();
+      const values = {
+        whatsapp_group_link: input.whatsappGroupLink.trim() || null,
+        google_sheets_id: input.googleSheetsId.trim() || null,
+      };
+      const { error } = existing
+        ? await supabase.from('wedding_settings').update(values).eq('wedding_id', weddingId)
+        : await supabase.from('wedding_settings').insert({ wedding_id: weddingId, ...values });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['settings', weddingId] }),
   });
 }
 
