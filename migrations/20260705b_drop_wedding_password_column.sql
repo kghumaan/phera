@@ -11,13 +11,22 @@
 -- ═══════════════════════════════════════════════════════════════════════
 
 -- Catch any passwords set between phase 1 and this deploy.
-INSERT INTO wedding_secrets (wedding_id, wedding_password)
-SELECT wedding_id, wedding_password
-FROM wedding_settings
-WHERE wedding_password IS NOT NULL
-ON CONFLICT (wedding_id)
-  DO UPDATE SET wedding_password = EXCLUDED.wedding_password,
-                updated_at = now();
+-- Guarded: envs where the legacy column never existed (e.g. test) skip it.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'wedding_settings' AND column_name = 'wedding_password'
+  ) THEN
+    INSERT INTO wedding_secrets (wedding_id, wedding_password)
+    SELECT wedding_id, wedding_password
+    FROM wedding_settings
+    WHERE wedding_password IS NOT NULL
+    ON CONFLICT (wedding_id)
+      DO UPDATE SET wedding_password = EXCLUDED.wedding_password,
+                    updated_at = now();
+  END IF;
+END $$;
 
 -- Remove the anon-readable copy. This is the step that closes the leak.
 ALTER TABLE wedding_settings DROP COLUMN IF EXISTS wedding_password;
