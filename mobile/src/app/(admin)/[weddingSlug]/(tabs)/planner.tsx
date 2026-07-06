@@ -19,7 +19,7 @@ import {
   streamConfirm,
   type AgentStreamEvent,
 } from '@/lib/agent/client';
-import { isPreviewMode } from '@/lib/supabase/client';
+import { inMockMode } from '@/lib/supabase/client';
 import { COLORS, FONT, RADII, TEXT } from '@/lib/theme/tokens';
 import { useWeddingSlug } from '@/lib/nav';
 
@@ -167,7 +167,7 @@ export default function PlannerScreen() {
               <PheraText variant="body2" align="center" style={{ maxWidth: 300 }}>
                 {WELCOME_PLACEHOLDER}
               </PheraText>
-              {isPreviewMode ? <PheraChip label="Preview — scripted replies" tone="info" /> : null}
+              {inMockMode() ? <PheraChip label="Demo — scripted replies" tone="info" /> : null}
             </View>
             <View
               style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}

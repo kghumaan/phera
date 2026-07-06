@@ -1,6 +1,6 @@
 import { API_BASE } from '@/lib/config';
 import { FIXTURE_GUESTS } from '@/lib/mock/fixtures';
-import { isPreviewMode } from '@/lib/supabase/client';
+import { inMockMode } from '@/lib/supabase/client';
 
 /**
  * Guest access client — same two-step gate as web PinEntry:
@@ -28,7 +28,7 @@ export async function verifyPassword(
   weddingSlug: string,
   password: string,
 ): Promise<PasswordResult> {
-  if (isPreviewMode) {
+  if (inMockMode()) {
     return password.trim().length >= 4
       ? { valid: true }
       : { valid: false, error: 'Incorrect password. Please try again.' };
@@ -57,7 +57,7 @@ export async function fetchInvitedEventIds(
   weddingSlug: string,
   guestId: string | null,
 ): Promise<string[] | null> {
-  if (isPreviewMode || !guestId) return null;
+  if (inMockMode() || !guestId) return null;
   try {
     const res = await fetch(
       `${API_BASE}/api/access/events/${weddingSlug}?guestId=${encodeURIComponent(guestId)}`,
@@ -75,7 +75,7 @@ export async function matchName(
   query: string,
   password: string,
 ): Promise<NameMatch[]> {
-  if (isPreviewMode) {
+  if (inMockMode()) {
     const q = query.trim().toLowerCase();
     return FIXTURE_GUESTS.filter((g) => g.name.toLowerCase().includes(q))
       .slice(0, 20)

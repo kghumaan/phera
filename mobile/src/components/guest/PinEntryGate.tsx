@@ -18,7 +18,7 @@ import overlayRight from '@/assets/images/overlays/entry-topright.webp';
 import { resolveWeddingBackground } from '@/components/guest/GuestChrome';
 import { PheraText } from '@/components/ui';
 import { matchName, verifyPassword, type NameMatch } from '@/lib/guest/access';
-import { isPreviewMode } from '@/lib/supabase/client';
+import { inMockMode } from '@/lib/supabase/client';
 import { COLORS, FONT, RADII } from '@/lib/theme/tokens';
 import type { Wedding } from '@/lib/data/types';
 
@@ -175,9 +175,9 @@ export function PinEntryGate({
                   {busy ? 'CHECKING…' : 'SUBMIT'}
                 </PheraText>
               </Pressable>
-              {isPreviewMode ? (
+              {inMockMode() ? (
                 <PheraText variant="body2" align="center" color={COLORS.text.subtle}>
-                  Preview — any password of 4+ characters works
+                  Demo — any password of 4+ characters works
                 </PheraText>
               ) : null}
             </View>

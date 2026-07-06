@@ -1,7 +1,7 @@
 import { fetch as expoFetch } from 'expo/fetch';
 
 import { API_BASE } from '@/lib/config';
-import { isPreviewMode, supabase } from '@/lib/supabase/client';
+import { inMockMode, supabase } from '@/lib/supabase/client';
 
 /**
  * Streaming client for the Phera Agent chat.
@@ -202,12 +202,12 @@ async function* liveConfirmStream(actionId: string, approve: boolean): AsyncGene
 }
 
 export function streamChat(input: ChatTurnInput): AsyncGenerator<AgentStreamEvent> {
-  return isPreviewMode ? mockStream(input) : liveStream(input);
+  return inMockMode() ? mockStream(input) : liveStream(input);
 }
 
 /** Resolve a parked gated action; the agent's follow-up streams back. */
 export function streamConfirm(actionId: string, approve: boolean): AsyncGenerator<AgentStreamEvent> {
-  return isPreviewMode ? mockConfirmStream(approve) : liveConfirmStream(actionId, approve);
+  return inMockMode() ? mockConfirmStream(approve) : liveConfirmStream(actionId, approve);
 }
 
 export const PLANNER_STARTERS = [

@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import bgClouds from '@/assets/images/backgrounds/blue-clouds.webp';
 import { PheraButton, PheraInput, PheraText, WarningAlert } from '@/components/ui';
-import { isPreviewMode, supabase } from '@/lib/supabase/client';
+import { inMockMode, supabase } from '@/lib/supabase/client';
 import { COLORS, PALETTE, RADII, SHADOWS } from '@/lib/theme/tokens';
 
 /**
@@ -37,7 +37,7 @@ export default function GuestEntryScreen() {
     }
     setBusy(true);
     try {
-      if (!isPreviewMode && supabase) {
+      if (!inMockMode() && supabase) {
         const { data } = await supabase.from('weddings').select('slug').eq('slug', cleaned).maybeSingle();
         if (!data) {
           setError("We couldn't find that wedding — double-check the link on your invitation.");
@@ -91,7 +91,7 @@ export default function GuestEntryScreen() {
             >
               Continue
             </PheraButton>
-            {isPreviewMode ? (
+            {inMockMode() ? (
               <PheraText
                 variant="body2"
                 align="center"

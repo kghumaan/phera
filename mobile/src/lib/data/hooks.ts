@@ -15,7 +15,7 @@ import {
   FIXTURE_VEHICLES,
   FIXTURE_WEDDING,
 } from '@/lib/mock/fixtures';
-import { supabase } from '@/lib/supabase/client';
+import { inMockMode, supabase } from '@/lib/supabase/client';
 import type {
   Broadcast,
   ConciergeConversation,
@@ -54,7 +54,7 @@ export function useWeddings() {
   return useQuery({
     queryKey: ['weddings'],
     queryFn: async (): Promise<Wedding[]> => {
-      if (!supabase) return [FIXTURE_WEDDING];
+      if (inMockMode() || !supabase) return [FIXTURE_WEDDING];
       const { data: auth } = await supabase.auth.getUser();
       const userId = auth.user?.id;
       if (!userId) return [];
@@ -84,7 +84,7 @@ export function useWedding(slug: string) {
   return useQuery({
     queryKey: ['wedding', slug],
     queryFn: async (): Promise<Wedding | null> => {
-      if (!supabase) return FIXTURE_WEDDING;
+      if (inMockMode() || !supabase) return FIXTURE_WEDDING;
       const { data, error } = await supabase.from('weddings').select('*').eq('slug', slug).single();
       if (error) throw error;
       return data as Wedding;
@@ -96,7 +96,7 @@ export function useGuests(slug: string) {
   return useQuery({
     queryKey: ['guests', slug],
     queryFn: async (): Promise<Guest[]> => {
-      if (!supabase) return previewGuests;
+      if (inMockMode() || !supabase) return previewGuests;
       const { data, error } = await supabase
         .from('guests')
         .select(GUEST_SELECT)
@@ -135,7 +135,7 @@ export function useAddGuest(slug: string) {
         wedding_side: input.wedding_side ?? null,
         avatar_color: avatarColorFor(input.name),
       };
-      if (!supabase) {
+      if (inMockMode() || !supabase) {
         previewGuests = [
           {
             id: `preview-${previewGuests.length + 1}`,
@@ -160,7 +160,7 @@ export function useRsvps(slug: string) {
   return useQuery({
     queryKey: ['rsvps', slug],
     queryFn: async (): Promise<Rsvp[]> => {
-      if (!supabase) return FIXTURE_RSVPS;
+      if (inMockMode() || !supabase) return FIXTURE_RSVPS;
       // Same join as web getAllRSVPs (rsvp-service.ts:383).
       const { data, error } = await supabase
         .from('rsvps')
@@ -179,7 +179,7 @@ export function useEvents(weddingId: string | undefined) {
     queryKey: ['events', weddingId],
     enabled: !!weddingId,
     queryFn: async (): Promise<WeddingEvent[]> => {
-      if (!supabase) return FIXTURE_EVENTS;
+      if (inMockMode() || !supabase) return FIXTURE_EVENTS;
       const { data, error } = await supabase
         .from('wedding_events')
         .select('*')
@@ -207,7 +207,7 @@ export function useUpsertGuestFlight(weddingId: string | undefined) {
   return useMutation({
     mutationFn: async (input: FlightInput) => {
       const arrival = `${input.arrivalDate}T${input.arrivalTime}:00`;
-      if (!supabase) {
+      if (inMockMode() || !supabase) {
         const flight: GuestFlight = {
           id: `pf-${input.guestId}`,
           guest_id: input.guestId,
@@ -251,7 +251,7 @@ export function useGuestFlights(weddingId: string | undefined) {
     queryKey: ['guest-flights', weddingId],
     enabled: !!weddingId,
     queryFn: async (): Promise<GuestFlight[]> => {
-      if (!supabase) return previewFlights;
+      if (inMockMode() || !supabase) return previewFlights;
       // Same join as web getAllGuestFlights (travel-service.ts:255).
       const { data, error } = await supabase
         .from('guest_flights')
@@ -269,7 +269,7 @@ export function useVehiclesWithCapacity(weddingId: string | undefined) {
     queryKey: ['vehicles', weddingId],
     enabled: !!weddingId,
     queryFn: async (): Promise<Vehicle[]> => {
-      if (!supabase) return FIXTURE_VEHICLES;
+      if (inMockMode() || !supabase) return FIXTURE_VEHICLES;
       // Mirrors web getAllVehiclesWithCapacity (transportation-service.ts:649):
       // embed reservations, sum non-cancelled party sizes client-side.
       const { data, error } = await supabase
@@ -296,7 +296,7 @@ export function useReservations(weddingId: string | undefined) {
     queryKey: ['reservations', weddingId],
     enabled: !!weddingId,
     queryFn: async (): Promise<Reservation[]> => {
-      if (!supabase) return FIXTURE_RESERVATIONS;
+      if (inMockMode() || !supabase) return FIXTURE_RESERVATIONS;
       const { data, error } = await supabase
         .from('transportation_reservations')
         .select('*, guest:guests(id, name)')
@@ -312,7 +312,7 @@ export function useRooms(slug: string) {
   return useQuery({
     queryKey: ['rooms', slug],
     queryFn: async (): Promise<WeddingRoom[]> => {
-      if (!supabase) return FIXTURE_ROOMS;
+      if (inMockMode() || !supabase) return FIXTURE_ROOMS;
       // Same ordering as web roomsService.list (rooms-service.ts:57).
       const { data, error } = await supabase
         .from('wedding_rooms')
@@ -332,7 +332,7 @@ export function useTasks(weddingId: string | undefined) {
     queryKey: ['tasks', weddingId],
     enabled: !!weddingId,
     queryFn: async (): Promise<WeddingTask[]> => {
-      if (!supabase) return previewTasks;
+      if (inMockMode() || !supabase) return previewTasks;
       const { data, error } = await supabase
         .from('wedding_tasks')
         .select('*')
@@ -349,7 +349,7 @@ export function useMoveTask(weddingId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, column }: { id: string; column: TaskColumn }) => {
-      if (!supabase) {
+      if (inMockMode() || !supabase) {
         previewTasks = previewTasks.map((t) => (t.id === id ? { ...t, column } : t));
         return;
       }
@@ -364,7 +364,7 @@ export function useBroadcasts(slug: string) {
   return useQuery({
     queryKey: ['broadcasts', slug],
     queryFn: async (): Promise<Broadcast[]> => {
-      if (!supabase) return FIXTURE_BROADCASTS;
+      if (inMockMode() || !supabase) return FIXTURE_BROADCASTS;
       // Same rollup as web broadcastsService.list (broadcasts-service.ts:54).
       const { data, error } = await supabase
         .from('concierge_broadcasts')
@@ -390,7 +390,7 @@ export function useConcierge(weddingId: string | undefined) {
     queryKey: ['concierge', weddingId],
     enabled: !!weddingId,
     queryFn: async (): Promise<ConciergeStats> => {
-      if (!supabase) return FIXTURE_CONCIERGE;
+      if (inMockMode() || !supabase) return FIXTURE_CONCIERGE;
       // Mirrors /api/concierge/stats + /conversations grouping. Note the web
       // conversations route uses the service role; if RLS blocks this direct
       // read for couple accounts we fall back to the API in Phase 4 wiring.
@@ -466,7 +466,7 @@ export function useCollaborators(weddingId: string | undefined, ownerId?: string
     queryKey: ['collaborators', weddingId],
     enabled: !!weddingId,
     queryFn: async (): Promise<Collaborator[]> => {
-      if (!supabase) {
+      if (inMockMode() || !supabase) {
         return [
           { id: 'c1', email: 'preview@phera.io', role: 'owner' },
           { id: 'c2', email: 'Team Member', role: 'admin' },
@@ -524,7 +524,7 @@ export function useSettings(weddingId: string | undefined) {
     queryKey: ['settings', weddingId],
     enabled: !!weddingId,
     queryFn: async (): Promise<WeddingSettings | null> => {
-      if (!supabase) return { wedding_password: 'udaipur2026', concierge_enabled: true };
+      if (inMockMode() || !supabase) return { wedding_password: 'udaipur2026', concierge_enabled: true };
       // Password lives in wedding_secrets (admin-only RLS); settings holds
       // the benign flags. Legacy-column fallback until 20260705b drops it.
       const [settingsRes, secretRes, legacyRes] = await Promise.all([
@@ -570,7 +570,7 @@ export function useFaqs(weddingId: string | undefined) {
     queryKey: ['faqs', weddingId],
     enabled: !!weddingId,
     queryFn: async (): Promise<WeddingFaq[]> => {
-      if (!supabase) return FIXTURE_FAQS;
+      if (inMockMode() || !supabase) return FIXTURE_FAQS;
       const { data, error } = await supabase
         .from('wedding_faqs')
         .select('*')
@@ -595,7 +595,7 @@ export function useSubmitGuestRsvp(slug: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: GuestRsvpInput) => {
-      if (!supabase) {
+      if (inMockMode() || !supabase) {
         previewGuests = previewGuests.map((g) =>
           g.id === input.guestId
             ? {
@@ -641,7 +641,7 @@ export function useSchedule(weddingId: string | undefined) {
     queryKey: ['schedule', weddingId],
     enabled: !!weddingId,
     queryFn: async (): Promise<ScheduleDay[]> => {
-      if (!supabase) return FIXTURE_SCHEDULE;
+      if (inMockMode() || !supabase) return FIXTURE_SCHEDULE;
       // Two-step fetch matching web getWeddingSchedule (wedding-service.ts:374).
       const { data: days, error } = await supabase
         .from('wedding_schedule')
