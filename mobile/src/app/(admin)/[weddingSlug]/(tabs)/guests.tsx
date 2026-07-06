@@ -15,7 +15,8 @@ import {
   type PheraChipTone,
 } from '@/components/ui';
 import { useAddGuest, useGuests } from '@/lib/data/hooks';
-import type { Attending, Guest, WeddingSide } from '@/lib/data/types';
+import { guestTags, latestRsvp, type Attending, type Guest, type WeddingSide } from '@/lib/data/types';
+import { getTagColor } from '@/lib/theme/tag-color';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { useWeddingSlug } from '@/lib/nav';
 
@@ -42,7 +43,10 @@ const FILTERS: { key: RsvpFilter; label: string }[] = [
 ];
 
 function guestAttending(g: Guest): Attending | null {
-  return g.rsvps[0]?.attending ?? null;
+  // Web getRsvpStatus parity: latest rsvp by created_at, blank → no response.
+  const latest = latestRsvp(g);
+  if (!latest?.attending) return null;
+  return latest.attending;
 }
 
 function attendingChip(attending: Attending | null) {
@@ -54,8 +58,30 @@ function attendingChip(attending: Attending | null) {
     case 'maybe':
       return <PheraChip label="Maybe" tone="warning" />;
     default:
-      return <PheraChip label="No RSVP" tone="neutral" />;
+      return <PheraChip label="No response" tone="neutral" />;
   }
+}
+
+/** Web DragTagChip parity: deterministic palette tint per tag string. */
+function TagChip({ tag }: { tag: string }) {
+  const c = getTagColor(tag);
+  return (
+    <View
+      style={{
+        backgroundColor: c.bg,
+        borderWidth: 1,
+        borderColor: c.border,
+        borderRadius: RADII.pill,
+        paddingHorizontal: 10,
+        paddingVertical: 3,
+        alignSelf: 'flex-start',
+      }}
+    >
+      <PheraText variant="body2" weight={600} color={c.fg}>
+        {tag}
+      </PheraText>
+    </View>
+  );
 }
 
 function initialsOf(name: string): string {
@@ -106,8 +132,8 @@ function DetailRow({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMa
 }
 
 function GuestDetailSheet({ guest, onClose }: { guest: Guest | null; onClose: () => void }) {
-  const rsvp = guest?.rsvps[0];
-  const tags = guest?.logistics_data?.tags ?? [];
+  const rsvp = guest ? latestRsvp(guest) : null;
+  const tags = guest ? guestTags(guest) : [];
   return (
     <PheraSheet open={!!guest} onClose={onClose} title={guest?.name ?? ''}>
       {guest ? (
@@ -120,7 +146,7 @@ function GuestDetailSheet({ guest, onClose }: { guest: Guest | null; onClose: ()
               ) : null}
               {attendingChip(guestAttending(guest))}
               {tags.map((t) => (
-                <PheraChip key={t} label={t} tone="brand" />
+                <TagChip key={t} tag={t} />
               ))}
             </View>
           </View>
@@ -173,8 +199,9 @@ function AddGuestSheet({
   const submit = async () => {
     setError(null);
     if (!name.trim()) return setError('Name is required');
-    // Phone is the required contact in Phera's data conventions.
-    if (!phone.trim()) return setError('Phone is required — it powers WhatsApp outreach');
+    // Web import parity: name + at least one contact (email or phone).
+    if (!phone.trim() && !email.trim())
+      return setError('Add an email or phone so the couple can reach this guest');
     try {
       await addGuest.mutateAsync({ name, phone, email, wedding_side: side });
       reset();
@@ -266,7 +293,15 @@ export default function GuestsScreen() {
     const all = guests.data ?? [];
     const q = search.trim().toLowerCase();
     return all.filter((g) => {
-      if (q && !g.name.toLowerCase().includes(q)) return false;
+      // Web parity: search matches name OR email OR phone.
+      if (
+        q &&
+        !g.name.toLowerCase().includes(q) &&
+        !(g.email ?? '').toLowerCase().includes(q) &&
+        !(g.phone ?? '').toLowerCase().includes(q)
+      ) {
+        return false;
+      }
       if (filter === 'all') return true;
       const a = guestAttending(g);
       return filter === 'none' ? a === null : a === filter;
@@ -342,25 +377,40 @@ export default function GuestsScreen() {
             }
           />
         }
-        renderItem={({ item }) => (
-          <PheraCard accessibilityLabel={`Open guest ${item.name}`} onPress={() => setSelected(item)}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <Avatar guest={item} />
-              <View style={{ flex: 1, gap: 4 }}>
-                <PheraText variant="body" weight={500}>
-                  {item.name}
-                </PheraText>
-                <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
-                  {item.wedding_side ? (
-                    <PheraChip label={SIDE_LABEL[item.wedding_side]} tone={SIDE_TONE[item.wedding_side]} />
+        renderItem={({ item }) => {
+          const plusOne = item.logistics_data?.plus_one_name;
+          const additional = (item.logistics_data?.additional_guests ?? [])
+            .map((a) => a?.name)
+            .filter(Boolean) as string[];
+          const companions = [plusOne, ...additional].filter(Boolean).join(', ');
+          return (
+            <PheraCard accessibilityLabel={`Open guest ${item.name}`} onPress={() => setSelected(item)}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <Avatar guest={item} />
+                <View style={{ flex: 1, gap: 4 }}>
+                  <PheraText variant="body" weight={500}>
+                    {item.name}
+                  </PheraText>
+                  {companions ? (
+                    <PheraText variant="body2" color={COLORS.text.subtle}>
+                      + {companions}
+                    </PheraText>
                   ) : null}
-                  {attendingChip(guestAttending(item))}
+                  <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
+                    {item.wedding_side ? (
+                      <PheraChip label={SIDE_LABEL[item.wedding_side]} tone={SIDE_TONE[item.wedding_side]} />
+                    ) : null}
+                    {attendingChip(guestAttending(item))}
+                    {guestTags(item).map((t) => (
+                      <TagChip key={t} tag={t} />
+                    ))}
+                  </View>
                 </View>
+                <Ionicons name="chevron-forward" size={18} color={COLORS.text.faint} />
               </View>
-              <Ionicons name="chevron-forward" size={18} color={COLORS.text.faint} />
-            </View>
-          </PheraCard>
-        )}
+            </PheraCard>
+          );
+        }}
       />
       <GuestDetailSheet guest={selected} onClose={() => setSelected(null)} />
       <AddGuestSheet open={adding} onClose={() => setAdding(false)} slug={weddingSlug} />

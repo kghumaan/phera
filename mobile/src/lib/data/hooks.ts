@@ -16,6 +16,7 @@ import {
   FIXTURE_WEDDING,
 } from '@/lib/mock/fixtures';
 import { inMockMode, supabase } from '@/lib/supabase/client';
+import { generateFallbackColor } from '@/lib/theme/tag-color';
 import type {
   Broadcast,
   ConciergeConversation,
@@ -48,7 +49,7 @@ let previewTasks: WeddingTask[] = [...FIXTURE_TASKS];
 let previewFlights: GuestFlight[] = [...FIXTURE_FLIGHTS];
 
 const GUEST_SELECT =
-  'id, name, email, phone, wedding_side, logistics_data, initials, avatar_color, created_at, rsvps(attending, guest_count, created_at)';
+  'id, name, email, phone, wedding_side, logistics_data, initials, avatar_color, created_at, rsvps(attending, guest_count, plus_one, created_at)';
 
 export function useWeddings() {
   return useQuery({
@@ -115,25 +116,21 @@ export interface NewGuestInput {
   wedding_side?: Guest['wedding_side'];
 }
 
-const AVATAR_PALETTE = ['#DE3F5E', '#3b82f6', '#20C997', '#6C5CE7', '#FF9933', '#D4AF37', '#FF6B6B'];
-
-function avatarColorFor(name: string): string {
-  let hash = 0;
-  for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) | 0;
-  return AVATAR_PALETTE[Math.abs(hash) % AVATAR_PALETTE.length]!;
-}
-
 export function useAddGuest(slug: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: NewGuestInput): Promise<void> => {
+      const email = (input.email ?? '').trim().toLowerCase();
       const row = {
         name: input.name.trim(),
-        email: (input.email ?? '').trim().toLowerCase(),
-        phone: input.phone.trim(),
+        // Web import parity (app/api/guests/import): sentinel email when
+        // none given, palette fallback avatar, auth_method 'imported'.
+        email: email || `imported-${Date.now()}-m@phera.io`,
+        phone: input.phone.trim() || null,
         wedding_id: slug,
         wedding_side: input.wedding_side ?? null,
-        avatar_color: avatarColorFor(input.name),
+        avatar_color: generateFallbackColor(input.name.trim()),
+        auth_method: 'imported',
       };
       if (inMockMode() || !supabase) {
         previewGuests = [

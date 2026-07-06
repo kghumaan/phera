@@ -13,6 +13,12 @@ import {
   PALETTE as MOBILE_PALETTE,
   RADII as MOBILE_RADII,
 } from '../src/lib/theme/tokens';
+import { getTagColor as webGetTagColor } from '../../lib/utils/tag-color';
+import { generateFallbackColor as webAvatarColor } from '../../lib/utils/avatar-generator';
+import {
+  generateFallbackColor as mobileAvatarColor,
+  getTagColor as mobileGetTagColor,
+} from '../src/lib/theme/tag-color';
 
 // Groups the mobile app mirrors. Web-only palettes (whatsapp, vendorCategory,
 // social) are intentionally absent until a mobile screen needs them.
@@ -25,6 +31,18 @@ describe('mobile design tokens stay in sync with web', () => {
 
   it.each(MIRRORED_GROUPS)('COLORS.%s matches web exactly', (group) => {
     expect(MOBILE_COLORS[group]).toEqual(WEB_COLORS[group]);
+  });
+
+  it('tag colors resolve identically to web for any tag', () => {
+    for (const tag of ['family', 'college', 'work', 'groom-side', 'VIP', 'mehendi crew', '']) {
+      expect(mobileGetTagColor(tag)).toEqual(webGetTagColor(tag));
+    }
+  });
+
+  it('avatar fallback colors match web for any name', () => {
+    for (const name of ['Anita Sharma', 'Vikram Mehta', 'X', 'Meera & Raj Kapoor']) {
+      expect(mobileAvatarColor(name)).toBe(webAvatarColor(name));
+    }
   });
 
   it('RADII values match web (numbers vs px strings)', () => {

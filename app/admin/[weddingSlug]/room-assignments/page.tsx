@@ -852,21 +852,23 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                               const gid = assigned[i];
                               const g = gid ? guestById.get(gid) : null;
                               const side = g?.wedding_side;
+                              // Side tints from the brand palette: bride = rani
+                              // pink, groom = sky blue, both = plum.
                               const tint =
                                 side === 'bride'
-                                  ? 'rgba(236,72,153,0.10)'
+                                  ? 'rgba(222, 63, 94, 0.10)'
                                   : side === 'groom'
-                                  ? 'rgba(59,130,246,0.10)'
+                                  ? 'rgba(73, 185, 212, 0.12)'
                                   : side === 'both'
-                                  ? 'rgba(168,85,247,0.10)'
+                                  ? 'rgba(128, 85, 145, 0.10)'
                                   : 'rgba(0,0,0,0.04)';
                               const borderColor =
                                 side === 'bride'
-                                  ? 'rgba(236,72,153,0.35)'
+                                  ? 'rgba(222, 63, 94, 0.35)'
                                   : side === 'groom'
-                                  ? 'rgba(59,130,246,0.35)'
+                                  ? 'rgba(73, 185, 212, 0.45)'
                                   : side === 'both'
-                                  ? 'rgba(168,85,247,0.35)'
+                                  ? 'rgba(128, 85, 145, 0.35)'
                                   : 'rgba(0,0,0,0.12)';
                               const slotKey = `${room.id}:${i}`;
                               const isDragged = draggedKey === slotKey;
@@ -1088,11 +1090,11 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                   const side = g.wedding_side;
                   const sideColor =
                     side === 'bride'
-                      ? 'rgba(236,72,153,0.9)'
+                      ? COLORS.side.bride
                       : side === 'groom'
-                      ? 'rgba(59,130,246,0.9)'
+                      ? COLORS.side.groom
                       : side === 'both'
-                      ? 'rgba(168,85,247,0.9)'
+                      ? COLORS.side.both
                       : COLORS.text.faint;
                   return (
                     <PheraMenuItem

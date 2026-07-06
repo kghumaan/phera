@@ -39,6 +39,7 @@ export interface Wedding {
 export interface GuestRsvpSummary {
   attending: Attending;
   guest_count: number | null;
+  plus_one?: boolean | null;
   created_at: string | null;
 }
 
@@ -52,12 +53,31 @@ export interface Guest {
   initials: string | null;
   logistics_data: {
     tags?: string[];
+    /** Legacy single tag — read as [tag] when tags[] absent (web getTags). */
+    tag?: string | null;
     party_size?: number;
     plus_one_name?: string | null;
+    plus_one_phone?: string | null;
+    additional_guests?: { name?: string | null; phone?: string | null }[];
   } | null;
   created_at: string | null;
-  /** Embedded via select('..., rsvps(attending, guest_count, created_at)'). */
+  /** Embedded via select('..., rsvps(attending, guest_count, plus_one, created_at)'). */
   rsvps: GuestRsvpSummary[];
+}
+
+/** Web guest-list parity (getRsvpStatus): status comes from the LATEST rsvp
+ *  by created_at — embed order is not guaranteed. */
+export function latestRsvp(g: Guest): GuestRsvpSummary | null {
+  if (!g.rsvps.length) return null;
+  return [...g.rsvps].sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''))[0]!;
+}
+
+/** Web getTags parity: tags[] with legacy single-tag fallback. */
+export function guestTags(g: Guest): string[] {
+  const tags = g.logistics_data?.tags;
+  if (Array.isArray(tags)) return tags.filter((t) => typeof t === 'string' && t.trim() !== '');
+  const legacy = g.logistics_data?.tag;
+  return legacy && legacy.trim() !== '' ? [legacy] : [];
 }
 
 export interface Rsvp {

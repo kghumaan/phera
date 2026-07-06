@@ -1,11 +1,8 @@
 /**
- * Stable, deterministic tag → color mapping. The same tag string always resolves
- * to the same palette entry so family/side/group tags read consistently across
- * the guest list, room assignments, broadcasts, and anywhere else tags surface.
- *
- * All eight entries come from the brand PALETTE ramps (Rani Pink, Sky Blue,
- * Plum, Butter Yellow — two depths each). Foregrounds are the 700/800 stops
- * for AA contrast on the 50/100 tints. No off-palette hues.
+ * Mirror of web `lib/utils/tag-color.ts` — deterministic tag → color
+ * mapping over the brand PALETTE ramps. Same hash, same eight entries,
+ * so a tag renders the same color on web and mobile.
+ * `tests/token-sync.test.ts` enforces the palettes stay identical.
  */
 
 import { PALETTE } from '@/lib/theme/tokens';
@@ -16,7 +13,7 @@ export interface TagColor {
   border: string;
 }
 
-const TAG_PALETTE: TagColor[] = [
+export const TAG_PALETTE: TagColor[] = [
   { bg: PALETTE.raniPink[100], fg: PALETTE.raniPink[700], border: PALETTE.raniPink[200] },
   { bg: PALETTE.skyBlue[100], fg: PALETTE.skyBlue[800], border: PALETTE.skyBlue[200] },
   { bg: PALETTE.plum[100], fg: PALETTE.plum[700], border: PALETTE.plum[200] },
@@ -28,7 +25,7 @@ const TAG_PALETTE: TagColor[] = [
 ];
 
 const NEUTRAL: TagColor = {
-  bg: 'rgba(0, 0, 0, 0.05)', // black-scale wash
+  bg: 'rgba(0, 0, 0, 0.05)',
   fg: PALETTE.black[950],
   border: 'rgba(0, 0, 0, 0.12)',
 };
@@ -41,5 +38,19 @@ export function getTagColor(tag: string | null | undefined): TagColor {
   for (let i = 0; i < key.length; i++) {
     hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
   }
-  return TAG_PALETTE[hash % TAG_PALETTE.length];
+  return TAG_PALETTE[hash % TAG_PALETTE.length]!;
+}
+
+/** Web avatar-generator parity: same 10 palette stops, same hash. */
+export const AVATAR_COLORS = [
+  '#E45E78', '#2C9DBA', '#805591', '#DC8409', '#C71F51',
+  '#185767', '#A792AF', '#F4AA2A', '#70103D', '#4B2759',
+] as const;
+
+export function generateFallbackColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]!;
 }

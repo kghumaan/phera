@@ -92,9 +92,11 @@ export function isValidAvatarData(avatarSvg?: string, avatarSeed?: string): bool
  * Generate fallback initials-based background color (for backup)
  */
 export function generateFallbackColor(name: string): string {
+  // Brand PALETTE mid/deep stops (rani/sky/plum/butter) — dark enough for
+  // white initials. Keep in sync with mobile AVATAR_COLORS (hooks.ts).
   const colors = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-    '#DDA0DD', '#FFA07A', '#98D8C8', '#6C5CE7', '#FDCB6E'
+    '#E45E78', '#2C9DBA', '#805591', '#DC8409', '#C71F51',
+    '#185767', '#A792AF', '#F4AA2A', '#70103D', '#4B2759'
   ];
 
   let hash = 0;
@@ -103,4 +105,4 @@ export function generateFallbackColor(name: string): string {
   }
 
   return colors[Math.abs(hash) % colors.length];
-} 
+}
