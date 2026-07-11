@@ -116,7 +116,7 @@ export default function GuestTravelStayScreen() {
       ) : null}
       <View
         style={{
-          backgroundColor: PALETTE.white[100],
+          backgroundColor: PALETTE.whiteAlpha[100],
           borderRadius: RADII.lg,
           paddingHorizontal: 20,
           paddingVertical: 8,

@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     // Soft paper wash so the headline stays legible over any artwork.
-    backgroundColor: PALETTE.white[72],
+    backgroundColor: PALETTE.whiteAlpha[72],
     borderRadius: 24,
     paddingVertical: 18,
     paddingHorizontal: 16,

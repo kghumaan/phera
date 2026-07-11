@@ -851,7 +851,7 @@ export default function GuestImportWizard({
                               fontWeight: 600,
                               bgcolor: c.bg,
                               color: c.fg,
-                              border: `1px solid ${c.border}`,
+                              borderRadius: RADII.pill,
                               '& .MuiChip-deleteIcon': {
                                 color: c.fg,
                                 opacity: 0.6,
@@ -972,7 +972,7 @@ export default function GuestImportWizard({
                                             fontWeight: 600,
                                             bgcolor: c.bg,
                                             color: c.fg,
-                                            border: `1px solid ${c.border}`,
+                                            borderRadius: RADII.pill,
                                           }}
                                         />
                                       );

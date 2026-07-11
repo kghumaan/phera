@@ -30,7 +30,7 @@ export const PALETTE = {
   },
   // Warm-white opacity stops. 100/80 are pure white; 72 and below are the
   // warm base #F7F4EC at decreasing opacity (washes over photos/textures).
-  white: {
+  whiteAlpha: {
     100: 'rgba(255, 255, 255, 1)',
     80: 'rgba(255, 255, 255, 0.8)',
     72: 'rgba(247, 244, 236, 0.7)',
@@ -42,7 +42,7 @@ export const PALETTE = {
     4: 'rgba(247, 244, 236, 0.04)',
   },
   black: {
-    950: '#141414', // primary black
+    base: '#141414', // primary black / full-strength ink
     900: '#1F1F1F',
     800: '#303030',
     700: '#474747',
@@ -95,6 +95,10 @@ export const PALETTE = {
   },
 } as const;
 
+/** Alias matching the web export name (`SCALES`) so web modules that the
+ *  sync tests cross-import type-check under the mobile path alias. */
+export const SCALES = PALETTE;
+
 // ─── Colors (mirror of web COLORS — keep in sync) ───────────────────
 
 export const COLORS = {
@@ -107,7 +111,7 @@ export const COLORS = {
     primaryBorder: 'rgba(222, 63, 94, 0.18)', // raniPink.500 @ 18%
   },
   text: {
-    strong: PALETTE.black[950],
+    strong: PALETTE.black.base,
     muted: PALETTE.black[700],
     subtle: PALETTE.black[600],
     faint: PALETTE.black[400],

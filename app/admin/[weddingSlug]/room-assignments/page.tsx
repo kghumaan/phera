@@ -997,7 +997,6 @@ export default function RoomAssignmentsPage({ params }: { params: Promise<{ wedd
                                           borderRadius: 999,
                                           bgcolor: c.bg,
                                           color: c.fg,
-                                          border: `1px solid ${c.border}`,
                                           maxWidth: 110,
                                           overflow: 'hidden',
                                           textOverflow: 'ellipsis',

@@ -3,12 +3,13 @@
  * to the same palette entry so family/side/group tags read consistently across
  * the guest list, room assignments, broadcasts, and anywhere else tags surface.
  *
- * All eight entries come from the brand PALETTE ramps (Rani Pink, Sky Blue,
- * Plum, Butter Yellow — two depths each). Foregrounds are the 700/800 stops
- * for AA contrast on the 50/100 tints. No off-palette hues.
+ * Palette mirrors the Figma guest-list tag pills: bg = scale 100, text = the
+ * step the designer picked per scale for AA contrast (pink 700, sky 800,
+ * plum 800, butter 600). Pills render borderless; `border` is kept for hover
+ * accents (e.g. TagPicker suggestions).
  */
 
-import { PALETTE } from '@/lib/theme/tokens';
+import { COLORS, SCALES } from '@/lib/theme/tokens';
 
 export interface TagColor {
   bg: string;
@@ -17,20 +18,16 @@ export interface TagColor {
 }
 
 const TAG_PALETTE: TagColor[] = [
-  { bg: PALETTE.raniPink[100], fg: PALETTE.raniPink[700], border: PALETTE.raniPink[200] },
-  { bg: PALETTE.skyBlue[100], fg: PALETTE.skyBlue[800], border: PALETTE.skyBlue[200] },
-  { bg: PALETTE.plum[100], fg: PALETTE.plum[700], border: PALETTE.plum[200] },
-  { bg: PALETTE.butterYellow[100], fg: PALETTE.butterYellow[800], border: PALETTE.butterYellow[200] },
-  { bg: PALETTE.raniPink[50], fg: PALETTE.raniPink[600], border: PALETTE.raniPink[100] },
-  { bg: PALETTE.skyBlue[50], fg: PALETTE.skyBlue[700], border: PALETTE.skyBlue[100] },
-  { bg: PALETTE.plum[50], fg: PALETTE.plum[600], border: PALETTE.plum[100] },
-  { bg: PALETTE.butterYellow[50], fg: PALETTE.butterYellow[700], border: PALETTE.butterYellow[100] },
+  { bg: SCALES.raniPink[100],     fg: SCALES.raniPink[700],     border: SCALES.raniPink[200] },
+  { bg: SCALES.skyBlue[100],      fg: SCALES.skyBlue[800],      border: SCALES.skyBlue[200] },
+  { bg: SCALES.plum[100],         fg: SCALES.plum[800],         border: SCALES.plum[200] },
+  { bg: SCALES.butterYellow[100], fg: SCALES.butterYellow[600], border: SCALES.butterYellow[200] },
 ];
 
 const NEUTRAL: TagColor = {
-  bg: 'rgba(0, 0, 0, 0.05)', // black-scale wash
-  fg: PALETTE.black[950],
-  border: 'rgba(0, 0, 0, 0.12)',
+  bg: SCALES.black[50],
+  fg: COLORS.text.strong,
+  border: SCALES.black[100],
 };
 
 export function getTagColor(tag: string | null | undefined): TagColor {

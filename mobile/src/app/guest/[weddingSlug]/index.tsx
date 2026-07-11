@@ -232,6 +232,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 12,
     gap: 10,
-    backgroundColor: PALETTE.white[56],
+    backgroundColor: PALETTE.whiteAlpha[56],
   },
 });

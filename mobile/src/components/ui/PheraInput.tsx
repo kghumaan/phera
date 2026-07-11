@@ -57,7 +57,7 @@ export function PheraInput({
         placeholderTextColor={COLORS.text.placeholder}
         style={[
           {
-            backgroundColor: editable ? COLORS.bg.white : PALETTE.white[80],
+            backgroundColor: editable ? COLORS.bg.white : PALETTE.whiteAlpha[80],
             borderWidth: focused || error ? 2 : 1,
             borderColor,
             borderRadius: RADII.md,

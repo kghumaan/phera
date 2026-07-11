@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: PALETTE.white[32],
+    backgroundColor: PALETTE.whiteAlpha[32],
   },
   title: {
     flex: 1,

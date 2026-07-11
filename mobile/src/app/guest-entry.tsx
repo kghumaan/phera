@@ -127,11 +127,11 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: PALETTE.white[32],
+    backgroundColor: PALETTE.whiteAlpha[32],
   },
   scroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
   card: {
-    backgroundColor: PALETTE.white[100],
+    backgroundColor: PALETTE.whiteAlpha[100],
     borderRadius: RADII.dialog,
     padding: 24,
     gap: 16,

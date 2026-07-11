@@ -1,11 +1,11 @@
 /**
- * Mirror of web `lib/utils/tag-color.ts` — deterministic tag → color
- * mapping over the brand PALETTE ramps. Same hash, same eight entries,
- * so a tag renders the same color on web and mobile.
- * `tests/token-sync.test.ts` enforces the palettes stay identical.
+ * Mirror of web `lib/utils/tag-color.ts` (main's designer version) —
+ * deterministic tag → color mapping, same hash, same four entries, so a
+ * tag renders the same color on web and mobile.
+ * `tests/token-sync.test.ts` enforces the outputs stay identical.
  */
 
-import { PALETTE } from '@/lib/theme/tokens';
+import { COLORS, PALETTE } from '@/lib/theme/tokens';
 
 export interface TagColor {
   bg: string;
@@ -16,18 +16,14 @@ export interface TagColor {
 export const TAG_PALETTE: TagColor[] = [
   { bg: PALETTE.raniPink[100], fg: PALETTE.raniPink[700], border: PALETTE.raniPink[200] },
   { bg: PALETTE.skyBlue[100], fg: PALETTE.skyBlue[800], border: PALETTE.skyBlue[200] },
-  { bg: PALETTE.plum[100], fg: PALETTE.plum[700], border: PALETTE.plum[200] },
-  { bg: PALETTE.butterYellow[100], fg: PALETTE.butterYellow[800], border: PALETTE.butterYellow[200] },
-  { bg: PALETTE.raniPink[50], fg: PALETTE.raniPink[600], border: PALETTE.raniPink[100] },
-  { bg: PALETTE.skyBlue[50], fg: PALETTE.skyBlue[700], border: PALETTE.skyBlue[100] },
-  { bg: PALETTE.plum[50], fg: PALETTE.plum[600], border: PALETTE.plum[100] },
-  { bg: PALETTE.butterYellow[50], fg: PALETTE.butterYellow[700], border: PALETTE.butterYellow[100] },
+  { bg: PALETTE.plum[100], fg: PALETTE.plum[800], border: PALETTE.plum[200] },
+  { bg: PALETTE.butterYellow[100], fg: PALETTE.butterYellow[600], border: PALETTE.butterYellow[200] },
 ];
 
 const NEUTRAL: TagColor = {
-  bg: 'rgba(0, 0, 0, 0.05)',
-  fg: PALETTE.black[950],
-  border: 'rgba(0, 0, 0, 0.12)',
+  bg: PALETTE.black[50],
+  fg: COLORS.text.strong,
+  border: PALETTE.black[100],
 };
 
 export function getTagColor(tag: string | null | undefined): TagColor {

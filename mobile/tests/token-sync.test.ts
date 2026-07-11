@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 // moment someone edits one file without the other.
 import {
   COLORS as WEB_COLORS,
-  PALETTE as WEB_PALETTE,
+  SCALES as WEB_PALETTE,
   RADII as WEB_RADII,
 } from '../../lib/theme/tokens';
 import {

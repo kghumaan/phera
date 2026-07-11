@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    backgroundColor: PALETTE.white[100],
+    backgroundColor: PALETTE.whiteAlpha[100],
     borderRadius: RADII.dialog,
     padding: 24,
     gap: 20,
