@@ -205,6 +205,8 @@ tests/               # Vitest test files
   mocks/             # Test mocks
   setup.ts           # Global test setup
 migrations/          # SQL migration files
+mobile/              # React Native app (Expo + Tamagui) — own package.json,
+                     # excluded from the Next.js build. See MOBILE-PLAN.md.
 ```
 
 ## Error Reporting
@@ -230,6 +232,7 @@ Format error reports as:
 
 | Document | Purpose |
 |----------|---------|
+| `MOBILE-PLAN.md` | React Native mobile app (Expo + Tamagui) grand plan + living screen tracker. Branch `claude/react-native-mobile-app-1s5eu5`. |
 | `DEV-ROADMAP.md` | 24-task step-by-step engineering roadmap. The implementation spec. |
 | `PIVOT-PLAN.md` | Full strategic context — why we're pivoting, target market, pricing, competitive landscape, positioning, phased rollout. |
 | `CLAUDE-CODE-GENESIS-PROMPT.md` | Genesis prompt and ralph-loop phase commands. |

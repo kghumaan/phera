@@ -99,7 +99,8 @@ describe('POST /api/access/verify-password', () => {
 
   it('returns 401 with valid:false when no password is configured for the wedding', async () => {
     queue('weddings', () => ({ data: { id: 'wed-uuid-1' }, error: null }));
-    queue('wedding_settings', () => ({ data: null, error: null }));
+    queue('wedding_secrets', () => ({ data: null, error: null }));
+    queue('wedding_settings', () => ({ data: null, error: null })); // legacy fallback
     const res = await verifyPasswordPOST(jsonRequest({ weddingSlug: 'priya-rahul', password: 'open-sesame' }));
     expect(res.status).toBe(401);
     const body = await res.json();
@@ -108,7 +109,7 @@ describe('POST /api/access/verify-password', () => {
 
   it('returns 401 with valid:false on wrong password', async () => {
     queue('weddings', () => ({ data: { id: 'wed-uuid-1' }, error: null }));
-    queue('wedding_settings', () => ({ data: { wedding_password: 'correct-horse' }, error: null }));
+    queue('wedding_secrets', () => ({ data: { wedding_password: 'correct-horse' }, error: null }));
     const res = await verifyPasswordPOST(jsonRequest({ weddingSlug: 'priya-rahul', password: 'WRONG' }));
     expect(res.status).toBe(401);
     const body = await res.json();
@@ -117,8 +118,18 @@ describe('POST /api/access/verify-password', () => {
 
   it('returns valid:true on correct password', async () => {
     queue('weddings', () => ({ data: { id: 'wed-uuid-1' }, error: null }));
-    queue('wedding_settings', () => ({ data: { wedding_password: 'correct-horse' }, error: null }));
+    queue('wedding_secrets', () => ({ data: { wedding_password: 'correct-horse' }, error: null }));
     const res = await verifyPasswordPOST(jsonRequest({ weddingSlug: 'priya-rahul', password: 'correct-horse' }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.valid).toBe(true);
+  });
+
+  it('falls back to the legacy wedding_settings column when secrets row is absent', async () => {
+    queue('weddings', () => ({ data: { id: 'wed-uuid-1' }, error: null }));
+    queue('wedding_secrets', () => ({ data: null, error: null }));
+    queue('wedding_settings', () => ({ data: { wedding_password: 'legacy-pass' }, error: null }));
+    const res = await verifyPasswordPOST(jsonRequest({ weddingSlug: 'priya-rahul', password: 'legacy-pass' }));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.valid).toBe(true);
@@ -126,7 +137,7 @@ describe('POST /api/access/verify-password', () => {
 
   it('does case-sensitive password matching', async () => {
     queue('weddings', () => ({ data: { id: 'wed-uuid-1' }, error: null }));
-    queue('wedding_settings', () => ({ data: { wedding_password: 'CorrectHorse' }, error: null }));
+    queue('wedding_secrets', () => ({ data: { wedding_password: 'CorrectHorse' }, error: null }));
     const res = await verifyPasswordPOST(jsonRequest({ weddingSlug: 'priya-rahul', password: 'correcthorse' }));
     expect(res.status).toBe(401);
   });
