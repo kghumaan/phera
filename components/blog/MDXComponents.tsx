@@ -4,6 +4,7 @@ import { COLORS, RADII, FONTS, TEXT } from '@/lib/theme/tokens';
 import ChatDemo from './ChatDemo';
 import Callout from './Callout';
 import BlogCTA from './BlogCTA';
+import PlannerChatEmbed from './PlannerChatEmbed';
 import { FeatureGrid, Feature } from './FeatureGrid';
 
 /** Shared body-copy styling for prose blocks (p, ul, ol). */
@@ -206,6 +207,7 @@ const MDXComponents = {
   ChatDemo,
   Callout,
   BlogCTA,
+  PlannerChatEmbed,
   FeatureGrid,
   Feature,
 };

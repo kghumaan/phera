@@ -34,11 +34,11 @@ export interface ChatDemo {
 export const CHAT_DEMOS: Record<string, ChatDemo> = {
   /* ── 1. Onboarding: fuzzy human input, no invented facts ─────────────── */
   onboarding: {
-    caption: 'Day one — nothing set up yet',
+    caption: 'First message — no account yet',
     turns: [
       {
         kind: 'user',
-        text: "Hi! We just signed up. We're Anaya and Vikram — thinking the second weekend of March 2027, in Goa near Anjuna, but no venue yet.",
+        text: "Hi! We're Anaya and Vikram — thinking the second weekend of March 2027, in Goa near Anjuna, but no venue yet.",
       },
       {
         kind: 'assistant',

@@ -385,7 +385,10 @@ export default function HeroPlannerChat() {
         style={{
           margin: '12px 4px 0',
           fontSize: 14,
-          color: busy ? COLORS.text.muted : 'var(--text-subtle)',
+          // Token, not var(--text-subtle): that CSS var only exists in
+          // landing-design.css, and this component is also embedded in blog
+          // posts, which don't load it. Same value.
+          color: busy ? COLORS.text.muted : COLORS.text.subtle,
           lineHeight: 1.5,
         }}
       >

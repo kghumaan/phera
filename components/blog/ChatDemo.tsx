@@ -17,6 +17,10 @@ const ASSISTANT_DELAY = 1700;
 interface ChatDemoProps {
   /** Key into CHAT_DEMOS. */
   id: keyof typeof CHAT_DEMOS | string;
+  /** Where the footer CTA goes. Defaults to signup; pass an on-page anchor
+   *  (e.g. "#try-the-planner") when the post embeds a live <PlannerChatEmbed />. */
+  ctaHref?: string;
+  ctaLabel?: string;
 }
 
 function usePrefersReducedMotion(): boolean {
@@ -294,7 +298,11 @@ function DataPanel({ title, rows }: { title: string; rows: string[] }) {
   );
 }
 
-export default function ChatDemo({ id }: ChatDemoProps) {
+export default function ChatDemo({
+  id,
+  ctaHref = '/auth/login',
+  ctaLabel = 'Try this yourself',
+}: ChatDemoProps) {
   const demo = CHAT_DEMOS[id];
   const reducedMotion = usePrefersReducedMotion();
 
@@ -507,7 +515,7 @@ export default function ChatDemo({ id }: ChatDemoProps) {
           >
             This is the real Planner. Yours starts empty.
           </Typography>
-          <Link href="/auth/login" className="no-underline">
+          <Link href={ctaHref} className="no-underline">
             <Button
               variant="contained"
               disableElevation
@@ -524,7 +532,7 @@ export default function ChatDemo({ id }: ChatDemoProps) {
                 '&:hover': { bgcolor: COLORS.brand.primaryHover },
               }}
             >
-              Try this yourself
+              {ctaLabel}
             </Button>
           </Link>
         </Box>
