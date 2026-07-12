@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getExpectedWeddingPassword } from '@/lib/supabase/wedding-password';
 import { checkRateLimit } from '@/lib/utils/rate-limiter';
 import { matchGuestsByName } from '@/lib/access/name-match';
 
@@ -38,13 +39,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Wedding not found' }, { status: 404 });
     }
 
-    const { data: settings } = await supabase
-      .from('wedding_settings')
-      .select('wedding_password')
-      .eq('wedding_id', wedding.id)
-      .maybeSingle();
-
-    const expected = settings?.wedding_password;
+    const expected = await getExpectedWeddingPassword(supabase, wedding.id);
     if (!expected || password !== expected) {
       return NextResponse.json({ error: 'Password required' }, { status: 401 });
     }

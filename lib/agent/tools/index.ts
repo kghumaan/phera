@@ -13,6 +13,7 @@ import { askTools } from './ask';
 import { goalsTools } from './goals';
 import { focusTools } from './focus';
 import { uploadTools } from './upload';
+import { signupTools } from './signup';
 import { shagunTools } from './shagun';
 import { consentTools } from './consent';
 import { requestTools } from './requests';
@@ -41,6 +42,7 @@ export function ensureToolsRegistered() {
     ...goalsTools,
     ...focusTools,
     ...uploadTools,
+    ...signupTools,
     ...shagunTools,
     ...consentTools,
     ...requestTools,

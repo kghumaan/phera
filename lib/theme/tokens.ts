@@ -113,11 +113,11 @@ export const COLORS = {
     primaryBorder: 'rgba(222, 63, 94, 0.18)',
   },
   text: {
-    strong: '#1a1a1a',
-    muted: '#4a4a4a',
-    subtle: '#6a6a6a',
-    faint: '#9a9a9a',
-    placeholder: '#C2C2C2',
+    strong: SCALES.black.base,
+    muted: SCALES.black[700],
+    subtle: SCALES.black[600],
+    faint: SCALES.black[400],
+    placeholder: SCALES.black[200],
     inverse: '#ffffff',
   },
   bg: {
@@ -125,10 +125,9 @@ export const COLORS = {
     muted: '#FAFAFA',
     subtle: '#F8F8F8',
     wash: 'rgba(0, 0, 0, 0.03)',
-    // Warm cream "paper" — matches landing CSS var(--paper). Used as the
-    // base for textured sections (e.g. landing 'full kit', vertical-scroll
-    // left content panel).
-    paper: '#FBF7F1',
+    // Warm cream "paper" — the scales' warm-white base (whiteAlpha stops
+    // 72↓ are this color at opacity). Base for textured sections.
+    paper: '#F7F4EC',
   },
   border: {
     faint: 'rgba(0, 0, 0, 0.06)',
@@ -137,18 +136,20 @@ export const COLORS = {
     strong: 'rgba(0, 0, 0, 0.23)',
   },
   accent: {
+    // success/danger stay semantic red/green — the brand scales have no
+    // green, and danger is reserved for status dots (never buttons).
     success: '#10B981',
     successBg: '#E8F5E9',
     successText: '#2E7D32',
-    warning: '#F59E0B',
-    warningBg: '#FFF3E0',
-    warningText: '#E65100',
+    warning: SCALES.butterYellow[500],
+    warningBg: SCALES.butterYellow[50],
+    warningText: SCALES.butterYellow[700],
     danger: '#EF4444',
     dangerBg: '#FFEBEE',
     dangerText: '#C62828',
-    info: '#3B82F6',
-    infoBg: 'rgba(59, 130, 246, 0.08)',
-    infoText: '#1d4ed8',
+    info: SCALES.skyBlue[600],
+    infoBg: SCALES.skyBlue[50],
+    infoText: SCALES.skyBlue[700],
   },
   cultural: {
     gold: '#D4AF37',
@@ -269,6 +270,17 @@ export const TRANSITIONS = {
   fast: '0.15s ease',
   default: '0.2s ease',
   slow: '0.3s ease',
+} as const;
+
+// ─── External brand marks ───────────────────────────────────────────
+
+/** Third-party brand colors we render verbatim (the Google "G" on OAuth
+ *  buttons). These are THEIR palettes, not ours — never use for Phera UI. */
+export const EXTERNAL_BRAND = {
+  googleBlue: '#4285F4',
+  googleGreen: '#34A853',
+  googleYellow: '#FBBC05',
+  googleRed: '#EA4335',
 } as const;
 
 // ─── Convenience re-exports for common patterns ─────────────────────

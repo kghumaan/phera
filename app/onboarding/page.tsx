@@ -546,16 +546,10 @@ export default function OnboardingPage() {
         console.log('[Onboarding DEBUG] Planner onboarding complete, creating free first wedding...');
         setLoadingMessage('All set! Opening your first wedding…');
 
-        const baseSlug = 'wedding';
-        let slug = baseSlug;
-        let counter = 1;
-
-        let isAvailable = await weddingService.checkSlugAvailability(slug);
-        while (!isAvailable) {
-          slug = `${baseSlug}-${counter}`;
-          counter++;
-          isAvailable = await weddingService.checkSlugAvailability(slug);
-        }
+        // Unguessable draft slug — a raw UUID, matching the couple AI-first
+        // flow. (The old 'wedding-N' counter produced guessable, enumerable
+        // slugs and cost a round-trip per collision.)
+        let slug = globalThis.crypto?.randomUUID?.() ?? `w-${Date.now()}`;
 
         console.log('[Onboarding DEBUG] Planner first-wedding slug decided:', slug);
 
@@ -586,16 +580,10 @@ export default function OnboardingPage() {
 
             if (plannerWedding) break;
 
-            // If creation failed (returned null), it might be a race condition slug conflict
+            // If creation failed (returned null), it might be a race condition
+            // slug conflict — a fresh UUID sidesteps it without any lookups.
             console.warn(`[Onboarding DEBUG] Planner wedding creation attempt ${creationAttempts + 1} failed. Retrying with new slug...`);
-            counter++;
-            slug = `${baseSlug}-${counter}`;
-            let isStillAvailable = await weddingService.checkSlugAvailability(slug);
-            while (!isStillAvailable) {
-              counter++;
-              slug = `${baseSlug}-${counter}`;
-              isStillAvailable = await weddingService.checkSlugAvailability(slug);
-            }
+            slug = globalThis.crypto?.randomUUID?.() ?? `w-${Date.now()}-${creationAttempts}`;
           } catch (e) {
             console.error(`[Onboarding DEBUG] Exception during planner wedding creation attempt ${creationAttempts + 1}:`, e);
           }

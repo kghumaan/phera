@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { checkRateLimit } from '@/lib/utils/rate-limiter';
 import { WeddingService } from '@/lib/supabase/wedding-service';
 import { COLORS } from '@/lib/theme/tokens';
 import { DRAFT_COUPLE_NAME } from '@/lib/constants/wedding-placeholders';
@@ -12,8 +13,15 @@ export const runtime = 'nodejs';
  * complete, so the AI-first path can drop them straight into the Planner
  * chat. Mirrors the placeholder/defaults the manual wizard would set; the
  * agent fills in real names/date/venue conversationally from there.
+ * Also serves anonymous (pre-signup) landing-page sessions — an anonymous
+ * Supabase user passes auth and RLS like any other, and keeps the same
+ * wedding after converting to a real account (same user id).
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
+  // Anonymous visitors can reach this — cap creation bursts per IP.
+  const limited = checkRateLimit(request, { maxRequests: 5, windowMs: 60_000, keyPrefix: 'onboard-start' });
+  if (limited) return limited;
+
   const { supabase, user } = await getAuthenticatedClient();
   if (!supabase || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -57,9 +65,19 @@ export async function POST() {
     return NextResponse.json({ error: 'Could not create your wedding — please try again.' }, { status: 500 });
   }
 
-  await supabase
-    .from('user_settings')
-    .upsert({ user_id: user.id, onboarding_completed: true, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  // Not needed for the redirect — run it after the response is sent. (It only
+  // matters later: the auth callback checks it to avoid bouncing to /welcome.)
+  // Outside a Next request scope (tests), after() throws — run inline instead.
+  const completeOnboardingFlag = async () => {
+    await supabase
+      .from('user_settings')
+      .upsert({ user_id: user.id, onboarding_completed: true, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  };
+  try {
+    after(completeOnboardingFlag);
+  } catch {
+    await completeOnboardingFlag();
+  }
 
   return NextResponse.json({ slug: wedding.slug });
 }

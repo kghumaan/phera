@@ -34,19 +34,23 @@ function ttsRequest(body: unknown) {
   });
 }
 
+function onboardRequest() {
+  return new NextRequest('http://localhost/api/agent/onboard/start', { method: 'POST' });
+}
+
 describe('POST /api/agent/onboard/start', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('401s when unauthenticated', async () => {
     mockGetAuthenticatedClient.mockResolvedValue({ supabase: null, user: null });
-    const res = await onboardStart();
+    const res = await onboardStart(onboardRequest());
     expect(res.status).toBe(401);
   });
 
   it('returns the existing wedding instead of creating a duplicate', async () => {
     const fake = createFakeSupabase({ weddings: { data: [{ slug: 'priya-rahul-2027' }] } });
     mockGetAuthenticatedClient.mockResolvedValue({ supabase: fake.client, user: { id: 'u1' } });
-    const res = await onboardStart();
+    const res = await onboardStart(onboardRequest());
     const data = await res.json();
     expect(data).toEqual({ slug: 'priya-rahul-2027', existing: true });
     expect(mockCreateWedding).not.toHaveBeenCalled();
@@ -57,7 +61,7 @@ describe('POST /api/agent/onboard/start', () => {
     mockGetAuthenticatedClient.mockResolvedValue({ supabase: fake.client, user: { id: 'u1' } });
     mockCreateWedding.mockResolvedValue({ slug: 'new-wedding-abc123' });
 
-    const res = await onboardStart();
+    const res = await onboardStart(onboardRequest());
     const data = await res.json();
     expect(data.slug).toBe('new-wedding-abc123');
 
@@ -79,7 +83,7 @@ describe('POST /api/agent/onboard/start', () => {
     const fake = createFakeSupabase({ weddings: { data: [] } });
     mockGetAuthenticatedClient.mockResolvedValue({ supabase: fake.client, user: { id: 'u1' } });
     mockCreateWedding.mockResolvedValue(null);
-    const res = await onboardStart();
+    const res = await onboardStart(onboardRequest());
     expect(res.status).toBe(500);
   });
 });

@@ -38,6 +38,13 @@ import { VenueCardsPanel } from './VenueCardsPanel';
 import { WhatsAppPairingPanel } from './WhatsAppPairingPanel';
 import { BroadcastPanel } from './BroadcastPanel';
 import { DataPanel } from './DataPanel';
+import { SignupCard, SIGNUP_INFLIGHT_KEY } from './SignupCard';
+import { supabase } from '@/lib/supabase/client';
+import {
+  attachmentImportKind,
+  takeLostAttachmentName,
+  takePendingAttachment,
+} from '@/lib/agent/pending-attachment';
 import { AnimatePresence, motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import type { AgentDataPanel, AgentStreamEvent, AgentContentBlock, AgentQuestion, VenueCard, WhatsAppBroadcastDraft } from '@/lib/agent/types';
@@ -63,7 +70,10 @@ type ChatItem =
       status: 'pending' | 'resolving' | 'done';
     }
   | { kind: 'upgrade'; feature: string; dismissed?: boolean }
-  | { kind: 'upload'; uploadKind: 'guests' | 'rooms'; dismissed?: boolean };
+  | { kind: 'upload'; uploadKind: 'guests' | 'rooms'; dismissed?: boolean }
+  /** Anonymous (pre-signup) session: the inline create-account card. `required`
+   *  = the free allowance is spent, so the composer locks until signup. */
+  | { kind: 'signup'; status: 'pending' | 'done'; required?: boolean };
 
 const GUEST_SCHEMA_COLUMNS = ['Name', 'Email', 'Phone', 'Plus One', 'Party Size', 'Tags'];
 const GUEST_SCHEMA_EXAMPLE = ['Arjun Mehta', 'arjun@example.com', '+1 415 555 0200', 'Aisha Mehta', '2', 'groom-side, family'];
@@ -744,13 +754,20 @@ function fireCongratsConfetti() {
   confetti({ ...common, particleCount: 55, angle: 90, origin: { x: 0.5, y: 0.2 } });
   confetti({ ...common, particleCount: 45, angle: 120, origin: { x: 0.85, y: 0.35 } });
 }
-// Text-onboarding kickoff: the model greets, asks for names (typed only), then
-// walks the warm onboarding sequence from the system prompt.
-const ONBOARDING_KICKOFF =
-  `${HIDDEN_USER_PREFIX} I just got engaged and I'm setting up my wedding from scratch. ` +
-  `Greet me with EXACTLY this line, nothing before it: "${ONBOARDING_OPENER}" ` +
-  'Then immediately call ask_user with ONE text question (id "couple_names", prompt "Your names", placeholder "e.g. Priya & Rahul", inputOnly true). ' +
-  'Do not write anything after the ask_user call. Follow your onboarding sequence for everything after their names.';
+// Typed onboarding is fully client-scripted for an instant first paint: the
+// greeting and the names question render locally with NO model round-trip
+// (mirroring the voice path). The first LLM call happens when the couple
+// submits their names — see the LOCAL_ACTION_PREFIX branch of resolveAnswers.
+/** Client-rendered question cards (no agent_actions row) — resolved locally,
+ *  with the answers handed to the agent as an answers-note turn. */
+const LOCAL_ACTION_PREFIX = 'local-';
+const LOCAL_NAMES_ACTION_ID = `${LOCAL_ACTION_PREFIX}couple-names`;
+const NAMES_QUESTIONS: AgentQuestion[] = [
+  { id: 'couple_names', prompt: 'Your names', placeholder: 'e.g. Priya & Rahul', type: 'text', inputOnly: true },
+];
+/** A first message stashed by the landing-page hero chat box — replayed as the
+ *  opening turn the moment the planner mounts. */
+const PENDING_FIRST_MESSAGE_KEY = 'phera-pending-first-message';
 
 export interface AgentChatPanelProps {
   weddingSlug: string;
@@ -760,6 +777,10 @@ export interface AgentChatPanelProps {
   minHeight?: number;
   /** When true, fire the hidden onboarding kickoff once on mount. */
   onboarding?: boolean;
+  /** The wedding was created moments ago (hero/welcome flow) — there is no
+   *  history to fetch, so the opener paints instantly. One-shot: the caller
+   *  strips its URL flag after mount so reloads restore normally. */
+  freshWedding?: boolean;
   /** When true, open straight into hands-free voice mode (the default experience). */
   defaultVoice?: boolean;
 }
@@ -770,6 +791,7 @@ export function AgentChatPanel({
   onTurnComplete,
   minHeight = 480,
   onboarding,
+  freshWedding,
   defaultVoice,
 }: AgentChatPanelProps) {
   const theme = useTheme();
@@ -847,6 +869,9 @@ export function AgentChatPanel({
   busyRef.current = busy;
   // One-shot guard for the opener/resume decision; reset per wedding.
   const greetedRef = useRef(false);
+  // True when the visible thread was rebuilt from persisted history (a reload),
+  // as opposed to a live conversation — drives the anon signup re-offer.
+  const restoredThreadRef = useRef(false);
   // One-shot guard so the congrats confetti fires only once per wedding.
   const congratsConfettiRef = useRef(false);
   const voiceActiveRef = useRef(false);
@@ -904,6 +929,13 @@ export function AgentChatPanel({
     greetedRef.current = false; // each wedding gets its opener decision once
     congratsConfettiRef.current = false;
     conversationIdRef.current = null;
+    if (freshWedding) {
+      // Created moments ago — there is no conversation to fetch. Skipping the
+      // round-trip lets the scripted opener (or the stashed hero message)
+      // paint immediately instead of waiting on a knowably-empty response.
+      setLoadingHistory(false);
+      return;
+    }
     (async () => {
       try {
         const res = await fetch(`/api/agent/conversations?weddingSlug=${encodeURIComponent(weddingSlug)}`);
@@ -977,7 +1009,10 @@ export function AgentChatPanel({
               });
             }
           }
-          if (restored.length) setItems(restored);
+          if (restored.length) {
+            restoredThreadRef.current = true;
+            setItems(restored);
+          }
         }
       } finally {
         if (!cancelled) setLoadingHistory(false);
@@ -986,7 +1021,61 @@ export function AgentChatPanel({
     return () => {
       cancelled = true;
     };
-  }, [weddingSlug, defaultVoice, onboarding]);
+  }, [weddingSlug, defaultVoice, onboarding, freshWedding]);
+
+  // Anonymous (pre-signup) session detection, plus the Google-OAuth return
+  // beat: if a signup round-trip was in flight and the session is now
+  // permanent, tell the agent so it acknowledges and continues. Gated on
+  // loadingHistory so the hidden note lands on the RESTORED conversation
+  // instead of forking a fresh one.
+  const [isAnonSession, setIsAnonSession] = useState(false);
+  const signupReturnHandledRef = useRef(false);
+  useEffect(() => {
+    if (loadingHistory) return;
+    let cancelled = false;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return;
+      const sessionUser = data.session?.user as { is_anonymous?: boolean } | undefined;
+      const anon = sessionUser?.is_anonymous === true;
+      setIsAnonSession(anon);
+      if (!anon && !signupReturnHandledRef.current) {
+        let inflight: string | null = null;
+        try {
+          inflight = window.sessionStorage.getItem(SIGNUP_INFLIGHT_KEY);
+        } catch {
+          /* private mode */
+        }
+        if (inflight === weddingSlug) {
+          signupReturnHandledRef.current = true;
+          try {
+            window.sessionStorage.removeItem(SIGNUP_INFLIGHT_KEY);
+          } catch {
+            /* noop */
+          }
+          void sendRef.current(
+            `${HIDDEN_USER_PREFIX} I just created my account. Acknowledge in a few words and continue exactly where we left off.`
+          );
+        }
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [weddingSlug, loadingHistory]);
+
+  // An anonymous reload drops the live signup card (it isn't persisted) — once
+  // a RESTORED thread is on screen, quietly re-offer it so saving is never more
+  // than one tap away. Live fresh conversations are left to the agent's own
+  // request_signup timing.
+  const reofferRef = useRef(false);
+  useEffect(() => {
+    if (!isAnonSession || loadingHistory || reofferRef.current || !restoredThreadRef.current) return;
+    if (items.length === 0 || items.some((i) => i.kind === 'signup')) return;
+    reofferRef.current = true;
+    setItems((prev) =>
+      prev.some((i) => i.kind === 'signup') ? prev : [...prev, { kind: 'signup', status: 'pending' }]
+    );
+  }, [isAnonSession, loadingHistory, items]);
 
   // Fetch the wedding summary: analytical starter prompts for a returning
   // couple (skipped during the scripted onboarding kickoff) + the Working-on
@@ -1009,8 +1098,11 @@ export function AgentChatPanel({
   refreshSummaryRef.current = refreshSummary;
 
   useEffect(() => {
-    void refreshSummary();
-  }, [refreshSummary]);
+    // Fresh onboarding sessions discard starters and have no spine focus yet —
+    // skip the mount fetch (~15 queries) that would contend with the kickoff.
+    // The post-turn refresh in send() keeps the bar in sync from turn one.
+    if (!onboarding) void refreshSummary();
+  }, [refreshSummary, onboarding]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -1099,6 +1191,17 @@ export function AgentChatPanel({
         case 'upload_requested':
           next.push({ kind: 'upload', uploadKind: event.uploadKind });
           return next;
+        case 'signup_required': {
+          // One live card at a time — a repeat event just escalates `required`.
+          const existing = next.findIndex((i) => i.kind === 'signup' && i.status === 'pending');
+          if (existing >= 0) {
+            const card = next[existing] as Extract<ChatItem, { kind: 'signup' }>;
+            next[existing] = { ...card, required: card.required || event.required === true };
+            return next;
+          }
+          next.push({ kind: 'signup', status: 'pending', required: event.required === true });
+          return next;
+        }
         case 'error':
           next.push({ kind: 'assistant', text: event.message });
           return next;
@@ -1211,6 +1314,41 @@ export function AgentChatPanel({
   const resolveAnswers = useCallback(
     async (actionId: string, answers: Record<string, string | string[]>, questions: AgentQuestion[]) => {
       if (busy) return;
+      // Client-rendered cards (the scripted onboarding names question) have no
+      // agent_actions row — resolve locally and hand the answers to the agent
+      // as an answers-note turn instead of POSTing /api/agent/answer.
+      if (actionId.startsWith(LOCAL_ACTION_PREFIX)) {
+        streamingRef.current = true;
+        setBusyLabel('Thinking…');
+        setBusy(true);
+        const localFacts = factsFromAnswers(questions, answers);
+        if (localFacts.length) setFacts((prev) => mergeFacts(prev, localFacts));
+        const localSummary = summarizeAnswers(questions, answers);
+        setItems((prev) => [
+          ...prev.map((item) =>
+            item.kind === 'questions' && item.actionId === actionId ? { ...item, status: 'done' as const } : item
+          ),
+          ...(localSummary ? [{ kind: 'user' as const, text: localSummary, markdown: true }] : []),
+        ]);
+        try {
+          const lines = questions.map((q) => {
+            const raw = answers[q.id];
+            const value = Array.isArray(raw) ? raw.join(', ') : raw?.trim() || '(skipped)';
+            return `- ${q.prompt} → ${value}`;
+          });
+          await streamChatRef.current(
+            `${ANSWERS_NOTE_PREFIX} The user responded to the onboarding questions:\n${lines.join('\n')}\n` +
+              'If that answers the question, acknowledge them warmly by name and continue your onboarding ' +
+              'sequence from step 2 — the greeting and names question already happened; never repeat them. ' +
+              'If it is actually a request or question instead, handle THAT first, then weave the onboarding back in naturally.'
+          );
+        } finally {
+          setBusy(false);
+          void refreshSummaryRef.current();
+          onTurnComplete?.();
+        }
+        return;
+      }
       streamingRef.current = false;
       setBusyLabel('Saving…');
       setBusy(true);
@@ -1352,6 +1490,19 @@ export function AgentChatPanel({
     [busy, focus, send]
   );
 
+  // The visitor finished the in-chat signup (email flow — Google round-trips
+  // through /auth/callback instead): unlock the session and tell the agent.
+  const handleSignupComplete = useCallback(
+    (email: string | null) => {
+      setIsAnonSession(false);
+      setItems((prev) => prev.map((it) => (it.kind === 'signup' ? { ...it, status: 'done' as const } : it)));
+      void send(
+        `${HIDDEN_USER_PREFIX} I just created my account${email ? ` (${email})` : ''}. Acknowledge in a few words and continue exactly where we left off.`
+      );
+    },
+    [send]
+  );
+
   // The couple approved the drafted FAQs: clear the review panel and hand a
   // hidden note to the agent so it acknowledges and moves to the next step
   // (mirrors the post-upload continuation note).
@@ -1476,6 +1627,10 @@ export function AgentChatPanel({
   // The onboarding names question is the only typed-only (inputOnly) ask. While
   // it's open we hide the voice nudge (you can't speak that answer); the moment
   // it's answered we reveal the one-time animated mic hint.
+  // The anonymous free allowance is spent — the composer locks until signup.
+  const signupGate =
+    isAnonSession && items.some((i) => i.kind === 'signup' && i.status === 'pending' && i.required === true);
+
   const askingForName = !!pendingQuestions && pendingQuestions.questions.some((q) => q.inputOnly);
   useEffect(() => {
     if (wasAskingNameRef.current && !askingForName && !voiceHintShownRef.current) {
@@ -1570,7 +1725,7 @@ export function AgentChatPanel({
   // applies what they said) rather than orphaning the parked ask_user.
   const handleComposerSend = (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || busy) return;
+    if (!trimmed || busy || signupGate) return;
     if (pendingQuestions) {
       const pq = pendingQuestions;
       setInput('');
@@ -1614,6 +1769,51 @@ export function AgentChatPanel({
     // Wait for the tap-to-start gate before greeting, so the opener is audible.
     if (greetedRef.current || loadingHistory || voicePending) return;
     greetedRef.current = true;
+    // A hero-box message stashed by the landing page: this is the visitor's
+    // actual request — replay it as the opening turn the moment we're ready.
+    let stashed: string | null = null;
+    try {
+      stashed = window.sessionStorage.getItem(PENDING_FIRST_MESSAGE_KEY);
+      if (stashed) window.sessionStorage.removeItem(PENDING_FIRST_MESSAGE_KEY);
+    } catch {
+      /* private mode */
+    }
+    if (stashed?.trim()) {
+      const pq = pendingQuestions;
+      // A file attached in the hero box rides a module store across the
+      // client-side navigation; only its name survives a full auth redirect.
+      const heroFile = takePendingAttachment();
+      const lostFileName = heroFile ? null : takeLostAttachmentName();
+      void (async () => {
+        if (pq) {
+          // A restored form is open — treat their hero message as its answer,
+          // exactly like typing into the composer would.
+          await resolveAnswers(pq.actionId, { [pq.questions[0]?.id ?? 'response']: stashed }, pq.questions);
+        } else {
+          await send(stashed);
+        }
+        if (heroFile) {
+          const kind = attachmentImportKind(heroFile.name);
+          if (kind) {
+            // Spreadsheets/contacts → guest import; PDFs/images → floor-plan
+            // reader. Each pipeline reports its result into the conversation.
+            await handleUpload(kind, heroFile);
+          } else {
+            await send(
+              `${HIDDEN_USER_PREFIX} I also attached a file on the landing page: "${heroFile.name}". ` +
+                "You can't read this file type in chat yet — acknowledge it in one short line and ask me to paste the key details, " +
+                'or mention you CAN read guest lists (CSV/Excel/contacts) and hotel floor plans (PDF/image) right here.'
+            );
+          }
+        } else if (lostFileName) {
+          await send(
+            `${HIDDEN_USER_PREFIX} I attached "${lostFileName}" on the landing page, but it didn't survive the sign-in redirect. ` +
+              'In one short line, ask me to re-attach it with the paperclip here.'
+          );
+        }
+      })();
+      return;
+    }
     // A restored pending question needs answering — no opener/resume; the
     // safety-net effect drops voice to the card surface so the user can respond.
     if (awaitingQuestions) return;
@@ -1635,10 +1835,30 @@ export function AgentChatPanel({
         speech.enqueue(ONBOARDING_OPENER);
         speech.end();
       } else {
-        void send(ONBOARDING_KICKOFF);
+        // Instant scripted opener — greeting + names question render locally
+        // with no model round-trip (the old kickoff burned a full Opus turn
+        // just to echo this greeting). The first LLM call happens when the
+        // couple submits their names (see resolveAnswers' local branch).
+        setItems((prev) => [
+          ...prev,
+          { kind: 'assistant', text: ONBOARDING_OPENER },
+          { kind: 'questions', actionId: LOCAL_NAMES_ACTION_ID, questions: NAMES_QUESTIONS, status: 'pending' },
+        ]);
       }
     }
-  }, [loadingHistory, voicePending, onboarding, hasExistingData, awaitingQuestions, items.length, send, speech]);
+  }, [
+    loadingHistory,
+    voicePending,
+    onboarding,
+    hasExistingData,
+    awaitingQuestions,
+    items.length,
+    pendingQuestions,
+    resolveAnswers,
+    handleUpload,
+    send,
+    speech,
+  ]);
 
   const voiceOrbState: OrbState = busy
     ? 'thinking'
@@ -2277,6 +2497,20 @@ export function AgentChatPanel({
                       : roomFileRef.current?.click()
                   }
                 />
+              ) : item.kind === 'signup' ? (
+                item.status === 'done' ? (
+                  <Box key={index} sx={{ alignSelf: 'flex-start' }}>
+                    <PheraChip tone="success" size="small" label="Account created ✓" />
+                  </Box>
+                ) : (
+                  <SignupCard
+                    key={index}
+                    weddingSlug={weddingSlug}
+                    required={item.required}
+                    disabled={busy}
+                    onComplete={handleSignupComplete}
+                  />
+                )
               ) : item.kind === 'questions' ? (
                 // Rendered in the bottom composer while pending; nothing inline.
                 null
@@ -2486,13 +2720,15 @@ export function AgentChatPanel({
             multiline
             maxRows={6}
             placeholder={
-              voice.state === 'recording'
-                ? 'Listening… tap the mic again when you’re done'
-                : awaitingQuestions
-                  ? isMobile
-                    ? 'Answer above, or just type it here…'
-                    : 'Use the form on the right, or just type / say it here…'
-                  : 'Tell me what’s happening — Enter to send'
+              signupGate
+                ? 'Create your free account above to keep chatting'
+                : voice.state === 'recording'
+                  ? 'Listening… tap the mic again when you’re done'
+                  : awaitingQuestions
+                    ? isMobile
+                      ? 'Answer above, or just type it here…'
+                      : 'Use the form on the right, or just type / say it here…'
+                    : 'Tell me what’s happening — Enter to send'
             }
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -2502,7 +2738,7 @@ export function AgentChatPanel({
                 handleComposerSend(input);
               }
             }}
-            disabled={busy}
+            disabled={busy || signupGate}
             autoComplete="off"
             sx={COMPOSER_INPUT_SX}
           />

@@ -1692,9 +1692,13 @@ export class WeddingService {
   // (guest_id, event_id) row means the guest IS invited. We only write rows
   // when un-checking; we delete them when re-checking.
 
+  // Password lives in `wedding_secrets` (admin-only RLS — no anon read;
+  // migrations/20260705_wedding_secrets.sql). The legacy-column fallback
+  // read covers passwords set before that migration deployed; it goes away
+  // with 20260705b, which drops wedding_settings.wedding_password.
   async getWeddingPassword(weddingId: string): Promise<string | null> {
     const { data, error } = await this.supabase
-      .from('wedding_settings')
+      .from('wedding_secrets')
       .select('wedding_password')
       .eq('wedding_id', weddingId)
       .maybeSingle();
@@ -1702,30 +1706,24 @@ export class WeddingService {
       console.error('Error fetching wedding password:', error);
       return null;
     }
-    return data?.wedding_password ?? null;
+    if (data?.wedding_password) return data.wedding_password;
+
+    const { data: legacy } = await this.supabase
+      .from('wedding_settings')
+      .select('wedding_password')
+      .eq('wedding_id', weddingId)
+      .maybeSingle();
+    return (legacy as { wedding_password?: string | null } | null)?.wedding_password ?? null;
   }
 
   async setWeddingPassword(weddingId: string, password: string): Promise<boolean> {
-    const existing = await this.getSettings(weddingId);
-    if (existing?.id) {
-      const { error } = await this.supabase
-        .from('wedding_settings')
-        .update({ wedding_password: password })
-        .eq('wedding_id', weddingId);
-      if (error) { console.error('Error updating wedding password:', error); return false; }
-      return true;
-    }
     const { error } = await this.supabase
-      .from('wedding_settings')
-      .insert([{
-        wedding_id: weddingId,
-        wedding_password: password,
-        pin_codes: [],
-        whatsapp_group_link: '',
-        google_sheets_id: '',
-        lapse_event_codes: {},
-      }]);
-    if (error) { console.error('Error inserting wedding password settings:', error); return false; }
+      .from('wedding_secrets')
+      .upsert(
+        { wedding_id: weddingId, wedding_password: password, updated_at: new Date().toISOString() },
+        { onConflict: 'wedding_id' },
+      );
+    if (error) { console.error('Error saving wedding password:', error); return false; }
     return true;
   }
 

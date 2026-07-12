@@ -7,13 +7,12 @@
 /**
  * Phera landing page.
  *
- * Nine sections — Hero, Meet your planner (voice-forward centerpiece),
- * FeatureStepper ("Everything it handles"), our WhatsApp Concierge dark panel
- * (the planner's guest-facing arm, kept from a prior iteration), Pricing,
- * Origin (Story), FAQ, Vendor Spotlight, FinalCTA — the design-package
- * sections are mirrored 1:1 from the Claude Design package (see /tmp/phera-zip/,
- * also `Phera.zip` at the repo root). The
- * design's CSS lives at app/landing-design.css and is scoped to
+ * Nine sections — Hero (with the live planner chat box), PlannerShowcase
+ * (use-case cards + a faithful Planner-chat mock, cdata-style — replaced the
+ * old VoiceOrb "Meet your planner" section and the 6-step FeatureStepper),
+ * our WhatsApp Concierge dark panel (the planner's guest-facing arm), Pricing,
+ * Origin (Story), FAQ, Vendor Spotlight, AppComingSoon (mobile-app countdown),
+ * FinalCTA. The design's CSS lives at app/landing-design.css and is scoped to
  * `.phera-landing` so its classes don't leak into admin or guest surfaces.
  *
  * The shell here only handles auth, modals, SEO, and the footer. Each
@@ -43,8 +42,8 @@ import HomeNavLinks from '@/components/landing/HomeNavLinks';
 import LandingAnnouncementBar from '@/components/landing/LandingAnnouncementBar';
 
 import HeroSection from '@/components/landing/HeroSection';
-import MeetYourPlannerSection from '@/components/landing/MeetYourPlannerSection';
-import FeatureStepper from '@/components/landing/FeatureStepper';
+import PlannerShowcase from '@/components/landing/PlannerShowcase';
+import AppComingSoon from '@/components/landing/AppComingSoon';
 import PricingSection from '@/components/landing/PricingSection';
 import OriginSection from '@/components/landing/OriginSection';
 import FAQSection from '@/components/landing/FAQSection';
@@ -145,9 +144,11 @@ function LandingPageContent() {
       <Box component="main" className="phera-landing" sx={{ flexGrow: 1 }}>
         <HeroSection />
 
-        <MeetYourPlannerSection />
-
-        <FeatureStepper />
+        {/* The cdata-style planner showcase replaced both the VoiceOrb
+            "Meet your planner" section and the 6-step FeatureStepper: use-case
+            cards on the left, a faithful mock of the real Planner chat on the
+            right. The hero chat box above is the live version of the same UI. */}
+        <PlannerShowcase />
 
         {/* WHATSAPP AGENT SHOWCASE — kept from prior iteration; sits between
             FeatureStepper and Pricing, in the same slot the design's
@@ -300,6 +301,8 @@ function LandingPageContent() {
         <FAQSection />
 
         <VendorSpotlightSection />
+
+        <AppComingSoon />
 
         <FinalCTASection />
 

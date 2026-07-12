@@ -51,14 +51,15 @@ import VoiceRecorder from '@/components/admin/VoiceRecorder';
 import { weddingService, type Task, type Column } from '@/lib/supabase/wedding-service';
 import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
 import { PrimaryActionButton, ActionButton } from '@/components/admin/ActionButton';
-import { COLORS, RADII } from '@/lib/theme/tokens';
+import { COLORS, SCALES, RADII } from '@/lib/theme/tokens';
 import { PageHeading } from '@/components/shared/PageHeading';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const COLUMNS: { id: Column; label: string; color: string; bg: string }[] = [
-  { id: 'todo', label: 'To Do', color: '#5C6BC0', bg: '#EEF0FC' },
-  { id: 'doing', label: 'Doing', color: '#E6890A', bg: '#FFF4E0' },
+  // Palette stops: To Do = sky blue, Doing = butter yellow, Done = success.
+  { id: 'todo', label: 'To Do', color: SCALES.skyBlue[700], bg: SCALES.skyBlue[50] },
+  { id: 'doing', label: 'Doing', color: SCALES.butterYellow[600], bg: SCALES.butterYellow[50] },
   { id: 'done', label: 'Done', color: COLORS.accent.successText, bg: COLORS.accent.successBg },
 ];
 

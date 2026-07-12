@@ -1,14 +1,26 @@
 'use client';
 
 import { Box } from '@mui/material';
-import { use, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { use, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AgentChatPanel } from '@/components/agent/AgentChatPanel';
 
 export default function AssistantPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
   const { weddingSlug } = use(params);
+  const router = useRouter();
   const searchParams = useSearchParams();
   const isWelcome = searchParams.get('welcome') === '1';
+  // fresh=1 = the wedding was created moments ago (hero/welcome flow): the
+  // panel skips its history fetch for an instant first paint. One-shot — we
+  // capture it in a ref, then strip it from the URL so a reload restores
+  // history normally.
+  const freshRef = useRef(searchParams.get('fresh') === '1');
+  useEffect(() => {
+    if (searchParams.get('fresh') !== '1') return;
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete('fresh');
+    router.replace(`/admin/${weddingSlug}/assistant${next.size ? `?${next.toString()}` : ''}`, { scroll: false });
+  }, [searchParams, router, weddingSlug]);
 
   // Lock the document while the planner is open: the chat is a full-height
   // app surface — the PAGE must never scroll (only the message list inside
@@ -55,7 +67,7 @@ export default function AssistantPage({ params }: { params: Promise<{ weddingSlu
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-      <AgentChatPanel weddingSlug={weddingSlug} onboarding={isWelcome} />
+      <AgentChatPanel weddingSlug={weddingSlug} onboarding={isWelcome} freshWedding={freshRef.current} />
     </Box>
   );
 }
