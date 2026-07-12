@@ -1,20 +1,16 @@
 'use client';
 
 /**
- * Landing Hero - 1:1 mirror of the Claude Design package's <Hero> function
- * (/tmp/phera-zip/app.jsx Hero). The cloud bg, marigold sway, fluid clamp
- * H1, highlight-strike, subtitle, two pill CTAs, and the marquee inside
- * the hero at the bottom all match the design verbatim.
- *
- * CTAs are wired to our routes:
- *   primary  -> /auth/login
- *   ghost    -> /demo
+ * Landing Hero — cloud bg, marigold garlands, fluid clamp H1 with the
+ * highlight-strike, and the marquee at the bottom, all centered around the
+ * planner chat box (Origami-style): visitors type what they need and are
+ * dropped straight into a live planner session, no account first. The old
+ * pill CTAs live on as quiet text links under the box.
  */
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ActionButton } from '@/components/admin/ActionButton';
-import { COLORS } from '@/lib/theme/tokens';
+import HeroPlannerChat from './HeroPlannerChat';
 import { LotusGlyph, Reveal } from './design-primitives';
 
 const MARQUEE_WORDS = [
@@ -74,12 +70,12 @@ export default function HeroSection() {
         style={{
           position: 'relative',
           zIndex: 2,
-          textAlign: 'left',
+          textAlign: 'center',
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          alignItems: 'flex-start',
+          alignItems: 'center',
         }}
       >
         <Reveal delay={1}>
@@ -94,10 +90,10 @@ export default function HeroSection() {
               fontWeight: 400,
               letterSpacing: '-0.025em',
               lineHeight: 0.95,
-              fontSize: 'clamp(56px, 9vw, 128px)',
+              fontSize: 'clamp(40px, 6vw, 84px)',
               color: 'var(--text-strong)',
               maxWidth: '17ch',
-              margin: 0,
+              margin: '0 auto',
             }}
           >
             <span style={{ display: 'block' }}>Your desi wedding,</span>
@@ -111,79 +107,48 @@ export default function HeroSection() {
           <p
             className="wrap-pretty"
             style={{
-              marginTop: 32,
-              fontSize: 'clamp(17px, 1.4vw, 22px)',
+              marginTop: 24,
+              fontSize: 'clamp(15px, 1.1vw, 18px)',
               color: 'var(--text-muted)',
-              maxWidth: '60ch',
+              maxWidth: '56ch',
               lineHeight: 1.5,
+              marginLeft: 'auto',
+              marginRight: 'auto',
             }}
           >
-            AI wedding planner that handles it all — guest lists, RSVPs, room assignments, WhatsApp groups, vendors, guest logistics, and everything in between.
+            Tell your AI wedding planner what you need — guest lists, RSVPs, rooms, WhatsApp,
+            vendors — and watch it get done.{' '}
+            <Link
+              href="/demo"
+              style={{
+                color: 'var(--text-strong)',
+                fontWeight: 600,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Try the live demo →
+            </Link>
           </p>
         </Reveal>
 
         <Reveal delay={3}>
-          <div className="hero-cta-row">
-            <ActionButton
-              href="/auth/signup"
-              variant="contained"
-              className="btn btn-primary"
-              keepBackgroundOnLoad
-              sx={{
-                fontSize: { xs: 15, sm: 17 },
-                padding: { xs: '13px 22px', sm: '18px 30px' },
-                borderRadius: '999px',
-                textTransform: 'none',
-                fontWeight: 600,
-                bgcolor: 'var(--accent)',
-                color: COLORS.text.inverse,
-                '&:hover': { bgcolor: 'var(--accent-hover)' },
-              }}
-              endIcon={<span className="btn-arrow" style={{ display: 'inline-block' }}>→</span>}
-            >
-              Start free
-            </ActionButton>
-            <ActionButton
-              href="/demo"
-              variant="outlined"
-              className="btn btn-ghost"
-              keepBackgroundOnLoad
-              spinnerColor={COLORS.text.strong}
-              sx={{
-                fontSize: { xs: 15, sm: 17 },
-                padding: { xs: '13px 22px', sm: '18px 30px' },
-                borderRadius: '999px',
-                textTransform: 'none',
-                fontWeight: 600,
-                color: 'var(--text-strong)',
-                borderColor: 'rgba(0,0,0,0.18)',
-                bgcolor: 'transparent',
-                // Keep the outline visible while loading (don't let MUI's
-                // disabled state fade the border under the spinner).
-                '&.Mui-disabled': { borderColor: 'rgba(0,0,0,0.18)' },
-                '&:hover': {
-                  borderColor: 'var(--text-strong)',
-                  bgcolor: 'rgba(0,0,0,0.02)',
-                },
-              }}
-            >
-              Try the live demo
-            </ActionButton>
+          <div className="hero-chat-row" style={{ marginTop: 32, width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <HeroPlannerChat />
           </div>
-          {/* Honest scope line — sets the free-vs-paid expectation right at the
-              CTA so the promise above doesn't read as bait once they reach
-              pricing. Mirrors the /welcome screen's tone. */}
+          {/* Quiet secondary path — the chat box is the primary CTA, the demo
+              link lives inline at the end of the subtitle. */}
           <p
             className="hero-scope-line"
             style={{
-              marginTop: 18,
-              fontSize: 'clamp(14px, 1vw, 15px)',
+              marginTop: 26,
+              marginBottom: 0,
+              fontSize: 'clamp(14px, 0.95vw, 14.5px)',
               color: 'var(--text-subtle)',
-              maxWidth: '52ch',
               lineHeight: 1.6,
+              textAlign: 'center',
             }}
           >
-           
             Planning weddings for clients?{' '}
             <Link
               href="/planners"
@@ -245,28 +210,10 @@ export default function HeroSection() {
            inner stack; the extra push comes from a min top inset. */
         .hero-section { padding-top: 100px; }
         .hero-content { padding-top: clamp(48px, 8vh, 120px); }
-        .hero-cta-row { display: flex; gap: 14px; margin-top: 24px; flex-wrap: wrap; align-items: stretch; }
-        .hero-cta-row > * {
-          flex: 0 0 auto;
-          /* Equal heights even though one button has an arrow icon. */
-          min-height: 56px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
         @media (max-width: 600px) {
           .hero-section { padding-top: 88px; }
           .hero-content { padding-top: clamp(64px, 10vh, 120px); }
-          /* Both CTAs are the same size on mobile: equal flex basis,
-             equal min-height, same horizontal padding. */
-          .hero-cta-row { gap: 10px; margin-top: 20px; flex-direction: column; align-items: stretch; }
-          .hero-cta-row > * {
-            flex: 1 1 0;
-            width: 100%;
-            min-width: 0;
-            min-height: 52px;
-            box-sizing: border-box;
-          }
+          .hero-chat-row { margin-top: 24px !important; }
           .hero-marquee-word { font-size: 22px !important; }
           .hero-marquee-bar { padding: 12px 0 !important; }
         }
