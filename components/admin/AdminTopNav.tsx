@@ -386,7 +386,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 {wedding?.couple_name || 'Your Wedding'}
                             </Typography>
                             <Typography variant="body2" sx={{ color: COLORS.text.muted, mt: 0.5, fontSize: '0.875rem' }}>
-                                {isDemo ? 'Demo Mode' : user?.email}
+                                {isDemo ? 'Demo Mode' : user?.is_anonymous ? 'Guest preview — not saved yet' : user?.email}
                             </Typography>
 
                             {/* Plan Display */}
@@ -575,7 +575,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                     <Logout sx={{ color: COLORS.brand.primary, fontSize: 22 }} />
                                 </ListItemIcon>
                                 <ListItemText
-                                    primary="Sign Out"
+                                    primary={user?.is_anonymous ? 'Discard preview & start over' : 'Sign Out'}
                                     primaryTypographyProps={{ sx: { fontWeight: 600, fontSize: '0.9rem' } }}
                                 />
                             </ListItemButton>
@@ -664,11 +664,13 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                     onClose={() => setSignOutModalOpen(false)}
                     sx={{ justifyContent: 'center', pb: 1 }}
                 >
-                    Sign Out?
+                    {user?.is_anonymous ? 'Discard this preview?' : 'Sign Out?'}
                 </PheraDialogTitle>
                 <DialogContent>
                     <Typography variant="body1" sx={{ color: COLORS.text.subtle, fontSize: '1rem', mb: 1 }}>
-                        You will be signed out and taken to the home page.
+                        {user?.is_anonymous
+                            ? "This wedding isn't saved to an account yet — signing out discards it for good. To keep everything, create your free account from the Planner chat instead."
+                            : 'You will be signed out and taken to the home page.'}
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 2 }}>
@@ -681,7 +683,7 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                             boxShadow: '0 4px 12px rgba(222, 63, 94, 0.3)',
                         }}
                     >
-                        Sign Out
+                        {user?.is_anonymous ? 'Discard preview' : 'Sign Out'}
                     </PrimaryActionButton>
                     <Button
                         onClick={() => setSignOutModalOpen(false)}

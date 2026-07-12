@@ -10,6 +10,11 @@ import type { AgentStreamEvent } from '@/lib/agent/types';
 export const runtime = 'nodejs';
 export const maxDuration = 120;
 
+/** Free allowance for anonymous (pre-signup) sessions, counted in user-role
+ *  message rows (real turns + tool-result rows — roughly 10-14 typed turns).
+ *  The client locks the composer earlier; this is the server-side backstop. */
+const ANON_USER_ROW_CAP = 20;
+
 /** A user-facing message tuned to the actual failure cause, so we don't cry
  *  "something went wrong" when the model provider is simply overloaded (the far
  *  more common transient case) or the API key is misconfigured. */
@@ -41,6 +46,13 @@ export async function POST(request: NextRequest) {
   if (!supabase || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+  // Anonymous (pre-signup) landing-page sessions get a tighter per-IP budget on
+  // top of the shared one — they're the only unauthenticated path to the model.
+  const isAnonymous = (user as { is_anonymous?: boolean }).is_anonymous === true;
+  if (isAnonymous) {
+    const anonLimited = checkRateLimit(request, { maxRequests: 10, windowMs: 60_000, keyPrefix: 'agent-chat-anon' });
+    if (anonLimited) return anonLimited;
+  }
 
   let body: { weddingSlug?: string; message?: string; conversationId?: string; voice?: boolean };
   try {
@@ -58,20 +70,24 @@ export async function POST(request: NextRequest) {
 
   const { data: wedding } = await supabase
     .from('weddings')
-    .select('id, slug')
+    .select('id, slug, created_by')
     .eq('slug', weddingSlug)
     .single();
   if (!wedding) {
     return NextResponse.json({ error: 'Wedding not found' }, { status: 404 });
   }
 
-  const hasAccess = await verifyWeddingAccess(supabase, user.id, wedding.id);
+  // Owners skip the extra round-trip; only non-owners (collaborators) need the
+  // wedding_admins lookup inside verifyWeddingAccess.
+  const hasAccess =
+    wedding.created_by === user.id || (await verifyWeddingAccess(supabase, user.id, wedding.id));
   if (!hasAccess) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   // Resolve or create the conversation.
   let convId = conversationId ?? null;
+  let isNewConversation = false;
   if (convId) {
     const { data: conv } = await supabase
       .from('agent_conversations')
@@ -91,6 +107,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Could not create conversation' }, { status: 500 });
     }
     convId = created.id;
+    isNewConversation = true;
+  }
+
+  // Server-side backstop on the anonymous free allowance: past the cap the turn
+  // doesn't run — the stream just (re-)renders the required signup card.
+  let anonCapReached = false;
+  if (isAnonymous && !isNewConversation) {
+    const { count } = await supabase
+      .from('agent_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('conversation_id', convId)
+      .eq('role', 'user');
+    anonCapReached = (count ?? 0) >= ANON_USER_ROW_CAP;
   }
 
   const encoder = new TextEncoder();
@@ -100,6 +129,16 @@ export async function POST(request: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
       };
       send({ type: 'conversation', conversationId: convId as string });
+      if (anonCapReached) {
+        send({ type: 'signup_required', required: true });
+        send({
+          type: 'text_delta',
+          text: "You've reached the free preview limit — create your account above (it takes about 20 seconds) and we'll pick up right where we left off. Everything we've set up is saved.",
+        });
+        send({ type: 'done' });
+        controller.close();
+        return;
+      }
       try {
         await runAgentTurn({
           supabase,
@@ -110,6 +149,8 @@ export async function POST(request: NextRequest) {
           userMessage: message.trim(),
           provider: anthropicProvider,
           voice: voice === true,
+          isAnonymous,
+          isNewConversation,
           onEvent: send,
         });
       } catch (error) {

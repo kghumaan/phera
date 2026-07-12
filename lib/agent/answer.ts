@@ -12,6 +12,9 @@ export interface ResolveAnswersArgs {
   /** Map of question id → answer (string, or string[] for multi-select). */
   answers: Record<string, string | string[]>;
   userId: string;
+  /** Anonymous (pre-signup) session — keeps the snapshot's ANONYMOUS rules on
+   *  the follow-up turn. */
+  isAnonymous?: boolean;
   provider: AgentProvider;
   onEvent: (event: AgentStreamEvent) => void;
 }
@@ -64,6 +67,7 @@ export async function resolveAgentAnswers(args: ResolveAnswersArgs): Promise<voi
     conversationId: action.conversation_id,
     userMessage: note,
     provider,
+    isAnonymous: args.isAnonymous,
     onEvent,
   });
 }

@@ -60,6 +60,7 @@ export async function buildWeddingSnapshot(
     scheduleDayRes,
     faqCountRes,
     openTaskRes,
+    knowledgeRes,
   ] = await Promise.all([
     supabase
       .from('weddings')
@@ -80,6 +81,20 @@ export async function buildWeddingSnapshot(
       .select('id', { count: 'exact', head: true })
       .eq('wedding_id', weddingUuid)
       .neq('column', 'done'),
+    // Goals + spine focus need only the slug — batched here instead of a
+    // second serial round-trip. Fail-open if the knowledge table is missing.
+    (async () => {
+      try {
+        return await supabase
+          .from('agent_knowledge')
+          .select('title, content, metadata')
+          .eq('wedding_id', weddingSlug)
+          .eq('scope', 'wedding')
+          .in('title', ['Planning goals', FOCUS_TITLE]);
+      } catch {
+        return { data: null };
+      }
+    })(),
   ]);
 
   const wedding = weddingRes.data;
@@ -125,16 +140,11 @@ export async function buildWeddingSnapshot(
   ];
 
   // Planning goals + current spine focus — both live as wedding-scoped
-  // agent_knowledge rows. Fail-open if missing.
+  // agent_knowledge rows, fetched in the batch above. Fail-open if missing.
   let goals: string | null = null;
   let focus: WeddingSnapshot['focus'] = null;
-  try {
-    const { data } = await supabase
-      .from('agent_knowledge')
-      .select('title, content, metadata')
-      .eq('wedding_id', weddingSlug)
-      .eq('scope', 'wedding')
-      .in('title', ['Planning goals', FOCUS_TITLE]);
+  {
+    const data = (knowledgeRes as { data: Array<{ title: string; content: string; metadata: unknown }> | null }).data;
     goals = data?.find((r) => r.title === 'Planning goals')?.content ?? null;
     const focusMeta = data?.find((r) => r.title === FOCUS_TITLE)?.metadata as
       | Partial<SpineFocus>
@@ -149,8 +159,6 @@ export async function buildWeddingSnapshot(
       };
       focus = { ...parsed, label: spineStepLabel(parsed.step), complete: spineComplete(parsed) };
     }
-  } catch {
-    /* knowledge table not available */
   }
 
   // Is the owner a planner (running a CLIENT's wedding) vs the couple themselves?

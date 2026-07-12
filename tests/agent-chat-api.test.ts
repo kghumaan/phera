@@ -125,6 +125,66 @@ describe('POST /api/agent/chat', () => {
     expect(text).toContain('still working');
   });
 
+  it('passes isAnonymous through to the agent turn for anonymous sessions', async () => {
+    const fake = createFakeSupabase({
+      weddings: { data: { id: 'uuid-1', slug: 'priya-rahul-2027', created_by: 'anon-1' } },
+      agent_conversations: { data: { id: 'conv-9' } },
+      agent_messages: { count: 2 },
+    });
+    mockGetAuthenticatedClient.mockResolvedValue({
+      supabase: fake.client,
+      user: { id: 'anon-1', is_anonymous: true },
+    });
+
+    const res = await POST(makeRequest(VALID_BODY));
+    expect(res.status).toBe(200);
+    await new Response(res.body).text();
+    expect(mockRunAgentTurn).toHaveBeenCalledWith(
+      expect.objectContaining({ isAnonymous: true, isNewConversation: true })
+    );
+  });
+
+  it('locks anonymous sessions behind signup once the free allowance is spent', async () => {
+    const fake = createFakeSupabase({
+      weddings: { data: { id: 'uuid-1', slug: 'priya-rahul-2027', created_by: 'anon-1' } },
+      agent_conversations: { data: { id: 'conv-9' } },
+      agent_messages: { count: 25 },
+    });
+    mockGetAuthenticatedClient.mockResolvedValue({
+      supabase: fake.client,
+      user: { id: 'anon-1', is_anonymous: true },
+    });
+
+    const res = await POST(makeRequest({ ...VALID_BODY, conversationId: 'conv-9' }));
+    const text = await new Response(res.body).text();
+    const events = text
+      .split('\n\n')
+      .filter((f) => f.startsWith('data: '))
+      .map((f) => JSON.parse(f.slice(6)));
+
+    expect(events).toContainEqual({ type: 'signup_required', required: true });
+    expect(events.at(-1)).toEqual({ type: 'done' });
+    expect(mockRunAgentTurn).not.toHaveBeenCalled();
+  });
+
+  it('never gates signed-in users on the anonymous allowance', async () => {
+    const fake = createFakeSupabase({
+      weddings: { data: { id: 'uuid-1', slug: 'priya-rahul-2027', created_by: 'user-1' } },
+      agent_conversations: { data: { id: 'conv-9' } },
+      agent_messages: { count: 500 },
+    });
+    mockGetAuthenticatedClient.mockResolvedValue({
+      supabase: fake.client,
+      user: { id: 'user-1', is_anonymous: false },
+    });
+
+    const res = await POST(makeRequest({ ...VALID_BODY, conversationId: 'conv-9' }));
+    await new Response(res.body).text();
+    expect(mockRunAgentTurn).toHaveBeenCalledWith(
+      expect.objectContaining({ isAnonymous: false, isNewConversation: false })
+    );
+  });
+
   it('emits an SSE error event when the agent turn throws', async () => {
     authedClient({
       weddings: { data: { id: 'uuid-1', slug: 'priya-rahul-2027' } },

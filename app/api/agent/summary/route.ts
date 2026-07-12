@@ -73,13 +73,15 @@ export async function GET(request: NextRequest) {
 
   const { data: wedding } = await supabase
     .from('weddings')
-    .select('id, slug')
+    .select('id, slug, created_by')
     .eq('slug', weddingSlug)
     .single();
   if (!wedding) {
     return NextResponse.json({ error: 'Wedding not found' }, { status: 404 });
   }
-  const hasAccess = await verifyWeddingAccess(supabase, user.id, wedding.id);
+  // Owners skip the duplicate lookup inside verifyWeddingAccess.
+  const hasAccess =
+    wedding.created_by === user.id || (await verifyWeddingAccess(supabase, user.id, wedding.id));
   if (!hasAccess) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }

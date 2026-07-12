@@ -35,6 +35,8 @@ interface User {
   avatar_style?: string;
   avatar_seed?: string;
   avatar_svg?: string;
+  /** Anonymous (pre-signup) landing-chat session — no email/identity yet. */
+  is_anonymous?: boolean;
 }
 
 interface AuthContextType {
@@ -157,37 +159,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // If no guest record, try to get avatar from user_settings (for admin users)
+        // If no guest record, try to get avatar from user_settings (for admin users).
+        // Single attempt, fail-open: on a fresh signup the row may not exist yet,
+        // and every admin page load sits behind this check — the old 3-attempt
+        // retry loop burned a guaranteed ~1.6s of sleeps on every new account.
+        // The avatar just falls back to generated initials until the next check.
         let userSettingsAvatar = null;
         if (!guestData) {
-          // Retry loop for user_settings to handle race conditions during signup
-          let attempts = 0;
-          const maxAttempts = 3;
-
-          while (attempts < maxAttempts) {
-            try {
-              const { data: settings } = await (supabase as any)
-                .from('user_settings')
-                .select('avatar_style, avatar_seed, avatar_svg, avatar_color')
-                .eq('user_id', sbUser.id)
-                .single();
-
-              if (settings?.avatar_svg) {
-                userSettingsAvatar = settings;
-                break; // Found it!
-              }
-            } catch (err) {
-              // Non-critical - user_settings may not exist yet
-            }
-
-            // If it's a new login and we didn't find settings, wait and retry
-            if (attempts < maxAttempts - 1) {
-              attempts++;
-              console.log(`checkAuthStatus: User settings not found, retry ${attempts}/${maxAttempts}...`);
-              await new Promise(resolve => setTimeout(resolve, 800)); // Wait 800ms
-            } else {
-              break;
-            }
+          try {
+            const { data: settings } = await (supabase as any)
+              .from('user_settings')
+              .select('avatar_style, avatar_seed, avatar_svg, avatar_color')
+              .eq('user_id', sbUser.id)
+              .single();
+            if (settings?.avatar_svg) userSettingsAvatar = settings;
+          } catch (err) {
+            // Non-critical - user_settings may not exist yet
           }
         }
 
@@ -197,6 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           guestId: guestData?.id || null,
           email: sbUser.email || '',
           name: displayName,
+          is_anonymous: (sbUser as { is_anonymous?: boolean }).is_anonymous === true,
           phone: guestData?.phone || sbUser.phone,
           initials: generateInitials(displayName),
           // Use DB avatar_color as source of truth so it matches posted comments

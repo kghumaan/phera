@@ -272,6 +272,17 @@ export const TRANSITIONS = {
   slow: '0.3s ease',
 } as const;
 
+// ─── External brand marks ───────────────────────────────────────────
+
+/** Third-party brand colors we render verbatim (the Google "G" on OAuth
+ *  buttons). These are THEIR palettes, not ours — never use for Phera UI. */
+export const EXTERNAL_BRAND = {
+  googleBlue: '#4285F4',
+  googleGreen: '#34A853',
+  googleYellow: '#FBBC05',
+  googleRed: '#EA4335',
+} as const;
+
 // ─── Convenience re-exports for common patterns ─────────────────────
 
 /** Pink focus ring used across all inputs. */

@@ -915,7 +915,9 @@ function isMissingTable(error: any): boolean {
   return error?.code === '42P01' || /does not exist/i.test(error?.message || '');
 }
 
-async function deleteWeddingFully(
+// Exported for the anon-draft cleanup (lib/anon/cleanup-anon-drafts.ts), which
+// reuses the same slug/UUID child-table knowledge instead of duplicating it.
+export async function deleteWeddingFully(
   supabase: ReturnType<typeof getServiceClient>,
   weddingId: string,
   weddingSlug: string,

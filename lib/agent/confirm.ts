@@ -21,6 +21,9 @@ export interface ResolveActionArgs {
    *  persists an 'auto' autonomy override so the tool skips future Confirms. */
   alwaysAllow?: boolean;
   userId: string;
+  /** Anonymous (pre-signup) session — keeps the snapshot's ANONYMOUS rules on
+   *  the follow-up turn. */
+  isAnonymous?: boolean;
   provider: AgentProvider;
   onEvent: (event: AgentStreamEvent) => void;
 }
@@ -142,6 +145,7 @@ export async function resolveAgentAction(args: ResolveActionArgs): Promise<void>
     conversationId: action.conversation_id,
     userMessage: note,
     provider,
+    isAnonymous: args.isAnonymous,
     onEvent,
   });
 }
