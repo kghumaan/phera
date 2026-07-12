@@ -294,7 +294,11 @@ function OnboardingLayoutContent({
                 },
               }}
             >
-              {isLoadingPlan || isLoadingWedding ? (
+              {(isLoadingPlan || isLoadingWedding) && !isAssistantPage ? (
+                // The assistant page skips this gate: the chat panel needs only
+                // the slug from params and manages its own loading, so the
+                // planner paints instantly while auth/plan/wedding (and the
+                // sidebar) resolve behind it.
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                   <CircularProgress sx={{ color: COLORS.brand.primary }} />
                 </Box>

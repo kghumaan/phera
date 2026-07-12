@@ -25,7 +25,8 @@ export default function WelcomePage() {
         setError(data.error ?? 'Something went wrong setting up your wedding — try again.');
         return;
       }
-      router.replace(`/admin/${data.slug}/assistant?welcome=1`);
+      // fresh=1 → the chat panel skips its (knowably empty) history fetch.
+      router.replace(`/admin/${data.slug}/assistant?welcome=1&fresh=1`);
     } catch {
       setError('Something went wrong setting up your wedding — try again.');
     }
@@ -34,6 +35,11 @@ export default function WelcomePage() {
   useEffect(() => {
     if (startedRef.current) return; // Strict-mode double-mount guard.
     startedRef.current = true;
+    // Warm the assistant route's JS while the wedding is being created, so the
+    // redirect lands on already-downloaded code (the chunks are shared across
+    // slugs — the placeholder slug never renders).
+    router.prefetch('/admin/_/assistant');
+    void import('@/components/agent/AgentChatPanel');
     void start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

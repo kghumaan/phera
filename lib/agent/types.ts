@@ -103,6 +103,10 @@ export type AgentStreamEvent =
   | { type: 'upgrade_required'; feature: string }
   /** The agent asked the user to upload a file — render an upload card with format help. */
   | { type: 'upload_requested'; uploadKind: 'guests' | 'rooms' }
+  /** Anonymous (pre-signup) session: render the inline create-account card.
+   *  `required` = the free anonymous allowance is used up, so the composer
+   *  locks until the visitor signs up. */
+  | { type: 'signup_required'; required?: boolean }
   /** The agent drafted/updated guest FAQs and saved them live (unpublished) — the
    *  client shows a review panel on the right where the couple can expand, edit,
    *  and approve them. Non-blocking: the turn continues normally. */

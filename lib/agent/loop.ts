@@ -36,6 +36,12 @@ export interface RunAgentTurnArgs {
   provider: AgentProvider;
   /** Hands-free voice mode — agent should reply conversationally, no cards. */
   voice?: boolean;
+  /** Anonymous (pre-signup) landing-page session — the snapshot tells the model
+   *  to weave in the signup moment via request_signup. */
+  isAnonymous?: boolean;
+  /** The route just created this conversation, so there is no history to load —
+   *  skips two DB round-trips on the latency-critical first turn. */
+  isNewConversation?: boolean;
   onEvent: (event: AgentStreamEvent) => void;
 }
 
@@ -224,7 +230,7 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
   const { supabase, weddingSlug, weddingUuid, userId, conversationId, provider, onEvent } = args;
 
   const [history, snapshot, isPro, autonomy] = await Promise.all([
-    loadHistory(supabase, conversationId),
+    args.isNewConversation ? Promise.resolve([] as AgentChatMessage[]) : loadHistory(supabase, conversationId),
     buildWeddingSnapshot(supabase, weddingSlug, weddingUuid),
     getUserIsPro(supabase, userId),
     readAutonomy(supabase, weddingSlug),
@@ -235,6 +241,14 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
     snapshot.text += `\nAutonomy overrides (set by the user): ${autonomyEntries
       .map(([t, m]) => `${t} = ${m === 'auto' ? 'auto-approved, no Confirm card' : 'always ask first (Confirm card appears)'}`)
       .join('; ')}`;
+  }
+  if (args.isAnonymous) {
+    snapshot.text +=
+      `\nAccount: ANONYMOUS — a landing-page visitor trying Phera before signing up (see the "Anonymous visitors" rules).`;
+    if (args.isNewConversation) {
+      snapshot.text +=
+        ` This message is their first contact, typed into the landing-page chat box: address it directly — no congratulations opener.`;
+    }
   }
   if (args.voice) {
     snapshot.text +=
@@ -339,7 +353,9 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       if (dispatched.dataPanel) {
         onEvent({ type: 'data_panel', panel: dispatched.dataPanel });
       }
-      if (dispatched.uploadKind) {
+      if (dispatched.signupRequired) {
+        onEvent({ type: 'signup_required' });
+      } else if (dispatched.uploadKind) {
         onEvent({ type: 'upload_requested', uploadKind: dispatched.uploadKind });
       } else if (dispatched.upgradeRequiredFeature) {
         onEvent({ type: 'upgrade_required', feature: dispatched.upgradeRequiredFeature });

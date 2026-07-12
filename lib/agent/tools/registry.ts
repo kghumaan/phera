@@ -52,6 +52,9 @@ export interface DispatchResult {
   upgradeRequiredFeature?: string;
   /** Set when request_upload asked the client to render an upload card. */
   uploadKind?: 'guests' | 'rooms';
+  /** Set when request_signup asked the client to render the create-account card
+   *  (anonymous pre-signup sessions). */
+  signupRequired?: boolean;
   /** Set when an FAQ write tool (propose_faqs / add_faq / update_faq) returned the
    *  current FAQ list for the client's review-and-approve panel. Surfaced from
    *  the tool's execute() result — see the normal-execution path below. */
@@ -177,6 +180,16 @@ export async function dispatchTool(
       content: `An upload card for the ${
         kind === 'guests' ? 'guest list (with the recommended columns)' : 'hotel floor plan'
       } is now shown in the chat. The user attaches their file there and the import result arrives as a message. Add one short line inviting them to upload; do not retry.`,
+    };
+  }
+
+  // request_signup: show the inline create-account card (anonymous sessions).
+  if (name === 'request_signup') {
+    return {
+      ok: true,
+      signupRequired: true,
+      content:
+        'A create-account card is now shown in the chat. The user signs up right there (email+password or Google) and everything you\'ve set up — this wedding, this conversation — carries over to their account automatically. Say ONE short warm line about keeping their work saved; do not ask for their email or password yourself, and do not retry.',
     };
   }
 
