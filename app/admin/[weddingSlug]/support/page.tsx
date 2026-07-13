@@ -26,7 +26,7 @@ export default function SupportPage({ params }: { params: Promise<{ weddingSlug:
     if (!user) return;
     setForm((prev) => ({
       ...prev,
-      name: prev.name || (user.user_metadata?.full_name as string) || '',
+      name: prev.name || user.name || '',
       email: prev.email || user.email || '',
     }));
   }, [user]);

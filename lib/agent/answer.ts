@@ -68,6 +68,7 @@ export async function resolveAgentAnswers(args: ResolveAnswersArgs): Promise<voi
     userMessage: note,
     provider,
     isAnonymous: args.isAnonymous,
+    answeredQuestionIds: questions.map((q) => q.id),
     onEvent,
   });
 }

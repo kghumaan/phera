@@ -36,7 +36,7 @@ const SNAPSHOT_TABLES: Record<string, TableResult> = {
   agent_conversations: { data: [{ id: 'conv-1', summary: null, summary_through: null }] },
   agent_actions: { data: [] },
   // Pro account so gated Pro tools reach the confirmation path, not the gate.
-  user_settings: { data: { subscription_tier: 'pro' } },
+  user_settings: { data: { subscription_tier: 'phera_premium' } },
   agent_knowledge: { data: null },
 };
 

@@ -84,8 +84,12 @@ async function runScenario(scenario) {
     body: JSON.stringify({ scenario: scenario.seed }),
   });
   const slug = seeded.slug;
+  // scenario.anonymous: true simulates a landing-page anonymous session —
+  // the loop gets the ANONYMOUS snapshot line + first-contact instruction.
+  const anonymous = scenario.anonymous === true;
   let conversationId;
   let lastPendingActions = [];
+  let lastPendingQuestions = null;
 
   try {
     for (const [index, turn] of scenario.turns.entries()) {
@@ -98,9 +102,19 @@ async function runScenario(scenario) {
         if (!pending) continue;
         result = await api('/api/agent/lab/confirm', {
           method: 'POST',
-          body: JSON.stringify({ actionId: pending.actionId, approve: turn.confirm === 'approve' }),
+          body: JSON.stringify({ actionId: pending.actionId, approve: turn.confirm === 'approve', anonymous }),
         });
         lastPendingActions = lastPendingActions.slice(1);
+      } else if (turn.answer) {
+        // turn.answer resolves the question card parked by the previous turn
+        // (the ask_user round-trip the real UI does via /api/agent/answer).
+        check(checks, `${tag} has a pending question card to answer`, !!lastPendingQuestions);
+        if (!lastPendingQuestions) continue;
+        result = await api('/api/agent/lab/answer', {
+          method: 'POST',
+          body: JSON.stringify({ actionId: lastPendingQuestions.actionId, answers: turn.answer, anonymous }),
+        });
+        lastPendingActions = (result.events ?? []).filter((e) => e.type === 'confirmation_required');
       } else {
         // turn.newConversation simulates the couple RETURNING later — a fresh
         // conversation against the same wedding (tests resume behavior like
@@ -111,11 +125,13 @@ async function runScenario(scenario) {
             weddingSlug: slug,
             conversationId: turn.newConversation ? undefined : conversationId,
             message: turn.message,
+            anonymous,
           }),
         });
         conversationId = result.conversationId;
         lastPendingActions = (result.events ?? []).filter((e) => e.type === 'confirmation_required');
       }
+      lastPendingQuestions = (result.events ?? []).find((e) => e.type === 'questions_required') ?? null;
 
       const reply = result.reply ?? '';
       const toolsRun = (result.actions ?? []).map((a) => a.tool_name);
@@ -144,6 +160,19 @@ async function runScenario(scenario) {
       for (const pattern of expect.replyNot ?? []) {
         const re = new RegExp(pattern, 'i');
         check(checks, `${tag} reply avoids /${pattern}/i`, !re.test(reply));
+      }
+      // Question-card prompt assertions: what the agent chose to ASK this turn
+      // (e.g. "asked for a city, not a venue name"; "did not re-ask names").
+      const prompts = (result.events ?? [])
+        .filter((e) => e.type === 'questions_required')
+        .flatMap((e) => (e.questions ?? []).map((q) => q.prompt ?? ''));
+      for (const pattern of expect.questions ?? []) {
+        const re = new RegExp(pattern, 'i');
+        check(checks, `${tag} asks /${pattern}/i`, prompts.some((p) => re.test(p)), `asked: ${prompts.join(' | ') || 'nothing'}`);
+      }
+      for (const pattern of expect.questionsNot ?? []) {
+        const re = new RegExp(pattern, 'i');
+        check(checks, `${tag} does NOT ask /${pattern}/i`, !prompts.some((p) => re.test(p)), `asked: ${prompts.join(' | ') || 'nothing'}`);
       }
       if (expect.pending !== undefined) {
         check(

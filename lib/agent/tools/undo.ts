@@ -64,6 +64,30 @@ export const undoTools: AgentToolDefinition[] = [
           .update(before.values)
           .match(before.match);
         if (restoreError) throw new Error(restoreError.message);
+      } else if (before.restore === 'delete_many') {
+        // Batch insert (e.g. a whole drafted schedule). Resolve every natural
+        // key FIRST — if any one is ambiguous or already gone, undo nothing, so
+        // the couple never ends up with half a schedule.
+        const ids: string[] = [];
+        for (const match of before.matches) {
+          const { data: matches, error: matchError } = await ctx.supabase
+            .from(before.table)
+            .select('id')
+            .match(match);
+          if (matchError) throw new Error(matchError.message);
+          if (!matches || matches.length !== 1) {
+            return {
+              undone: false,
+              note: `Refused to undo: ${!matches?.length ? 'one of the rows that change created no longer exists' : 'a created row is ambiguous'} in ${before.table}, so undoing could remove the wrong thing.`,
+            };
+          }
+          ids.push(matches[0].id as string);
+        }
+        const { error: deleteError } = await ctx.supabase
+          .from(before.table)
+          .delete()
+          .in('id', ids);
+        if (deleteError) throw new Error(deleteError.message);
       } else {
         // 'delete': remove the row the action created — but only if the
         // natural-key match hits exactly one row, so undo can never guess.

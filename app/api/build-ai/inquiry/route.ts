@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { checkRateLimit } from '@/lib/utils/rate-limiter';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
@@ -36,6 +38,13 @@ Keep responses brief (2-3 sentences max). Be warm and helpful. Use emojis sparin
 
 export async function POST(request: NextRequest) {
   try {
+    const { user } = await getAuthenticatedClient();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const limited = checkRateLimit(request, { maxRequests: 30, windowMs: 60_000, keyPrefix: 'build-ai-inquiry' });
+    if (limited) return limited;
+
     const body: InquiryRequest = await request.json();
     const { message, weddingData } = body;
 

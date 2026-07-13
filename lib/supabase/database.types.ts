@@ -431,6 +431,48 @@ export type Database = {
           },
         ]
       }
+      guest_event_access: {
+        Row: {
+          event_id: string
+          guest_id: string
+          id: string
+          invited: boolean
+          updated_at: string
+          wedding_id: string
+        }
+        Insert: {
+          event_id: string
+          guest_id: string
+          id?: string
+          invited?: boolean
+          updated_at?: string
+          wedding_id: string
+        }
+        Update: {
+          event_id?: string
+          guest_id?: string
+          id?: string
+          invited?: boolean
+          updated_at?: string
+          wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_event_access_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "wedding_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_event_access_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_flights: {
         Row: {
           airline: string | null
@@ -540,6 +582,44 @@ export type Database = {
           },
         ]
       }
+      guest_households: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          notes: string | null
+          primary_guest_id: string
+          updated_at: string
+          wedding_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          notes?: string | null
+          primary_guest_id: string
+          updated_at?: string
+          wedding_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          notes?: string | null
+          primary_guest_id?: string
+          updated_at?: string
+          wedding_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_households_primary_guest_id_fkey"
+            columns: ["primary_guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guest_visas: {
         Row: {
           applied_at: string | null
@@ -610,6 +690,7 @@ export type Database = {
           created_at: string | null
           data_retention_until: string | null
           email: string
+          household_id: string | null
           id: string
           initials: string | null
           is_family_liaison: boolean | null
@@ -645,6 +726,7 @@ export type Database = {
           created_at?: string | null
           data_retention_until?: string | null
           email: string
+          household_id?: string | null
           id?: string
           initials?: string | null
           is_family_liaison?: boolean | null
@@ -680,6 +762,7 @@ export type Database = {
           created_at?: string | null
           data_retention_until?: string | null
           email?: string
+          household_id?: string | null
           id?: string
           initials?: string | null
           is_family_liaison?: boolean | null
@@ -699,7 +782,15 @@ export type Database = {
           wedding_side?: string | null
           whatsapp_opted_out?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "guests_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "guest_households"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       milestones: {
         Row: {
@@ -753,6 +844,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ops_user_outreach: {
+        Row: {
+          body_html: string | null
+          body_text: string | null
+          channel: string
+          created_at: string
+          error: string | null
+          from_email: string | null
+          id: string
+          kind: string
+          notes: string | null
+          provider_message_id: string | null
+          sent_by: string | null
+          status: string
+          subject: string | null
+          user_email: string
+          user_id: string
+        }
+        Insert: {
+          body_html?: string | null
+          body_text?: string | null
+          channel?: string
+          created_at?: string
+          error?: string | null
+          from_email?: string | null
+          id?: string
+          kind?: string
+          notes?: string | null
+          provider_message_id?: string | null
+          sent_by?: string | null
+          status?: string
+          subject?: string | null
+          user_email: string
+          user_id: string
+        }
+        Update: {
+          body_html?: string | null
+          body_text?: string | null
+          channel?: string
+          created_at?: string
+          error?: string | null
+          from_email?: string | null
+          id?: string
+          kind?: string
+          notes?: string | null
+          provider_message_id?: string | null
+          sent_by?: string | null
+          status?: string
+          subject?: string | null
+          user_email?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       outreach_escalations: {
         Row: {
@@ -2198,6 +2343,7 @@ export type Database = {
           pin_codes: Json | null
           updated_at: string | null
           wedding_id: string | null
+          wedding_password: string | null
           whatsapp_group_link: string | null
         }
         Insert: {
@@ -2211,6 +2357,7 @@ export type Database = {
           pin_codes?: Json | null
           updated_at?: string | null
           wedding_id?: string | null
+          wedding_password?: string | null
           whatsapp_group_link?: string | null
         }
         Update: {
@@ -2224,11 +2371,38 @@ export type Database = {
           pin_codes?: Json | null
           updated_at?: string | null
           wedding_id?: string | null
+          wedding_password?: string | null
           whatsapp_group_link?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "wedding_settings_wedding_id_fkey"
+            columns: ["wedding_id"]
+            isOneToOne: true
+            referencedRelation: "weddings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_secrets: {
+        Row: {
+          updated_at: string | null
+          wedding_id: string
+          wedding_password: string | null
+        }
+        Insert: {
+          updated_at?: string | null
+          wedding_id: string
+          wedding_password?: string | null
+        }
+        Update: {
+          updated_at?: string | null
+          wedding_id?: string
+          wedding_password?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_secrets_wedding_id_fkey"
             columns: ["wedding_id"]
             isOneToOne: true
             referencedRelation: "weddings"
@@ -2803,6 +2977,10 @@ export type Database = {
       is_wedding_owner_or_admin_by_slug: {
         Args: { w_slug: string }
         Returns: boolean
+      }
+      recompute_household_liaison: {
+        Args: { hh_id: string }
+        Returns: undefined
       }
     }
     Enums: {

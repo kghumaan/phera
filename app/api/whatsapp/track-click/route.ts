@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase/client';
+import { checkRateLimit } from '@/lib/utils/rate-limiter';
 
 export async function POST(request: NextRequest) {
   try {
+    // Public guest action — rate-limited to stop junk-row flooding.
+    const limited = checkRateLimit(request, { maxRequests: 10, windowMs: 60_000, keyPrefix: 'wa-track-click' });
+    if (limited) return limited;
+
     const { guest_id, source } = await request.json();
 
     if (!guest_id) {

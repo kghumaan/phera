@@ -61,14 +61,61 @@ export function prewarmPlanner(router: { prefetch: (href: string) => void }): vo
   void import('@/components/agent/AgentChatPanel');
 }
 
-/** Create the draft wedding and return the assistant URL to navigate to. */
-export async function startPlannerSession(): Promise<
-  { ok: true; url: string } | { ok: false; error: string }
-> {
-  const res = await fetch('/api/agent/onboard/start', { method: 'POST' });
-  const data = (await res.json()) as { slug?: string; error?: string };
-  if (!res.ok || !data.slug) {
-    return { ok: false, error: data.error ?? "Couldn't start your planner just now — please try again." };
+export type StartPlannerResult =
+  | { ok: true; url: string; fresh: boolean }
+  | { ok: false; reason: 'no-session' | 'error'; error: string };
+
+// Shared IN-FLIGHT draft creation: the box's first keystroke, the button's
+// hover, and the eventual submit all await ONE call — so (a) the 1.3–2.3s
+// wedding-create round-trip is off the submit critical path, and (b) a
+// box-Enter + button-click double-fire can't race /api/agent/onboard/start
+// into creating two draft weddings.
+//
+// The RESULT is deliberately not kept once it settles. Holding it would pin
+// `welcome=1&fresh=1` for the life of the page, so a visitor who onboards,
+// navigates back to the landing page, and launches again would have the
+// scripted welcome replayed over a wedding that already holds their details.
+// Re-asking is cheap: the draft exists by then, so the route just reads it
+// back and reports whether it is still untouched.
+let startPromise: Promise<StartPlannerResult> | null = null;
+
+/** Fire the draft-wedding creation early (first keystroke / CTA hover).
+ *  Safe to call repeatedly. */
+export function prewarmDraftWedding(): void {
+  void startPlannerSession();
+}
+
+/** Ensure the session + draft wedding exist and return where to navigate.
+ *  An untouched draft gets the scripted welcome flow; a wedding with real
+ *  details on it goes straight to the planner. */
+export function startPlannerSession(): Promise<StartPlannerResult> {
+  if (!startPromise) {
+    startPromise = (async (): Promise<StartPlannerResult> => {
+      try {
+        const hasSession = await ensurePlannerSession();
+        if (!hasSession) {
+          return { ok: false, reason: 'no-session', error: 'Sign in to start your planner.' };
+        }
+        const res = await fetch('/api/agent/onboard/start', { method: 'POST' });
+        const data = (await res.json()) as { slug?: string; fresh?: boolean; error?: string };
+        if (!res.ok || !data.slug) {
+          return { ok: false, reason: 'error', error: data.error ?? "Couldn't start your planner just now — please try again." };
+        }
+        const fresh = data.fresh === true;
+        return {
+          ok: true,
+          fresh,
+          url: fresh ? `/admin/${data.slug}/assistant?welcome=1&fresh=1` : `/admin/${data.slug}/assistant`,
+        };
+      } catch {
+        return { ok: false, reason: 'error', error: "Couldn't start your planner just now — please try again." };
+      }
+    })().then((result) => {
+      // Concurrent callers already hold this promise, so they still share the
+      // one create; only a LATER launch re-asks.
+      startPromise = null;
+      return result;
+    });
   }
-  return { ok: true, url: `/admin/${data.slug}/assistant?welcome=1&fresh=1` };
+  return startPromise;
 }

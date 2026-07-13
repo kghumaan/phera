@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   if (!isLabAccess(access)) return access;
   const { supabase, ownerId } = access;
 
-  let body: { actionId?: string; approve?: boolean };
+  let body: { actionId?: string; approve?: boolean; anonymous?: boolean };
   try {
     body = await request.json();
   } catch {
@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
       supabase,
       actionId: body.actionId,
       approve: body.approve,
+      isAnonymous: body.anonymous === true,
       userId: ownerId ?? 'lab',
       provider: anthropicProvider,
       onEvent: (event) => {

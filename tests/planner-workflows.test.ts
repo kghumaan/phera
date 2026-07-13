@@ -19,17 +19,16 @@ vi.mock('@/lib/supabase/client', () => ({
 // ─── Helpers ────────────────────────────────────────────────────────
 
 function createChain(data: any = null, error: any = null) {
-  const chain: any = {
-    select: vi.fn().mockReturnValue(chain),
-    insert: vi.fn().mockReturnValue(chain),
-    update: vi.fn().mockReturnValue(chain),
-    delete: vi.fn().mockReturnValue(chain),
-    eq: vi.fn().mockReturnValue(chain),
-    in: vi.fn().mockReturnValue(chain),
-    single: vi.fn().mockResolvedValue({ data, error }),
-    then: vi.fn((resolve: any) => resolve({ data: data ? [data] : [], error })),
-  };
+  const chain: any = {};
+  chain.select = vi.fn().mockReturnValue(chain);
+  chain.insert = vi.fn().mockReturnValue(chain);
+  chain.update = vi.fn().mockReturnValue(chain);
+  chain.delete = vi.fn().mockReturnValue(chain);
+  chain.eq = vi.fn().mockReturnValue(chain);
+  chain.in = vi.fn().mockReturnValue(chain);
+  chain.single = vi.fn().mockResolvedValue({ data, error });
   // Make the chain itself thenable for queries without .single()
+  chain.then = vi.fn((resolve: any) => resolve({ data: data ? [data] : [], error }));
   chain[Symbol.for('vitest:result')] = { data: data ? [data] : [], error };
   return chain;
 }

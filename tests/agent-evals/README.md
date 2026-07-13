@@ -29,7 +29,9 @@ One file per scenario in `scenarios/`, default-exporting:
 export default {
   name: 'my-scenario',
   description: 'one line',
-  seed: 'blank' | 'populated',
+  seed: 'blank' | 'populated' | 'fresh-draft', // fresh-draft = the landing anon draft (no names known)
+  anonymous: true,                     // optional: simulate a landing anonymous session
+                                       // (ANONYMOUS snapshot line + signup_required behavior)
   turns: [
     {
       message: 'what the couple says',
@@ -38,6 +40,10 @@ export default {
         notTools: ['delete_guest'],    // tools that must NOT have run
         reply: ['regex', '204'],       // reply must match each (case-insensitive)
         replyNot: ['admin UI'],        // reply must match none
+        events: ['signup_required'],   // stream events that must have fired
+        notEvents: ['upgrade_required'],
+        questions: ['city|region'],    // question-card prompts asked this turn must match
+        questionsNot: ['venue name'],  // ...and must NOT match (e.g. no re-asking)
         pending: true,                 // a confirmation must (not) be parked
       },
       // Optional DB assertions against the post-turn state dump:
@@ -45,6 +51,8 @@ export default {
         { label: 'raj is out', pass: h.rsvpFor(state, 'Raj Mehra')?.attending === 'no' },
       ],
     },
+    { answer: { couple_names: 'Priya & Rahul' } }, // fills the question card the
+                                       // previous turn parked (ask_user round-trip)
     { confirm: 'approve' },            // resolves the oldest parked confirmation
   ],
 };

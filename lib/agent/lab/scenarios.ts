@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { generateFallbackColor } from '@/lib/utils/avatar-generator';
+import { DRAFT_COUPLE_NAME } from '@/lib/constants/wedding-placeholders';
 
 /**
  * Agent Lab — disposable mock weddings for end-to-end agent testing.
@@ -12,7 +13,7 @@ import { generateFallbackColor } from '@/lib/utils/avatar-generator';
 
 export const LAB_SLUG_PREFIX = 'agent-lab-';
 
-export type LabScenario = 'blank' | 'populated';
+export type LabScenario = 'blank' | 'populated' | 'fresh-draft';
 
 export function isLabSlug(slug: string): boolean {
   return slug.startsWith(LAB_SLUG_PREFIX);
@@ -85,7 +86,25 @@ export async function seedLabWedding(
   const weddingEnd = daysFromNow(212);
 
   const weddingRow =
-    scenario === 'blank'
+    scenario === 'fresh-draft'
+      ? {
+          // Mirrors EXACTLY what app/api/agent/onboard/start creates for a
+          // landing-page visitor (hero chat box / Get Started): placeholder
+          // couple name, EMPTY partner names, TBD date/venue. Unlike 'blank',
+          // the agent does not know the couple's names yet.
+          slug,
+          couple_name: DRAFT_COUPLE_NAME,
+          partner1_name: '',
+          partner2_name: '',
+          wedding_date: new Date(0).toISOString(),
+          wedding_date_display: 'Dates TBD',
+          venue_name: 'Venue TBD',
+          venue_location: '',
+          rsvp_deadline: '',
+          status: 'draft',
+          created_by: ownerId,
+        }
+      : scenario === 'blank'
       ? {
           slug,
           couple_name: 'Anaya & Vikram',
@@ -126,7 +145,7 @@ export async function seedLabWedding(
   }
   const weddingUuid = wedding.id as string;
 
-  if (scenario === 'blank') {
+  if (scenario === 'blank' || scenario === 'fresh-draft') {
     return { slug, weddingUuid, scenario, summary: { guests: 0, rooms: 0, events: 0 } };
   }
 
@@ -329,6 +348,7 @@ export interface LabState {
   vendors: unknown[];
   faqs: unknown[];
   tasks: unknown[];
+  knowledge: unknown[];
   agent: {
     conversations: unknown[];
     messages: unknown[];
@@ -342,14 +362,14 @@ export async function dumpLabState(supabase: SupabaseClient, slug: string): Prom
   const { data: wedding } = await supabase
     .from('weddings')
     .select(
-      'id, slug, couple_name, partner1_name, partner2_name, wedding_date, wedding_date_end, wedding_date_display, venue_name, venue_location, rsvp_deadline, welcome_text, status'
+      'id, slug, couple_name, partner1_name, partner2_name, wedding_date, wedding_date_end, wedding_date_display, venue_name, venue_location, rsvp_deadline, welcome_text, status, expected_guest_count'
     )
     .eq('slug', slug)
     .single();
   if (!wedding) throw new Error(`Lab wedding not found: ${slug}`);
   const uuid = wedding.id as string;
 
-  const [guests, rsvps, rooms, events, days, items, vendors, faqs, tasks, conversations, messages, actions] =
+  const [guests, rsvps, rooms, events, days, items, vendors, faqs, tasks, knowledge, conversations, messages, actions] =
     await Promise.all([
       supabase
         .from('guests')
@@ -372,6 +392,11 @@ export async function dumpLabState(supabase: SupabaseClient, slug: string): Prom
       supabase.from('vendors').select('id, name, category, status, phone, email, notes').eq('wedding_id', uuid),
       supabase.from('wedding_faqs').select('id, question, answer').eq('wedding_id', uuid),
       supabase.from('wedding_tasks').select('id, title, description, column, tags').eq('wedding_id', uuid),
+      supabase
+        .from('agent_knowledge')
+        .select('id, category, title, content, metadata')
+        .eq('wedding_id', slug)
+        .order('created_at'),
       supabase
         .from('agent_conversations')
         .select('id, channel, created_at, last_message_at')
@@ -404,6 +429,7 @@ export async function dumpLabState(supabase: SupabaseClient, slug: string): Prom
     vendors: vendors.data ?? [],
     faqs: faqs.data ?? [],
     tasks: tasks.data ?? [],
+    knowledge: knowledge.data ?? [],
     agent: {
       conversations: conversations.data ?? [],
       messages: (messages.data ?? []).filter((m) => conversationIds.has(m.conversation_id)),

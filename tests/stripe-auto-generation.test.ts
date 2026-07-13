@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { NextRequest } from 'next/server';
 
 // ─── Hoisted mocks ──────────────────────────────────────────────────
 
@@ -46,7 +47,7 @@ import { POST as webhookPOST } from '@/app/api/stripe/webhook/route';
 function createJsonRequest(body: unknown) {
   return {
     json: () => Promise.resolve(body),
-  } as unknown as Request;
+  } as unknown as NextRequest;
 }
 
 function createWebhookRequest(body: string, signature: string | null) {
@@ -55,7 +56,7 @@ function createWebhookRequest(body: string, signature: string | null) {
     headers: {
       get: (key: string) => key === 'stripe-signature' ? signature : null,
     },
-  } as unknown as Request;
+  } as unknown as NextRequest;
 }
 
 // ─── Tests ───────────────────────────────────────────────────────────

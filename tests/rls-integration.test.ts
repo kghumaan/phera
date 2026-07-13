@@ -1115,10 +1115,10 @@ describe.skipIf(!canRun)('RLS Integration Tests', { timeout: 120_000, retry: 2 }
   // =========================================================================
   describe('Group 9: User-scoped tables', () => {
     it('user CAN read/write own user_settings', async () => {
-      // Insert settings for owner (subscription_tier default 'free' violates CHECK constraint)
+      // Insert settings for owner (canonical tiers only since the 2026-07-13 constraint tightening)
       const { error: insertErr } = await ownerClient
         .from('user_settings')
-        .upsert({ user_id: ownerId, account_type: 'couple', subscription_tier: 'basic' });
+        .upsert({ user_id: ownerId, account_type: 'couple', subscription_tier: 'phera' });
 
       expect(insertErr).toBeNull();
 

@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { handleFlowResponse, FlowResponseData } from '@/lib/whatsapp/flows';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
 
+/**
+ * NOTE: no internal callers today. Real Meta Flow completions arrive via the
+ * signature-verified webhook. Auth-gated so it can't be used to forge RSVP
+ * data for arbitrary guests; candidate for deletion.
+ */
 export async function POST(request: NextRequest) {
   try {
+    const { user } = await getAuthenticatedClient();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { flow_data, guest_id, wedding_id } = body;
 

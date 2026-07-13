@@ -16,6 +16,36 @@ type GuestRow = {
 const GUEST_COLUMNS =
   'id, name, email, phone, wedding_side, logistics_data, outreach_status, whatsapp_opted_out';
 
+const PAGE_SIZE = 1000;
+
+/**
+ * Read EVERY row for a wedding, paging past PostgREST's 1000-row ceiling.
+ * Aggregates (headcounts, missing-phone counts) must never be computed off a
+ * silently truncated page — a wrong total reads as authoritative.
+ */
+async function fetchAllRows<T = Record<string, unknown>>(
+  supabase: AgentToolContext['supabase'],
+  table: 'guests' | 'rsvps',
+  columns: string,
+  weddingSlug: string
+): Promise<{ rows: T[]; count: number }> {
+  const rows: T[] = [];
+  let total = 0;
+  for (let page = 0; ; page++) {
+    const { data, count, error } = await supabase
+      .from(table)
+      .select(columns, { count: 'exact' })
+      .eq('wedding_id', weddingSlug)
+      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+    if (error) throw new Error(error.message);
+    if (typeof count === 'number') total = count;
+    const batch = (data ?? []) as T[];
+    rows.push(...batch);
+    if (batch.length < PAGE_SIZE || rows.length >= total) break;
+  }
+  return { rows, count: total };
+}
+
 function compactGuest(g: GuestRow) {
   const logistics = (g.logistics_data ?? {}) as Record<string, unknown>;
   return {
@@ -188,22 +218,33 @@ export const guestTools: AgentToolDefinition[] = [
     label: 'Tallying RSVPs',
     risk: 'read',
     description:
-      'Get RSVP totals for the wedding: per event, how many parties said yes/no and the total expected headcount, plus how many guests have not responded. Call this for questions like "how many people are coming?".',
+      'Get RSVP totals for the wedding: per event, how many parties said yes/no and the total expected headcount, plus how many guests have not responded — AND the invite-list totals (invites, expected people summing all party sizes, guests missing a phone number). Call this for questions like "how many people are coming?" or "how many are we expecting?" — never page through list_guests to add these up yourself.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     execute: async (_input, ctx) => {
-      const [{ count: guestCount }, { data: rsvps, error }, { data: events }] = await Promise.all([
-        ctx.supabase
-          .from('guests')
-          .select('id', { count: 'exact', head: true })
-          .eq('wedding_id', ctx.weddingSlug),
-        ctx.supabase
-          .from('rsvps')
-          .select('event_id, attending, guest_count, guest_id')
-          .eq('wedding_id', ctx.weddingSlug),
+      // PostgREST caps a plain select at 1000 rows, so these MUST page: a
+      // 1,200-guest wedding would otherwise quietly report the headcount of
+      // its first 1,000 guests while total_guests (an exact count) stayed right.
+      const [{ rows: guestRows, count: guestCount }, { rows: rsvps }, { data: events }] = await Promise.all([
+        fetchAllRows<{ id: string; phone: string | null; logistics_data: unknown }>(
+          ctx.supabase,
+          'guests',
+          'id, phone, logistics_data',
+          ctx.weddingSlug
+        ),
+        fetchAllRows<{
+          event_id: string | null;
+          attending: unknown;
+          guest_count: number | null;
+          guest_id: string | null;
+        }>(ctx.supabase, 'rsvps', 'event_id, attending, guest_count, guest_id', ctx.weddingSlug),
         // Event names for the stats panel — by_event is keyed by event_id UUID.
         ctx.supabase.from('wedding_events').select('id, name').eq('wedding_id', ctx.weddingUuid),
       ]);
-      if (error) throw new Error(error.message);
+      const expectedPeople = (guestRows ?? []).reduce((sum, g) => {
+        const party = (g.logistics_data as { party_size?: number } | null)?.party_size;
+        return sum + (typeof party === 'number' && party > 0 ? party : 1);
+      }, 0);
+      const missingPhone = (guestRows ?? []).filter((g) => !g.phone).length;
       const eventNames = new Map((events ?? []).map((e) => [e.id as string, e.name as string]));
       const byEvent = new Map<
         string,
@@ -226,15 +267,18 @@ export const guestTools: AgentToolDefinition[] = [
       const noResponse = Math.max(0, totalGuests - responded.size);
       return {
         total_guests: totalGuests,
+        expected_people: expectedPeople,
+        guests_missing_phone: missingPhone,
         responded: responded.size,
         no_response: noResponse,
         by_event: Object.fromEntries(byEvent),
-        summary: `${totalGuests} guests · ${responded.size} responded · ${noResponse} no reply`,
+        summary: `${totalGuests} invites (~${expectedPeople} people incl. plus-ones) · ${responded.size} responded · ${noResponse} no reply`,
         dataPanel: {
           kind: 'stats' as const,
           title: 'RSVPs',
           items: [
-            { label: 'Guests', value: String(totalGuests) },
+            { label: 'Invites', value: String(totalGuests) },
+            { label: 'Expected people', value: `~${expectedPeople}` },
             { label: 'Responded', value: String(responded.size) },
             { label: 'No reply', value: String(noResponse) },
             ...[...byEvent.entries()].map(([key, e]) => ({

@@ -14,6 +14,7 @@ const UPDATABLE_WEDDING_FIELDS = [
   'venue_location',
   'welcome_text',
   'rsvp_deadline',
+  'expected_guest_count',
 ] as const;
 
 export const weddingTools: AgentToolDefinition[] = [
@@ -73,6 +74,11 @@ export const weddingTools: AgentToolDefinition[] = [
         venue_location: { type: 'string', description: 'City/region, e.g. "Udaipur, India"' },
         welcome_text: { type: 'string' },
         rsvp_deadline: { type: 'string', description: 'YYYY-MM-DD' },
+        expected_guest_count: {
+          type: 'number',
+          description:
+            'Rough expected number of PEOPLE (not invites). Record the moment the couple mentions it ("around 300 guests", "half of 250 flying in").',
+        },
       },
       additionalProperties: false,
     },

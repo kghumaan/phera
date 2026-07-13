@@ -297,7 +297,9 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
       try {
         console.log('Processing WhatsApp opt-in for', formData.email);
 
-        // Create opt-in record
+        // Create opt-in record. The server sends the rsvp_confirmation
+        // template itself (guests can't call the admin-gated send-template
+        // route), pulling couple name + date from the wedding row.
         const optInResponse = await fetch('/api/whatsapp/opt-in', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -307,33 +309,12 @@ export async function submitRSVP(formData: RSVPFormData, weddingId: string) {
             weddingId,
             phoneNumber: fullPhone,
             method: 'rsvp_form',
+            guestName: formData.firstName,
           }),
         });
 
         if (optInResponse.ok) {
           console.log('✅ WhatsApp opt-in successful');
-
-          // Send RSVP confirmation message (only if opted in)
-          try {
-            await fetch('/api/whatsapp/send-template', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                guestId,
-                weddingId,
-                templateName: 'rsvp_confirmation',
-                parameters: {
-                  guest_name: formData.firstName,
-                  couple_names: 'Sim & KV', // TODO: Get from wedding config
-                  wedding_date: 'February 14, 2026', // TODO: Get from wedding config
-                },
-              }),
-            });
-            console.log('✅ WhatsApp confirmation sent');
-          } catch (messageError) {
-            console.error('⚠️ Failed to send WhatsApp confirmation:', messageError);
-            // Don't fail the RSVP if message sending fails
-          }
         } else {
           console.error('⚠️ Failed to create WhatsApp opt-in');
         }

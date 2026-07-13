@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { resolveWeddingAccess } from '@/lib/utils/verify-wedding-access';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
+
 
 /**
  * GET /api/control-tower/conversation?weddingId=<slug_or_uuid>&guestId=<id>
@@ -17,6 +20,15 @@ export async function GET(request: NextRequest) {
 
   if (!weddingIdParam || !guestId) {
     return NextResponse.json({ error: 'weddingId and guestId required' }, { status: 400 });
+  }
+
+  const { supabase: userClient, user } = await getAuthenticatedClient();
+  if (!userClient || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const hasAccess = !!(await resolveWeddingAccess(userClient, user.id, weddingIdParam));
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   try {

@@ -30,12 +30,12 @@ function toolUse(name: string, input: Record<string, unknown> = {}): ProviderTur
   return { content: [{ type: 'tool_use', id: 'tu1', name, input }], stopReason: 'tool_use' };
 }
 
-function fakeFor(tier: 'phera' | 'pro') {
+function fakeFor(tier: 'phera' | 'phera_premium') {
   return createFakeSupabase({
     agent_conversations: { data: [{ id: 'conv-1' }] }, // turn-lock acquire sees a row → lock held
     agent_messages: { data: [] },
     agent_actions: { data: { id: 'act-1' } },
-    user_settings: { data: { subscription_tier: tier } }, // 'phera' → free, anything else → Pro
+    user_settings: { data: { subscription_tier: tier } }, // 'phera' → free; paid tiers per PAID_TIERS allowlist
     weddings: {
       data: {
         id: 'uuid-1',
@@ -83,14 +83,14 @@ describe('loop reveal events', () => {
   });
 
   it('Pro tool on a PRO plan → NO upgrade_required', async () => {
-    const events = await run(mockProvider([toolUse('list_rooms'), END_TURN]), fakeFor('pro'));
+    const events = await run(mockProvider([toolUse('list_rooms'), END_TURN]), fakeFor('phera_premium'));
     expect(events.some((e) => e.type === 'upgrade_required')).toBe(false);
   });
 
   it('gated tool on Pro → confirmation_required', async () => {
     const events = await run(
       mockProvider([toolUse('assign_guests_to_room', { room_id: 'r1', guest_ids: [] }), END_TURN]),
-      fakeFor('pro')
+      fakeFor('phera_premium')
     );
     expect(events.some((e) => e.type === 'confirmation_required')).toBe(true);
   });
@@ -98,7 +98,7 @@ describe('loop reveal events', () => {
   it('ask_user → questions_required', async () => {
     const events = await run(
       mockProvider([toolUse('ask_user', { questions: [{ id: 'a', prompt: 'Your names', type: 'text' }] }), END_TURN]),
-      fakeFor('pro')
+      fakeFor('phera_premium')
     );
     const q = events.find((e) => e.type === 'questions_required');
     expect(q, 'a questions_required event was emitted').toBeTruthy();

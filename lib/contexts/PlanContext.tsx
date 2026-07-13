@@ -137,7 +137,9 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         plan,
         accountType,
         isLoading,
-        isPro: plan !== 'phera', // 'phera' = basic/free, anything else = Pro
+        // Allowlist, not "anything except free": legacy tiers ('basic'/'pro')
+        // must never grant Pro. Mirrors PAID_TIERS in lib/agent/plan.ts.
+        isPro: plan === 'phera_premium' || plan === 'phera_grand' || plan === 'planner',
         isPlanner: plan === 'planner',
         togglePlan,
         setPlan,

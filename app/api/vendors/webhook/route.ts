@@ -18,14 +18,20 @@ const supabase = createClient(
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify webhook secret if configured
+    // Fail closed: without a configured secret, inbound webhooks are rejected
+    // (this route triggers AI extraction + auto-replies — real cost).
     const webhookSecret = process.env.VENDOR_WEBHOOK_SECRET;
-    if (webhookSecret) {
-      const tokenParam = request.nextUrl.searchParams.get('token');
-      const headerSecret = request.headers.get('x-webhook-secret');
-      if (tokenParam !== webhookSecret && headerSecret !== webhookSecret) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+    if (!webhookSecret) {
+      // Loud, not silent: dropping vendor messages looks identical to "quiet
+      // group" from the UI, so an unset secret must be visible in the logs.
+      console.error('[vendors/webhook] VENDOR_WEBHOOK_SECRET is not set — rejecting inbound vendor messages');
+      return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 503 });
+    }
+    const tokenParam = request.nextUrl.searchParams.get('token');
+    const headerSecret = request.headers.get('x-webhook-secret');
+    if (tokenParam !== webhookSecret && headerSecret !== webhookSecret) {
+      console.error('[vendors/webhook] rejected: webhook secret missing or wrong (check the ?token= on the Whapi webhook URL)');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const payload = await request.json();

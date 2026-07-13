@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { sendWhapiText } from '@/lib/whatsapp/whapi-send';
 import type { BroadcastDataField, BroadcastTargetType } from '@/lib/supabase/broadcasts-service';
 import { guestMatchesTags } from '@/lib/utils/guest-tags';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { resolveWeddingAccess } from '@/lib/utils/verify-wedding-access';
 
 /**
  * Create + send a broadcast.
@@ -26,10 +28,14 @@ import { guestMatchesTags } from '@/lib/utils/guest-tags';
  * are recorded with delivery_status='failed'.
  */
 export async function POST(req: NextRequest) {
+  const { supabase: userClient, user } = await getAuthenticatedClient();
+  if (!userClient || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const body = await req.json();
   const {
     weddingId,
-    weddingSlug,
     message,
     targetType,
     targetTags = [],
@@ -38,7 +44,6 @@ export async function POST(req: NextRequest) {
     dataSchema = [],
   }: {
     weddingId: string;
-    weddingSlug: string;
     message: string;
     targetType: BroadcastTargetType;
     targetTags?: string[];
@@ -47,9 +52,17 @@ export async function POST(req: NextRequest) {
     dataSchema?: BroadcastDataField[];
   } = body;
 
-  if (!weddingId || !weddingSlug || !message?.trim() || !targetType) {
+  if (!weddingId || !message?.trim() || !targetType) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
+
+  // Resolve the slug from the SAME row we authorize against — a client-supplied
+  // slug would let a verified wedding id front a broadcast to someone else's guests.
+  const wedding = await resolveWeddingAccess(userClient, user.id, weddingId);
+  if (!wedding) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  const weddingSlug = wedding.slug;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

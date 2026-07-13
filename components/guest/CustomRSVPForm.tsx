@@ -1505,7 +1505,7 @@ export default function CustomRSVPForm({ weddingId = 'simran-karanvir', primaryC
               )}
               {q.type === 'date' && (
                 <DatePicker
-                  selected={value ? new Date(value) : null}
+                  selected={typeof value === 'string' && value ? new Date(value) : null}
                   onChange={(date: Date | null) => {
                     handleCustomAnswerChange(q.id, date ? date.toISOString().split('T')[0] : '');
                   }}

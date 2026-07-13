@@ -18,7 +18,7 @@ import { useRouter } from 'next/navigation';
 import { ActionButton } from '@/components/admin/ActionButton';
 import { COLORS } from '@/lib/theme/tokens';
 import HeroPlannerChat from './HeroPlannerChat';
-import { ensurePlannerSession, prewarmPlanner, startPlannerSession } from './planner-launch';
+import { prewarmDraftWedding, prewarmPlanner, startPlannerSession } from './planner-launch';
 import { LotusGlyph, Reveal } from './design-primitives';
 
 const MARQUEE_WORDS = [
@@ -48,7 +48,12 @@ export default function HeroSection() {
   const [ctaBusy, setCtaBusy] = useState(false);
   const [ctaError, setCtaError] = useState<string | null>(null);
 
-  const prewarm = useCallback(() => prewarmPlanner(router), [router]);
+  // Hover = likely click: prefetch the route AND create the draft wedding in
+  // the background, so the click itself only has to navigate.
+  const prewarm = useCallback(() => {
+    prewarmPlanner(router);
+    prewarmDraftWedding();
+  }, [router]);
 
   const launchPlanner = useCallback(() => {
     if (ctaBusy) return;
@@ -56,15 +61,14 @@ export default function HeroSection() {
     setCtaError(null);
     void (async () => {
       try {
-        const hasSession = await ensurePlannerSession();
-        if (!hasSession) {
-          // Anonymous sign-ins unavailable — fall back to the signup page;
-          // they land in the planner right after registering.
-          router.push('/auth/signup');
-          return;
-        }
         const result = await startPlannerSession();
         if (!result.ok) {
+          if (result.reason === 'no-session') {
+            // Anonymous sign-ins unavailable — fall back to the signup page;
+            // they land in the planner right after registering.
+            router.push('/auth/signup');
+            return;
+          }
           setCtaError(result.error);
           setCtaBusy(false);
           return;

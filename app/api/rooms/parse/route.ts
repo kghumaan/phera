@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { checkRateLimit } from '@/lib/utils/rate-limiter';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -111,6 +113,13 @@ export async function POST(request: NextRequest) {
   if (!apiKey) {
     return NextResponse.json({ error: 'GEMINI_API_KEY is not configured' }, { status: 500 });
   }
+
+  const { user } = await getAuthenticatedClient();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const limited = checkRateLimit(request, { maxRequests: 20, windowMs: 60_000, keyPrefix: 'rooms-parse' });
+  if (limited) return limited;
 
   try {
     const formData = await request.formData();

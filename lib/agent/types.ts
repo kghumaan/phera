@@ -30,11 +30,14 @@ export interface AgentToolContext {
  * Pre-write snapshot persisted to agent_actions.before so undo_last_action can
  * reverse the write. Self-describing: 'update' writes the captured values back;
  * 'delete' removes the row the action created (matched by natural key — the
- * undo tool refuses unless the match hits exactly one row).
+ * undo tool refuses unless the match hits exactly one row); 'delete_many' does
+ * the same for a batch insert, and refuses as a whole if ANY of its matches is
+ * ambiguous, so a partial half-undone schedule is impossible.
  */
 export type AgentBeforeState =
   | { restore: 'update'; table: string; match: Record<string, unknown>; values: Record<string, unknown> }
-  | { restore: 'delete'; table: string; match: Record<string, unknown> };
+  | { restore: 'delete'; table: string; match: Record<string, unknown> }
+  | { restore: 'delete_many'; table: string; matches: Record<string, unknown>[] };
 
 export interface AgentToolDefinition {
   name: string;
@@ -245,5 +248,8 @@ export interface AgentProvider {
     /** Optimize for latency over deliberation (voice): disable extended
      *  thinking and allow a faster model. */
     fast?: boolean;
+    /** Explicit model override for this turn (e.g. a fast model for the
+     *  narrow onboarding path). Wins over fast/env defaults. */
+    model?: string;
   }): Promise<ProviderTurnResult>;
 }

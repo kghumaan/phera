@@ -8,11 +8,9 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
+    // Type errors fail the build. This was flipped off for a while and 100
+    // silent errors accumulated (fixed 2026-07-13) — keep it on.
+    ignoreBuildErrors: false,
   },
   images: {
     // Enable modern image formats

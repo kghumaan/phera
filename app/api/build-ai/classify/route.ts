@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { checkRateLimit } from '@/lib/utils/rate-limiter';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
@@ -34,6 +36,13 @@ Respond in JSON only: {"intent":"...","targetField":"...","extractedValue":"..."
 
 export async function POST(request: NextRequest) {
   try {
+    const { user } = await getAuthenticatedClient();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const limited = checkRateLimit(request, { maxRequests: 30, windowMs: 60_000, keyPrefix: 'build-ai-classify' });
+    if (limited) return limited;
+
     const body: ClassifyRequest = await request.json();
     const { message, currentQuestionId, collectedFields, availableFields } = body;
 

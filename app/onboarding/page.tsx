@@ -44,6 +44,7 @@ import { generateGuestAvatar } from '@/lib/utils/avatar-generator';
 import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 import { onboardingAnalytics } from '@/lib/analytics/onboarding';
 import { useOnboardingExitTracking } from '@/lib/analytics/useOnboardingExitTracking';
+import { PAID_TIERS } from '@/lib/agent/plan';
 
 // --- Types ---
 type OnboardingStep = 1 | 2;
@@ -379,7 +380,10 @@ export default function OnboardingPage() {
         });
         if (settings.account_type) setRole(settings.account_type as UserRole);
         if (settings.enabled_features) setSelectedFeatures(settings.enabled_features);
-        if (settings.subscription_tier) setPlan(settings.subscription_tier as 'basic' | 'pro');
+        // Map canonical tiers back onto the wizard's basic/pro UI state.
+        if (settings.subscription_tier) {
+          setPlan(['phera_premium', 'phera_grand', 'planner', 'pro'].includes(settings.subscription_tier) ? 'pro' : 'basic');
+        }
       } else {
         console.log('[Onboarding DEBUG] restoreSettings: No existing settings found, starting fresh.');
         const params = new URLSearchParams(window.location.search);
@@ -420,11 +424,28 @@ export default function OnboardingPage() {
       console.log('[Onboarding DEBUG] Step 1: Upserting user_settings...');
       const userEmail = authUser?.email || data.userId;
       const avatar = generateGuestAvatar(userEmail, data.coupleName);
+      // Canonical tiers only ('phera' = free) — the legacy 'basic'/'pro' values
+      // made every wizard signup read as Pro (isPro treats non-'phera' as paid).
+      const desiredTier =
+        data.role === 'planner' ? 'planner' : data.plan === 'pro' ? 'phera_premium' : 'phera';
+      // NEVER downgrade an existing paid tier. The wizard has no payment step and
+      // submits plan:'basic' unconditionally, so a paying user who re-enters
+      // /onboarding would otherwise be written back down to free — and a
+      // phera_grand user would be flattened to phera_premium.
+      const { data: currentSettings } = await supabase
+        .from('user_settings')
+        .select('subscription_tier')
+        .eq('user_id', data.userId)
+        .maybeSingle();
+      const currentTier = (currentSettings as { subscription_tier?: string } | null)?.subscription_tier;
+      const subscriptionTier =
+        currentTier && PAID_TIERS.has(currentTier) ? currentTier : desiredTier;
+
       const settingsToSave: Record<string, any> = {
         user_id: data.userId,
         account_type: data.role,
         enabled_features: data.selectedFeatures,
-        subscription_tier: data.plan,
+        subscription_tier: subscriptionTier,
         onboarding_completed: true,
         avatar_style: avatar.style,
         avatar_seed: avatar.seed,

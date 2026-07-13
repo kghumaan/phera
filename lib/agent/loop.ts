@@ -42,8 +42,27 @@ export interface RunAgentTurnArgs {
   /** The route just created this conversation, so there is no history to load —
    *  skips two DB round-trips on the latency-critical first turn. */
   isNewConversation?: boolean;
+  /** Question ids this turn is answering (set by resolveAgentAnswers). Used to
+   *  tell a scripted intake card apart from any other ask_user card. */
+  answeredQuestionIds?: string[];
   onEvent: (event: AgentStreamEvent) => void;
 }
+
+/**
+ * The ids of the scripted onboarding intake cards (see system-prompt.ts
+ * ONBOARDING). Answering one of these is pure fact-recording, so it can run on
+ * the fast model. Any OTHER card answered during onboarding — a budget, a
+ * plan-before-you-build multi-select — is judgment work and stays on the full
+ * model. Unknown ids fall back to the full model, so drift is safe by default.
+ */
+export const INTAKE_QUESTION_IDS = new Set([
+  'couple_names',
+  'planning_stage',
+  'planning_city',
+  'venue_name',
+  'celebration_dates',
+  'planning_goals',
+]);
 
 /**
  * A truncated window can start with tool_results whose tool_use was cut off,
@@ -290,6 +309,27 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
   // final text-only round so the user never gets a silent stall.
   let cappedMidToolUse = false;
 
+  // ONBOARDING FAST PATH: answers to the scripted intake cards (names → stage →
+  // city → goals) are narrow, high-traffic fact-recording — a fast model handles
+  // them indistinguishably at a fraction of the latency (evals 2026-07-13: Haiku
+  // 22/22 on the card fixtures, ~30% faster than Sonnet on identical turns).
+  //
+  // Everything else stays on the full model, including during onboarding:
+  //  - FREE-TEXT turns — a first message can be a brain-dump or a real request
+  //    (eval'd: fast models dropped facts and skipped act-first drafting).
+  //  - NON-INTAKE cards — the budget question that gates venue/vendor options,
+  //    a plan-before-you-build multi-select. Those are judgment, not stenography.
+  const onboardingPhase = snapshot.text.includes('Planning goals: NOT SET');
+  const answeredIds = args.answeredQuestionIds ?? [];
+  const intakeCardTurn =
+    args.userMessage.startsWith('⟦answers⟧') &&
+    answeredIds.length > 0 &&
+    answeredIds.every((id) => INTAKE_QUESTION_IDS.has(id));
+  const useFastPath = onboardingPhase && intakeCardTurn;
+  const onboardingModel = useFastPath
+    ? process.env.AGENT_ONBOARDING_MODEL || 'claude-haiku-4-5-20251001'
+    : undefined;
+
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const result = await provider.streamTurn({
       system: AGENT_SYSTEM_PROMPT,
@@ -297,7 +337,8 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       messages,
       tools,
       onText: (text) => onEvent({ type: 'text_delta', text }),
-      fast: args.voice, // voice = latency-optimized (no extended thinking)
+      fast: args.voice || useFastPath, // latency-optimized (no extended thinking)
+      model: onboardingModel,
     });
 
     if (result.usage) {

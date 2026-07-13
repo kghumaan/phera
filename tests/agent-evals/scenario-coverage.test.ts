@@ -3,7 +3,8 @@
  * coverage can't silently rot:
  *
  * 1. Every scenario fixture declares a persona (P1–P10 / E1–E10 from
- *    docs/AGENT-EVALS.md) — no anonymous scenarios.
+ *    docs/AGENT-EVALS.md, or L1–L9 for anonymous landing-entry flows) —
+ *    every fixture must be persona-tagged.
  * 2. The suite always covers MULTIPLE personas (≥ 5 distinct).
  * 3. There is always a full-spine walkthrough, and its declared step order
  *    matches the canonical spine decided in docs/PLANNER-SPINE-TRACKER.md E1
@@ -39,6 +40,7 @@ const SCENARIO_DIR = join(__dirname, 'scenarios');
 interface ScenarioTurn {
   message?: string;
   confirm?: 'approve' | 'decline';
+  answer?: Record<string, string | string[]>;
   expect?: Record<string, unknown>;
   verify?: unknown;
 }
@@ -50,6 +52,7 @@ interface Scenario {
   spine?: string;
   spineSteps?: string[];
   seed: string;
+  anonymous?: boolean;
   turns: ScenarioTurn[];
 }
 
@@ -71,15 +74,17 @@ describe('agent-eval scenario coverage', () => {
     for (const { file, scenario } of all) {
       expect(scenario?.name, `${file}: name`).toBeTruthy();
       expect(scenario?.description, `${file}: description`).toBeTruthy();
-      expect(['blank', 'populated'], `${file}: seed`).toContain(scenario?.seed);
+      expect(['blank', 'populated', 'fresh-draft'], `${file}: seed`).toContain(scenario?.seed);
       expect(Array.isArray(scenario?.turns) && scenario.turns.length > 0, `${file}: turns`).toBe(true);
       for (const [i, turn] of scenario.turns.entries()) {
         const hasMessage = typeof turn.message === 'string' && turn.message.length > 0;
         const hasConfirm = turn.confirm === 'approve' || turn.confirm === 'decline';
-        expect(hasMessage || hasConfirm, `${file}: turn ${i + 1} needs message or confirm`).toBe(true);
+        const hasAnswer = turn.answer !== undefined && typeof turn.answer === 'object';
+        expect(hasMessage || hasConfirm || hasAnswer, `${file}: turn ${i + 1} needs message, confirm, or answer`).toBe(true);
       }
-      // Persona ids come from docs/AGENT-EVALS.md §3 (P1–P10) / §4 (E1–E10).
-      expect(scenario?.persona, `${file}: missing persona tag`).toMatch(/^[PE](10|[1-9])$/);
+      // Persona ids come from docs/AGENT-EVALS.md §3 (P1–P10) / §4 (E1–E10) /
+      // §3b (L1–L9, landing-entry personas: hero chat box / Get Started / planner routes).
+      expect(scenario?.persona, `${file}: missing persona tag`).toMatch(/^([PE](10|[1-9])|L[1-9])$/);
     }
   });
 

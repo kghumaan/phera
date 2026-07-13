@@ -109,6 +109,16 @@ export const scheduleTools: AgentToolDefinition[] = [
       required: ['name', 'date', 'time'],
       additionalProperties: false,
     },
+    captureBefore: async (input, ctx) => ({
+      restore: 'delete',
+      table: 'wedding_events',
+      match: {
+        wedding_id: ctx.weddingUuid,
+        name: input.name as string,
+        date: input.date as string,
+        time: input.time as string,
+      },
+    }),
     execute: async (input, ctx) => {
       const slug = String(input.name)
         .toLowerCase()
@@ -133,6 +143,70 @@ export const scheduleTools: AgentToolDefinition[] = [
         .single();
       if (error || !data) throw new Error(error?.message ?? 'Failed to create event');
       return { created: data };
+    },
+  },
+  {
+    name: 'create_events',
+    label: 'Adding ceremony events',
+    risk: 'write',
+    description:
+      'Create SEVERAL ceremony events in one call (one insert, one round-trip). ALWAYS prefer this over multiple create_event calls when laying out a schedule — e.g. the typical-schedule draft that creates Mehndi/Sangeet/Pheras/Reception together. Use get_wedding_overview first to avoid duplicates.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        events: {
+          type: 'array',
+          minItems: 1,
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              date: { type: 'string', description: 'YYYY-MM-DD' },
+              time: { type: 'string', description: 'e.g. "4:00 PM"' },
+              dress_code: { type: 'string', description: 'Short dress-code line; use "To be decided" if unknown' },
+            },
+            required: ['name', 'date', 'time'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['events'],
+      additionalProperties: false,
+    },
+    // Undo for a batch create = delete the rows it created, each matched by
+    // natural key. undo_last_action resolves all of them before deleting any,
+    // so a drafted schedule reverts whole or not at all.
+    captureBefore: async (input, ctx) => ({
+      restore: 'delete_many',
+      table: 'wedding_events',
+      matches: (input.events as Array<{ name: string; date: string; time: string }>).map((e) => ({
+        wedding_id: ctx.weddingUuid,
+        name: e.name,
+        date: e.date,
+        time: e.time,
+      })),
+    }),
+    execute: async (input, ctx) => {
+      const events = input.events as Array<{ name: string; date: string; time: string; dress_code?: string }>;
+      const { count } = await ctx.supabase
+        .from('wedding_events')
+        .select('id', { count: 'exact', head: true })
+        .eq('wedding_id', ctx.weddingUuid);
+      const rows = events.map((e, i) => ({
+        wedding_id: ctx.weddingUuid,
+        name: e.name,
+        slug: e.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+        date: e.date,
+        time: e.time,
+        dress_code: e.dress_code ?? 'To be decided',
+        order_index: (count ?? 0) + i,
+      }));
+      const { data, error } = await ctx.supabase
+        .from('wedding_events')
+        .insert(rows)
+        .select('id, name, date, time');
+      if (error || !data) throw new Error(error?.message ?? 'Failed to create events');
+      return { created: data, count: data.length, summary: `${data.length} events created` };
     },
   },
   {
