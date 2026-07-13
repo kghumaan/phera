@@ -22,18 +22,23 @@ import { ensurePlannerSession, prewarmPlanner, startPlannerSession } from './pla
 import { LotusGlyph, Reveal } from './design-primitives';
 
 const MARQUEE_WORDS = [
-  'Save the dates',
+  'Wedding website',
+  'Guest list',
+  'WhatsApp groups',
+  '24/7 guest concierge',
   'RSVPs',
-  'Dietary needs',
   'Plus-ones',
-  'Flight numbers',
-  'Hotel blocks',
-  'Shuttle pickups',
+  'Event-gated invites',
+  'Guest reminders',
+  'Room assignments',
+  'Airport pickups',
+  'Shuttle schedules',
+  'Flight tracking',
+  'Find vendors',
+  'Save the dates',
   'Dress codes',
-  'Visa walkthroughs',
-  'Vendor coordination',
-  'Cultural briefings',
-  'Day-of details',
+  'Day-of timeline',
+  'Shagun ledger',
 ];
 
 export default function HeroSection() {
