@@ -4,13 +4,21 @@
  * Landing Hero — cloud bg, marigold garlands, fluid clamp H1 with the
  * highlight-strike, and the marquee at the bottom, all centered around the
  * planner chat box (Origami-style): visitors type what they need and are
- * dropped straight into a live planner session, no account first. The old
- * pill CTAs live on as quiet text links under the box.
+ * dropped straight into a live planner session, no account first. Below the
+ * box, the pre-chat hero's primary pill CTA (Get Started) returns — it runs
+ * the same launch flow as submitting the box, just without a typed message:
+ * anonymous session, draft wedding, straight into the planner chat, where the
+ * agent prompts signup once it knows what they need.
  */
 
+import { useCallback, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ActionButton } from '@/components/admin/ActionButton';
+import { COLORS } from '@/lib/theme/tokens';
 import HeroPlannerChat from './HeroPlannerChat';
+import { ensurePlannerSession, prewarmPlanner, startPlannerSession } from './planner-launch';
 import { LotusGlyph, Reveal } from './design-primitives';
 
 const MARQUEE_WORDS = [
@@ -29,6 +37,41 @@ const MARQUEE_WORDS = [
 ];
 
 export default function HeroSection() {
+  const router = useRouter();
+  // busy stays true through the router.push so the spinner holds until the
+  // assistant page takes over; it only resets when the launch fails.
+  const [ctaBusy, setCtaBusy] = useState(false);
+  const [ctaError, setCtaError] = useState<string | null>(null);
+
+  const prewarm = useCallback(() => prewarmPlanner(router), [router]);
+
+  const launchPlanner = useCallback(() => {
+    if (ctaBusy) return;
+    setCtaBusy(true);
+    setCtaError(null);
+    void (async () => {
+      try {
+        const hasSession = await ensurePlannerSession();
+        if (!hasSession) {
+          // Anonymous sign-ins unavailable — fall back to the signup page;
+          // they land in the planner right after registering.
+          router.push('/auth/signup');
+          return;
+        }
+        const result = await startPlannerSession();
+        if (!result.ok) {
+          setCtaError(result.error);
+          setCtaBusy(false);
+          return;
+        }
+        router.push(result.url);
+      } catch {
+        setCtaError("Couldn't start your planner just now — please try again.");
+        setCtaBusy(false);
+      }
+    })();
+  }, [ctaBusy, router]);
+
   return (
     <section
       id="top"
@@ -78,6 +121,9 @@ export default function HeroSection() {
           alignItems: 'center',
         }}
       >
+        {/* Balances the planners zone below so the main block stays visually
+            centered — leftover space splits evenly above and below it. */}
+        <div aria-hidden style={{ flex: 1 }} />
         <Reveal delay={1}>
           <h1
             className="display"
@@ -134,35 +180,87 @@ export default function HeroSection() {
 
         <Reveal delay={3}>
           <div className="hero-chat-row" style={{ marginTop: 32, width: '100%', display: 'flex', justifyContent: 'center' }}>
-            <HeroPlannerChat />
+            <HeroPlannerChat showIdleHint={false} />
           </div>
-          {/* Quiet secondary path — the chat box is the primary CTA, the demo
-              link lives inline at the end of the subtitle. */}
-          <p
-            className="hero-scope-line"
-            style={{
-              marginTop: 26,
-              marginBottom: 0,
-              fontSize: 'clamp(14px, 0.95vw, 14.5px)',
-              color: 'var(--text-subtle)',
-              lineHeight: 1.6,
-              textAlign: 'center',
-            }}
-          >
-            Planning weddings for clients?{' '}
-            <Link
-              href="/planners"
-              style={{
-                color: 'var(--accent)',
+          {/* Classic path — the pre-chat hero's primary pill CTA, for visitors
+              who'd rather click than type into the box first. Same launch flow
+              as submitting the box, just with no opening message. The stack
+              shrink-wraps to the nowrap reassurance line, so the button is
+              exactly as wide as that text. */}
+          <div className="hero-cta-stack">
+            <ActionButton
+              onClick={launchPlanner}
+              loading={ctaBusy}
+              onPointerEnter={prewarm}
+              onFocus={prewarm}
+              variant="contained"
+              className="btn btn-primary"
+              keepBackgroundOnLoad
+              sx={{
+                width: '100%',
+                minHeight: { xs: 46, sm: 50 },
+                fontSize: { xs: 15, sm: 17 },
+                padding: { xs: '10px 22px', sm: '12px 30px' },
+                borderRadius: '999px',
+                textTransform: 'none',
                 fontWeight: 600,
-                textDecoration: 'none',
+                bgcolor: 'var(--accent)',
+                color: COLORS.text.inverse,
+                '&:hover': { bgcolor: 'var(--accent-hover)' },
+              }}
+              endIcon={<span className="btn-arrow" style={{ display: 'inline-block' }}>→</span>}
+            >
+              Get started
+            </ActionButton>
+            <p
+              className="hero-scope-line"
+              style={{
+                marginTop: 8,
+                marginBottom: 0,
+                fontSize: 'clamp(14px, 0.95vw, 14.5px)',
+                color: 'var(--text-subtle)',
+                lineHeight: 1.6,
+                textAlign: 'center',
                 whiteSpace: 'nowrap',
               }}
             >
-              Phera for planners →
-            </Link>
-          </p>
+              {ctaError ?? (ctaBusy ? 'Setting up your planner…' : 'Free to start, no credit card required.')}
+            </p>
+          </div>
         </Reveal>
+        {/* Planners link — vertically centered in the leftover space between
+            the free-to-start line and the marquee (the aria-hidden spacer at
+            the top of hero-content is its counterweight). */}
+        <div
+          className="hero-planners-zone"
+          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Reveal delay={3}>
+            <p
+              className="hero-scope-line"
+              style={{
+                margin: '16px 0',
+                fontSize: 'clamp(14px, 0.95vw, 14.5px)',
+                color: 'var(--text-subtle)',
+                lineHeight: 1.6,
+                textAlign: 'center',
+              }}
+            >
+              Planning weddings for clients?{' '}
+              <Link
+                href="/planners"
+                style={{
+                  color: 'var(--accent)',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Phera for planners →
+              </Link>
+            </p>
+          </Reveal>
+        </div>
       </div>
 
       {/* Marquee at bottom of hero - design verbatim. */}
@@ -210,10 +308,14 @@ export default function HeroSection() {
            inner stack; the extra push comes from a min top inset. */
         .hero-section { padding-top: 100px; }
         .hero-content { padding-top: clamp(48px, 8vh, 120px); }
+        /* inline-flex: the stack's width comes from its widest child — the
+           nowrap reassurance line — and the button stretches to match it. */
+        .hero-cta-stack { display: inline-flex; flex-direction: column; margin-top: 26px; }
         @media (max-width: 600px) {
           .hero-section { padding-top: 88px; }
           .hero-content { padding-top: clamp(64px, 10vh, 120px); }
           .hero-chat-row { margin-top: 24px !important; }
+          .hero-cta-stack { margin-top: 20px; }
           .hero-marquee-word { font-size: 22px !important; }
           .hero-marquee-bar { padding: 12px 0 !important; }
         }
