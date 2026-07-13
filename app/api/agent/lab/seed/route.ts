@@ -22,8 +22,9 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/agent/lab/seed   Body: { scenario: 'blank' | 'populated' }
- * Creates a disposable agent-lab-* wedding with mock data.
+ * POST /api/agent/lab/seed   Body: { scenario: 'blank' | 'populated' | 'fresh-draft' }
+ * Creates a disposable agent-lab-* wedding with mock data. 'fresh-draft'
+ * mirrors the landing-page anonymous draft (names unknown, everything TBD).
  */
 export async function POST(request: NextRequest) {
   const access = await requireLabAccess(request);
@@ -35,9 +36,12 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
-  const scenario = body.scenario === 'blank' ? 'blank' : body.scenario === 'populated' ? 'populated' : null;
+  const scenario =
+    body.scenario === 'blank' || body.scenario === 'populated' || body.scenario === 'fresh-draft'
+      ? body.scenario
+      : null;
   if (!scenario) {
-    return NextResponse.json({ error: "scenario must be 'blank' or 'populated'" }, { status: 400 });
+    return NextResponse.json({ error: "scenario must be 'blank', 'populated', or 'fresh-draft'" }, { status: 400 });
   }
 
   try {

@@ -10,7 +10,7 @@ import { setPendingAttachment } from '@/lib/agent/pending-attachment';
 import { COLORS, RADII, SHADOWS } from '@/lib/theme/tokens';
 import {
   PENDING_FIRST_MESSAGE_KEY,
-  ensurePlannerSession,
+  prewarmDraftWedding,
   prewarmPlanner,
   startPlannerSession,
 } from './planner-launch';
@@ -108,15 +108,17 @@ export default function HeroPlannerChat({ showIdleHint = true }: { showIdleHint?
       // The attached file rides along to the planner (module store survives
       // the client-side navigation; the name survives even a full redirect).
       if (attachment) setPendingAttachment(attachment);
-      const hasSession = await ensurePlannerSession();
-      if (!hasSession) {
-        // Anonymous sign-ins unavailable — the stash survives the signup flow,
-        // so their message still opens the conversation after they register.
-        router.push('/auth/signup');
-        return;
-      }
+      // Usually already resolved: the first keystroke prewarmed the session +
+      // draft wedding, so this await is instant and the hop starts immediately.
       const result = await startPlannerSession();
       if (!result.ok) {
+        if (result.reason === 'no-session') {
+          // Anonymous sign-ins unavailable — the stash survives the signup
+          // flow, so their message still opens the conversation after they
+          // register.
+          router.push('/auth/signup');
+          return;
+        }
         setError(result.error);
         setBusy(false);
         return;
@@ -165,7 +167,13 @@ export default function HeroPlannerChat({ showIdleHint = true }: { showIdleHint?
             rows={2}
             value={value}
             disabled={busy}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => {
+              // First keystroke = real intent: create the draft wedding in the
+              // background so submit only has to navigate (saves the 1–2s
+              // onboard/start round-trip on the critical path).
+              if (value.length === 0 && e.target.value.length > 0) prewarmDraftWedding();
+              setValue(e.target.value);
+            }}
             onFocus={() => {
               setFocused(true);
               prewarm();

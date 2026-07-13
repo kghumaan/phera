@@ -379,7 +379,10 @@ export default function OnboardingPage() {
         });
         if (settings.account_type) setRole(settings.account_type as UserRole);
         if (settings.enabled_features) setSelectedFeatures(settings.enabled_features);
-        if (settings.subscription_tier) setPlan(settings.subscription_tier as 'basic' | 'pro');
+        // Map canonical tiers back onto the wizard's basic/pro UI state.
+        if (settings.subscription_tier) {
+          setPlan(['phera_premium', 'phera_grand', 'planner', 'pro'].includes(settings.subscription_tier) ? 'pro' : 'basic');
+        }
       } else {
         console.log('[Onboarding DEBUG] restoreSettings: No existing settings found, starting fresh.');
         const params = new URLSearchParams(window.location.search);
@@ -424,7 +427,9 @@ export default function OnboardingPage() {
         user_id: data.userId,
         account_type: data.role,
         enabled_features: data.selectedFeatures,
-        subscription_tier: data.plan,
+        // Canonical tiers only ('phera' = free) — the legacy 'basic'/'pro' values
+        // made every wizard signup read as Pro (isPro treats non-'phera' as paid).
+        subscription_tier: data.role === 'planner' ? 'planner' : data.plan === 'pro' ? 'phera_premium' : 'phera',
         onboarding_completed: true,
         avatar_style: avatar.style,
         avatar_seed: avatar.seed,

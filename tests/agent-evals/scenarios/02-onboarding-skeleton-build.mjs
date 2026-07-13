@@ -16,7 +16,10 @@ export default {
     {
       message: 'Sketch the days for us: mehndi and sangeet on Friday the 12th, the wedding ceremony Saturday the 13th, farewell brunch Sunday the 14th. Set it all up.',
       expect: {
-        tools: ['create_schedule_day', 'create_event'],
+        // Events may land via singular create_event calls OR the batched
+        // create_events (added 2026-07-13, preferred) — the verify() state
+        // checks below assert the actual rows, so no event tool is named here.
+        tools: ['create_schedule_day'],
         replyNot: ['admin UI', "can't create", 'cannot create'],
       },
       verify: async (state) => [

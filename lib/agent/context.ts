@@ -65,7 +65,7 @@ export async function buildWeddingSnapshot(
     supabase
       .from('weddings')
       .select(
-        'couple_name, partner1_name, partner2_name, wedding_date, wedding_date_end, venue_name, venue_location, rsvp_deadline, status, created_by'
+        'couple_name, partner1_name, partner2_name, wedding_date, wedding_date_end, venue_name, venue_location, rsvp_deadline, status, created_by, expected_guest_count'
       )
       .eq('id', weddingUuid)
       .single(),
@@ -205,7 +205,7 @@ export async function buildWeddingSnapshot(
     }`,
     `Venue: ${venueName ?? 'NOT SET'}${venueLocation ? ` — ${venueLocation}` : ''}`,
     `RSVP deadline: ${rsvpDeadline ?? 'not set'}`,
-    `Guests: ${guestCount} (${respondedGuests} responded) | Events: ${eventCount} | Schedule days: ${scheduleDays}`,
+    `Guests: ${guestCount} (${respondedGuests} responded) | Expected people (rough): ${wedding.expected_guest_count ? `~${wedding.expected_guest_count}` : 'not captured'} | Events: ${eventCount} | Schedule days: ${scheduleDays}`,
     `Rooms: ${roomCount} | Vendors: ${vendorCount} | FAQs: ${faqCount} | Open tasks: ${openTasks}`,
     // In-app pages the agent can link when handing off to a rich section —
     // MarkdownText renders [label](/path) as a real link in the chat.

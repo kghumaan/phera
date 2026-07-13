@@ -2,7 +2,7 @@
 
 > **Living document.** The persona library + edge cases + verifiable eval design we test the Planner agent against, so we can prove it behaves correctly as we build the conversation spine. Companion to `docs/PLANNER-JOURNEY.md`.
 >
-> Last updated: 2026-07-02 · Targets the real lab infra (`app/api/agent/lab/chat`, `lib/agent/lab/scenarios.ts`).
+> Last updated: 2026-07-13 (landing-flow UAT revision) · Targets the real lab infra (`app/api/agent/lab/chat`, `lib/agent/lab/scenarios.ts`).
 >
 > **Spine order (decided 2026-07-02, `docs/PLANNER-SPINE-TRACKER.md` E1):** schedule/events → travel/stay/shuttles → website+FAQs → guest list → RSVPs → rooms → vendors & venue → registry → photos. Travel moved BEFORE website so FAQs state real accommodation facts.
 >
@@ -15,7 +15,9 @@
 We don't have to hand-test. The agent is already runnable headlessly and inspectably:
 
 - **`POST /api/agent/lab/chat`** runs a turn **non-streaming** and returns `{ conversationId, reply, events[], actions[] }`. `events` includes `questions_required`, `confirmation_required`, `upgrade_required`, `tool_start/done`, `done`. `actions` is the audit log of every tool call with `tool_name`, `input`, `result`, `status`, `risk`. Auth via `AGENT_LAB_TOKEN`.
-- **`seedLabWedding(supabase, { scenario, ownerId })`** creates disposable `agent-lab-*` weddings: `'blank'` (couple names only, TBD dates/venue, 0 guests → triggers full onboarding) or `'populated'` (24 guests, 4 events, 3 schedule days, 8 rooms, 3 vendors, 2 FAQs). We can seed extra state for any persona.
+- **`seedLabWedding(supabase, { scenario, ownerId })`** creates disposable `agent-lab-*` weddings: `'blank'` (couple names only, TBD dates/venue, 0 guests → triggers full onboarding), `'populated'` (24 guests, 4 events, 3 schedule days, 8 rooms, 3 vendors, 2 FAQs), or `'fresh-draft'` (added 2026-07-13: EXACT mirror of the landing-page anonymous draft from `app/api/agent/onboard/start` — placeholder couple name, EMPTY partner names, everything TBD; the only seed where the agent genuinely doesn't know the couple's names). Note: `{overrides}`-style seed extensions are NOT implemented — only these three scenarios exist.
+- **`anonymous: true`** on `/api/agent/lab/chat` / `answer` / `confirm` (added 2026-07-13) simulates a landing-page anonymous session end-to-end: the loop gets the same `Account: ANONYMOUS` snapshot line, the first-contact "no congratulations opener" instruction, and live `request_signup` / `signup_required` behavior. Scenario fixtures opt in with a top-level `anonymous: true`.
+- **CAVEAT — lab runs are Pro-unlocked.** The lab owner's `user_settings.subscription_tier` makes `getUserIsPro` true, so `upgrade_required` gating is masked in lab evals (confirmed in the 2026-07-13 UAT: `add_vendor` executed for an "anonymous" visitor). Free-plan gating currently needs the deterministic guardrail suite or a real free user; a `plan:'free'` lab override is future work.
 - **`dumpLabState(supabase, slug)`** returns the full post-run state (guests, rsvps, rooms, events, schedule, vendors, faqs, tasks, agent conversations/messages/actions) — so we assert on **what the agent actually wrote**, not just what it said.
 - **Mock provider:** `AgentProvider.streamTurn()` can be stubbed to return canned tool-use blocks, for deterministic plumbing tests.
 - **Template format** already sketched in `agent-evals-report.json`: `{ scenario, checks: [{ label, pass, detail }] }` across turns `t1..tN`.
@@ -39,7 +41,7 @@ These are the non-negotiables. Every persona run checks them:
 2. **Act-first on safe writes.** Where it can draft (schedule from template, FAQ, households), it calls the write tool and shows "edit/approve" — not an interview. *Assert:* `actions` contains the expected `create_*`/`update_*` with `status: executed`.
 3. **Only asks when a downstream service consumes the answer.** Budget is asked **only** when routing to venue/vendor sourcing. *Assert:* no budget question unless a venue/vendor-sourcing path is active.
 4. **Managed framing for not-built.** Venue/vendor-sourcing/photo-album → captured as managed ("our team"), never presented as a live self-serve automation. *Assert:* reply matches `/our team|we'?ll handle|shortlist/i`, and **no** fake tool call.
-5. **Never promotes save-the-dates.** On-hold. *Assert:* agent never offers auto-send; if asked, falls back to wa.me/managed.
+5. **Save-the-dates never SEND without confirmation.** (Updated 2026-07: the system prompt now says the agent CAN help send these — draft + `broadcast_message`. The surviving invariant: `broadcast_message` is gated, so nothing goes out without an approved confirmation card, and the agent never claims a blast already went out.) *Assert:* no `broadcast_message` action with `status: executed` in the same turn as the ask; reply never claims "sent".
 6. **Consent at point of collection.** When passport/visa/personal data collection is switched on, consent is established in that turn. *Assert:* reply references consent (en/hi) when logistics collection starts.
 7. **Pro gating is honest.** Pro tool on a free plan → `upgrade_required` event, not a silent fail or fake success.
 8. **No invented data.** Agent never fabricates guests/RSVPs/numbers not in state. *Assert:* counts in reply reconcile with `dumpLabState`.
@@ -61,7 +63,21 @@ Each persona = a **seed state** + an **opening message** + **expected next behav
 | **P7** | Planner agency | planner account | "I run an agency, managing 8 weddings" | **Portfolio framing**; offer agency account; per-couple spine | Use couple register ("what's keeping *you* up at night") |
 | **P8** | Single-task returning | populated | "My uncle cancelled — remove him and free his room" | Do the task: `update_guest`/RSVP, **gated** room reassignment (confirmation card) | Force the full sweep before doing the task |
 | **P9** | Reverse-destination heavy | populated + non-Indian guests | "A lot of our friends are American, first Indian wedding" | Offer **cultural guide** + dress-code-per-event + affiliate funnel (visa/insurance/registry-for-them) | Treat them as Indian guests; push shagun at non-Indian guests |
-| **P10** | Asks for save-the-dates | populated | "Can you send save-the-dates to everyone?" | Decline auto-send; offer **wa.me deep link** they send themselves, or managed | Promote/expose an automated save-the-date blast |
+| **P10** | Asks for save-the-dates | populated | "Can you send save-the-dates to everyone?" | Draft the wording + offer sending via `broadcast_message` (gated confirm card) or wa.me links | Execute a blast without an approved confirmation; claim it already sent |
+
+### 3b. Landing-entry personas (L-series, added 2026-07-13)
+
+The chat-first landing (hero chat box + Get Started + For Planners) has its own first-touch personas. All run on the `fresh-draft` seed with `anonymous: true` — the exact state `app/api/agent/onboard/start` creates for a landing visitor.
+
+| # | Persona | Entry | Opening | Expected behavior (should) | Must NOT |
+|---|---------|-------|---------|----------------------------|----------|
+| **L1** | Wants exactly ONE thing (website) | hero chat | "Build our wedding website — June in Bali" | Act on the request; weave names in via ask_user; respect a "just this" boundary | Congratulate as opener (anon rule); pivot to unrelated areas after a decline |
+| **L2** | Data question on an empty draft | hero chat | "Who still hasn't RSVPed from the groom's side?" | Grounded "no guest list yet" + import path (`request_upload`) | Fabricate guests/RSVP numbers |
+| **L3** | Signup-moment timing | hero chat | any real request | `request_signup` once, after names+needs known (or when they ask about saving) | Signup card in reply 1; email/password in prose; nagging every turn |
+| **L5** | Get Started cold open | Get Started | answers-note with names (client card already greeted) | Continue at onboarding step 2 (stage); persist names | Re-greet / re-ask names; congratulate again |
+| **L6** | One task now + explicit "remind me later" | hero chat | "RSVPs now, room blocks later — remind me" | Persist the deferral as a task, verifiable when the user checks | Politely ignore the reminder; drag the deferred topic back in |
+
+Planner-entry personas stay under **P7** (first-turn self-ID + mid-chat reveal — fixtures `18`, `19`).
 
 ---
 
@@ -82,9 +98,9 @@ Each persona = a **seed state** + an **opening message** + **expected next behav
 
 ---
 
-## 5. Sample fixtures (runner-ready)
+## 5. Sample fixtures (HISTORICAL — see README for the real format)
 
-Format the harness consumes. `seed` picks/extends the lab wedding; `turns` are user inputs; `expect` are checks against `reply`/`events`/`actions`/`state`.
+> **⚠️ The samples below predate the built harness and use an obsolete schema** (`send`/`answer`-as-turn-key/`invariants`/`__kickoff__` — none of which the runner understands). The REAL fixture format is documented in `tests/agent-evals/README.md` and `scripts/agent-evals.mjs`: turns are `{message}` / `{answer: {id: value}}` / `{confirm}`, checks are `expect.{tools,notTools,reply,replyNot,events,notEvents,questions,questionsNot,pending}` plus an async `verify(state, helpers, {reply, toolsRun})`. Kept for the design intent only.
 
 ```ts
 // tests/agent-evals/scenarios/p1-brand-new.eval.ts
@@ -170,12 +186,23 @@ All fixtures in `tests/agent-evals/scenarios/` now carry a `persona` tag; run a 
 | `09-guest-import-upload` | P1 | Spreadsheet guest list → `request_upload`, nothing fabricated |
 | `10-persona-destination-nri` | P5 | Travel cluster engagement + consent-before-personal-data |
 | `11-persona-local-small` | P6 | Minimal path pruning, destination cluster suppressed |
+| `12-working-on-resume` | P3 | Working-on bar: persisted focus, resume, `complete_focus_step` advance |
+| `13-escalation-handoff` | E10 | "Talk to a person" → honest `submit_request` support hand-off |
+| `14-landing-hero-one-thing` | **L1** · anon | Hero one-thing ask: act-first, no congrats opener, one-thing boundary |
+| `15-landing-empty-state-grounded` | **L2** · anon | Data question on empty fresh-draft: grounded + import path, zero fabrication |
+| `16-landing-braindump-noreask` | **E1** · anon | Brain-dump parse: all facts persisted t1, zero re-asks (+ headcount regression target) |
+| `17-landing-signup-moment` | **L3** · anon | `signup_required` after names+needs, never turn 1, never email-in-prose |
+| `18-planner-first-turn` | **P7** · anon | Planner self-ID turn 1: planner register (+ known-red offering-knowledge target) |
+| `19-planner-mid-reveal` | **P7** · anon | Mid-chat planner reveal: register flips, no "your wedding" after |
+| `20-landing-getstarted-cold-open` | **L5** · anon | Get Started answers-note: continue at step 2, names persisted, no re-greet |
+| `21-landing-remind-later` | **L6** · anon | Explicit deferral persisted as a task; honest "did you note it?" answer |
 
-`verify(state, helpers, run)` now receives a third arg `{ reply, toolsRun }` so fixtures can reconcile the reply against live state (see `08-plus-one-headcount`).
+`verify(state, helpers, run)` now receives a third arg `{ reply, toolsRun }` so fixtures can reconcile the reply against live state (see `08-plus-one-headcount`). Multi-turn `answer` round-trips via `/api/agent/lab/answer` landed 2026-07-13 (`{answer: {...}}` turns), as did `expect.questions` / `expect.questionsNot` (regex over the question-card prompts the agent asked that turn).
 
 ### Still to add (eval-driven, alongside the spine build)
-- Working-on bar behaviors once built (PLANNER-SPINE-TRACKER A1–A5): persisted current step, resume ("are you done with X?"), skip = defer-and-resurface.
-- Multi-turn `answer` round-trips via `resolveAgentAnswers` for the remaining P4/P7/E-matrix cases (triage short-circuit, planner-agency register, brain-dump parse).
+- A `plan: 'free'` lab override so Pro-gating (`upgrade_required`) is exercisable in live evals (today the lab owner is Pro — gating is only covered deterministically).
+- P4 triage short-circuit as a fixture (still only in the live-invariants suite).
+- Planner-offering routing checks flip green when planner knowledge + mid-chat `account_type` capture ship (fixtures `18`/`19` known-red checks).
 - An optional `llm-judge.ts` for "did it follow the spine" where regex is too brittle.
 
 ### CI wiring (as of 2026-07-02)

@@ -245,5 +245,8 @@ export interface AgentProvider {
     /** Optimize for latency over deliberation (voice): disable extended
      *  thinking and allow a faster model. */
     fast?: boolean;
+    /** Explicit model override for this turn (e.g. a fast model for the
+     *  narrow onboarding path). Wins over fast/env defaults. */
+    model?: string;
   }): Promise<ProviderTurnResult>;
 }

@@ -290,6 +290,21 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
   // final text-only round so the user never gets a silent stall.
   let cappedMidToolUse = false;
 
+  // ONBOARDING FAST PATH: card-answer turns during intake (names → stage →
+  // city → goals, arriving as ⟦answers⟧ notes) are narrow, scripted, and
+  // high-traffic — a fast model handles them indistinguishably at a fraction
+  // of the latency (evals 2026-07-13: Haiku 22/22 on the card fixtures,
+  // ~30% faster than Sonnet on identical turns). FREE-TEXT turns stay on the
+  // full model even during onboarding: a first message can be a brain-dump or
+  // a real request that needs judgment (eval'd: fast models dropped facts and
+  // skipped act-first drafting on those).
+  const onboardingPhase = snapshot.text.includes('Planning goals: NOT SET');
+  const cardAnswerTurn = args.userMessage.startsWith('⟦answers⟧');
+  const useFastPath = onboardingPhase && cardAnswerTurn;
+  const onboardingModel = useFastPath
+    ? process.env.AGENT_ONBOARDING_MODEL || 'claude-haiku-4-5-20251001'
+    : undefined;
+
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
     const result = await provider.streamTurn({
       system: AGENT_SYSTEM_PROMPT,
@@ -297,7 +312,8 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       messages,
       tools,
       onText: (text) => onEvent({ type: 'text_delta', text }),
-      fast: args.voice, // voice = latency-optimized (no extended thinking)
+      fast: args.voice || useFastPath, // latency-optimized (no extended thinking)
+      model: onboardingModel,
     });
 
     if (result.usage) {

@@ -10,7 +10,12 @@ export const maxDuration = 120;
 
 /**
  * POST /api/agent/lab/chat
- * Body: { weddingSlug: 'agent-lab-...', message: string, conversationId?: string }
+ * Body: { weddingSlug: 'agent-lab-...', message: string, conversationId?: string, anonymous?: boolean }
+ *
+ * `anonymous: true` simulates a landing-page visitor (anonymous Supabase
+ * session): the loop gets the same ANONYMOUS snapshot augmentation +
+ * first-contact instruction production applies, so signup-nudge and
+ * no-congratulations behaviors are testable headlessly.
  *
  * Scriptable (non-streaming) version of the chat route: runs one full agent
  * turn and returns the whole thing as JSON — the assistant's reply, every
@@ -22,13 +27,13 @@ export async function POST(request: NextRequest) {
   if (!isLabAccess(access)) return access;
   const { supabase, ownerId } = access;
 
-  let body: { weddingSlug?: string; message?: string; conversationId?: string };
+  let body: { weddingSlug?: string; message?: string; conversationId?: string; anonymous?: boolean };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
-  const { weddingSlug, message, conversationId } = body;
+  const { weddingSlug, message, conversationId, anonymous } = body;
   if (!weddingSlug || !isLabSlug(weddingSlug)) {
     return NextResponse.json({ error: 'weddingSlug must be an agent-lab-* slug' }, { status: 400 });
   }
@@ -45,6 +50,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Lab wedding not found' }, { status: 404 });
   }
 
+  let isNewConversation = false;
   let convId = conversationId ?? null;
   if (convId) {
     const { data: conv } = await supabase
@@ -65,6 +71,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Could not create conversation' }, { status: 500 });
     }
     convId = created.id;
+    isNewConversation = true;
   }
 
   const turnStartedAt = new Date().toISOString();
@@ -79,6 +86,8 @@ export async function POST(request: NextRequest) {
       userId: ownerId ?? 'lab',
       conversationId: convId as string,
       userMessage: message.trim(),
+      isAnonymous: anonymous === true,
+      isNewConversation,
       provider: anthropicProvider,
       onEvent: (event) => {
         events.push(event);

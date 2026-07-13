@@ -72,13 +72,16 @@ function fromAnthropicContent(content: Anthropic.ContentBlock[]): AgentContentBl
 }
 
 export const anthropicProvider: AgentProvider = {
-  async streamTurn({ system, snapshot, messages, tools, onText, fast }): Promise<ProviderTurnResult> {
+  async streamTurn({ system, snapshot, messages, tools, onText, fast, model: modelOverride }): Promise<ProviderTurnResult> {
     // Voice turns optimize for latency: extended thinking adds seconds of
     // time-to-first-token, so it's disabled, and a faster model can be used via
     // AGENT_VOICE_MODEL. Typed turns keep adaptive thinking for deliberation.
-    const model = fast
-      ? process.env.AGENT_VOICE_MODEL || process.env.AGENT_MODEL || DEFAULT_MODEL
-      : process.env.AGENT_MODEL || DEFAULT_MODEL;
+    // An explicit per-turn override (the onboarding fast path) wins over both.
+    const model =
+      modelOverride ||
+      (fast
+        ? process.env.AGENT_VOICE_MODEL || process.env.AGENT_MODEL || DEFAULT_MODEL
+        : process.env.AGENT_MODEL || DEFAULT_MODEL);
     const stream = getClient().messages.stream({
       model,
       max_tokens: 8192,

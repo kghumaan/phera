@@ -39,6 +39,7 @@ import { WhatsAppPairingPanel } from './WhatsAppPairingPanel';
 import { BroadcastPanel } from './BroadcastPanel';
 import { DataPanel } from './DataPanel';
 import { SignupCard, SIGNUP_INFLIGHT_KEY } from './SignupCard';
+import { agentOnboardingAnalytics } from '@/lib/analytics/agent-onboarding';
 import { supabase } from '@/lib/supabase/client';
 import {
   attachmentImportKind,
@@ -848,6 +849,9 @@ export function AgentChatPanel({
   // True once history loads if the couple has already provided anything (chat,
   // goals, guests, date/venue) — drives resume-vs-fresh on open.
   const [hasExistingData, setHasExistingData] = useState(false);
+  // Chat-onboarding funnel instrumentation (structure only, never content) —
+  // mirrors the wizard's onboardingAnalytics. See lib/analytics/agent-onboarding.ts.
+  const onboardingStatsRef = useRef({ started: false, answered: 0, signedUp: false, mountedAt: 0 });
   const [speak, setSpeak] = useState(false);
   const conversationIdRef = useRef<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -1055,6 +1059,8 @@ export function AgentChatPanel({
           void sendRef.current(
             `${HIDDEN_USER_PREFIX} I just created my account. Acknowledge in a few words and continue exactly where we left off.`
           );
+          onboardingStatsRef.current.signedUp = true;
+          agentOnboardingAnalytics.signupCompleted('google');
         }
       }
     });
@@ -1135,6 +1141,7 @@ export function AgentChatPanel({
       setDataPanel(event.panel);
       return;
     }
+    if (event.type === 'signup_required') agentOnboardingAnalytics.signupCardShown();
     setItems((prev) => {
       const next = [...prev];
       switch (event.type) {
@@ -1314,6 +1321,11 @@ export function AgentChatPanel({
   const resolveAnswers = useCallback(
     async (actionId: string, answers: Record<string, string | string[]>, questions: AgentQuestion[]) => {
       if (busy) return;
+      if (onboarding) {
+        const stats = onboardingStatsRef.current;
+        stats.answered += 1;
+        agentOnboardingAnalytics.questionAnswered(questions.map((q) => q.id).join(','), stats.answered);
+      }
       // Client-rendered cards (the scripted onboarding names question) have no
       // agent_actions row — resolve locally and hand the answers to the agent
       // as an answers-note turn instead of POSTing /api/agent/answer.
@@ -1338,7 +1350,9 @@ export function AgentChatPanel({
           });
           await streamChatRef.current(
             `${ANSWERS_NOTE_PREFIX} The user responded to the onboarding questions:\n${lines.join('\n')}\n` +
-              'If that answers the question, acknowledge them warmly by name and continue your onboarding ' +
+              'FIRST record their names with update_wedding_details (couple_name plus partner1_name/partner2_name) — ' +
+              'the wedding still carries the draft placeholder until you do. Then, if that answers the question, ' +
+              'acknowledge them warmly by name and continue your onboarding ' +
               'sequence from step 2 — the greeting and names question already happened; never repeat them. ' +
               'If it is actually a request or question instead, handle THAT first, then weave the onboarding back in naturally.'
           );
@@ -1383,7 +1397,7 @@ export function AgentChatPanel({
         onTurnComplete?.();
       }
     },
-    [busy, consumeStream, onTurnComplete]
+    [busy, consumeStream, onTurnComplete, onboarding]
   );
 
   const handleUpload = useCallback(
@@ -1494,6 +1508,8 @@ export function AgentChatPanel({
   // through /auth/callback instead): unlock the session and tell the agent.
   const handleSignupComplete = useCallback(
     (email: string | null) => {
+      onboardingStatsRef.current.signedUp = true;
+      agentOnboardingAnalytics.signupCompleted('email');
       setIsAnonSession(false);
       setItems((prev) => prev.map((it) => (it.kind === 'signup' ? { ...it, status: 'done' as const } : it)));
       void send(
@@ -1779,6 +1795,11 @@ export function AgentChatPanel({
       /* private mode */
     }
     if (stashed?.trim()) {
+      if (onboarding && !onboardingStatsRef.current.started) {
+        onboardingStatsRef.current.started = true;
+        onboardingStatsRef.current.mountedAt = Date.now();
+        agentOnboardingAnalytics.started('hero-message');
+      }
       const pq = pendingQuestions;
       // A file attached in the hero box rides a module store across the
       // client-side navigation; only its name survives a full auth redirect.
@@ -1839,6 +1860,11 @@ export function AgentChatPanel({
         // with no model round-trip (the old kickoff burned a full Opus turn
         // just to echo this greeting). The first LLM call happens when the
         // couple submits their names (see resolveAnswers' local branch).
+        if (onboarding && !onboardingStatsRef.current.started) {
+          onboardingStatsRef.current.started = true;
+          onboardingStatsRef.current.mountedAt = Date.now();
+          agentOnboardingAnalytics.started('cold-open');
+        }
         setItems((prev) => [
           ...prev,
           { kind: 'assistant', text: ONBOARDING_OPENER },
@@ -1859,6 +1885,32 @@ export function AgentChatPanel({
     send,
     speech,
   ]);
+
+  // Chat-onboarding abandonment: mirrors useOnboardingExitTracking for the
+  // wizard — fires at most once when the visitor leaves mid-intake.
+  const onboardingExitFiredRef = useRef(false);
+  useEffect(() => {
+    if (!onboarding) return;
+    const handleExit = () => {
+      const stats = onboardingStatsRef.current;
+      if (onboardingExitFiredRef.current || !stats.started) return;
+      onboardingExitFiredRef.current = true;
+      agentOnboardingAnalytics.abandoned({
+        answeredCount: stats.answered,
+        signedUp: stats.signedUp,
+        secondsOnPage: Math.round((Date.now() - stats.mountedAt) / 1000),
+      });
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') handleExit();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', handleExit);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', handleExit);
+    };
+  }, [onboarding]);
 
   const voiceOrbState: OrbState = busy
     ? 'thinking'

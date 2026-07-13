@@ -188,13 +188,15 @@ export const guestTools: AgentToolDefinition[] = [
     label: 'Tallying RSVPs',
     risk: 'read',
     description:
-      'Get RSVP totals for the wedding: per event, how many parties said yes/no and the total expected headcount, plus how many guests have not responded. Call this for questions like "how many people are coming?".',
+      'Get RSVP totals for the wedding: per event, how many parties said yes/no and the total expected headcount, plus how many guests have not responded — AND the invite-list totals (invites, expected people summing all party sizes, guests missing a phone number). Call this for questions like "how many people are coming?" or "how many are we expecting?" — never page through list_guests to add these up yourself.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     execute: async (_input, ctx) => {
-      const [{ count: guestCount }, { data: rsvps, error }, { data: events }] = await Promise.all([
+      const [{ data: guestRows, count: guestCount }, { data: rsvps, error }, { data: events }] = await Promise.all([
+        // Full-list party sizes + phones: cheap at wedding scale, and it means
+        // "how many people total?" is ONE read instead of paging list_guests.
         ctx.supabase
           .from('guests')
-          .select('id', { count: 'exact', head: true })
+          .select('id, phone, logistics_data', { count: 'exact' })
           .eq('wedding_id', ctx.weddingSlug),
         ctx.supabase
           .from('rsvps')
@@ -204,6 +206,11 @@ export const guestTools: AgentToolDefinition[] = [
         ctx.supabase.from('wedding_events').select('id, name').eq('wedding_id', ctx.weddingUuid),
       ]);
       if (error) throw new Error(error.message);
+      const expectedPeople = (guestRows ?? []).reduce((sum, g) => {
+        const party = (g.logistics_data as { party_size?: number } | null)?.party_size;
+        return sum + (typeof party === 'number' && party > 0 ? party : 1);
+      }, 0);
+      const missingPhone = (guestRows ?? []).filter((g) => !g.phone).length;
       const eventNames = new Map((events ?? []).map((e) => [e.id as string, e.name as string]));
       const byEvent = new Map<
         string,
@@ -226,15 +233,18 @@ export const guestTools: AgentToolDefinition[] = [
       const noResponse = Math.max(0, totalGuests - responded.size);
       return {
         total_guests: totalGuests,
+        expected_people: expectedPeople,
+        guests_missing_phone: missingPhone,
         responded: responded.size,
         no_response: noResponse,
         by_event: Object.fromEntries(byEvent),
-        summary: `${totalGuests} guests · ${responded.size} responded · ${noResponse} no reply`,
+        summary: `${totalGuests} invites (~${expectedPeople} people incl. plus-ones) · ${responded.size} responded · ${noResponse} no reply`,
         dataPanel: {
           kind: 'stats' as const,
           title: 'RSVPs',
           items: [
-            { label: 'Guests', value: String(totalGuests) },
+            { label: 'Invites', value: String(totalGuests) },
+            { label: 'Expected people', value: `~${expectedPeople}` },
             { label: 'Responded', value: String(responded.size) },
             { label: 'No reply', value: String(noResponse) },
             ...[...byEvent.entries()].map(([key, e]) => ({
