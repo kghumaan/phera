@@ -28,14 +28,21 @@ export async function POST(request: NextRequest) {
   }
 
   // If they already have a wedding, don't make another — send them to it.
+  // `fresh` says whether it's still an UNTOUCHED draft, which is what decides
+  // if the welcome/onboarding flow should run. "We just created it" is the
+  // wrong test: a prewarm creates the draft seconds before the visitor even
+  // arrives, and a visitor who returns later must not have the scripted
+  // welcome replayed over a wedding that now holds their real details.
   const { data: existing } = await supabase
     .from('weddings')
-    .select('slug')
+    .select('slug, couple_name, status')
     .eq('created_by', user.id)
     .order('created_at', { ascending: false })
     .limit(1);
   if (existing && existing.length > 0) {
-    return NextResponse.json({ slug: existing[0].slug, existing: true });
+    const wedding = existing[0];
+    const untouched = wedding.couple_name === DRAFT_COUPLE_NAME && wedding.status === 'draft';
+    return NextResponse.json({ slug: wedding.slug, existing: true, fresh: untouched });
   }
 
   const service = new WeddingService(supabase as never);
@@ -79,5 +86,5 @@ export async function POST(request: NextRequest) {
     await completeOnboardingFlag();
   }
 
-  return NextResponse.json({ slug: wedding.slug });
+  return NextResponse.json({ slug: wedding.slug, existing: false, fresh: true });
 }

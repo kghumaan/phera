@@ -108,8 +108,8 @@ export default function HeroPlannerChat({ showIdleHint = true }: { showIdleHint?
       // The attached file rides along to the planner (module store survives
       // the client-side navigation; the name survives even a full redirect).
       if (attachment) setPendingAttachment(attachment);
-      // Usually already resolved: the first keystroke prewarmed the session +
-      // draft wedding, so this await is instant and the hop starts immediately.
+      // The first keystroke already prewarmed the session and created the draft
+      // wedding, so what's left here is a fast read-back, not the slow create.
       const result = await startPlannerSession();
       if (!result.ok) {
         if (result.reason === 'no-session') {

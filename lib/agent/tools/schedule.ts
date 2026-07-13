@@ -109,6 +109,16 @@ export const scheduleTools: AgentToolDefinition[] = [
       required: ['name', 'date', 'time'],
       additionalProperties: false,
     },
+    captureBefore: async (input, ctx) => ({
+      restore: 'delete',
+      table: 'wedding_events',
+      match: {
+        wedding_id: ctx.weddingUuid,
+        name: input.name as string,
+        date: input.date as string,
+        time: input.time as string,
+      },
+    }),
     execute: async (input, ctx) => {
       const slug = String(input.name)
         .toLowerCase()
@@ -163,6 +173,19 @@ export const scheduleTools: AgentToolDefinition[] = [
       required: ['events'],
       additionalProperties: false,
     },
+    // Undo for a batch create = delete the rows it created, each matched by
+    // natural key. undo_last_action resolves all of them before deleting any,
+    // so a drafted schedule reverts whole or not at all.
+    captureBefore: async (input, ctx) => ({
+      restore: 'delete_many',
+      table: 'wedding_events',
+      matches: (input.events as Array<{ name: string; date: string; time: string }>).map((e) => ({
+        wedding_id: ctx.weddingUuid,
+        name: e.name,
+        date: e.date,
+        time: e.time,
+      })),
+    }),
     execute: async (input, ctx) => {
       const events = input.events as Array<{ name: string; date: string; time: string; dress_code?: string }>;
       const { count } = await ctx.supabase

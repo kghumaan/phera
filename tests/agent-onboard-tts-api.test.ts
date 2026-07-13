@@ -25,6 +25,7 @@ vi.mock('groq-sdk', () => ({
 import { POST as onboardStart } from '@/app/api/agent/onboard/start/route';
 import { POST as ttsPost } from '@/app/api/agent/tts/route';
 import { createFakeSupabase } from './mocks/fake-supabase';
+import { DRAFT_COUPLE_NAME } from '@/lib/constants/wedding-placeholders';
 
 function ttsRequest(body: unknown) {
   return new NextRequest('http://localhost/api/agent/tts', {
@@ -48,11 +49,29 @@ describe('POST /api/agent/onboard/start', () => {
   });
 
   it('returns the existing wedding instead of creating a duplicate', async () => {
-    const fake = createFakeSupabase({ weddings: { data: [{ slug: 'priya-rahul-2027' }] } });
+    const fake = createFakeSupabase({
+      weddings: { data: [{ slug: 'priya-rahul-2027', couple_name: 'Priya & Rahul', status: 'published' }] },
+    });
     mockGetAuthenticatedClient.mockResolvedValue({ supabase: fake.client, user: { id: 'u1' } });
     const res = await onboardStart(onboardRequest());
     const data = await res.json();
-    expect(data).toEqual({ slug: 'priya-rahul-2027', existing: true });
+    // fresh:false — this wedding holds real details, so the caller must NOT
+    // replay the scripted welcome onboarding over it.
+    expect(data).toEqual({ slug: 'priya-rahul-2027', existing: true, fresh: false });
+    expect(mockCreateWedding).not.toHaveBeenCalled();
+  });
+
+  it('reports an untouched draft as fresh, so the welcome flow still runs', async () => {
+    // The landing prewarm creates the draft before the visitor submits, so by
+    // the time they launch, their own empty draft comes back as `existing` —
+    // it must still be treated as fresh.
+    const fake = createFakeSupabase({
+      weddings: { data: [{ slug: 'draft-uuid', couple_name: DRAFT_COUPLE_NAME, status: 'draft' }] },
+    });
+    mockGetAuthenticatedClient.mockResolvedValue({ supabase: fake.client, user: { id: 'u1' } });
+    const res = await onboardStart(onboardRequest());
+    const data = await res.json();
+    expect(data).toEqual({ slug: 'draft-uuid', existing: true, fresh: true });
     expect(mockCreateWedding).not.toHaveBeenCalled();
   });
 

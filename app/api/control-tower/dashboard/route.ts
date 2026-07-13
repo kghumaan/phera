@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
-import { verifyWeddingAccess, verifyWeddingAccessBySlug } from '@/lib/utils/verify-wedding-access';
+import { resolveWeddingAccess } from '@/lib/utils/verify-wedding-access';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function safe<T>(fn: () => PromiseLike<any>, fallback: T): Promise<T> {
   try {
@@ -34,9 +33,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'weddingId is required' }, { status: 400 });
   }
 
-  const hasAccess = UUID_RE.test(weddingId)
-    ? await verifyWeddingAccess(userClient, user.id, weddingId)
-    : await verifyWeddingAccessBySlug(userClient, user.id, weddingId);
+  const wedding = await resolveWeddingAccess(userClient, user.id, weddingId);
+  const hasAccess = !!wedding;
   if (!hasAccess) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }

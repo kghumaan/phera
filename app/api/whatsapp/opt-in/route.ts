@@ -3,6 +3,9 @@ import { createOptIn, handleOptOut } from '@/lib/whatsapp/opt-ins';
 import { whatsappClient } from '@/lib/whatsapp/client';
 import { formatParametersForAPI } from '@/lib/whatsapp/templates';
 import { getOpsSupabaseAdmin } from '@/lib/ops/supabase-admin';
+import { checkRateLimit } from '@/lib/utils/rate-limiter';
+
+const digitsOnly = (phone: string) => phone.replace(/\D/g, '');
 
 /**
  * Best-effort RSVP confirmation template, sent server-side right after a
@@ -10,6 +13,10 @@ import { getOpsSupabaseAdmin } from '@/lib/ops/supabase-admin';
  * can't go through /api/whatsapp/send-template (admin-gated). Couple name
  * and date come from the wedding row — never hardcoded. Failures are
  * swallowed: the opt-in itself must never fail because of this.
+ *
+ * Both the number and the name come from the guest row, never from the
+ * request body: this route is public, so a body-supplied phone would make
+ * it an outbound relay for Phera's WhatsApp number.
  */
 async function sendRsvpConfirmation(
   weddingSlug: string,
@@ -54,7 +61,14 @@ async function sendRsvpConfirmation(
 
 export async function POST(request: NextRequest) {
   try {
-    const { action, guestId, weddingId, phoneNumber, method, guestName } = await request.json();
+    const limited = checkRateLimit(request, {
+      maxRequests: 10,
+      windowMs: 60_000,
+      keyPrefix: 'whatsapp-opt-in',
+    });
+    if (limited) return limited;
+
+    const { action, guestId, weddingId, phoneNumber, method } = await request.json();
 
     // Validate required fields
     if (!action || !guestId || !weddingId) {
@@ -73,10 +87,30 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // The guest must exist on THIS wedding and the submitted number must be
+      // the one already on their row (the RSVP form writes it moments earlier).
+      // Everything sent onwards comes from the row, not the body.
+      const { data: guest } = await getOpsSupabaseAdmin()
+        .from('guests')
+        .select('id, name, phone')
+        .eq('id', guestId)
+        .eq('wedding_id', weddingId)
+        .maybeSingle();
+
+      if (!guest) {
+        return NextResponse.json({ error: 'Guest not found for this wedding' }, { status: 404 });
+      }
+      if (!guest.phone || digitsOnly(guest.phone) !== digitsOnly(phoneNumber)) {
+        return NextResponse.json(
+          { error: 'Phone number does not match our records for this guest' },
+          { status: 400 }
+        );
+      }
+
       const result = await createOptIn(
         guestId,
         weddingId,
-        phoneNumber,
+        guest.phone,
         method || 'api'
       );
 
@@ -91,8 +125,8 @@ export async function POST(request: NextRequest) {
       if (method === 'rsvp_form') {
         confirmationSent = await sendRsvpConfirmation(
           weddingId,
-          phoneNumber,
-          typeof guestName === 'string' && guestName.trim() ? guestName.trim() : 'Guest'
+          guest.phone,
+          guest.name?.trim() || 'Guest'
         );
       }
 

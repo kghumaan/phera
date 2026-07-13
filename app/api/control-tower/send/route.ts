@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getProvider, getRateLimitMs, sendOutreach, sendMetaTemplate, type WhatsAppProvider } from '@/lib/whatsapp/provider';
 import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
-import { verifyWeddingAccess, verifyWeddingAccessBySlug } from '@/lib/utils/verify-wedding-access';
+import { resolveWeddingAccess } from '@/lib/utils/verify-wedding-access';
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -50,18 +49,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'weddingId is required' }, { status: 400 });
     }
 
-    const hasAccess = UUID_RE.test(weddingId)
-      ? await verifyWeddingAccess(userClient, user.id, weddingId)
-      : await verifyWeddingAccessBySlug(userClient, user.id, weddingId);
-    if (!hasAccess) {
+    const wedding = await resolveWeddingAccess(userClient, user.id, weddingId);
+    if (!wedding) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // Hand the handlers the CANONICAL slug/id off the authorized row, so nothing
+    // downstream re-derives a wedding from an unverified body field.
+    const scoped = { ...body, weddingId: wedding.slug, weddingUuid: wedding.id };
+
     if (mode === 'direct') {
-      return handleDirectMessage(body);
+      return handleDirectMessage(scoped);
     }
 
-    return handleTemplateCampaign(body);
+    return handleTemplateCampaign(scoped);
   } catch (error: any) {
     console.error('[control-tower/send] Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -432,17 +433,19 @@ async function handleTemplateCampaign(body: any) {
 // ─── Direct Message Handler ─────────────────────────────────────────
 
 async function handleDirectMessage(body: any) {
-  const { weddingId, guestId, message } = body;
+  const { weddingId, weddingUuid, guestId, message } = body;
 
   if (!guestId || !message) {
     return NextResponse.json({ error: 'guestId and message are required' }, { status: 400 });
   }
 
-  // Get guest info
+  // Scoped to the authorized wedding: a bare id lookup would let any signed-in
+  // owner message a guest belonging to someone else's wedding.
   const { data: guest, error: guestError } = await supabase
     .from('guests')
     .select('id, name, phone, whatsapp_opted_out')
     .eq('id', guestId)
+    .eq('wedding_id', weddingId)
     .single();
 
   if (guestError || !guest) {
@@ -465,14 +468,6 @@ async function handleDirectMessage(body: any) {
   }
 
   const messageId = sendResult.messageId;
-
-  // Resolve wedding UUID for chat history
-  let weddingUuid = weddingId;
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(weddingId);
-  if (!isUuid) {
-    const { data: w } = await supabase.from('weddings').select('id').eq('slug', weddingId).single();
-    if (w) weddingUuid = w.id;
-  }
 
   // Log to chat history
   await supabase.from('whatsapp_chat_history').insert({
