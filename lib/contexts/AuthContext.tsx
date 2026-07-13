@@ -24,6 +24,20 @@ function isPreviewRoute(): boolean {
   return window.location.pathname.startsWith('/preview/');
 }
 
+// DEV-ONLY: /api/dev/anon-login mints throwaway `dev-anon-*@phera.dev`
+// accounts that stand in for anonymous sessions when the Supabase anonymous
+// sign-ins toggle is off. Treat them as anonymous everywhere so no UI ever
+// surfaces the synthetic email. Gated to development — these accounts can't
+// exist in production (the route 404s there).
+function isDevAnonStandIn(email?: string | null): boolean {
+  return (
+    process.env.NODE_ENV === 'development' &&
+    !!email &&
+    email.startsWith('dev-anon-') &&
+    email.endsWith('@phera.dev')
+  );
+}
+
 interface User {
   id: string; // auth.users.id - used for admin checks
   guestId?: string | null; // guests.id - used for guest-specific operations
@@ -184,7 +198,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           guestId: guestData?.id || null,
           email: sbUser.email || '',
           name: displayName,
-          is_anonymous: (sbUser as { is_anonymous?: boolean }).is_anonymous === true,
+          is_anonymous:
+            (sbUser as { is_anonymous?: boolean }).is_anonymous === true ||
+            isDevAnonStandIn(sbUser.email),
           phone: guestData?.phone || sbUser.phone,
           initials: generateInitials(displayName),
           // Use DB avatar_color as source of truth so it matches posted comments
