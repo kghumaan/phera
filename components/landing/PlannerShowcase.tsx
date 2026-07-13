@@ -222,19 +222,46 @@ export default function PlannerShowcase() {
   const [step, setStep] = useState(0);
   // Once the user clicks any card, auto-advance pauses permanently.
   const pausedRef = useRef(false);
+  // The conversation stays frozen until the section scrolls into view, so
+  // the first scenario doesn't burn through off-screen before anyone sees it.
+  const sectionRef = useRef<HTMLElement>(null);
+  const [inView, setInView] = useState(false);
+
+  // Start playing the moment the section first enters the viewport.
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    // No IntersectionObserver (or already in view on load) → play immediately.
+    if (typeof IntersectionObserver === 'undefined') {
+      setInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.25 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   // Auto-advance once the active conversation has fully played out (plus a
   // rest so the finished thread can be read), until the user takes over.
   useEffect(() => {
-    if (pausedRef.current) return;
+    if (!inView || pausedRef.current) return;
     const id = setTimeout(() => {
       if (!pausedRef.current) setActive((a) => (a + 1) % SCENARIOS.length);
     }, scriptDurationMs(SCENARIOS[active].script) + ADVANCE_REST_MS);
     return () => clearTimeout(id);
-  }, [active]);
+  }, [active, inView]);
 
   // Beat-by-beat reveal of the active conversation.
   useEffect(() => {
+    if (!inView) return;
     setStep(0);
     const timeouts: ReturnType<typeof setTimeout>[] = [];
     let at = 250;
@@ -243,7 +270,7 @@ export default function PlannerShowcase() {
       at += DWELL_MS[item.kind];
     });
     return () => timeouts.forEach(clearTimeout);
-  }, [active]);
+  }, [active, inView]);
 
   const select = (i: number) => {
     pausedRef.current = true;
@@ -254,6 +281,7 @@ export default function PlannerShowcase() {
 
   return (
     <section
+      ref={sectionRef}
       id="service"
       className="section bg-textured bg-paper-floral"
       style={{ background: 'var(--paper)' }}
