@@ -287,22 +287,21 @@
   animation: phera-garland-sway 4.5s ease-in-out infinite;
   transform-origin: top center;
 }
-.phera-landing .hero-garland-left { left: 0; }
-.phera-landing .hero-garland-right { right: 0; animation-delay: -2.25s; transform-origin: top center; animation-name: phera-garland-sway-r; }
+/* Tucked a few px past the viewport edge so the PNG's straight crop line
+   stays hidden through the full swing. */
+.phera-landing .hero-garland-left { left: -10px; }
+.phera-landing .hero-garland-right { right: -10px; animation-delay: -2.25s; transform-origin: top center; animation-name: phera-garland-sway-r; }
 
-/* Pendulum-style dangle — wider swing with an eased settle so the garlands
-   feel like they're hanging and gently swaying, not just tilting. */
+/* Pendulum sway — keyframes only at the extremes, where a pendulum's
+   velocity is naturally zero. Intermediate waypoints would make ease-in-out
+   decelerate to a stop mid-swing (a visible hitch). */
 @keyframes phera-garland-sway {
   0%, 100% { transform: rotate(-3.6deg); }
-  25% { transform: rotate(1.4deg); }
   50% { transform: rotate(3.6deg); }
-  75% { transform: rotate(-1.4deg); }
 }
 @keyframes phera-garland-sway-r {
   0%, 100% { transform: rotate(3.6deg); }
-  25% { transform: rotate(-1.4deg); }
   50% { transform: rotate(-3.6deg); }
-  75% { transform: rotate(1.4deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {

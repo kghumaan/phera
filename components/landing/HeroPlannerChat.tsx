@@ -6,13 +6,14 @@ import { CircularProgress } from '@mui/material';
 import AttachFileRoundedIcon from '@mui/icons-material/AttachFileRounded';
 import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import { supabase } from '@/lib/supabase/client';
 import { setPendingAttachment } from '@/lib/agent/pending-attachment';
 import { COLORS, RADII, SHADOWS } from '@/lib/theme/tokens';
-
-/** Must match AgentChatPanel's PENDING_FIRST_MESSAGE_KEY — the planner replays
- *  this as the visitor's opening turn the moment the chat mounts. */
-const PENDING_FIRST_MESSAGE_KEY = 'phera-pending-first-message';
+import {
+  PENDING_FIRST_MESSAGE_KEY,
+  ensurePlannerSession,
+  prewarmPlanner,
+  startPlannerSession,
+} from './planner-launch';
 
 /** The rotating "things you can ask" — typed out one by one in the box.
  *  Written the way couples actually talk: specific people, real asks. */
@@ -73,8 +74,13 @@ function useTypewriter(active: boolean) {
  * pre-warm everything (anonymous Supabase session + the assistant route's JS);
  * on submit we create the draft wedding, stash the message, and navigate. The
  * planner replays the message as the opening turn.
+ *
+ * `showIdleHint` controls the "Free to start, no credit card required." line
+ * under the box. The landing hero turns it off and renders that line itself
+ * (below its Get Started button); blog embeds keep the default. Error and
+ * busy text always render regardless — they belong to the box.
  */
-export default function HeroPlannerChat() {
+export default function HeroPlannerChat({ showIdleHint = true }: { showIdleHint?: boolean }) {
   const router = useRouter();
   const [value, setValue] = useState('');
   const [focused, setFocused] = useState(false);
@@ -83,50 +89,10 @@ export default function HeroPlannerChat() {
   const [attachment, setAttachment] = useState<File | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  // One-shot pre-warm: kicked on first focus, awaited on submit.
-  const prewarmRef = useRef<Promise<boolean> | null>(null);
 
   const typed = useTypewriter(!focused && value.length === 0 && !busy);
 
-  const ensureSession = useCallback((): Promise<boolean> => {
-    if (!prewarmRef.current) {
-      prewarmRef.current = (async () => {
-        try {
-          const { data } = await supabase.auth.getSession();
-          if (data.session) return true;
-          const { error: anonError } = await supabase.auth.signInAnonymously();
-          if (!anonError) return true;
-          // DEV-ONLY test bypass: when anonymous sign-ins are disabled on the
-          // Supabase project, a dev-only route mints a confirmed throwaway
-          // account so the whole flow stays testable locally. Compiled out of
-          // production builds (NODE_ENV is inlined) AND the route 404s in
-          // production. Note: this user is NOT is_anonymous, so the agent's
-          // signup-card behavior still needs the real toggle to test.
-          if (process.env.NODE_ENV === 'development') {
-            const res = await fetch('/api/dev/anon-login', { method: 'POST' });
-            if (res.ok) {
-              const creds = (await res.json()) as { email: string; password: string };
-              const { error: pwError } = await supabase.auth.signInWithPassword(creds);
-              if (!pwError) {
-                console.warn('[hero-chat] DEV bypass: anonymous sign-ins disabled — using throwaway account');
-                return true;
-              }
-            }
-          }
-          return false;
-        } catch {
-          return false;
-        }
-      })();
-    }
-    return prewarmRef.current;
-  }, []);
-
-  const prewarm = useCallback(() => {
-    void ensureSession();
-    router.prefetch('/admin/_/assistant');
-    void import('@/components/agent/AgentChatPanel');
-  }, [ensureSession, router]);
+  const prewarm = useCallback(() => prewarmPlanner(router), [router]);
 
   const submit = useCallback(async () => {
     const message = value.trim();
@@ -142,26 +108,25 @@ export default function HeroPlannerChat() {
       // The attached file rides along to the planner (module store survives
       // the client-side navigation; the name survives even a full redirect).
       if (attachment) setPendingAttachment(attachment);
-      const hasSession = await ensureSession();
+      const hasSession = await ensurePlannerSession();
       if (!hasSession) {
         // Anonymous sign-ins unavailable — the stash survives the signup flow,
         // so their message still opens the conversation after they register.
         router.push('/auth/signup');
         return;
       }
-      const res = await fetch('/api/agent/onboard/start', { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok || !data.slug) {
-        setError(data.error ?? "Couldn't start your planner just now — please try again.");
+      const result = await startPlannerSession();
+      if (!result.ok) {
+        setError(result.error);
         setBusy(false);
         return;
       }
-      router.push(`/admin/${data.slug}/assistant?welcome=1&fresh=1`);
+      router.push(result.url);
     } catch {
       setError("Couldn't start your planner just now — please try again.");
       setBusy(false);
     }
-  }, [value, busy, attachment, ensureSession, router]);
+  }, [value, busy, attachment, router]);
 
   const pickAttachment = (file: File | undefined) => {
     if (!file) return;
@@ -381,19 +346,21 @@ export default function HeroPlannerChat() {
           </button>
         </div>
       </div>
-      <p
-        style={{
-          margin: '12px 4px 0',
-          fontSize: 14,
-          // Token, not var(--text-subtle): that CSS var only exists in
-          // landing-design.css, and this component is also embedded in blog
-          // posts, which don't load it. Same value.
-          color: busy ? COLORS.text.muted : COLORS.text.subtle,
-          lineHeight: 1.5,
-        }}
-      >
-        {error ?? (busy ? 'Setting up your planner…' : 'Free to start, no credit card required.')}
-      </p>
+      {(error || busy || showIdleHint) && (
+        <p
+          style={{
+            margin: '12px 4px 0',
+            fontSize: 14,
+            // Token, not var(--text-subtle): that CSS var only exists in
+            // landing-design.css, and this component is also embedded in blog
+            // posts, which don't load it. Same value.
+            color: busy ? COLORS.text.muted : COLORS.text.subtle,
+            lineHeight: 1.5,
+          }}
+        >
+          {error ?? (busy ? 'Setting up your planner…' : 'Free to start, no credit card required.')}
+        </p>
+      )}
       <style>{`
         @keyframes phera-caret-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
       `}</style>

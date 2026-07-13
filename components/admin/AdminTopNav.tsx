@@ -35,6 +35,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 import { usePlan } from '@/lib/contexts/PlanContext';
 import { weddingService } from '@/lib/supabase/wedding-service';
+import { generateAvatar } from '@/lib/utils/avatar-generator';
 import { isDemoUser } from '@/lib/demo/coordinator-mock-data';
 import { isSuperAdminEmail } from '@/lib/constants/super-admins';
 
@@ -82,6 +83,15 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
     };
 
     const isDemo = isDemoUser();
+
+    // Always show the shapes avatar — for accounts with no stored avatar yet
+    // (fresh signups, anonymous planner sessions) generate one from the stable
+    // user id instead of falling back to a letter initial.
+    const avatarSvg = React.useMemo(() => {
+        if (user?.avatar_svg) return user.avatar_svg;
+        if (user?.id) return generateAvatar({ seed: user.id }).svg;
+        return null;
+    }, [user?.avatar_svg, user?.id]);
 
     const handleSignOut = () => {
         handleMenuClose();
@@ -292,9 +302,9 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                 boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                             }}
                         >
-                            {user?.avatar_svg ? (
+                            {avatarSvg ? (
                                 <Box
-                                    dangerouslySetInnerHTML={{ __html: user.avatar_svg }}
+                                    dangerouslySetInnerHTML={{ __html: avatarSvg }}
                                     sx={{
                                         width: '100%',
                                         height: '100%',
@@ -363,9 +373,9 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                     mb: 1,
                                 }}
                             >
-                                {user?.avatar_svg ? (
+                                {avatarSvg ? (
                                     <Box
-                                        dangerouslySetInnerHTML={{ __html: user.avatar_svg }}
+                                        dangerouslySetInnerHTML={{ __html: avatarSvg }}
                                         sx={{
                                             width: '100%',
                                             height: '100%',
@@ -382,9 +392,14 @@ export default function AdminTopNav({ weddingSlug, wedding, onMenuToggle }: Admi
                                     user?.initials || user?.email?.[0].toUpperCase() || 'U'
                                 )}
                             </Avatar>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong, lineHeight: 1.2 }}>
-                                {wedding?.couple_name || 'Your Wedding'}
-                            </Typography>
+                            {/* No wedding name / email until they have a real
+                                account — anonymous planner sessions only get
+                                the guest-preview hint. */}
+                            {!user?.is_anonymous && (
+                                <Typography variant="h6" sx={{ fontWeight: 700, color: COLORS.text.strong, lineHeight: 1.2 }}>
+                                    {wedding?.couple_name || 'Your Wedding'}
+                                </Typography>
+                            )}
                             <Typography variant="body2" sx={{ color: COLORS.text.muted, mt: 0.5, fontSize: '0.875rem' }}>
                                 {isDemo ? 'Demo Mode' : user?.is_anonymous ? 'Guest preview — not saved yet' : user?.email}
                             </Typography>
