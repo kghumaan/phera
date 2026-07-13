@@ -157,6 +157,7 @@ describe('handlePartialDelivery', () => {
       optedOut: [{ phoneNumber: '+91004', guestId: 'g4', status: 'opted_out', errorCode: 131050 }],
       failed: [{ phoneNumber: '+91005', guestId: 'g5', status: 'failed', error: 'Internal error' }],
       total: 5,
+      provider: 'meta',
     };
 
     const result = handlePartialDelivery(batchResult);

@@ -30,3 +30,31 @@ export async function verifyWeddingAccess(
 
   return !!admin;
 }
+
+/**
+ * Same check, but keyed by the wedding's slug (guests/rsvps/etc. store
+ * wedding_id as the TEXT slug, not the weddings.id UUID).
+ */
+export async function verifyWeddingAccessBySlug(
+  supabase: SupabaseClient,
+  userId: string,
+  weddingSlug: string
+): Promise<boolean> {
+  const { data: wedding } = await supabase
+    .from('weddings')
+    .select('id, created_by')
+    .eq('slug', weddingSlug)
+    .single();
+
+  if (!wedding) return false;
+  if (wedding.created_by === userId) return true;
+
+  const { data: admin } = await supabase
+    .from('wedding_admins')
+    .select('id')
+    .eq('wedding_id', wedding.id)
+    .eq('user_id', userId)
+    .single();
+
+  return !!admin;
+}

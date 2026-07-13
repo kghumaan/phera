@@ -151,7 +151,9 @@ export class WeddingService {
       .select('wedding_id')
       .eq('user_id', userId);
 
-    const adminWeddingIds = (adminEntries || []).map((e: { wedding_id: string }) => e.wedding_id);
+    const adminWeddingIds = (adminEntries || [])
+      .map((e: { wedding_id: string | null }) => e.wedding_id)
+      .filter((id): id is string => !!id);
 
     // Fetch weddings created by user OR where they are an admin
     const { data, error } = await this.supabase
@@ -1464,7 +1466,7 @@ export class WeddingService {
     return data as Task[];
   }
 
-  async createTask(task: Partial<Task>): Promise<Task | null> {
+  async createTask(task: Partial<Task> & { title: string; wedding_id: string }): Promise<Task | null> {
     const { data, error } = await this.supabase
       .from('wedding_tasks')
       .insert([task])

@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { sendWhapiText } from '@/lib/whatsapp/whapi-send';
 import type { BroadcastDataField, BroadcastTargetType } from '@/lib/supabase/broadcasts-service';
 import { guestMatchesTags } from '@/lib/utils/guest-tags';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { verifyWeddingAccess } from '@/lib/utils/verify-wedding-access';
 
 /**
  * Create + send a broadcast.
@@ -26,6 +28,11 @@ import { guestMatchesTags } from '@/lib/utils/guest-tags';
  * are recorded with delivery_status='failed'.
  */
 export async function POST(req: NextRequest) {
+  const { supabase: userClient, user } = await getAuthenticatedClient();
+  if (!userClient || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const body = await req.json();
   const {
     weddingId,
@@ -49,6 +56,11 @@ export async function POST(req: NextRequest) {
 
   if (!weddingId || !weddingSlug || !message?.trim() || !targetType) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  }
+
+  const hasAccess = await verifyWeddingAccess(userClient, user.id, weddingId);
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { generateFallbackColor } from '@/lib/utils/avatar-generator';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { verifyWeddingAccessBySlug } from '@/lib/utils/verify-wedding-access';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -71,6 +73,11 @@ function normalizePhone(phone: string, countryCode?: string): string {
  */
 export async function POST(request: NextRequest) {
   try {
+    const { supabase: userClient, user } = await getAuthenticatedClient();
+    if (!userClient || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { wedding_id, guests } = (await request.json()) as {
       wedding_id: string;
       guests: GuestInput[];
@@ -78,6 +85,11 @@ export async function POST(request: NextRequest) {
 
     if (!wedding_id || !Array.isArray(guests) || guests.length === 0) {
       return NextResponse.json({ error: 'wedding_id and non-empty guests array required' }, { status: 400 });
+    }
+
+    const hasAccess = await verifyWeddingAccessBySlug(userClient, user.id, wedding_id);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Load existing guests for duplicate detection

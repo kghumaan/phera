@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendWhapiText } from '@/lib/whatsapp/whapi-send';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
 
 /**
  * Test WhatsApp send endpoint. Routes through Whapi (our SIM-connected number).
+ * Dev/debug tool — requires a logged-in session so it can't be used as an
+ * anonymous messaging relay.
  */
 export async function POST(request: NextRequest) {
   try {
+    const { user } = await getAuthenticatedClient();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { phoneNumber, message } = await request.json();
 
     if (!phoneNumber || !message) {

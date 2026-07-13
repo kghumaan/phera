@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { verifyWeddingAccessBySlug } from '@/lib/utils/verify-wedding-access';
+import { guestTags } from '@/lib/utils/guest-tags';
 
 export const runtime = 'nodejs';
 
@@ -17,8 +20,8 @@ interface Room {
 }
 
 function tagOf(g: Guest): string {
-  const t = g.logistics_data?.tag;
-  return typeof t === 'string' && t.trim() ? t.trim().toLowerCase() : '';
+  // Reads both logistics_data.tags (modern array) and legacy .tag via guestTags.
+  return guestTags(g.logistics_data)[0]?.toLowerCase() ?? '';
 }
 
 function sortByTag(list: Guest[]): Guest[] {
@@ -60,9 +63,19 @@ export async function POST(request: NextRequest) {
   const supabase = createClient(url, serviceKey);
 
   try {
+    const { supabase: userClient, user } = await getAuthenticatedClient();
+    if (!userClient || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { weddingSlug } = await request.json();
     if (!weddingSlug || typeof weddingSlug !== 'string') {
       return NextResponse.json({ error: 'weddingSlug is required' }, { status: 400 });
+    }
+
+    const hasAccess = await verifyWeddingAccessBySlug(userClient, user.id, weddingSlug);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const [{ data: guestsData, error: guestsErr }, { data: roomsData, error: roomsErr }] = await Promise.all([

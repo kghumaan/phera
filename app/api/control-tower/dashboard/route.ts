@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { verifyWeddingAccess, verifyWeddingAccessBySlug } from '@/lib/utils/verify-wedding-access';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function safe<T>(fn: () => PromiseLike<any>, fallback: T): Promise<T> {
   try {
@@ -20,9 +24,21 @@ async function safe<T>(fn: () => PromiseLike<any>, fallback: T): Promise<T> {
  * Single consolidated endpoint for the Control Tower dashboard.
  */
 export async function GET(request: NextRequest) {
+  const { supabase: userClient, user } = await getAuthenticatedClient();
+  if (!userClient || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const weddingId = request.nextUrl.searchParams.get('weddingId');
   if (!weddingId) {
     return NextResponse.json({ error: 'weddingId is required' }, { status: 400 });
+  }
+
+  const hasAccess = UUID_RE.test(weddingId)
+    ? await verifyWeddingAccess(userClient, user.id, weddingId)
+    : await verifyWeddingAccessBySlug(userClient, user.id, weddingId);
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   try {

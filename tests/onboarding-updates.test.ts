@@ -87,7 +87,7 @@ describe('Onboarding Updates', () => {
     });
 
     it('should route to control tower if guests exist', () => {
-      const guestCount = 10;
+      const guestCount: number = 10;
       const route = guestCount === 0 ? '/guest-list' : '/control-tower';
       expect(route).toBe('/control-tower');
     });

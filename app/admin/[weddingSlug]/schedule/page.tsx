@@ -237,6 +237,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
         const orderIndex = day ? day.events.length : 0;
         await weddingService.createScheduleItem({
           ...formData,
+          name: formData.name || '',
           schedule_id: dayId,
           order_index: orderIndex,
           time: formData.time || '',
@@ -306,6 +307,7 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
         const orderIndex = day ? day.events.length : 0;
         const created = await weddingService.createScheduleItem({
           ...formData,
+          name: formData.name || '',
           is_major_event: true,
           schedule_id: dayId,
           order_index: orderIndex,

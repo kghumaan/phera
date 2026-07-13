@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { sendWhapiText } from '@/lib/whatsapp/whapi-send';
 import { renderTemplate, getInviteTemplate } from '@/lib/invites/templates';
 import type { BroadcastDataField } from '@/lib/supabase/broadcasts-service';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { verifyWeddingAccessBySlug } from '@/lib/utils/verify-wedding-access';
 
 /**
  * Send an invite template through the Concierge WhatsApp number (Whapi),
@@ -59,6 +61,15 @@ export async function POST(req: NextRequest) {
 
   if (!weddingSlug || !templateId || !targetType) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  }
+
+  const { supabase: userClient, user } = await getAuthenticatedClient();
+  if (!userClient || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const hasAccess = await verifyWeddingAccessBySlug(userClient, user.id, weddingSlug);
+  if (!hasAccess) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const template = getInviteTemplate(templateId);

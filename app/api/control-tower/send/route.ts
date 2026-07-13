@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { getProvider, getRateLimitMs, sendOutreach, sendMetaTemplate, type WhatsAppProvider } from '@/lib/whatsapp/provider';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { verifyWeddingAccess, verifyWeddingAccessBySlug } from '@/lib/utils/verify-wedding-access';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,11 +38,23 @@ const supabase = createClient(
  */
 export async function POST(request: NextRequest) {
   try {
+    const { supabase: userClient, user } = await getAuthenticatedClient();
+    if (!userClient || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { weddingId, mode } = body;
 
     if (!weddingId) {
       return NextResponse.json({ error: 'weddingId is required' }, { status: 400 });
+    }
+
+    const hasAccess = UUID_RE.test(weddingId)
+      ? await verifyWeddingAccess(userClient, user.id, weddingId)
+      : await verifyWeddingAccessBySlug(userClient, user.id, weddingId);
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     if (mode === 'direct') {

@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { checkRateLimit } from '@/lib/utils/rate-limiter';
 
 const gemini = process.env.GEMINI_API_KEY
   ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
@@ -13,6 +15,13 @@ const gemini = process.env.GEMINI_API_KEY
  */
 export async function POST(req: NextRequest) {
   try {
+    const { user } = await getAuthenticatedClient();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const limited = checkRateLimit(req, { maxRequests: 30, windowMs: 60_000, keyPrefix: 'broadcast-suggest-fields' });
+    if (limited) return limited;
+
     const { message } = await req.json();
     const trimmed = (message || '').trim();
     if (!trimmed || trimmed.length < 6) {
