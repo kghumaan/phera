@@ -3,6 +3,7 @@ import { ArrowBack } from '@mui/icons-material';
 import Link from 'next/link';
 import { Metadata } from 'next';
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import remarkGfm from 'remark-gfm';
 import AppHeader from '@/components/shared/AppHeader';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import { BACKGROUNDS } from '@/lib/constants/images';
@@ -10,7 +11,7 @@ import MDXComponents from '@/components/blog/MDXComponents';
 import { getPostBySlug, getAllSlugs } from '@/lib/blog';
 import { notFound } from 'next/navigation';
 import AppFooter from '@/components/shared/AppFooter';
-import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
+import { COLORS, FONTS } from '@/lib/theme/tokens';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -229,7 +230,11 @@ export default async function BlogPostPage({ params }: PageProps) {
               maxWidth: 720,
             }}
           >
-            <MDXRemote source={post.content} components={MDXComponents} />
+            <MDXRemote
+              source={post.content}
+              components={MDXComponents}
+              options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
+            />
           </Box>
 
           {/* CTA */}
