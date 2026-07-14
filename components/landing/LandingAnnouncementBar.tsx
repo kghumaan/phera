@@ -6,9 +6,9 @@
  * The landing header is `position: fixed` over the hero, so a top strip would
  * collide with it — instead this floats bottom-right (bottom strip on mobile),
  * above page content but below modals. Dismissal persists in localStorage so it
- * shows once per visitor (until they clear storage). Copy frames the
- * early-access offer without naming it "beta": we're onboarding the first
- * couples & planners hands-on, for free.
+ * shows once per visitor (until they clear storage). Copy frames the offer
+ * around the beta launch and deliberately names NO headcount — an exact number
+ * is a public promise we'd have to keep.
  */
 
 import { useEffect, useState } from 'react';
@@ -121,7 +121,7 @@ export default function LandingAnnouncementBar() {
             <Typography variant="body2" component="div" sx={{ fontWeight: 700, color: COLORS.text.strong, lineHeight: 1.35 }}>
               We&apos;re building custom features{' '}
               <Box component="span" sx={{ color: COLORS.brand.primary }}>free</Box>
-              {' '}— for our first 10 couples &amp; planners
+              {' '}— for couples &amp; planners in our beta launch
             </Typography>
             <Typography variant="body2" component="div" sx={{ color: COLORS.text.muted, lineHeight: 1.45, mt: 0.25 }}>
               <Box

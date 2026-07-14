@@ -27,6 +27,7 @@ import AttachFileRoundedIcon from '@mui/icons-material/AttachFileRounded';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import GridOnRoundedIcon from '@mui/icons-material/GridOnRounded';
+import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import { Reveal, SectionHeader } from './design-primitives';
 import { PheraChip } from '@/components/shared/Chip';
@@ -37,7 +38,7 @@ import { COLORS, FONTS, RADII, SHADOWS } from '@/lib/theme/tokens';
 type ChatItem =
   | { kind: 'user'; text: string }
   | { kind: 'working'; text: string }
-  | { kind: 'upload'; fileName: string; fileSize: string }
+  | { kind: 'upload'; fileName: string; fileSize: string; fileKind?: 'sheet' | 'pdf' }
   | { kind: 'receipt'; label: string; summary: string; undo?: boolean }
   | { kind: 'assistant'; text: string }
   | { kind: 'confirm'; label: string; summary: string; reason: string }
@@ -131,9 +132,13 @@ const SCENARIOS: Scenario[] = [
     title: 'Sleep 200 guests without a spreadsheet',
     tier: 'Base',
     script: [
-      { kind: 'user', text: "Here's the Sheraton's floor plan — keep both families close to us." },
+      { kind: 'user', text: 'The hotel sent over their floor plan — can you sort our rooms from it?' },
+      { kind: 'assistant', text: "Send it across and I'll read it — then tell me who you want near you." },
+      { kind: 'upload', fileName: 'floor_plan.pdf', fileSize: '1.8 MB', fileKind: 'pdf' },
       { kind: 'working', text: 'Reading floor plan…' },
       { kind: 'receipt', label: 'Floor plan read', summary: '84 rooms across 4 floors' },
+      { kind: 'user', text: 'Keep both families close to us.' },
+      { kind: 'working', text: 'Assigning rooms…' },
       {
         kind: 'assistant',
         text: 'Assigned 178 guests: both families on your floor, grandparents near the lifts, and college friends safely down the hall.',
@@ -604,9 +609,10 @@ function ChatItemView({ item }: { item: ChatItem }) {
         </Stack>
       );
 
-    case 'upload':
-      // The real import flow's file card: name + size, spreadsheet glyph, and
-      // a progress bar that fills once on mount (see the pshow-progress CSS).
+    case 'upload': {
+      // The real import flow's file card: name + size, a glyph matching the file
+      // type, and a progress bar that fills once on mount (see pshow-progress CSS).
+      const isPdf = item.fileKind === 'pdf';
       return (
         <Box
           sx={{
@@ -625,15 +631,19 @@ function ChatItemView({ item }: { item: ChatItem }) {
                 width: 32,
                 height: 32,
                 borderRadius: RADII.sm,
-                bgcolor: COLORS.accent.successBg,
-                color: COLORS.accent.successText,
+                bgcolor: isPdf ? COLORS.brand.primarySubtle : COLORS.accent.successBg,
+                color: isPdf ? COLORS.brand.primary : COLORS.accent.successText,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flex: 'none',
               }}
             >
-              <GridOnRoundedIcon sx={{ fontSize: 18 }} />
+              {isPdf ? (
+                <PictureAsPdfRoundedIcon sx={{ fontSize: 18 }} />
+              ) : (
+                <GridOnRoundedIcon sx={{ fontSize: 18 }} />
+              )}
             </Box>
             <Box sx={{ minWidth: 0 }}>
               <Typography
@@ -655,6 +665,7 @@ function ChatItemView({ item }: { item: ChatItem }) {
           </Box>
         </Box>
       );
+    }
 
     case 'chip':
       // The collapsed state of a resolved Confirm card.

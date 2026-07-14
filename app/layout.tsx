@@ -103,8 +103,13 @@ export const metadata: Metadata = {
   creator: "Phera",
   publisher: "Phera",
 
-  // Icons — white lotus-flame on a #1a1a1a tile. The bare logo-lotus-flame.svg
-  // is white-on-transparent, which disappears against a light browser tab.
+  // Tab icons: the WHITE lotus-flame on a TRANSPARENT ground. Pure white would
+  // vanish against a light tab strip, so the glyph carries a soft dark contour —
+  // invisible on a dark tab (reads as pure white), and an edge that keeps the
+  // shape legible on a light one.
+  // The apple/PWA icons keep an OPAQUE tile on purpose: iOS flattens alpha to
+  // black and Android maskable icons are composited over a system background,
+  // so a transparent white mark could land on white and disappear.
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
