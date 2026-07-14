@@ -72,6 +72,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Could not create your wedding — please try again.' }, { status: 500 });
   }
 
+  // Two tabs (or any client without the in-flight dedupe) can race this route:
+  // both read "no wedding" and both insert. Reconcile after the fact — the
+  // OLDEST wedding for this user wins, and a loser deletes the row it just made
+  // so the couple can never end up with two drafts and a chat pointing at the
+  // one they aren't looking at.
+  const { data: mine } = await supabase
+    .from('weddings')
+    .select('id, slug, created_at')
+    .eq('created_by', user.id)
+    .order('created_at', { ascending: true });
+  const winner = mine?.[0];
+  if (winner && winner.id !== wedding.id) {
+    await supabase.from('weddings').delete().eq('id', wedding.id).eq('created_by', user.id);
+    return NextResponse.json({ slug: winner.slug, existing: true, fresh: true });
+  }
+
   // Not needed for the redirect — run it after the response is sent. (It only
   // matters later: the auth callback checks it to avoid bouncing to /welcome.)
   // Outside a Next request scope (tests), after() throws — run inline instead.

@@ -6,6 +6,7 @@ import { maybeCompactConversation } from './compact';
 import { HIDDEN_KICKOFF_PREFIX } from './message-prefixes';
 import { AGENT_SYSTEM_PROMPT } from './system-prompt';
 import { getAllTools, dispatchTool } from './tools';
+import { openSectionIfNeeded, sectionAskedFor } from './tools/handoff';
 import type {
   AgentChatMessage,
   AgentContentBlock,
@@ -308,6 +309,7 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
   // Whether the round cap cut the turn off mid-tool-use — if so we force one
   // final text-only round so the user never gets a silent stall.
   let cappedMidToolUse = false;
+  let handedOff = false;
 
   // ONBOARDING FAST PATH: answers to the scripted intake cards (names → stage →
   // city → goals) are narrow, high-traffic fact-recording — a fast model handles
@@ -394,6 +396,15 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       if (dispatched.dataPanel) {
         onEvent({ type: 'data_panel', panel: dispatched.dataPanel });
       }
+      // Handoff to a rich section renders a button; publishing renders the live
+      // link. Both are non-blocking — the agent keeps talking around them.
+      if (dispatched.sectionHandoff) {
+        handedOff = true;
+        onEvent({ type: 'section_handoff', ...dispatched.sectionHandoff });
+      }
+      if (dispatched.websitePublished) {
+        onEvent({ type: 'website_published', url: dispatched.websitePublished.url });
+      }
       if (dispatched.signupRequired) {
         onEvent({ type: 'signup_required' });
       } else if (dispatched.uploadKind) {
@@ -475,6 +486,26 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       pendingWrites.push(
         persistMessage(supabase, conversationId, { role: 'assistant', content: textOnly }, stamp())
       );
+    }
+  }
+
+  // SAFETY NET — the door must open. The website, guest list and rooms can only
+  // really be done in their own UI, so a turn that answers "build our website" /
+  // "sort the guest list" / "put people in rooms" and never renders the button
+  // leaves them with nowhere to go. The model, told to be helpful, likes to
+  // draft copy instead. If it did that, open the section for them anyway.
+  if (!handedOff) {
+    const asked = sectionAskedFor(args.userMessage);
+    if (asked) {
+      try {
+        const handoff = await openSectionIfNeeded(asked, toolCtx);
+        if (handoff) {
+          console.log(`[agent] handoff safety net opened ${asked} (model didn't)`);
+          onEvent({ type: 'section_handoff', ...handoff });
+        }
+      } catch (error) {
+        console.error('[agent] section handoff safety net failed:', error);
+      }
     }
   }
 

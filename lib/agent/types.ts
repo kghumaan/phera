@@ -104,6 +104,13 @@ export type AgentStreamEvent =
   | { type: 'questions_required'; actionId: string; questions: AgentQuestion[] }
   /** The user reached a Pro-only feature on a Basic plan — render an upgrade card. */
   | { type: 'upgrade_required'; feature: string }
+  /** The agent sent them to a rich section (website / guest list / rooms). The
+   *  client renders a real BUTTON, not a pasted link — this is a handoff, and it
+   *  should look like one. */
+  | { type: 'section_handoff'; section: string; label: string; url: string; blurb: string }
+  /** The website went live. The client shows the public link with a copy button
+   *  so they can forward it to guests. */
+  | { type: 'website_published'; url: string }
   /** The agent asked the user to upload a file — render an upload card with format help. */
   | { type: 'upload_requested'; uploadKind: 'guests' | 'rooms' }
   /** Anonymous (pre-signup) session: render the inline create-account card.

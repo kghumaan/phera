@@ -112,6 +112,34 @@ describe('resolveAgentAction', () => {
     expect(turnArgs.userMessage).toMatch(/capacity exceeded/);
   });
 
+  // Regression: the tool registry fills in lazily, and /api/agent/confirm is its
+  // own entry point — on a module instance that has never served a chat turn the
+  // registry was empty, so EVERY approved action resolved as "that tool no
+  // longer exists" and the confirmed write silently never happened.
+  it('resolves a real tool on a cold module that has never run a chat turn', async () => {
+    vi.resetModules();
+    const [{ resolveAgentAction: coldResolve }, { createFakeSupabase: coldFake }] = await Promise.all([
+      import('@/lib/agent/confirm'),
+      import('./mocks/fake-supabase'),
+    ]);
+    const fake = coldFake({
+      agent_actions: { data: { ...PENDING_ACTION, tool_name: 'publish_website', input: {} } },
+      weddings: { data: { id: 'uuid-1', slug: 'agent-lab-x' } },
+    });
+
+    await coldResolve({
+      supabase: fake.client as never,
+      actionId: 'action-1',
+      approve: true,
+      userId: 'user-1',
+      provider: {} as never,
+      onEvent: () => {},
+    });
+
+    const turnArgs = mockRunAgentTurn.mock.calls[0][0] as { userMessage: string };
+    expect(turnArgs.userMessage).not.toMatch(/no longer exists/);
+  });
+
   it('rejects actions that are not pending', async () => {
     const { fake } = setup(async () => ({}), { status: 'confirmed' });
     await expect(
