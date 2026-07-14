@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { setAutonomyMode } from './autonomy';
 import { runAgentTurn } from './loop';
-import { getTool } from './tools';
+import { ensureToolsRegistered, getTool } from './tools';
 import type { AgentBeforeState, AgentProvider, AgentStreamEvent, AgentToolContext } from './types';
 
 /**
@@ -35,6 +35,12 @@ export interface ResolveActionArgs {
  */
 export async function resolveAgentAction(args: ResolveActionArgs): Promise<void> {
   const { supabase, actionId, approve, note: userNote, alwaysAllow, userId, provider, onEvent } = args;
+
+  // The registry is populated lazily, and this path can run on a module instance
+  // that has never served a chat turn (the confirm route is its own entry point).
+  // Without this, getTool() below comes back empty and every approved action is
+  // resolved as "that tool no longer exists" — the confirmed write never happens.
+  ensureToolsRegistered();
 
   const { data: action } = await supabase
     .from('agent_actions')
@@ -107,6 +113,11 @@ export async function resolveAgentAction(args: ResolveActionArgs): Promise<void>
     try {
       const result = await tool.execute((action.input ?? {}) as Record<string, unknown>, ctx);
       const serialized = typeof result === 'string' ? result : JSON.stringify(result ?? null);
+      // Gated tools run here rather than through dispatchTool, so their UI
+      // directives have to be surfaced here too — without this, approving
+      // "publish" would take the site live and never show the couple the link.
+      const published = (result as { websitePublished?: { url?: string } } | null)?.websitePublished;
+      if (published?.url) onEvent({ type: 'website_published', url: published.url });
       const resolution = {
         status: 'confirmed',
         result: { output: serialized.slice(0, 4000) },
@@ -125,6 +136,9 @@ export async function resolveAgentAction(args: ResolveActionArgs): Promise<void>
       note = `${CONFIRMATION_NOTE_PREFIX} The user CONFIRMED the pending action "${label}" (${action.tool_name}) with input ${inputSummary} and it has now executed successfully. Result: ${serialized.slice(0, 1500)}. Acknowledge briefly — do not re-run the tool.${autoNote}`;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      // The model only ever paraphrases this ("sorry, I hit a snag") — without
+      // the raw reason in the log a failed confirm is undebuggable.
+      console.error(`[agent] confirmed action ${action.tool_name} failed:`, message);
       await supabase
         .from('agent_actions')
         .update({

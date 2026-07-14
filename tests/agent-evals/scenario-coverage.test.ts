@@ -41,6 +41,9 @@ interface ScenarioTurn {
   message?: string;
   confirm?: 'approve' | 'decline';
   answer?: Record<string, string | string[]>;
+  /** The couple goes off and does the work in a rich section (website details,
+   *  guest list, rooms) — the DB changing while the agent isn't looking. */
+  patch?: Record<string, unknown>;
   expect?: Record<string, unknown>;
   verify?: unknown;
 }
@@ -80,7 +83,14 @@ describe('agent-eval scenario coverage', () => {
         const hasMessage = typeof turn.message === 'string' && turn.message.length > 0;
         const hasConfirm = turn.confirm === 'approve' || turn.confirm === 'decline';
         const hasAnswer = turn.answer !== undefined && typeof turn.answer === 'object';
-        expect(hasMessage || hasConfirm || hasAnswer, `${file}: turn ${i + 1} needs message, confirm, or answer`).toBe(true);
+        // A `patch` turn is the couple going off and doing the work in a rich
+        // section (website details, guest list, rooms) — the DB changing while
+        // the agent isn't looking, which is what the handoff baseline detects.
+        const hasPatch = turn.patch !== undefined && typeof turn.patch === 'object';
+        expect(
+          hasMessage || hasConfirm || hasAnswer || hasPatch,
+          `${file}: turn ${i + 1} needs message, confirm, answer, or patch`
+        ).toBe(true);
       }
       // Persona ids come from docs/AGENT-EVALS.md §3 (P1–P10) / §4 (E1–E10) /
       // §3b (L1–L9, landing-entry personas: hero chat box / Get Started / planner routes).

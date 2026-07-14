@@ -20,6 +20,8 @@ import { requestTools } from './requests';
 import { messagingTools } from './messaging';
 import { undoTools } from './undo';
 import { autonomyTools } from './autonomy';
+import { handoffTools } from './handoff';
+import { publishTools } from './publish';
 
 let registered = false;
 
@@ -49,6 +51,8 @@ export function ensureToolsRegistered() {
     ...messagingTools,
     ...undoTools,
     ...autonomyTools,
+    ...handoffTools,
+    ...publishTools,
   ]);
 }
 

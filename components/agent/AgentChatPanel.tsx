@@ -2,8 +2,12 @@
 
 import { Box, Checkbox, Stack, Typography, CircularProgress, LinearProgress, Tooltip, Table, TableBody, TableCell, TableHead, TableRow, useMediaQuery, useTheme } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import UploadFileRoundedIcon from '@mui/icons-material/UploadFileRounded';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import CelebrationRoundedIcon from '@mui/icons-material/CelebrationRounded';
 import MicRoundedIcon from '@mui/icons-material/MicRounded';
 import StopRoundedIcon from '@mui/icons-material/StopRounded';
 import VolumeUpRoundedIcon from '@mui/icons-material/VolumeUpRounded';
@@ -72,6 +76,10 @@ type ChatItem =
     }
   | { kind: 'upgrade'; feature: string; dismissed?: boolean }
   | { kind: 'upload'; uploadKind: 'guests' | 'rooms'; dismissed?: boolean }
+  /** The agent sent them to a rich section — a real button, not a pasted link. */
+  | { kind: 'handoff'; section: string; label: string; url: string; blurb: string }
+  /** The site went live — the public link, with a copy button so they can send it. */
+  | { kind: 'published'; url: string }
   /** Anonymous (pre-signup) session: the inline create-account card. `required`
    *  = the free allowance is spent, so the composer locks until signup. */
   | { kind: 'signup'; status: 'pending' | 'done'; required?: boolean };
@@ -80,6 +88,111 @@ const GUEST_SCHEMA_COLUMNS = ['Name', 'Email', 'Phone', 'Plus One', 'Party Size'
 const GUEST_SCHEMA_EXAMPLE = ['Arjun Mehta', 'arjun@example.com', '+1 415 555 0200', 'Aisha Mehta', '2', 'groom-side, family'];
 
 /** Inline upload card with format guidance, triggered by the agent. */
+/** The agent sends them to a rich section. A button, not a pasted link — this is
+ *  a handoff to real work, and it should look like one. */
+function SectionHandoffCard({
+  item,
+}: {
+  item: { section: string; label: string; url: string; blurb: string };
+}) {
+  const router = useRouter();
+  return (
+    <Box
+      sx={{
+        alignSelf: 'flex-start',
+        maxWidth: '92%',
+        border: `1px solid ${COLORS.border.faint}`,
+        bgcolor: COLORS.bg.subtle,
+        borderRadius: RADII.lg,
+        p: 2,
+      }}
+    >
+      <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 600, mb: 0.5 }}>
+        {item.label}
+      </Typography>
+      <Typography variant="body2" sx={{ color: COLORS.text.muted, mb: 1.5 }}>
+        {item.blurb}
+      </Typography>
+      <PrimaryActionButton
+        size="small"
+        onClick={() => router.push(item.url)}
+        endIcon={<ArrowForwardRoundedIcon fontSize="small" />}
+      >
+        Open {item.label.toLowerCase()}
+      </PrimaryActionButton>
+      <Typography variant="body2" sx={{ color: COLORS.text.subtle, mt: 1.25 }}>
+        Come back when you&apos;re done — this conversation stays right here.
+      </Typography>
+    </Box>
+  );
+}
+
+/** The site went live. The link is the payoff, so make it copyable in one tap. */
+function PublishedSiteCard({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard blocked — the link is right there to copy by hand */
+    }
+  };
+  return (
+    <Box
+      sx={{
+        alignSelf: 'flex-start',
+        maxWidth: '92%',
+        border: `1px solid ${COLORS.brand.primaryBorder}`,
+        bgcolor: COLORS.brand.primaryWash,
+        borderRadius: RADII.lg,
+        p: 2,
+      }}
+    >
+      <Stack direction="row" spacing={0.75} alignItems="center" mb={0.5}>
+        <CelebrationRoundedIcon sx={{ color: COLORS.brand.primary, fontSize: 18 }} />
+        <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 700 }}>
+          Your website is live
+        </Typography>
+      </Stack>
+      <Typography
+        component="a"
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        variant="body2"
+        sx={{
+          display: 'block',
+          color: COLORS.brand.primary,
+          fontWeight: 600,
+          wordBreak: 'break-all',
+          mb: 1.5,
+        }}
+      >
+        {url}
+      </Typography>
+      <Stack direction="row" spacing={1}>
+        <PrimaryActionButton
+          size="small"
+          onClick={copy}
+          startIcon={<ContentCopyRoundedIcon fontSize="small" />}
+        >
+          {copied ? 'Copied' : 'Copy link'}
+        </PrimaryActionButton>
+        <SecondaryActionButton
+          size="small"
+          onClick={() => {
+            window.open(url, '_blank', 'noopener');
+          }}
+        >
+          View site
+        </SecondaryActionButton>
+      </Stack>
+    </Box>
+  );
+}
+
 function UploadCard({ uploadKind, onPick }: { uploadKind: 'guests' | 'rooms'; onPick: () => void }) {
   if (uploadKind === 'rooms') {
     return (
@@ -1198,6 +1311,18 @@ export function AgentChatPanel({
         case 'upload_requested':
           next.push({ kind: 'upload', uploadKind: event.uploadKind });
           return next;
+        case 'section_handoff':
+          next.push({
+            kind: 'handoff',
+            section: event.section,
+            label: event.label,
+            url: event.url,
+            blurb: event.blurb,
+          });
+          return next;
+        case 'website_published':
+          next.push({ kind: 'published', url: event.url });
+          return next;
         case 'signup_required': {
           // One live card at a time — a repeat event just escalates `required`.
           const existing = next.findIndex((i) => i.kind === 'signup' && i.status === 'pending');
@@ -1348,10 +1473,30 @@ export function AgentChatPanel({
             const value = Array.isArray(raw) ? raw.join(', ') : raw?.trim() || '(skipped)';
             return `- ${q.prompt} → ${value}`;
           });
+          // Save the names OURSELVES before the turn. Asking the model to do it
+          // was unreliable — it would greet them by name and leave the row as
+          // "Your Wedding" (caught in production UAT).
+          const rawNames = answers.couple_names;
+          let namesSaved = false;
+          if (typeof rawNames === 'string' && rawNames.trim()) {
+            try {
+              const res = await fetch('/api/agent/onboard/names', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ weddingSlug, names: rawNames }),
+              });
+              namesSaved = res.ok && ((await res.json()) as { saved?: boolean }).saved === true;
+            } catch {
+              /* fall back to asking the model, below */
+            }
+          }
           await streamChatRef.current(
             `${ANSWERS_NOTE_PREFIX} The user responded to the onboarding questions:\n${lines.join('\n')}\n` +
-              'FIRST record their names with update_wedding_details (couple_name plus partner1_name/partner2_name) — ' +
-              'the wedding still carries the draft placeholder until you do. Then, if that answers the question, ' +
+              (namesSaved
+                ? 'Their names are ALREADY SAVED — do not call update_wedding_details for the names. '
+                : 'FIRST record their names with update_wedding_details (couple_name plus partner1_name/partner2_name) — ' +
+                  'the wedding still carries the draft placeholder until you do. ') +
+              'Then, if that answers the question, ' +
               'acknowledge them warmly by name and continue your onboarding ' +
               'sequence from step 2 — the greeting and names question already happened; never repeat them. ' +
               'If it is actually a request or question instead, handle THAT first, then weave the onboarding back in naturally.'
@@ -1397,7 +1542,7 @@ export function AgentChatPanel({
         onTurnComplete?.();
       }
     },
-    [busy, consumeStream, onTurnComplete, onboarding]
+    [busy, consumeStream, onTurnComplete, onboarding, weddingSlug]
   );
 
   const handleUpload = useCallback(
@@ -2539,6 +2684,10 @@ export function AgentChatPanel({
                     Upgrade to continue
                   </PrimaryActionButton>
                 </Box>
+              ) : item.kind === 'handoff' ? (
+                <SectionHandoffCard key={index} item={item} />
+              ) : item.kind === 'published' ? (
+                <PublishedSiteCard key={index} url={item.url} />
               ) : item.kind === 'upload' ? (
                 <UploadCard
                   key={index}

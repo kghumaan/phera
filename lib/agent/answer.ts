@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { runAgentTurn } from './loop';
+import { persistCoupleNames } from './couple-names';
 import type { AgentProvider, AgentQuestion, AgentStreamEvent } from './types';
 
 /** Marks answered-question messages so the chat UI can render them as a
@@ -56,8 +57,15 @@ export async function resolveAgentAnswers(args: ResolveAnswersArgs): Promise<voi
     .update({ status: 'confirmed', result: { answers }, resolved_at: new Date().toISOString() })
     .eq('id', actionId);
 
+  // The names are recorded HERE, not by asking the model to remember to do it.
+  // See lib/agent/couple-names.ts — the agent used to greet people by name and
+  // leave the row reading "Your Wedding".
+  const namesSaved = await persistCoupleNames(supabase, wedding.id, answers.couple_names);
+
   const lines = questions.map((q) => `- ${q.prompt} → ${formatAnswer(answers[q.id])}`);
-  const note = `${ANSWERS_NOTE_PREFIX} The user answered the questions you asked. Apply these now with the right tools, then continue briefly:\n${lines.join('\n')}`;
+  const note =
+    `${ANSWERS_NOTE_PREFIX} The user answered the questions you asked. Apply these now with the right tools, then continue briefly:\n${lines.join('\n')}` +
+    (namesSaved ? '\n(Their names are already saved — do NOT call update_wedding_details for the names.)' : '');
 
   await runAgentTurn({
     supabase,

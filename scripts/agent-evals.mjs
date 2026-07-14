@@ -90,12 +90,33 @@ async function runScenario(scenario) {
   let conversationId;
   let lastPendingActions = [];
   let lastPendingQuestions = null;
+  const toolsSeen = new Set();
+  const eventsSeen = new Set();
 
   try {
     for (const [index, turn] of scenario.turns.entries()) {
       const tag = `t${index + 1}`;
 
       let result;
+      if (turn.patch) {
+        // The couple goes off and does the work in a rich section (website
+        // details, guest list, rooms) and comes back. This is the DB changing
+        // behind the agent's back — exactly what the handoff baseline detects.
+        // Bare field maps are website details; {guests}/{rooms} are the others.
+        const p = turn.patch;
+        const payload = p.wedding || p.guests || p.rooms ? p : { wedding: p };
+        await api('/api/agent/lab/patch', {
+          method: 'POST',
+          body: JSON.stringify({ weddingSlug: slug, ...payload }),
+        });
+        const did = [
+          ...Object.keys(payload.wedding ?? {}),
+          ...(payload.guests ? [`${payload.guests.length} guests`] : []),
+          ...(payload.rooms ? [`${payload.rooms.length} rooms`] : []),
+        ];
+        check(checks, `${tag} simulated their work in the UI (${did.join(', ')})`, true);
+        continue;
+      }
       if (turn.confirm) {
         const pending = lastPendingActions[0];
         check(checks, `${tag} has a pending action to ${turn.confirm}`, !!pending);
@@ -138,8 +159,20 @@ async function runScenario(scenario) {
       const eventTypes = (result.events ?? []).map((e) => e.type);
       const expect = turn.expect ?? {};
 
+      toolsRun.forEach((t) => toolsSeen.add(t));
+      eventTypes.forEach((e) => eventsSeen.add(e));
+
       for (const tool of expect.tools ?? []) {
         check(checks, `${tag} called ${tool}`, toolsRun.includes(tool), `ran: ${toolsRun.join(', ') || 'none'}`);
+      }
+      // Cumulative: "by now this must have happened", without pinning WHICH turn.
+      // A good agent may hand off the moment they mention a website rather than
+      // waiting to be told twice — that's better, not a failure.
+      for (const tool of expect.toolsSeen ?? []) {
+        check(checks, `${tag} ${tool} has happened by now`, toolsSeen.has(tool), `seen: ${[...toolsSeen].join(', ')}`);
+      }
+      for (const type of expect.eventsSeen ?? []) {
+        check(checks, `${tag} ${type} has fired by now`, eventsSeen.has(type), `seen: ${[...eventsSeen].join(', ')}`);
       }
       for (const tool of expect.notTools ?? []) {
         check(checks, `${tag} did NOT call ${tool}`, !toolsRun.includes(tool));
@@ -186,7 +219,18 @@ async function runScenario(scenario) {
         const state = await api(`/api/agent/lab/state?weddingSlug=${slug}`);
         // Third arg lets verify() reconcile the REPLY against live state
         // (e.g. "the headcount it quoted matches the sum of party sizes").
-        const results = await turn.verify(state, helpers, { reply, toolsRun });
+        // `prompts` carries what it ASKED — an offer can land in a question
+        // card rather than in prose, and both count as having offered.
+        const results = await turn.verify(state, helpers, {
+          reply,
+          toolsRun,
+          prompts,
+          eventTypes,
+          // Cumulative view — for assertions that care THAT something happened,
+          // not which turn it happened on.
+          toolsSeen: [...toolsSeen],
+          eventsSeen: [...eventsSeen],
+        });
         for (const r of results) check(checks, `${tag} ${r.label}`, r.pass, r.detail ?? '');
       }
     }

@@ -71,6 +71,10 @@ export interface DispatchResult {
    *  right pane (guest table, RSVP stats, schedule). The generic mechanism:
    *  new tools ride this key instead of adding another bespoke extractor. */
   dataPanel?: AgentDataPanel;
+  /** Set when hand_off_to_section sent them to a rich section — renders a button. */
+  sectionHandoff?: { section: string; label: string; url: string; blurb: string };
+  /** Set when publish_website took the site live — renders the public link. */
+  websitePublished?: { url: string };
   /** One-line receipt from the tool's `summary` result key, shown muted in the
    *  chat ("214 RSVPs · 47 no reply") so grounded answers are visibly grounded. */
   summary?: string;
@@ -122,6 +126,22 @@ function extractBroadcastReview(result: unknown): DispatchResult['broadcastRevie
 
 /** Pull a `dataPanel` directive off a tool's execute() result so the loop can
  *  stream it to the right pane. The generic structured-output channel. */
+/** Pull the `sectionHandoff` directive off hand_off_to_section's result. */
+function extractSectionHandoff(result: unknown): DispatchResult['sectionHandoff'] | undefined {
+  if (!result || typeof result !== 'object' || !('sectionHandoff' in result)) return undefined;
+  const value = (result as { sectionHandoff?: unknown }).sectionHandoff;
+  if (!value || typeof value !== 'object') return undefined;
+  return value as DispatchResult['sectionHandoff'];
+}
+
+/** Pull the `websitePublished` directive off publish_website's result. */
+function extractWebsitePublished(result: unknown): DispatchResult['websitePublished'] | undefined {
+  if (!result || typeof result !== 'object' || !('websitePublished' in result)) return undefined;
+  const value = (result as { websitePublished?: unknown }).websitePublished;
+  if (!value || typeof value !== 'object') return undefined;
+  return value as DispatchResult['websitePublished'];
+}
+
 function extractDataPanel(result: unknown): DispatchResult['dataPanel'] | undefined {
   if (!result || typeof result !== 'object' || !('dataPanel' in result)) return undefined;
   const value = (result as { dataPanel?: unknown }).dataPanel;
@@ -286,6 +306,8 @@ export async function dispatchTool(
     const whatsappPairing = extractWhatsappPairing(result);
     const broadcastReview = extractBroadcastReview(result);
     const dataPanel = extractDataPanel(result);
+    const sectionHandoff = extractSectionHandoff(result);
+    const websitePublished = extractWebsitePublished(result);
     const summary = extractSummary(result);
     return {
       ok: true,
@@ -295,6 +317,8 @@ export async function dispatchTool(
       ...(whatsappPairing ? { whatsappPairing } : {}),
       ...(broadcastReview ? { broadcastReview } : {}),
       ...(dataPanel ? { dataPanel } : {}),
+      ...(sectionHandoff ? { sectionHandoff } : {}),
+      ...(websitePublished ? { websitePublished } : {}),
       ...(summary ? { summary } : {}),
       ...(before ? { undoable: true } : {}),
     };

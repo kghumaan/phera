@@ -6,6 +6,9 @@ import {
   spineComplete,
   type SpineFocus,
 } from './spine';
+import { SECTIONS, publicSiteUrl, type SectionKey } from './sections';
+import { readSectionMetrics } from './section-metrics';
+import { readHandoff } from './tools/handoff';
 
 export interface CompletenessItem {
   key: string;
@@ -182,6 +185,59 @@ export async function buildWeddingSnapshot(
     ? Math.round((new Date(wedding.wedding_date).getTime() - Date.now()) / 86_400_000)
     : null;
 
+  // Rich-section state + any OPEN handoff. If the agent sent them to a section,
+  // we stamped what the data looked like then — so now we can diff it and tell
+  // the agent what they actually did, instead of it asking "are you done yet?".
+  const sectionState = await readSectionMetrics(supabase, weddingSlug, weddingUuid);
+  let handoffLine: string | null = null;
+  try {
+    const handoff = await readHandoff(supabase, weddingSlug);
+    if (handoff) {
+      const def = SECTIONS[handoff.section];
+      const changed = def.progress(handoff.baseline, sectionState);
+      const done = def.looksDone(sectionState);
+      handoffLine = changed
+        ? `OPEN HANDOFF — you sent them to ${def.label}. SINCE THEN THEY DID: ${changed}. ` +
+          `Open your next reply by naming what they actually did (do NOT ask "did you finish?" — you can see it), then ask ONE ask_user single_select whether they're happy with ${def.label} for now. ` +
+          `If yes → call finish_section and move on${
+            handoff.section === 'website' && done && !sectionState.published
+              ? ', and since the details are filled in, that is the moment to ask if they want to PUBLISH'
+              : ''
+          }.`
+        : `OPEN HANDOFF — you sent them to ${def.label} and NOTHING has changed there yet. Don't nag. If they're talking about something else, help with that; only check in on ${def.label} if it comes up or they say they're done.`;
+    }
+  } catch {
+    /* no handoff on file — fine */
+  }
+
+  // No handoff open, but a rich section is still owed to them: say so as a
+  // standing instruction. In prose alone the model keeps "helpfully" drafting
+  // welcome copy or asking for a venue in chat — work that belongs on the page
+  // it is supposed to be opening for them.
+  //
+  // Anything they have already finished or deliberately skipped is OFF the list.
+  // Without that, a couple who says "the site's fine, I'll write the welcome note
+  // later — what's next?" gets bounced back to the page they just left, on every
+  // single turn, because a blank welcome_text means "not done".
+  const goalText = (goals ?? '').toLowerCase();
+  const settled = new Set([...(focus?.done ?? []), ...(focus?.skipped ?? [])]);
+  const RICH: SectionKey[] = ['website', 'guest-list', 'rooms'];
+  const wantedByGoals = (key: SectionKey) =>
+    key === 'website'
+      ? goalText.includes('website')
+      : key === 'guest-list'
+        ? goalText.includes('guest list')
+        : goalText.includes('room');
+  const dueSection: SectionKey | null = handoffLine
+    ? null
+    : (RICH.find((key) => focus?.step === key && !settled.has(key)) ??
+      RICH.find((key) => wantedByGoals(key) && !settled.has(key)) ??
+      null);
+  const handoffDueLine =
+    dueSection && !SECTIONS[dueSection].looksDone(sectionState)
+      ? `NEXT MOVE — ${SECTIONS[dueSection].label} is what they want and they have NOT been sent there yet: call hand_off_to_section("${dueSection}") as your first tool call this turn. The button only exists if you CALL the tool — talking about "the button above" without calling it shows them nothing. Do not write page content, draft FAQs, or ask for a venue/date in chat instead: those fields live in that section and they will fill them there.`
+      : null;
+
   const lines = [
     `Today's date: ${today}`,
     `Account: ${
@@ -207,9 +263,25 @@ export async function buildWeddingSnapshot(
     `RSVP deadline: ${rsvpDeadline ?? 'not set'}`,
     `Guests: ${guestCount} (${respondedGuests} responded) | Expected people (rough): ${wedding.expected_guest_count ? `~${wedding.expected_guest_count}` : 'not captured'} | Events: ${eventCount} | Schedule days: ${scheduleDays}`,
     `Rooms: ${roomCount} | Vendors: ${vendorCount} | FAQs: ${faqCount} | Open tasks: ${openTasks}`,
+    // The rich-section state the agent used to be blind to: whether the site is
+    // live, whether the guest list is organised, whether anyone is actually in a
+    // room. Without these it can only ask "are you done?" — with them it can SEE.
+    `Website: ${
+      sectionState.published
+        ? `LIVE at ${publicSiteUrl(weddingSlug)} — it is public; guests with the link can open it`
+        : sectionState.detailsComplete
+          ? 'DRAFT — details are filled in, so it is READY TO PUBLISH (ask them, then publish_website)'
+          : 'DRAFT — still has placeholders (needs names, date, venue and a welcome note before it can go live)'
+    }`,
+    `Guest list: ${sectionState.guests} guests${
+      sectionState.guests ? ` · ${sectionState.taggedGuests} tagged (side/family)` : ''
+    } | Rooms: ${sectionState.rooms} · ${sectionState.assignedGuests} guests placed`,
+    ...(handoffLine ? [handoffLine] : []),
+    ...(handoffDueLine ? [handoffDueLine] : []),
     // In-app pages the agent can link when handing off to a rich section —
-    // MarkdownText renders [label](/path) as a real link in the chat.
-    `App pages (markdown links you can share): [Website details](/admin/${weddingSlug}/details) · [Website design](/admin/${weddingSlug}/look-and-feel) · [Guest list](/admin/${weddingSlug}/guest-list) · [Schedule](/admin/${weddingSlug}/schedule) · [Room assignments](/admin/${weddingSlug}/room-assignments) · [FAQs](/admin/${weddingSlug}/faq)`,
+    // MarkdownText renders [label](/path) as a real link in the chat. For the
+    // three RICH sections prefer hand_off_to_section (a real button) over a link.
+    `App pages (markdown links you can share): [Website details](/admin/${weddingSlug}/details) · [Website design](/admin/${weddingSlug}/look-and-feel) · [Guest list](/admin/${weddingSlug}/guest-list) · [Schedule](/admin/${weddingSlug}/schedule) · [Room assignments](/admin/${weddingSlug}/room-assignments) · [FAQs](/admin/${weddingSlug}/faq) · [Settings & Publish](/admin/${weddingSlug}/settings)`,
     '',
     'Setup checklist:',
     ...completeness.map((c) => `- [${c.done ? 'x' : ' '}] ${c.label}${c.detail ? ` (${c.detail})` : ''}`),
