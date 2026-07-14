@@ -103,14 +103,15 @@ export const metadata: Metadata = {
   creator: "Phera",
   publisher: "Phera",
 
-  // Icons - using lotus-flame logo
+  // Icons — white lotus-flame on a #1a1a1a tile. The bare logo-lotus-flame.svg
+  // is white-on-transparent, which disappears against a light browser tab.
   icons: {
     icon: [
-      { url: '/logo-lotus-flame.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
     ],
-    shortcut: '/logo-lotus-flame.svg',
-    apple: '/logo-lotus-flame.svg',
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
   },
 
   // Manifest
