@@ -52,7 +52,10 @@ export async function readSectionMetrics(
   // guest: real names, a real date, a real venue, and something written.
   const nameSet = !!wedding.couple_name && wedding.couple_name !== DRAFT_COUPLE_NAME;
   const dateSet = !!wedding.wedding_date && !wedding.wedding_date.startsWith('1970-01-01');
-  const venueSet = !!wedding.venue_name && wedding.venue_name !== 'Venue TBD';
+  // Any TBD venue counts as unset — same test the rest of the app uses. An exact
+  // 'Venue TBD' match would let "TBD" or "Venue TBD (Jaipur or Udaipur)" through
+  // and publish a placeholder site to guests.
+  const venueSet = !!wedding.venue_name?.trim() && !/\bTBD\b/i.test(wedding.venue_name);
   const storySet = !!wedding.welcome_text?.trim();
 
   return {

@@ -210,24 +210,29 @@ export async function buildWeddingSnapshot(
     /* no handoff on file — fine */
   }
 
-  // No handoff open, but the step they're on IS one of the rich sections: say so
-  // as a standing instruction. In prose alone the model keeps "helpfully"
-  // drafting welcome copy or asking for a venue in chat — work that belongs on
-  // the page it is supposed to be opening for them.
-  // The step they're on — from the spine focus if it's set, otherwise from the
-  // goals they stated (the focus is often set mid-turn, so goals are what we
-  // have on the very turn where the handoff is due).
+  // No handoff open, but a rich section is still owed to them: say so as a
+  // standing instruction. In prose alone the model keeps "helpfully" drafting
+  // welcome copy or asking for a venue in chat — work that belongs on the page
+  // it is supposed to be opening for them.
+  //
+  // Anything they have already finished or deliberately skipped is OFF the list.
+  // Without that, a couple who says "the site's fine, I'll write the welcome note
+  // later — what's next?" gets bounced back to the page they just left, on every
+  // single turn, because a blank welcome_text means "not done".
   const goalText = (goals ?? '').toLowerCase();
+  const settled = new Set([...(focus?.done ?? []), ...(focus?.skipped ?? [])]);
+  const RICH: SectionKey[] = ['website', 'guest-list', 'rooms'];
+  const wantedByGoals = (key: SectionKey) =>
+    key === 'website'
+      ? goalText.includes('website')
+      : key === 'guest-list'
+        ? goalText.includes('guest list')
+        : goalText.includes('room');
   const dueSection: SectionKey | null = handoffLine
     ? null
-    : ((['website', 'guest-list', 'rooms'] as SectionKey[]).find((key) => focus?.step === key) ??
-      (goalText.includes('website')
-        ? 'website'
-        : goalText.includes('guest list')
-          ? 'guest-list'
-          : goalText.includes('room')
-            ? 'rooms'
-            : null));
+    : (RICH.find((key) => focus?.step === key && !settled.has(key)) ??
+      RICH.find((key) => wantedByGoals(key) && !settled.has(key)) ??
+      null);
   const handoffDueLine =
     dueSection && !SECTIONS[dueSection].looksDone(sectionState)
       ? `NEXT MOVE — ${SECTIONS[dueSection].label} is what they want and they have NOT been sent there yet: call hand_off_to_section("${dueSection}") as your first tool call this turn. The button only exists if you CALL the tool — talking about "the button above" without calling it shows them nothing. Do not write page content, draft FAQs, or ask for a venue/date in chat instead: those fields live in that section and they will fill them there.`

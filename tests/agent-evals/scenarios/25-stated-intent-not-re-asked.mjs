@@ -27,11 +27,13 @@ export default {
         questionsNot: ['what would you like help with', 'help you with'],
         notTools: [],
       },
-      verify: async (_state, _h, { toolsRun, prompts }) => [
+      verify: async (_state, _h, { toolsSeen, prompts }) => [
         {
+          // Cumulative: recording the goal the moment they say it (turn 1) is
+          // better than waiting, so don't pin it to a particular turn.
           label: 'records the goal it was given instead of asking for it',
-          pass: toolsRun.includes('set_planning_goals') || toolsRun.includes('hand_off_to_section'),
-          detail: `ran: ${toolsRun.join(', ') || 'none'}`,
+          pass: toolsSeen.includes('set_planning_goals') || toolsSeen.includes('hand_off_to_section'),
+          detail: `seen: ${toolsSeen.join(', ') || 'none'}`,
         },
         {
           label: 'never puts a "what would you like help with" card on screen',

@@ -398,6 +398,9 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
       }
       // Handoff to a rich section renders a button; publishing renders the live
       // link. Both are non-blocking — the agent keeps talking around them.
+      // finish_section counts too: if the model just CLOSED a section this turn,
+      // the net must not immediately re-open it with a fresh baseline.
+      if (use.name === 'finish_section') handedOff = true;
       if (dispatched.sectionHandoff) {
         handedOff = true;
         onEvent({ type: 'section_handoff', ...dispatched.sectionHandoff });

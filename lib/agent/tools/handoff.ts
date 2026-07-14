@@ -57,6 +57,11 @@ const SECTION_PATTERNS: Array<{ section: SectionKey; re: RegExp }> = [
 ];
 
 export function sectionAskedFor(message: string): SectionKey | null {
+  // Only ever act on what the COUPLE typed. The loop also runs turns whose
+  // "user message" is a synthetic note we wrote ourselves — a confirmation
+  // receipt, their answers to a card, a kickoff. Those are full of words like
+  // "do not re-run the tool" and would otherwise be read as a request.
+  if (message.trimStart().startsWith('⟦')) return null;
   if (!DO_IT.test(message) || NOT_A_HANDOFF.test(message)) return null;
   return SECTION_PATTERNS.find(({ re }) => re.test(message))?.section ?? null;
 }
@@ -71,16 +76,19 @@ export async function openSectionIfNeeded(
   section: SectionKey,
   ctx: AgentToolContext
 ): Promise<{ section: SectionKey; label: string; url: string; blurb: string } | null> {
+  // NEVER touch an existing handoff. Replacing one would delete the baseline the
+  // couple's in-progress section is being measured against — one stray message
+  // ("put Arjun on the guest list") while they're off filling in the website
+  // would destroy the agent's only record of what the website looked like before.
   const open = await readHandoff(ctx.supabase, ctx.weddingSlug);
-  if (open?.section === section) return null;
+  if (open) return null;
 
   const def = SECTIONS[section];
   const baseline = await readSectionMetrics(ctx.supabase, ctx.weddingSlug, ctx.weddingUuid);
-  // Note we do NOT skip on looksDone: the metrics only see data fields, and a
-  // site with a name, date, venue and welcome note can still need design,
-  // photos and FAQs — which is exactly why they asked. A live site is the one
-  // case where there's nothing left to send them for.
-  if (section === 'website' && baseline.published) return null;
+  // A live site, a list that already has guests, rooms already assigned — they
+  // don't need sending anywhere, and the model may well have just done the thing
+  // they asked for in chat. Only open the door when there's real work waiting.
+  if (section === 'website' ? baseline.published : def.looksDone(baseline)) return null;
 
   const state: HandoffState = { section, at: new Date().toISOString(), baseline };
   await clearHandoff(ctx);

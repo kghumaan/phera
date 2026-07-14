@@ -221,7 +221,16 @@ async function runScenario(scenario) {
         // (e.g. "the headcount it quoted matches the sum of party sizes").
         // `prompts` carries what it ASKED — an offer can land in a question
         // card rather than in prose, and both count as having offered.
-        const results = await turn.verify(state, helpers, { reply, toolsRun, prompts, eventTypes });
+        const results = await turn.verify(state, helpers, {
+          reply,
+          toolsRun,
+          prompts,
+          eventTypes,
+          // Cumulative view — for assertions that care THAT something happened,
+          // not which turn it happened on.
+          toolsSeen: [...toolsSeen],
+          eventsSeen: [...eventsSeen],
+        });
         for (const r of results) check(checks, `${tag} ${r.label}`, r.pass, r.detail ?? '');
       }
     }

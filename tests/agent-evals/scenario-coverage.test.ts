@@ -41,6 +41,9 @@ interface ScenarioTurn {
   message?: string;
   confirm?: 'approve' | 'decline';
   answer?: Record<string, string | string[]>;
+  /** The couple goes off and does the work in a rich section (website details,
+   *  guest list, rooms) — the DB changing while the agent isn't looking. */
+  patch?: Record<string, unknown>;
   expect?: Record<string, unknown>;
   verify?: unknown;
 }

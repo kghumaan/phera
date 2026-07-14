@@ -1,3 +1,5 @@
+import { WeddingService } from '@/lib/supabase/wedding-service';
+import type { TypedSupabaseClient } from '@/lib/supabase/client';
 import { publicSiteUrl } from '../sections';
 import { readSectionMetrics } from '../section-metrics';
 import type { AgentToolDefinition } from '../types';
@@ -22,15 +24,21 @@ export const publishTools: AgentToolDefinition[] = [
     captureBefore: async (_input, ctx) => {
       const { data: wedding } = await ctx.supabase
         .from('weddings')
-        .select('status')
+        .select('status, has_unpublished_changes')
         .eq('id', ctx.weddingUuid)
         .maybeSingle();
       if (!wedding) return null;
+      const prior = wedding as { status: string | null; has_unpublished_changes: boolean | null };
       return {
         restore: 'update',
         table: 'weddings',
         match: { id: ctx.weddingUuid },
-        values: { status: (wedding as { status: string | null }).status ?? 'draft' },
+        // Undo puts the site back in draft AND re-flags it as unpublished, so
+        // the admin header tells the truth again.
+        values: {
+          status: prior.status ?? 'draft',
+          has_unpublished_changes: prior.has_unpublished_changes ?? true,
+        },
       };
     },
     execute: async (_input, ctx) => {
@@ -43,11 +51,15 @@ export const publishTools: AgentToolDefinition[] = [
         );
       }
 
-      const { error } = await ctx.supabase
-        .from('weddings')
-        .update({ status: 'live' })
-        .eq('id', ctx.weddingUuid);
-      if (error) throw new Error(error.message);
+      // Publish exactly the way the admin Publish button does. Flipping status
+      // alone is NOT publishing: the guest site renders from published_snapshot
+      // when one exists, so a status-only update would leave guests looking at
+      // the previous version while the agent claims the new one is live — and
+      // would leave "unpublished changes" showing in the admin header.
+      const published = await new WeddingService(ctx.supabase as TypedSupabaseClient).publishWedding(
+        ctx.weddingUuid
+      );
+      if (!published) throw new Error('The site could not be published — please try the Settings & Publish page.');
 
       const url = publicSiteUrl(ctx.weddingSlug);
       return {

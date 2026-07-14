@@ -34,6 +34,21 @@ describe('sectionAskedFor — what counts as needing the door opened', () => {
     expect(sectionAskedFor('How many guests have RSVP’d?')).toBeNull();
     expect(sectionAskedFor('Send the invite over WhatsApp')).toBeNull();
   });
+
+  it('ignores the notes we write to ourselves', () => {
+    // The loop re-enters with synthetic "user" messages — a confirmation
+    // receipt, their answers to a card. Those contain phrases like "do not
+    // re-run the tool", which naively read as "do ... rooms". Acting on one
+    // would shove a section button at a couple who just confirmed an action.
+    expect(
+      sectionAskedFor(
+        '⟦confirmation⟧ The user CONFIRMED the pending action "Reassigning a room" (assign_guests_to_room) and it has now executed successfully. Acknowledge briefly — do not re-run the tool.'
+      )
+    ).toBeNull();
+    expect(
+      sectionAskedFor('⟦answers⟧ The user responded to the onboarding questions:\nWhat would you like help with? → Wedding website')
+    ).toBeNull();
+  });
 });
 
 describe('rich-section handoff detection', () => {
