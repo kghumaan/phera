@@ -103,8 +103,13 @@ export const metadata: Metadata = {
   creator: "Phera",
   publisher: "Phera",
 
-  // Icons — white lotus-flame on a #1a1a1a tile. The bare logo-lotus-flame.svg
-  // is white-on-transparent, which disappears against a light browser tab.
+  // Tab icons are the lotus-flame on a TRANSPARENT ground. With no tile behind
+  // it the ink has to follow the tab theme, so favicon.svg flips white/near-black
+  // via prefers-color-scheme and is listed first (Chrome/Firefox/Edge take it).
+  // favicon.ico is the Safari fallback and can only carry one ink — near-black,
+  // for the light tab strip that is the common default.
+  // The apple/PWA icons keep an opaque tile: iOS composites transparency to
+  // black, and maskable icons need full bleed.
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
