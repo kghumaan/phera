@@ -118,6 +118,63 @@ export const CHAT_DEMOS: Record<string, ChatDemo> = {
     ],
   },
 
+  /* ── Room block: the hotel's PDF becomes structured rooms ────────────── */
+  'room-upload': {
+    caption: 'The hotel sends a 6-page PDF. You forward it.',
+    turns: [
+      {
+        kind: 'user',
+        text: "The Leela just confirmed our block — 82 rooms across two wings. All I have is the PDF their reservations team sent.",
+      },
+      {
+        kind: 'assistant',
+        tools: ['request_upload'],
+        text: "Send it here — I'll read it. The PDF is fine, so is a photo of the floor plan or the Excel they use internally.",
+      },
+      { kind: 'user', text: '📎 leela-rooming-list.pdf' },
+      {
+        kind: 'assistant',
+        tools: ['list_rooms'],
+        text: 'Parsed all 82: 48 twins, 30 kings and 4 suites across the Aqua and Garden wings — sleeps 172 against your 168 confirmed guests. Four beds of slack.',
+      },
+      {
+        // Illustrative rows — the live table shows the parsed block.
+        kind: 'panel',
+        title: 'Rooms · 82 parsed · sleeps 172',
+        rows: [
+          'Aqua 201–248 · twins · sleeps 96',
+          'Aqua 301–316 · kings · sleeps 32',
+          'Garden 101–118 · kings & suites · sleeps 44',
+        ],
+      },
+    ],
+  },
+
+  /* ── Room block: constraints, politics, and a gated move ─────────────── */
+  'room-politics': {
+    caption: 'The constraints nobody writes in the spreadsheet',
+    turns: [
+      {
+        kind: 'user',
+        text: "Dadi can't do stairs, and whatever happens don't put the Malhotras on the same floor as Vikram's parents.",
+      },
+      {
+        kind: 'assistant',
+        tools: ['list_rooms', 'update_guest', 'update_room'],
+        text: "Noted both. Problem: Dadi is currently in Aqua 304 — third floor, and the hotel's notes say the Aqua lift is out until March. There's one ground-floor king open: Garden 112.",
+      },
+      { kind: 'user', text: 'Move her.' },
+      {
+        kind: 'confirm',
+        tools: ['assign_guests_to_room', 'assign_guests_to_room'],
+        text: 'Garden 112 (ground floor, king) → Dadi, and Aqua 304 frees up. Two room updates, one move.',
+        confirmLabel: 'Confirm',
+        declineLabel: 'Decline',
+        resolved: 'Done — Dadi is in Garden 112, no stairs. Undo is right there in the chat if the family overrules you.',
+      },
+    ],
+  },
+
   /* ── 4. Vendor sourcing from the curated directory ───────────────────── */
   vendors: {
     caption: 'Finding a photographer who has actually shot in Goa',
