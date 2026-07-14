@@ -135,16 +135,16 @@ export const CHAT_DEMOS: Record<string, ChatDemo> = {
       {
         kind: 'assistant',
         tools: ['list_rooms'],
-        text: 'Parsed all 82: 64 twins, 14 kings and 4 suites across the Aqua and Garden wings — 178 beds against your 171 confirmed guests. Seven beds of slack.',
+        text: 'Parsed all 82: 48 twins, 30 kings and 4 suites across the Aqua and Garden wings — sleeps 172 against your 168 confirmed guests. Four beds of slack.',
       },
       {
         // Illustrative rows — the live table shows the parsed block.
         kind: 'panel',
-        title: 'Rooms · 82 parsed · 178 beds',
+        title: 'Rooms · 82 parsed · sleeps 172',
         rows: [
-          'Aqua 201–232 · twins · 64 beds',
-          'Aqua 301–316 · kings · 16 beds',
-          'Garden 101–134 · twins & suites · 98 beds',
+          'Aqua 201–248 · twins · sleeps 96',
+          'Aqua 301–316 · kings · sleeps 32',
+          'Garden 101–118 · kings & suites · sleeps 44',
         ],
       },
     ],
@@ -161,16 +161,16 @@ export const CHAT_DEMOS: Record<string, ChatDemo> = {
       {
         kind: 'assistant',
         tools: ['list_rooms', 'update_guest', 'update_room'],
-        text: "Noted both. Problem: Dadi is currently in 412 — fourth floor, and the Garden wing lifts are down for renovation per the hotel's notes. There's one ground-floor king open: 108.",
+        text: "Noted both. Problem: Dadi is currently in Aqua 304 — third floor, and the hotel's notes say the Aqua lift is out until March. There's one ground-floor king open: Garden 112.",
       },
       { kind: 'user', text: 'Move her.' },
       {
         kind: 'confirm',
-        tools: ['assign_guests_to_room'],
-        text: 'Room 108 (ground floor, Garden wing) → Dadi. Kamla masi takes her old spot in 412 so the fourth floor stays family. Two guests move.',
+        tools: ['assign_guests_to_room', 'assign_guests_to_room'],
+        text: 'Garden 112 (ground floor, king) → Dadi, and Aqua 304 frees up. Two room updates, one move.',
         confirmLabel: 'Confirm',
         declineLabel: 'Decline',
-        resolved: 'Done — Dadi is in 108, no stairs. One tap of Undo puts it back.',
+        resolved: 'Done — Dadi is in Garden 112, no stairs. Undo is right there in the chat if the family overrules you.',
       },
     ],
   },
