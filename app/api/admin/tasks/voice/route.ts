@@ -33,7 +33,8 @@ export async function POST(req: NextRequest) {
 
     // Step 2: Extract tasks using Groq LLM
     const extraction = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'openai/gpt-oss-120b',
+      reasoning_format: 'hidden', // gpt-oss reasons; keep CoT out of message.content
       temperature: 0.1,
       messages: [
         {

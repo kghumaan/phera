@@ -54,7 +54,8 @@ Admin/couple-side participants: ${vendorContext.adminMembers.join(', ') || 'unkn
     : '';
 
   const completion = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b',
+    reasoning_format: 'hidden', // gpt-oss reasons; keep CoT out of message.content
     temperature: 0.1,
     messages: [
       {
@@ -217,7 +218,8 @@ export async function predictMemberRoles(
   if (participantList.length === 0) return [];
 
   const completion = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b',
+    reasoning_format: 'hidden', // gpt-oss reasons; keep CoT out of message.content
     temperature: 0.1,
     messages: [
       {
@@ -319,7 +321,8 @@ export async function askPhera(params: {
     .join('\n');
 
   const completion = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b',
+    reasoning_format: 'hidden', // gpt-oss reasons; keep CoT out of message.content
     temperature: 0.4,
     messages: [
       {
@@ -394,7 +397,8 @@ export async function generateCoordinatorReply(params: {
     .single();
 
   const completion = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
+    model: 'openai/gpt-oss-120b',
+    reasoning_format: 'hidden', // gpt-oss reasons; keep CoT out of message.content
     temperature: 0.5,
     max_tokens: 300,
     messages: [

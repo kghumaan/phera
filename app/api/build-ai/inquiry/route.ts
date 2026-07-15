@@ -81,7 +81,8 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'openai/gpt-oss-120b',
+        reasoning_format: 'hidden', // gpt-oss reasons; keep CoT out of content
         messages: [
           { role: 'system', content: SYSTEM_PROMPT + weddingContext },
           { role: 'user', content: message },
