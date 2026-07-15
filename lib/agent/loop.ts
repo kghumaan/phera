@@ -501,10 +501,13 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
   // "sort the guest list" / "put people in rooms" and never renders the button
   // leaves them with nowhere to go. The model, told to be helpful, likes to
   // draft copy instead. If it did that, open the section for them anyway.
-  // Not while a question card is on screen: mid-intake ("what are your names?")
-  // the couple has nothing to do in the section yet, and the model will open the
-  // door itself once it has the basics. Firing here just shows the button twice.
-  if (!handedOff && !askedQuestions) {
+  // Suppress ONLY during onboarding: while the intake cards are up ("what are
+  // your names?") the couple has nothing to do in the section yet, and the model
+  // opens the door itself once it has the basics — firing here just shows the
+  // button twice. But once they're onboarded, a section request that parks a
+  // clarifying question instead of handing off is exactly what the net must
+  // backstop, so a parked question no longer suppresses it there.
+  if (!handedOff && !(askedQuestions && onboardingPhase)) {
     const asked = sectionAskedFor(args.userMessage);
     if (asked) {
       try {
