@@ -67,26 +67,40 @@ export default {
       expect: { tools: ['publish_website'], pending: true },
     },
     {
-      // Approving is what publishes — so the live-link card fires HERE.
+      // Approving is what publishes — so the live-link card AND the guest-invite
+      // offer fire HERE, on the acknowledgment turn.
       confirm: 'approve',
       expect: { events: ['website_published'] },
-      verify: async (state, _h, { reply }) => [
-        {
-          label: 'the wedding is actually LIVE in the database',
-          pass: state.wedding?.status === 'live',
-          detail: `status=${state.wedding?.status} · said: ${reply.slice(0, 160)}`,
-        },
-      ],
+      verify: async (state, _h, { reply, prompts }) => {
+        const said = `${reply} ${prompts.join(' ')}`;
+        return [
+          {
+            label: 'the wedding is actually LIVE in the database',
+            pass: state.wedding?.status === 'live',
+            detail: `status=${state.wedding?.status} · said: ${reply.slice(0, 160)}`,
+          },
+          {
+            // Empty guest list → the payoff is offering to get the invite out.
+            label: 'offers to get the invite out to their guests',
+            pass: /whatsapp|invite|guest list|send/i.test(said),
+            detail: said.slice(0, 200),
+          },
+        ];
+      },
     },
     {
       message: 'Lovely. What now?',
-      verify: async (_state, _h, { reply }) => [
-        {
-          label: 'offers to get the invite out to their guests',
-          pass: /whatsapp|invite|guest list|send/i.test(reply),
-          detail: reply.slice(0, 160),
-        },
-      ],
+      verify: async (_state, _h, { questions }) => {
+        // Website loop is done → hand the wheel back with the full menu.
+        const menu = questions.find((q) => /anything else|what.*next|help.*with/i.test(q.prompt ?? ''));
+        return [
+          {
+            label: 'closes the loop with an "anything else?" menu',
+            pass: !!menu && (menu.options?.length ?? 0) >= 3,
+            detail: menu ? `options: ${(menu.options ?? []).join(', ')}` : `asked: ${questions.map((q) => q.prompt).join(' | ') || 'nothing'}`,
+          },
+        ];
+      },
     },
   ],
 };

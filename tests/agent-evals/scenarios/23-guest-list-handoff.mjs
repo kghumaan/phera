@@ -75,6 +75,24 @@ export default {
     {
       message: "Yes, I'm happy with it.",
       expect: { tools: ['finish_section'] },
+      verify: async (_state, _h, { questions }) => {
+        // LOOP CLOSE: finishing a section must hand the wheel back with a menu
+        // of what's next — not silently slide to the next spine step.
+        const menu = questions.find((q) => /anything else|what.*next|help.*with/i.test(q.prompt ?? ''));
+        const options = menu?.options ?? [];
+        return [
+          {
+            label: 'closes the loop by asking "anything else?"',
+            pass: !!menu,
+            detail: `asked: ${questions.map((q) => q.prompt).join(' | ') || 'nothing'}`,
+          },
+          {
+            label: 'the menu lists several things it can help with next',
+            pass: options.length >= 3,
+            detail: `options: ${options.join(', ') || 'none'}`,
+          },
+        ];
+      },
     },
   ],
 };
