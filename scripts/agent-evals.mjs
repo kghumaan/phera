@@ -196,9 +196,10 @@ async function runScenario(scenario) {
       }
       // Question-card prompt assertions: what the agent chose to ASK this turn
       // (e.g. "asked for a city, not a venue name"; "did not re-ask names").
-      const prompts = (result.events ?? [])
+      const askedQuestions = (result.events ?? [])
         .filter((e) => e.type === 'questions_required')
-        .flatMap((e) => (e.questions ?? []).map((q) => q.prompt ?? ''));
+        .flatMap((e) => e.questions ?? []);
+      const prompts = askedQuestions.map((q) => q.prompt ?? '');
       for (const pattern of expect.questions ?? []) {
         const re = new RegExp(pattern, 'i');
         check(checks, `${tag} asks /${pattern}/i`, prompts.some((p) => re.test(p)), `asked: ${prompts.join(' | ') || 'nothing'}`);
@@ -225,6 +226,10 @@ async function runScenario(scenario) {
           reply,
           toolsRun,
           prompts,
+          // Full question objects (prompt + options + type) so a verify can
+          // assert the SHAPE of a card — e.g. the loop-close menu lists several
+          // capabilities, not just one.
+          questions: askedQuestions,
           eventTypes,
           // Cumulative view — for assertions that care THAT something happened,
           // not which turn it happened on.

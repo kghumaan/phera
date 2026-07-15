@@ -310,6 +310,7 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
   // final text-only round so the user never gets a silent stall.
   let cappedMidToolUse = false;
   let handedOff = false;
+  let askedQuestions = false;
 
   // ONBOARDING FAST PATH: answers to the scripted intake cards (names → stage →
   // city → goals) are narrow, high-traffic fact-recording — a fast model handles
@@ -379,7 +380,10 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
         ...(dispatched.summary ? { summary: dispatched.summary } : {}),
         ...(dispatched.undoable ? { undoable: true } : {}),
       });
-      if (dispatched.questions) parkedQuestions = true;
+      if (dispatched.questions) {
+        parkedQuestions = true;
+        askedQuestions = true;
+      }
       // FAQ review is non-blocking — surface the panel and let the turn continue.
       if (dispatched.faqReview) onEvent({ type: 'faq_review', faqs: dispatched.faqReview });
       // Venue/vendor matches render as listing cards in the right pane — also
@@ -497,7 +501,13 @@ async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
   // "sort the guest list" / "put people in rooms" and never renders the button
   // leaves them with nowhere to go. The model, told to be helpful, likes to
   // draft copy instead. If it did that, open the section for them anyway.
-  if (!handedOff) {
+  // Suppress ONLY during onboarding: while the intake cards are up ("what are
+  // your names?") the couple has nothing to do in the section yet, and the model
+  // opens the door itself once it has the basics — firing here just shows the
+  // button twice. But once they're onboarded, a section request that parks a
+  // clarifying question instead of handing off is exactly what the net must
+  // backstop, so a parked question no longer suppresses it there.
+  if (!handedOff && !(askedQuestions && onboardingPhase)) {
     const asked = sectionAskedFor(args.userMessage);
     if (asked) {
       try {
