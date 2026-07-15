@@ -59,7 +59,8 @@ export async function POST(request: NextRequest) {
     const bodyHtml = ctaMatch ? html.replace(CTA_REGEX, '').trim() : html;
 
     const completion = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'openai/gpt-oss-120b',
+      reasoning_format: 'hidden', // gpt-oss reasons; keep CoT out of message.content
       temperature: 0.3,
       max_tokens: 2000,
       messages: [

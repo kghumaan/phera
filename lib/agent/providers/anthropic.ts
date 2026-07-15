@@ -7,7 +7,10 @@ import type {
   ProviderTurnResult,
 } from '../types';
 
-const DEFAULT_MODEL = 'claude-opus-4-8';
+// Sonnet 5 is the default agent brain: ~40% cheaper than Opus 4.8 at
+// near-equivalent quality on our agent evals, still US-hosted (DPDPA-safe for
+// guest PII). Override per-env with AGENT_MODEL. See TOKEN-STRATEGY.md.
+const DEFAULT_MODEL = 'claude-sonnet-5';
 
 let client: Anthropic | null = null;
 function getClient(): Anthropic {

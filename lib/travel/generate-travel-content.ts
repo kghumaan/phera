@@ -24,7 +24,8 @@ type GenerateResult =
 async function extractCityName(location: string): Promise<string> {
   try {
     const completion = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'openai/gpt-oss-120b',
+      reasoning_format: 'hidden', // gpt-oss reasons; keep CoT out of message.content
       temperature: 0,
       max_tokens: 50,
       messages: [
@@ -132,7 +133,8 @@ export async function generateTravelContent(weddingId: string): Promise<Generate
   // Run text generation and image generation in parallel
   const [textResult, imageUrl] = await Promise.all([
     groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: 'openai/gpt-oss-120b',
+      reasoning_format: 'hidden', // gpt-oss reasons; keep CoT out of message.content
       temperature: 0.6,
       max_tokens: 1000,
       messages: [
