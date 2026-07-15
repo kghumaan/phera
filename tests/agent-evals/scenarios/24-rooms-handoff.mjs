@@ -67,8 +67,14 @@ export default {
             detail: said.slice(0, 180),
           },
           {
+            // Passes on either a "happy?/ready?" confirmation OR a grounded offer
+            // to close the gap. Sonnet 5, seeing only 12 of 24 guests placed,
+            // flagged the empty rooms and offered to pull the missing list —
+            // engaging with the actual state, not silently moving on. Both clear
+            // the bar. (Broadened after the 2026-07-15 model-swap UAT; the old
+            // regex only accepted the confirmation phrasing. See TOKEN-STRATEGY.md.)
             label: 'checks they are happy with it rather than silently moving on',
-            pass: /happy|good to (go|move)|shall we|ready to|move on|next|anything else/i.test(said),
+            pass: /happy|good to (go|move)|shall we|ready to|move on|next|anything else|want me to|would you like|shall i|who'?s (missing|left)|still (empty|unplaced|to place)|slot them in|pull the (list|rest)|the rest/i.test(said),
             detail: said.slice(0, 180),
           },
         ];
