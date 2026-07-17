@@ -115,15 +115,21 @@
 .phera-landing .container {
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 0 32px;
+  /* Longhand, not the `padding` shorthand: a shorthand here would reset
+     padding-top/bottom to 0 on any element that also carries a class
+     (e.g. .hero-content) meant to set vertical padding — shorthand wins
+     over that single-class rule at equal-or-higher specificity regardless
+     of source order. */
+  padding-left: 32px;
+  padding-right: 32px;
   width: auto;
 }
 @media (max-width: 768px) {
-  .phera-landing .container { padding: 0 20px; }
+  .phera-landing .container { padding-left: 20px; padding-right: 20px; }
   .phera-landing { --section-pad: 72px; }
 }
 @media (max-width: 480px) {
-  .phera-landing .container { padding: 0 16px; }
+  .phera-landing .container { padding-left: 16px; padding-right: 16px; }
   .phera-landing { --section-pad: 64px; }
 }
 
@@ -309,7 +315,15 @@
 }
 
 @media (max-width: 768px) {
-  .phera-landing .hero-garland { width: 26vw; opacity: 0.85; }
+  .phera-landing .hero-garland { width: min(26vw, 110px); opacity: 0.85; }
+}
+
+/* Short viewports (small-screen phones in portrait, e.g. 360x640) pack the
+   garland's full aspect-ratio height into much less vertical room before the
+   H1 — shrink the garland further so its trailing bells clear the headline
+   instead of overlapping the second line. */
+@media (max-width: 768px) and (max-height: 700px) {
+  .phera-landing .hero-garland { width: min(20vw, 84px); }
 }
 
 /* ===== Hero clouds ===== */

@@ -104,7 +104,6 @@ export default function HeroSection() {
         height={240}
         priority
         className="hero-garland hero-garland-left"
-        style={{ width: 'clamp(140px, 16vw, 240px)', height: 'auto' }}
       />
       <Image
         src="/images/overlays/entry-topright.png"
@@ -114,7 +113,6 @@ export default function HeroSection() {
         height={240}
         priority
         className="hero-garland hero-garland-right"
-        style={{ width: 'clamp(140px, 16vw, 240px)', height: 'auto' }}
       />
 
       <div
@@ -327,6 +325,13 @@ export default function HeroSection() {
           .hero-cta-stack { margin-top: 20px; }
           .hero-marquee-word { font-size: 22px !important; }
           .hero-marquee-bar { padding: 12px 0 !important; }
+        }
+        /* Short viewports (small-screen phones in portrait) have little vh
+           to work with, so the vh-based clearance above collapses to its
+           floor right where the garland's bells still hang — bump the floor
+           so the H1 clears them regardless of screen height. */
+        @media (max-width: 600px) and (max-height: 700px) {
+          .hero-content { padding-top: clamp(96px, 16vh, 120px); }
         }
       `}</style>
     </section>
