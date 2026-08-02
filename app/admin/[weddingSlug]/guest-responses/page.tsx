@@ -1,0 +1,980 @@
+'use client';
+
+import {
+  Box,
+  Container,
+  Typography,
+  Stack,
+  Paper,
+  Card,
+  CardContent,
+  Avatar,
+  Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  alpha,
+  Tabs,
+  Tab,
+  IconButton,
+  Tooltip,
+  LinearProgress,
+  ListItemIcon,
+  ListItemText,
+} from '@mui/material';
+import { useState, useEffect, use, Fragment } from 'react';
+import {
+  CheckCircle,
+  Cancel,
+  HelpOutline,
+  People,
+  Restaurant,
+  Email,
+  Phone,
+  ExpandMore,
+  ExpandLess,
+  MusicNote,
+  Delete,
+  Download,
+  Upload,
+} from '@mui/icons-material';
+import { weddingService } from '@/lib/supabase/wedding-service';
+import { getAllRSVPs, deleteRSVP, getCustomQuestions } from '@/lib/supabase/rsvp-service';
+import { CustomQuestion, RSVPCustomQuestionStep } from '@/lib/supabase/types';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import * as XLSX from 'xlsx';
+import { useAdminRole } from '@/lib/contexts/AdminRoleContext';
+import { useAutoSaveStatus } from '@/lib/contexts/AutoSaveContext';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import { SecondaryActionButton } from '@/components/admin/ActionButton';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import CollectedDataTab from '@/components/admin/rsvp/CollectedDataTab';
+
+interface RSVPData {
+  id: string;
+  attending: 'yes' | 'no' | 'maybe';
+  guest_count: number;
+  plus_one: boolean;
+  plus_one_name: string | null;
+  plus_one_email: string | null;
+  food_preference: string[] | null;
+  dietary_restrictions: string | null;
+  song_request: string | null;
+  special_message: string | null;
+  maybe_comment: string | null;
+  custom_answers?: Record<string, string | string[] | null | undefined> | null;
+  created_at: string;
+  guest: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+    wedding_side: 'bride' | 'groom' | 'both' | null;
+    avatar_color: string | null;
+    avatar_svg: string | null;
+  } | null;
+}
+
+export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: string }> }) {
+  const { weddingSlug } = use(params);
+  const { isViewOnly } = useAdminRole();
+  const { showStatus } = useAutoSaveStatus();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [weddingId, setWeddingId] = useState<string | null>(null);
+  const [rsvps, setRsvps] = useState<RSVPData[]>([]);
+  const [activeTab, setActiveTab] = useState(0);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [downloadMenuAnchor, setDownloadMenuAnchor] = useState<null | HTMLElement>(null);
+  const [allCustomQuestions, setAllCustomQuestions] = useState<CustomQuestion[]>([]);
+
+  const [weddingStatus, setWeddingStatus] = useState<'draft' | 'live'>('draft');
+
+  useEffect(() => {
+    loadData();
+  }, [weddingSlug]);
+
+  const loadData = async () => {
+    try {
+      const wedding = await weddingService.getWeddingBySlug(weddingSlug);
+
+      if (wedding) {
+        setWeddingId(wedding.id);
+        setWeddingStatus(wedding.status as 'draft' | 'live');
+        // Use weddingSlug instead of wedding.id since RSVPs are stored with slug as wedding_id
+        const rsvpData = await getAllRSVPs(weddingSlug);
+        setRsvps((rsvpData || []) as RSVPData[]);
+
+        // Fetch custom questions for Extra Details tab
+        try {
+          const customSteps = await getCustomQuestions(weddingSlug);
+          const flatQuestions = customSteps.flatMap(s => s.questions);
+          setAllCustomQuestions(flatQuestions);
+        } catch (e) {
+          console.error('Error fetching custom questions:', e);
+        }
+      } else {
+        showStatus('error', `No wedding found with ID: ${weddingSlug}`);
+        setError(`No wedding found with ID: ${weddingSlug}`);
+      }
+    } catch (err) {
+      console.error('Error loading data:', err);
+      showStatus('error', `Failed to load data: ${(err as Error).message || 'Unknown error'}`);
+      setError(`Failed to load data: ${(err as Error).message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleRowExpand = (id: string) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; message: string; onConfirm: () => void }>({ open: false, message: '', onConfirm: () => { } });
+
+  const handleDeleteClick = async (id: string) => {
+    if (isViewOnly) return;
+    setConfirmDialog({
+      open: true,
+      message: 'Are you sure you want to delete this RSVP?',
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+        try {
+          await deleteRSVP(id);
+          setRsvps(prev => prev.filter(r => r.id !== id));
+          showStatus('saved', 'RSVP deleted successfully');
+        } catch (err) {
+          console.error('Error deleting RSVP:', err);
+          showStatus('error', 'Failed to delete RSVP');
+        }
+      },
+    });
+  };
+
+  const handleDownloadMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setDownloadMenuAnchor(event.currentTarget);
+  };
+
+  const handleDownloadMenuClose = () => {
+    setDownloadMenuAnchor(null);
+  };
+
+  const prepareRSVPDataForExport = (data: RSVPData[]) => {
+    return data.map(r => {
+      const base: Record<string, unknown> = {
+        'Guest Name': r.guest?.name || 'Unknown',
+        'Email': r.guest?.email || '',
+        'Phone': r.guest?.phone || '',
+        'Attending': r.attending,
+        'Party Size': r.guest_count,
+        'Plus One': r.plus_one ? 'Yes' : 'No',
+        'Plus One Name': r.plus_one_name || '',
+        'Plus One Email': r.plus_one_email || '',
+        'Side': r.guest?.wedding_side || '',
+        'Food Preferences': r.food_preference?.join(', ') || '',
+        'Dietary Restrictions': r.dietary_restrictions || '',
+        'Song Request': r.song_request || '',
+        'Special Message': r.special_message || '',
+        'Comment': r.maybe_comment || '',
+        'Responded At': new Date(r.created_at).toLocaleString(),
+      };
+      // Add custom question columns dynamically
+      allCustomQuestions.forEach(q => {
+        base[q.label] = r.custom_answers?.[q.id] || '';
+      });
+      return base;
+    });
+  };
+
+  const handleExportCSV = (filterType: 'all' | 'attending' | 'not_attending' | 'maybe') => {
+    let dataToExport = rsvps;
+    if (filterType === 'attending') dataToExport = rsvps.filter(r => r.attending === 'yes');
+    if (filterType === 'not_attending') dataToExport = rsvps.filter(r => r.attending === 'no');
+    if (filterType === 'maybe') dataToExport = rsvps.filter(r => r.attending === 'maybe');
+
+    const formattedData = prepareRSVPDataForExport(dataToExport);
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "RSVPs");
+
+    const fileName = `wedding-rsvps-${filterType}-${new Date().toISOString().split('T')[0]}.csv`;
+    XLSX.writeFile(wb, fileName);
+    handleDownloadMenuClose();
+  };
+
+  const handleExportExcelAll = () => {
+    const allData = prepareRSVPDataForExport(rsvps);
+    const attendingData = prepareRSVPDataForExport(rsvps.filter(r => r.attending === 'yes'));
+    const notAttendingData = prepareRSVPDataForExport(rsvps.filter(r => r.attending === 'no'));
+    const maybeData = prepareRSVPDataForExport(rsvps.filter(r => r.attending === 'maybe'));
+
+    const wb = XLSX.utils.book_new();
+
+    if (allData.length > 0) {
+      const wsAll = XLSX.utils.json_to_sheet(allData);
+      XLSX.utils.book_append_sheet(wb, wsAll, "All RSVPs");
+    }
+
+    if (attendingData.length > 0) {
+      const wsAttending = XLSX.utils.json_to_sheet(attendingData);
+      XLSX.utils.book_append_sheet(wb, wsAttending, "Attending");
+    }
+
+    if (notAttendingData.length > 0) {
+      const wsNotAttending = XLSX.utils.json_to_sheet(notAttendingData);
+      XLSX.utils.book_append_sheet(wb, wsNotAttending, "Not Attending");
+    }
+
+    if (maybeData.length > 0) {
+      const wsMaybe = XLSX.utils.json_to_sheet(maybeData);
+      XLSX.utils.book_append_sheet(wb, wsMaybe, "Maybe");
+    }
+
+    const fileName = `wedding-rsvps-complete-${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    handleDownloadMenuClose();
+  };
+
+  // Calculate stats
+  const stats = {
+    total: rsvps.length,
+    attending: rsvps.filter(r => r.attending === 'yes').length,
+    notAttending: rsvps.filter(r => r.attending === 'no').length,
+    maybe: rsvps.filter(r => r.attending === 'maybe').length,
+    totalGuests: rsvps.reduce((acc, r) => acc + (r.attending === 'yes' ? r.guest_count : 0), 0),
+    withDietaryRestrictions: rsvps.filter(r => r.dietary_restrictions && r.dietary_restrictions.trim() !== '').length,
+    withSongRequests: rsvps.filter(r => r.song_request && r.song_request.trim() !== '').length,
+  };
+
+  // Get dietary restrictions summary
+  const dietaryRestrictions = rsvps
+    .filter(r => r.dietary_restrictions && r.dietary_restrictions.trim() !== '')
+    .map(r => ({
+      name: r.guest?.name || 'Unknown',
+      restrictions: r.dietary_restrictions!,
+    }));
+
+  // Get food preferences summary
+  const foodPreferencesCounts: Record<string, number> = {};
+  rsvps.forEach(r => {
+    if (r.food_preference && Array.isArray(r.food_preference)) {
+      r.food_preference.forEach(pref => {
+        foodPreferencesCounts[pref] = (foodPreferencesCounts[pref] || 0) + 1;
+      });
+    }
+  });
+
+  // Get song requests
+  const songRequests = rsvps
+    .filter(r => r.song_request && r.song_request.trim() !== '')
+    .map(r => ({
+      name: r.guest?.name || 'Unknown',
+      song: r.song_request!,
+    }));
+
+  const getAttendingColor = (attending: string) => {
+    switch (attending) {
+      case 'yes': return COLORS.accent.success;
+      case 'no': return COLORS.accent.danger;
+      case 'maybe': return COLORS.accent.warning;
+      default: return COLORS.text.subtle;
+    }
+  };
+
+  const getAttendingIcon = (attending: string) => {
+    switch (attending) {
+      case 'yes': return <CheckCircle sx={{ color: COLORS.accent.success }} />;
+      case 'no': return <Cancel sx={{ color: COLORS.accent.danger }} />;
+      case 'maybe': return <HelpOutline sx={{ color: COLORS.accent.warning }} />;
+      default: return <HelpOutline sx={{ color: COLORS.text.subtle }} />;
+    }
+  };
+
+  // Filter RSVPs based on active tab
+  const getFilteredRSVPs = () => {
+    switch (activeTab) {
+      case 1: return rsvps.filter(r => r.attending === 'yes');
+      case 2: return rsvps.filter(r => r.attending === 'no');
+      case 3: return rsvps.filter(r => r.attending === 'maybe');
+      case 4: return rsvps.filter(r => r.food_preference && r.food_preference.length > 0);
+      case 5: return rsvps.filter(r => r.dietary_restrictions && r.dietary_restrictions.trim() !== '');
+      case 6: return rsvps.filter(r => r.song_request && r.song_request.trim() !== '');
+      case 7: return rsvps.filter(r => r.custom_answers && Object.keys(r.custom_answers).length > 0);
+      default: return rsvps;
+    }
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ width: '100%' }}>
+        <LoadingSpinner message="Loading guest responses..." />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ width: '100%' }}>
+        <Paper sx={{ p: 4, borderRadius: RADII.dialog, bgcolor: alpha(COLORS.accent.danger, 0.1), textAlign: 'center' }}>
+          <Typography color="error">{error}</Typography>
+        </Paper>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ width: '100%' }}>
+      <Stack spacing={4}>
+        <PageHeading
+          title="Guest Responses"
+          subtitle="Track RSVPs, dietary restrictions, and guest preferences"
+          actions={
+            <Stack direction="row" spacing={1}>
+              <SecondaryActionButton startIcon={<Download />} onClick={handleDownloadMenuOpen}>
+                Export Data
+              </SecondaryActionButton>
+              <PheraMenu
+                anchorEl={downloadMenuAnchor}
+                open={Boolean(downloadMenuAnchor)}
+                onClose={handleDownloadMenuClose}
+              >
+                <PheraMenuItem onClick={handleExportExcelAll}>
+                  <ListItemIcon><Download fontSize="small" sx={{ color: COLORS.brand.primary }} /></ListItemIcon>
+                  <ListItemText>Export All (Excel)</ListItemText>
+                </PheraMenuItem>
+                <PheraMenuItem onClick={() => handleExportCSV('all')}>
+                  <ListItemIcon><Download fontSize="small" /></ListItemIcon>
+                  <ListItemText>All RSVPs (CSV)</ListItemText>
+                </PheraMenuItem>
+                <PheraMenuItem onClick={() => handleExportCSV('attending')}>
+                  <ListItemIcon><CheckCircle fontSize="small" sx={{ color: COLORS.accent.success }} /></ListItemIcon>
+                  <ListItemText>Attending (CSV)</ListItemText>
+                </PheraMenuItem>
+                <PheraMenuItem onClick={() => handleExportCSV('not_attending')}>
+                  <ListItemIcon><Cancel fontSize="small" sx={{ color: COLORS.accent.danger }} /></ListItemIcon>
+                  <ListItemText>Not Attending (CSV)</ListItemText>
+                </PheraMenuItem>
+                <PheraMenuItem onClick={() => handleExportCSV('maybe')}>
+                  <ListItemIcon><HelpOutline fontSize="small" sx={{ color: COLORS.accent.warning }} /></ListItemIcon>
+                  <ListItemText>Maybe (CSV)</ListItemText>
+                </PheraMenuItem>
+              </PheraMenu>
+            </Stack>
+          }
+        />
+
+        {/* Stats Cards */}
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <Card
+            sx={{
+              flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 200px' },
+              minWidth: { xs: 0, sm: 180 },
+              borderRadius: RADII.lg,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+              bgcolor: COLORS.bg.white,
+              cursor: 'pointer',
+              border: activeTab === 0 ? `2px solid ${COLORS.brand.primary}` : '2px solid transparent',
+              transition: 'border 0.2s ease'
+            }}
+            onClick={() => setActiveTab(0)}
+          >
+            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: alpha(COLORS.brand.primary, 0.1), color: COLORS.brand.primary }}>
+                <People />
+              </Avatar>
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: COLORS.text.strong }}>{stats.total}</Typography>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Total Responses</Typography>
+              </Box>
+            </CardContent>
+          </Card>
+
+          <Card
+            sx={{
+              flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 200px' },
+              minWidth: { xs: 0, sm: 180 },
+              borderRadius: RADII.lg,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+              bgcolor: COLORS.bg.white,
+              cursor: 'pointer',
+              border: activeTab === 1 ? `2px solid ${COLORS.brand.primary}` : '2px solid transparent',
+              transition: 'border 0.2s ease'
+            }}
+            onClick={() => setActiveTab(1)}
+          >
+            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: alpha(COLORS.accent.success, 0.1), color: COLORS.accent.success }}>
+                <CheckCircle />
+              </Avatar>
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: COLORS.text.strong }}>{stats.totalGuests}</Typography>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Attending</Typography>
+                <Typography variant="caption" sx={{ color: COLORS.text.faint, display: 'block', mt: 0.25 }}>
+                  including plus-ones
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+
+          <Card
+            sx={{
+              flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 200px' },
+              minWidth: { xs: 0, sm: 180 },
+              borderRadius: RADII.lg,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+              bgcolor: COLORS.bg.white,
+              cursor: 'pointer',
+              border: activeTab === 3 ? `2px solid ${COLORS.brand.primary}` : '2px solid transparent',
+              transition: 'border 0.2s ease'
+            }}
+            onClick={() => setActiveTab(3)}
+          >
+            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: alpha(COLORS.accent.warning, 0.1), color: COLORS.accent.warning }}>
+                <HelpOutline />
+              </Avatar>
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: COLORS.text.strong }}>{stats.maybe}</Typography>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Maybe</Typography>
+              </Box>
+            </CardContent>
+          </Card>
+
+          <Card
+            sx={{
+              flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 200px' },
+              minWidth: { xs: 0, sm: 180 },
+              borderRadius: RADII.lg,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+              bgcolor: COLORS.bg.white,
+              cursor: 'pointer',
+              border: activeTab === 2 ? `2px solid ${COLORS.brand.primary}` : '2px solid transparent',
+              transition: 'border 0.2s ease'
+            }}
+            onClick={() => setActiveTab(2)}
+          >
+            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: alpha(COLORS.accent.danger, 0.1), color: COLORS.accent.danger }}>
+                <Cancel />
+              </Avatar>
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: COLORS.text.strong }}>{stats.notAttending}</Typography>
+                <Typography variant="body2" sx={{ color: COLORS.text.subtle }}>Not Attending</Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Box>
+
+        {/* Response Rate Progress - Show for all RSVP related tabs (0-3) */}
+        {/* {stats.total > 0 && activeTab <= 3 && (
+          <Paper sx={{ p: 3, borderRadius: RADII.lg, bgcolor: alpha(COLORS.bg.white, 0.95) }}>
+            <Typography variant="subtitle2" sx={{ mb: 2, color: COLORS.text.strong }}>
+              Response Breakdown
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, height: 12, borderRadius: 6, overflow: 'hidden', bgcolor: COLORS.bg.subtle }}>
+              {stats.attending > 0 && (
+                <Box
+                  sx={{
+                    width: `${(stats.attending / stats.total) * 100}%`,
+                    bgcolor: COLORS.accent.success,
+                    transition: 'width 0.3s ease'
+                  }}
+                />
+              )}
+              {stats.maybe > 0 && (
+                <Box
+                  sx={{
+                    width: `${(stats.maybe / stats.total) * 100}%`,
+                    bgcolor: COLORS.accent.warning,
+                    transition: 'width 0.3s ease'
+                  }}
+                />
+              )}
+              {stats.notAttending > 0 && (
+                <Box
+                  sx={{
+                    width: `${(stats.notAttending / stats.total) * 100}%`,
+                    bgcolor: COLORS.accent.danger,
+                    transition: 'width 0.3s ease'
+                  }}
+                />
+              )}
+            </Box>
+            <Box sx={{ display: 'flex', gap: 3, mt: 2, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.success }} />
+                <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
+                  Attending ({Math.round((stats.attending / stats.total) * 100)}%)
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.warning }} />
+                <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
+                  Maybe ({Math.round((stats.maybe / stats.total) * 100)}%)
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: COLORS.accent.danger }} />
+                <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
+                  Not Attending ({Math.round((stats.notAttending / stats.total) * 100)}%)
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
+        )} */}
+
+        {/* Tab Content */}
+        {/* Summary content for tabs 4, 5, 6 is removed as per user request to show data in rows */}
+
+        {/* Guest List Table */}
+        <Paper sx={{ borderRadius: RADII.lg, overflow: 'hidden', bgcolor: alpha(COLORS.bg.white, 0.95) }}>
+          <Tabs
+            value={activeTab}
+            onChange={(_, newValue) => setActiveTab(newValue)}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              px: 2,
+              '& .MuiTab-root': {
+                textTransform: 'none',
+                fontWeight: 600,
+                minHeight: 56,
+                color: COLORS.text.muted,
+                '&:hover': {
+                  color: COLORS.text.strong,
+                },
+              },
+              '& .Mui-selected': {
+                color: `${COLORS.brand.primary} !important`,
+              },
+              '& .MuiTabs-indicator': {
+                bgcolor: COLORS.brand.primary,
+              },
+            }}
+          >
+            <Tab label={`RSVPs (${stats.total})`} />
+            <Tab label={`Attending (${stats.totalGuests})`} />
+            <Tab label={`Not Attending (${stats.notAttending})`} />
+            <Tab label={`Maybe (${stats.maybe})`} />
+            <Tab label="Food Preferences" />
+            <Tab label="Dietary Restrictions" />
+            <Tab label="Song Requests" />
+            {allCustomQuestions.length > 0 && <Tab label="Extra Details" />}
+            <Tab label="Collected Data" />
+          </Tabs>
+
+          {activeTab === (allCustomQuestions.length > 0 ? 8 : 7) ? (
+            <CollectedDataTab weddingSlug={weddingSlug} />
+          ) : getFilteredRSVPs().length > 0 ? (
+            <TableContainer sx={{ overflowX: 'auto', maxWidth: '100%' }}>
+              <Table sx={{ minWidth: { xs: 600, md: 'auto' } }}>
+                <TableHead>
+                  <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
+                    <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Guest</TableCell>
+                    {activeTab <= 3 && (
+                      <>
+                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Contact</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Status</TableCell>
+                        <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Party Size</TableCell>
+                      </>
+                    )}
+                    {activeTab === 4 && (
+                      <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Food Preferences</TableCell>
+                    )}
+                    {activeTab === 5 && (
+                      <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Dietary Restrictions</TableCell>
+                    )}
+                    {activeTab === 6 && (
+                      <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong }}>Song Request</TableCell>
+                    )}
+                    {activeTab === 7 && allCustomQuestions.map(q => (
+                      <TableCell key={q.id} sx={{ fontWeight: 600, color: COLORS.text.strong }}>{q.label}</TableCell>
+                    ))}
+                    <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, width: 50 }}></TableCell>
+                    <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, width: 50 }}></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {getFilteredRSVPs().map((rsvp) => (
+                    <Fragment key={rsvp.id}>
+                      <TableRow
+                        sx={{
+                          '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.02) },
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => toggleRowExpand(rsvp.id)}
+                      >
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            {rsvp.guest?.avatar_svg ? (
+                              <Box
+                                dangerouslySetInnerHTML={{ __html: rsvp.guest.avatar_svg }}
+                                sx={{
+                                  width: 40,
+                                  height: 40,
+                                  borderRadius: '50%',
+                                  overflow: 'hidden',
+                                  bgcolor: rsvp.guest?.avatar_color || COLORS.brand.primary
+                                }}
+                              />
+                            ) : (
+                              <Avatar sx={{ bgcolor: rsvp.guest?.avatar_color || COLORS.brand.primary }}>
+                                {rsvp.guest?.name?.[0] || '?'}
+                              </Avatar>
+                            )}
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ color: COLORS.text.strong }}>
+                                {rsvp.guest?.name || 'Unknown'}
+                              </Typography>
+                              {rsvp.plus_one && rsvp.plus_one_name && (
+                                <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
+                                  + {rsvp.plus_one_name}
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                        </TableCell>
+
+                        {activeTab <= 3 && (
+                          <>
+                            <TableCell>
+                              <Stack spacing={0.5}>
+                                {rsvp.guest?.email && (
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Email sx={{ fontSize: 14, color: COLORS.text.subtle }} />
+                                    <Typography variant="caption" sx={{ color: COLORS.text.muted }}>
+                                      {rsvp.guest.email}
+                                    </Typography>
+                                  </Box>
+                                )}
+                                {rsvp.guest?.phone && (
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Phone sx={{ fontSize: 14, color: COLORS.text.subtle }} />
+                                    <Typography variant="caption" sx={{ color: COLORS.text.muted }}>
+                                      {rsvp.guest.phone}
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </Stack>
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                icon={getAttendingIcon(rsvp.attending)}
+                                label={rsvp.attending === 'yes' ? 'Attending' : rsvp.attending === 'no' ? 'Not Attending' : 'Maybe'}
+                                sx={{
+                                  height: 32,
+                                  px: 1,
+                                  bgcolor: alpha(getAttendingColor(rsvp.attending), 0.1),
+                                  color: getAttendingColor(rsvp.attending),
+                                  fontWeight: 700,
+                                  fontSize: '0.875rem',
+                                  borderRadius: '16px',
+                                  '& .MuiChip-icon': {
+                                    color: 'inherit',
+                                    fontSize: 20,
+                                  },
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
+                                {rsvp.guest_count}
+                              </Typography>
+                            </TableCell>
+                          </>
+                        )}
+
+                        {activeTab === 4 && (
+                          <TableCell>
+                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                              {rsvp.food_preference && rsvp.food_preference.map((pref, i) => (
+                                <Chip
+                                  key={i}
+                                  label={pref}
+                                  sx={{
+                                    height: 28,
+                                    bgcolor: alpha(COLORS.brand.primary, 0.1),
+                                    color: COLORS.brand.primary,
+                                    fontWeight: 600,
+                                    fontSize: '0.875rem',
+                                  }}
+                                />
+                              ))}
+                            </Box>
+                          </TableCell>
+                        )}
+
+                        {activeTab === 5 && (
+                          <TableCell>
+                            <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
+                              {rsvp.dietary_restrictions}
+                            </Typography>
+                          </TableCell>
+                        )}
+
+                        {activeTab === 6 && (
+                          <TableCell>
+                            <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
+                              {rsvp.song_request}
+                            </Typography>
+                          </TableCell>
+                        )}
+
+                        {activeTab === 7 && allCustomQuestions.map(q => (
+                          <TableCell key={q.id}>
+                            <Typography variant="body2" sx={{ color: COLORS.text.strong }}>
+                              {rsvp.custom_answers?.[q.id] || '-'}
+                            </Typography>
+                          </TableCell>
+                        ))}
+
+                        <TableCell>
+                          <Tooltip title="Delete RSVP">
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteClick(rsvp.id);
+                              }}
+                              sx={{
+                                color: COLORS.accent.danger,
+                                '&:hover': { bgcolor: alpha(COLORS.accent.danger, 0.1) }
+                              }}
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell>
+                          <IconButton size="small">
+                            {expandedRows.has(rsvp.id) ? <ExpandLess /> : <ExpandMore />}
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                      {expandedRows.has(rsvp.id) && (
+                        <TableRow>
+                          <TableCell colSpan={activeTab === 7 ? allCustomQuestions.length + 3 : activeTab <= 3 ? 6 : 4} sx={{ bgcolor: alpha(COLORS.brand.primary, 0.02), py: 2 }}>
+                            <Box sx={{ px: { xs: 0, sm: 2 } }}>
+                              <Box sx={{ display: 'flex', gap: { xs: 2, sm: 4 }, rowGap: 3, flexWrap: 'wrap' }}>
+                                {rsvp.food_preference && rsvp.food_preference.length > 0 && (
+                                  <Box sx={{ minWidth: 200 }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
+                                      Food Preferences
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                                      {rsvp.food_preference.map((pref, i) => (
+                                        <Chip
+                                          key={i}
+                                          label={pref}
+                                          sx={{
+                                            height: 28,
+                                            bgcolor: COLORS.border.default,
+                                            color: COLORS.text.strong,
+                                            fontWeight: 600,
+                                            fontSize: '0.875rem',
+                                          }}
+                                        />
+                                      ))}
+                                    </Box>
+                                  </Box>
+                                )}
+
+                                <Box sx={{ minWidth: 200 }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
+                                    Guest Contact
+                                  </Typography>
+                                  <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
+                                    {rsvp.guest?.email || '-'}
+                                  </Typography>
+                                  {rsvp.guest?.phone && (
+                                    <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.875rem' }}>
+                                      {rsvp.guest.phone}
+                                    </Typography>
+                                  )}
+                                </Box>
+
+                                <Box sx={{ minWidth: 120 }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
+                                    Party Size
+                                  </Typography>
+                                  <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
+                                    {rsvp.guest_count} person{rsvp.guest_count !== 1 ? 's' : ''}
+                                  </Typography>
+                                </Box>
+
+                                {rsvp.guest?.wedding_side && (
+                                  <Box sx={{ minWidth: 150 }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
+                                      Wedding Side
+                                    </Typography>
+                                    <Box sx={{ mt: 0.5 }}>
+                                      <Chip
+                                        label={rsvp.guest.wedding_side === 'bride' ? "Bride's Side" : rsvp.guest.wedding_side === 'groom' ? "Groom's Side" : 'Both'}
+                                        sx={{
+                                          height: 28,
+                                          bgcolor: alpha(COLORS.text.subtle, 0.1),
+                                          color: COLORS.text.subtle,
+                                          fontWeight: 600,
+                                          fontSize: '0.875rem',
+                                        }}
+                                      />
+                                    </Box>
+                                  </Box>
+                                )}
+
+                                <Box sx={{ minWidth: 200 }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
+                                    Responded Date
+                                  </Typography>
+                                  <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
+                                    {new Date(rsvp.created_at).toLocaleDateString('en-US', {
+                                      year: 'numeric',
+                                      month: 'long',
+                                      day: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </Typography>
+                                </Box>
+
+                                {rsvp.dietary_restrictions && (
+                                  <Box sx={{ minWidth: 200 }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
+                                      Dietary Restrictions
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
+                                      {rsvp.dietary_restrictions}
+                                    </Typography>
+                                  </Box>
+                                )}
+
+                                {rsvp.song_request && (
+                                  <Box sx={{ minWidth: 200 }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
+                                      Song Request
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
+                                      🎵 {rsvp.song_request}
+                                    </Typography>
+                                  </Box>
+                                )}
+
+                                {rsvp.special_message && (
+                                  <Box sx={{ minWidth: 300, maxWidth: 500 }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
+                                      Special Message
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5, fontStyle: 'italic' }}>
+                                      &quot;{rsvp.special_message}&quot;
+                                    </Typography>
+                                  </Box>
+                                )}
+
+                                {rsvp.maybe_comment && rsvp.attending === 'maybe' && (
+                                  <Box sx={{ minWidth: 200 }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
+                                      Comment
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
+                                      {rsvp.maybe_comment}
+                                    </Typography>
+                                  </Box>
+                                )}
+
+                                {rsvp.plus_one && rsvp.plus_one_name && (
+                                  <Box sx={{ minWidth: 200 }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
+                                      Plus One
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
+                                      {rsvp.plus_one_name}
+                                    </Typography>
+                                    {rsvp.plus_one_email && (
+                                      <Typography variant="body2" sx={{ color: COLORS.text.muted, fontSize: '0.875rem' }}>
+                                        {rsvp.plus_one_email}
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                )}
+
+                                {rsvp.custom_answers && Object.keys(rsvp.custom_answers).length > 0 && (
+                                  <Box sx={{ minWidth: 200, width: '100%', mt: 1, pt: 1, borderTop: `1px solid ${COLORS.border.faint}` }}>
+                                    <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.brand.primary, mb: 1, display: 'block' }}>
+                                      Custom Answers
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                                      {allCustomQuestions.map(q => {
+                                        const answer = rsvp.custom_answers?.[q.id];
+                                        if (!answer) return null;
+                                        return (
+                                          <Box key={q.id} sx={{ minWidth: 150 }}>
+                                            <Typography variant="caption" sx={{ fontWeight: 600, color: COLORS.text.subtle }}>
+                                              {q.label}
+                                            </Typography>
+                                            <Typography variant="body2" sx={{ color: COLORS.text.strong, mt: 0.5 }}>
+                                              {answer}
+                                            </Typography>
+                                          </Box>
+                                        );
+                                      })}
+                                    </Box>
+                                  </Box>
+                                )}
+                              </Box>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </Fragment>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <EmptyState
+              icon={<People sx={{ fontSize: 80, color: alpha(COLORS.brand.primary, 0.1) }} />}
+              title={weddingStatus === 'live' ? 'No Responses Yet' : 'Website Not Published'}
+              subtitle={
+                weddingStatus === 'live'
+                  ? "Your guests haven't started RSVPing yet. Once they do, their responses will appear here automatically."
+                  : 'Your wedding website is currently in draft mode. Publish your website to start collecting RSVPs from your guests.'
+              }
+              action={
+                weddingStatus === 'draft' ? (
+                  <Typography variant="body2" sx={{ color: COLORS.brand.primary, fontWeight: 600 }}>
+                    Tip: You can publish your website using the button in the bottom left sidebar.
+                  </Typography>
+                ) : undefined
+              }
+              sx={{ py: 10 }}
+            />
+          )}
+        </Paper>
+      </Stack>
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+      />
+
+    </Box>
+  );
+}

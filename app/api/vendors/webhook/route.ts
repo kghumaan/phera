@@ -1,0 +1,387 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { whapiClient } from '@/lib/vendors/whapi-client';
+import { extractVendorInsights, saveInsights, generateCoordinatorReply } from '@/lib/vendors/ai-extractor';
+import { generateAIResponse } from '@/lib/whatsapp/ai-handler';
+import { sendMessage as whapiSend } from '@/lib/whatsapp/whapi-client';
+import { recordBroadcastReplyForGuest } from '@/lib/whatsapp/broadcast-replies';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+/**
+ * POST handler — receives incoming group messages from Whapi.Cloud
+ * Always returns 200 to avoid retries.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // Fail closed: without a configured secret, inbound webhooks are rejected
+    // (this route triggers AI extraction + auto-replies — real cost).
+    const webhookSecret = process.env.VENDOR_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      // Loud, not silent: dropping vendor messages looks identical to "quiet
+      // group" from the UI, so an unset secret must be visible in the logs.
+      console.error('[vendors/webhook] VENDOR_WEBHOOK_SECRET is not set — rejecting inbound vendor messages');
+      return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 503 });
+    }
+    const tokenParam = request.nextUrl.searchParams.get('token');
+    const headerSecret = request.headers.get('x-webhook-secret');
+    if (tokenParam !== webhookSecret && headerSecret !== webhookSecret) {
+      console.error('[vendors/webhook] rejected: webhook secret missing or wrong (check the ?token= on the Whapi webhook URL)');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const payload = await request.json();
+    console.log('📨 Vendor webhook received:', JSON.stringify(payload).slice(0, 500));
+
+    // Whapi.Cloud sends an array of messages
+    const messages: any[] = Array.isArray(payload.messages)
+      ? payload.messages
+      : payload.message
+        ? [payload.message]
+        : [];
+
+    if (messages.length === 0) {
+      return NextResponse.json({ success: true });
+    }
+
+    for (const msg of messages) {
+      // Process both group (@g.us) and direct (@s.whatsapp.net) messages
+      const chatId = msg.chat_id;
+      if (!chatId) continue;
+      const isGroup = chatId.endsWith('@g.us');
+      const isDirect = chatId.endsWith('@s.whatsapp.net');
+      if (!isGroup && !isDirect) continue;
+
+      const senderPhone = msg.from?.replace('@s.whatsapp.net', '') || '';
+      const senderName = msg.from_name || senderPhone;
+
+      // Extract media (image / document / video) — Whapi fields vary by type.
+      const mediaSource =
+        msg.image || msg.document || msg.video || msg.audio || null;
+      const mediaUrl: string | null =
+        mediaSource?.link || mediaSource?.url || mediaSource?.id || null;
+      const mediaType: string | null = msg.image
+        ? 'image'
+        : msg.document
+        ? 'document'
+        : msg.video
+        ? 'video'
+        : msg.audio
+        ? 'audio'
+        : null;
+
+      const textContent = msg.text?.body || msg.body || msg.caption || mediaSource?.caption || '';
+      const content = textContent || (mediaType ? `[${mediaType}]` : '');
+      const messageId = msg.id;
+      const timestamp = msg.timestamp
+        ? new Date(msg.timestamp * 1000).toISOString()
+        : new Date().toISOString();
+
+      // Nothing to work with — no text and no media.
+      if (!content && !mediaUrl) continue;
+
+      // 1. Find or create conversation by group ID or chat ID
+      let { data: conversation } = isGroup
+        ? await supabase
+            .from('vendor_conversations')
+            .select('*')
+            .eq('whatsapp_group_id', chatId)
+            .single()
+        : await supabase
+            .from('vendor_conversations')
+            .select('*')
+            .eq('whatsapp_chat_id', chatId)
+            .single();
+
+      let weddingId: string | null = null;
+
+      if (conversation) {
+        weddingId = conversation.wedding_id;
+      } else {
+        // Try to match by participant phones → vendors table
+        const { data: vendorMatch } = await supabase
+          .from('vendors')
+          .select('wedding_id, id')
+          .eq('phone', senderPhone)
+          .limit(1)
+          .single();
+
+        if (vendorMatch) {
+          weddingId = vendorMatch.wedding_id;
+        } else {
+          // Also try with whatsapp_group_id on vendors
+          const { data: groupMatch } = await supabase
+            .from('vendors')
+            .select('wedding_id, id')
+            .eq('whatsapp_group_id', chatId)
+            .limit(1)
+            .single();
+
+          if (groupMatch) {
+            weddingId = groupMatch.wedding_id;
+          }
+        }
+
+        if (!weddingId) {
+          // No vendor match. If this is a direct chat, try Concierge:
+          // look up sender as a guest and run the AI response flow.
+          if (isDirect) {
+            const handled = await tryConciergeFlow(senderPhone, content, msg, { mediaUrl, mediaType });
+            if (handled) continue;
+          }
+          console.log(`⚠️ No wedding or guest match for chat ${chatId}, skipping`);
+          continue;
+        }
+
+        // Create new conversation
+        const insertData: any = {
+          wedding_id: weddingId,
+          source: isDirect ? 'whapi_direct' : 'whapi_webhook',
+          chat_type: isDirect ? 'direct' : 'group',
+          title: msg.chat_name || `Vendor Chat`,
+          status: 'ready',
+          first_message_at: timestamp,
+          last_message_at: timestamp,
+        };
+        if (isGroup) insertData.whatsapp_group_id = chatId;
+        if (isDirect) insertData.whatsapp_chat_id = chatId;
+
+        const { data: newConvo, error: convoError } = await supabase
+          .from('vendor_conversations')
+          .insert(insertData)
+          .select()
+          .single();
+
+        if (convoError) {
+          console.error('Failed to create conversation:', convoError);
+          continue;
+        }
+        conversation = newConvo;
+      }
+
+      // 2. Determine sender type
+      let senderType = 'unknown';
+      const { data: vendorRecord } = await supabase
+        .from('vendors')
+        .select('id')
+        .eq('wedding_id', weddingId)
+        .eq('phone', senderPhone)
+        .limit(1)
+        .single();
+
+      if (vendorRecord) {
+        senderType = 'vendor';
+      }
+
+      // 3. Store message
+      const { error: msgError } = await supabase.from('vendor_messages').insert({
+        conversation_id: conversation.id,
+        wedding_id: weddingId,
+        sender_name: senderName,
+        sender_phone: senderPhone,
+        sender_type: senderType,
+        content,
+        message_timestamp: timestamp,
+        has_media: !!msg.media,
+        media_type: msg.media?.type || null,
+        media_url: msg.media?.link || null,
+        whapi_message_id: messageId,
+      });
+
+      if (msgError) {
+        console.error('Failed to store vendor message:', msgError);
+      }
+
+      // 4. Update conversation counters
+      await supabase
+        .from('vendor_conversations')
+        .update({
+          message_count: (conversation.message_count || 0) + 1,
+          last_message_at: timestamp,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', conversation.id);
+
+      // 5. Check if coordinator is tagged — reply if so
+      const lowerContent = content.toLowerCase();
+      if (
+        lowerContent.includes('@phera') ||
+        lowerContent.includes('hey phera') ||
+        lowerContent.includes('hi phera')
+      ) {
+        try {
+          const reply = await generateCoordinatorReply({
+            weddingId: weddingId!,
+            conversationId: conversation.id,
+            senderName,
+            message: content,
+          });
+
+          await whapiClient.sendMessage(chatId, reply);
+
+          // Store coordinator reply
+          await supabase.from('vendor_messages').insert({
+            conversation_id: conversation.id,
+            wedding_id: weddingId,
+            sender_name: 'Phera Coordinator',
+            sender_type: 'coordinator',
+            content: reply,
+            message_timestamp: new Date().toISOString(),
+          });
+        } catch (replyError) {
+          console.error('Failed to send coordinator reply:', replyError);
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Vendor webhook error:', error);
+    // Always return 200 to avoid retries
+    return NextResponse.json({ success: true }, { status: 200 });
+  }
+}
+
+/**
+ * Concierge fallback: if an incoming direct message didn't match a vendor,
+ * look the sender up in the guest list and run the AI response flow so the
+ * same Whapi number powers both Coordinator (vendor groups) and Concierge
+ * (guest DMs). Returns true if the flow handled the message.
+ */
+async function tryConciergeFlow(
+  senderPhone: string,
+  content: string,
+  msg: any,
+  media?: { mediaUrl: string | null; mediaType: string | null },
+): Promise<boolean> {
+  try {
+    const rawDigits = senderPhone.replace(/\D/g, '');
+    const phoneVariants = [`+${rawDigits}`, rawDigits, `+${rawDigits.slice(-10)}`];
+
+    let guest: any = null;
+    for (const phone of phoneVariants) {
+      const { data } = await supabase.from('guests').select('*').eq('phone', phone);
+      if (data && data.length > 0) { guest = data[0]; break; }
+    }
+    if (!guest) {
+      const last10 = rawDigits.slice(-10);
+      const { data } = await supabase.from('guests').select('*').ilike('phone', `%${last10}`);
+      if (data && data.length > 0) guest = data[0];
+    }
+    if (!guest) return false;
+
+    // Resolve wedding (guests.wedding_id is a slug)
+    let wedding: any = null;
+    const { data: wBySlug } = await supabase
+      .from('weddings').select('*').eq('slug', guest.wedding_id).single();
+    if (wBySlug) wedding = wBySlug;
+    if (!wedding) {
+      const { data: wById } = await supabase
+        .from('weddings').select('*').eq('id', guest.wedding_id).single();
+      if (wById) wedding = wById;
+    }
+    if (!wedding) return false;
+
+    const guestName = guest.name?.split(' ')[0] || 'Guest';
+    console.log(`[concierge] Message from ${guest.name} (${senderPhone}): ${content.slice(0, 80)}`);
+
+    // Attribute this inbound to a pending broadcast (if any). The
+    // attribution result drives whether we short-circuit the AI reply
+    // and use a data-aware acknowledgment instead.
+    let attribution = null as Awaited<ReturnType<typeof recordBroadcastReplyForGuest>> | null;
+    try {
+      attribution = await recordBroadcastReplyForGuest(guest.id, content, {
+        mediaUrl: media?.mediaUrl ?? null,
+        mediaType: media?.mediaType ?? null,
+      });
+    } catch (err) {
+      console.error('[concierge] broadcast reply record error:', err);
+    }
+
+    // Broadcast short-circuit — the guest is replying to a data-collection
+    // prompt. We already saved what we can; skip the generic AI reply
+    // (which would hallucinate about the image or duplicate responses) and
+    // send a purpose-built acknowledgment instead.
+    if (attribution?.matched && attribution.collectsData) {
+      const { filledLabels, missingLabels } = attribution;
+      let ack: string;
+      if (filledLabels.length === 0) {
+        ack = `Thanks ${guestName} — I've saved that. Let me know if you meant to send something else.`;
+      } else if (missingLabels.length === 0) {
+        ack = `Got it ${guestName}! I've saved your ${filledLabels.join(' and ')}. All set — thank you.`;
+      } else {
+        ack = `Got it — saved your ${filledLabels.join(' and ')}. Still waiting on: ${missingLabels.join(', ')}.`;
+      }
+      await whapiSend(senderPhone, ack);
+      console.log(`[concierge] Broadcast ack to ${guestName}: ${ack.slice(0, 120)}`);
+      return true;
+    }
+
+    // Debounce: if the guest is in the middle of sending a burst of short
+    // messages, wait ~2.5s and check if a newer inbound arrived. If so,
+    // skip this reply — the later webhook invocation will generate a
+    // fresher one that reflects the full context.
+    const msgTimestamp = new Date(
+      msg.timestamp ? msg.timestamp * 1000 : Date.now(),
+    ).toISOString();
+    await new Promise((r) => setTimeout(r, 2500));
+    const { data: newerInbound } = await supabase
+      .from('whatsapp_chat_history')
+      .select('id, created_at')
+      .eq('guest_id', guest.id)
+      .eq('role', 'user')
+      .gt('created_at', msgTimestamp)
+      .limit(1);
+    if (newerInbound && newerInbound.length > 0) {
+      console.log(`[concierge] Debounce — newer inbound from ${guestName}, skipping reply for this one`);
+      return true;
+    }
+
+    // Note: generateAIResponse logs both the inbound user message and the
+    // outbound assistant reply to whatsapp_chat_history internally. We skip
+    // webhook-side logging to avoid duplicate rows in the conversation view.
+    const rawAi = await generateAIResponse({
+      weddingId: wedding.id,
+      weddingSlug: wedding.slug,
+      guestId: guest.id,
+      guestName,
+      userMessage: content,
+    });
+
+    const aiResponse = sanitizeAIResponse(rawAi, guestName);
+    await whapiSend(senderPhone, aiResponse);
+
+    console.log(`[concierge] Replied to ${guestName}: ${aiResponse.slice(0, 80)}`);
+    return true;
+  } catch (err) {
+    console.error('[concierge] Flow error:', err);
+    return false;
+  }
+}
+
+/**
+ * Guard against empty / broken AI responses. When the model loses structure
+ * (e.g. emits orphan markdown bullets with no content, or comes back empty),
+ * we swap in a graceful fallback so the guest never receives garbage. The
+ * raw response is logged so we can diagnose prompt/data issues.
+ */
+function sanitizeAIResponse(raw: string | null | undefined, guestName: string): string {
+  const trimmed = (raw || '').trim();
+  const plain = trimmed.replace(/[\s*_\-•·—]+/g, '');
+  const looksBroken = !trimmed || trimmed.length < 15 || plain.length < 5;
+
+  // Catch raw function-call syntax leaking into chat text. This happens when
+  // the fallback model (e.g. Groq) doesn't execute tools and instead emits
+  // <function/name{...}></function> tokens as plain text.
+  const hasFunctionTag = /<function\/?[\w_]+/i.test(trimmed) || /<\/function>/i.test(trimmed);
+
+  if (looksBroken || hasFunctionTag) {
+    console.warn(`[concierge] Rejected AI response (broken=${looksBroken}, fn_tag=${hasFunctionTag}). raw="${trimmed.slice(0, 200)}"`);
+    return `Got it, ${guestName} — noted. I've saved that on my end. Anything else?`;
+  }
+  return trimmed;
+}

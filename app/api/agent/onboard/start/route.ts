@@ -1,0 +1,116 @@
+import { NextRequest, NextResponse, after } from 'next/server';
+import { getAuthenticatedClient } from '@/lib/utils/auth-helpers';
+import { checkRateLimit } from '@/lib/utils/rate-limiter';
+import { WeddingService } from '@/lib/supabase/wedding-service';
+import { COLORS } from '@/lib/theme/tokens';
+import { DRAFT_COUPLE_NAME } from '@/lib/constants/wedding-placeholders';
+
+export const runtime = 'nodejs';
+
+/**
+ * POST /api/agent/onboard/start
+ * Creates a fresh draft wedding owned by the user and marks onboarding
+ * complete, so the AI-first path can drop them straight into the Planner
+ * chat. Mirrors the placeholder/defaults the manual wizard would set; the
+ * agent fills in real names/date/venue conversationally from there.
+ * Also serves anonymous (pre-signup) landing-page sessions — an anonymous
+ * Supabase user passes auth and RLS like any other, and keeps the same
+ * wedding after converting to a real account (same user id).
+ */
+export async function POST(request: NextRequest) {
+  // Loose per-IP backstop for the route as a whole. The client legitimately
+  // calls this 2-3 times per landing visit (keystroke prewarm, CTA hover,
+  // submit), and most calls are cheap "you already have a wedding" reads, so
+  // this ceiling exists only for outright hammering; real usage never hits it.
+  const limited = checkRateLimit(request, { maxRequests: 30, windowMs: 60_000, keyPrefix: 'onboard-start' });
+  if (limited) return limited;
+
+  const { supabase, user } = await getAuthenticatedClient();
+  if (!supabase || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // If they already have a wedding, don't make another — send them to it.
+  // `fresh` says whether it's still an UNTOUCHED draft, which is what decides
+  // if the welcome/onboarding flow should run. "We just created it" is the
+  // wrong test: a prewarm creates the draft seconds before the visitor even
+  // arrives, and a visitor who returns later must not have the scripted
+  // welcome replayed over a wedding that now holds their real details.
+  const { data: existing } = await supabase
+    .from('weddings')
+    .select('slug, couple_name, status')
+    .eq('created_by', user.id)
+    .order('created_at', { ascending: false })
+    .limit(1);
+  if (existing && existing.length > 0) {
+    const wedding = existing[0];
+    const untouched = wedding.couple_name === DRAFT_COUPLE_NAME && wedding.status === 'draft';
+    return NextResponse.json({ slug: wedding.slug, existing: true, fresh: untouched });
+  }
+
+  // The tight cap applies only to ACTUAL wedding creation: a visitor bouncing
+  // landing/planner re-reads their existing draft above without ever counting
+  // against this. Tripping it takes creating 3 distinct weddings from one IP
+  // inside a minute (cleared cookies / incognito spam), which is abuse, not use.
+  const createLimited = checkRateLimit(request, { maxRequests: 3, windowMs: 60_000, keyPrefix: 'onboard-create' });
+  if (createLimited) return createLimited;
+
+  const service = new WeddingService(supabase as never);
+  // Unique, unguessable draft slug — a raw UUID, renamed later once the couple
+  // is known. (No "new-wedding-" prefix so drafts don't share a guessable namespace.)
+  const slug = globalThis.crypto?.randomUUID?.() ?? `w-${Date.now()}`;
+
+  const wedding = await service.createWedding({
+    slug,
+    couple_name: DRAFT_COUPLE_NAME,
+    partner1_name: '',
+    partner2_name: '',
+    wedding_date: new Date(0).toISOString(),
+    wedding_date_display: 'Dates TBD',
+    venue_name: 'Venue TBD',
+    venue_location: '',
+    rsvp_deadline: '',
+    status: 'draft',
+    created_by: user.id,
+    background_image: '/images/backgrounds/blue-clouds.webp',
+    primary_color: COLORS.brand.primary,
+    couple_images: ['/images/couple/placeholder1.png', '/images/couple/placeholder2.png'],
+    couple_image_url: '/images/couple/placeholder1.png',
+  } as never);
+
+  if (!wedding) {
+    return NextResponse.json({ error: 'Could not create your wedding — please try again.' }, { status: 500 });
+  }
+
+  // Two tabs (or any client without the in-flight dedupe) can race this route:
+  // both read "no wedding" and both insert. Reconcile after the fact — the
+  // OLDEST wedding for this user wins, and a loser deletes the row it just made
+  // so the couple can never end up with two drafts and a chat pointing at the
+  // one they aren't looking at.
+  const { data: mine } = await supabase
+    .from('weddings')
+    .select('id, slug, created_at')
+    .eq('created_by', user.id)
+    .order('created_at', { ascending: true });
+  const winner = mine?.[0];
+  if (winner && winner.id !== wedding.id) {
+    await supabase.from('weddings').delete().eq('id', wedding.id).eq('created_by', user.id);
+    return NextResponse.json({ slug: winner.slug, existing: true, fresh: true });
+  }
+
+  // Not needed for the redirect — run it after the response is sent. (It only
+  // matters later: the auth callback checks it to avoid bouncing to /welcome.)
+  // Outside a Next request scope (tests), after() throws — run inline instead.
+  const completeOnboardingFlag = async () => {
+    await supabase
+      .from('user_settings')
+      .upsert({ user_id: user.id, onboarding_completed: true, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  };
+  try {
+    after(completeOnboardingFlag);
+  } catch {
+    await completeOnboardingFlag();
+  }
+
+  return NextResponse.json({ slug: wedding.slug, existing: false, fresh: true });
+}

@@ -1,0 +1,366 @@
+/* ====================================================================
+   Phera landing page — design CSS
+   Ported verbatim from the Claude Design package's styles.css.
+   - Asset paths rewritten to our /public/images/backgrounds/* locations.
+   - Font loading dropped (we already load Outfit + Instrument Serif via
+     next/font/google in app/layout.tsx; DM Mono falls back to system mono
+     for the tiny .mono eyebrow labels).
+   - All animations, classes, and CSS variables preserved 1:1 so the
+     design's JSX can be ported as-is.
+   ==================================================================== */
+
+:root {
+  /* Brand */
+  --pink: #DE3F5E;
+  --pink-hover: #C8365A;
+  --pink-soft: rgba(222, 63, 94, 0.08);
+  --pink-border: rgba(222, 63, 94, 0.18);
+
+  /* Cultural accents */
+  --gold: #D4AF37;
+  --champagne: #D1B99F;
+  --maroon: #800020;
+  --saffron: #FF9933;
+  --coral: #FF6B6B;
+  --teal: #20C997;
+  --purple: #6C5CE7;
+
+  /* Surfaces */
+  --ink: #1a1a1a;
+  --ink-deep: #0E0B12;
+  --ink-warm: #1F1518;
+  --cream: #F7F1E8;
+  --cream-warm: #F4EBDB;
+  --paper: #FBF7F1;
+  --white: #FFFFFF;
+  --sky: #E8F1FB;
+
+  /* Text on light */
+  --text-strong: #1a1a1a;
+  --text-muted: #4a4a4a;
+  --text-subtle: #6a6a6a;
+  --text-faint: #9a9a9a;
+
+  /* WhatsApp palette */
+  --wa-bg: #EFE7DE;
+  --wa-bubble: #DCF8C6;
+  --wa-header: #075E54;
+  --wa-bubble-text: #0b141a;
+  --wa-time: #667781;
+  --wa-check: #53bdeb;
+
+  /* Type — wired to our next/font CSS variables (with safe fallbacks). */
+  --serif: var(--font-instrument-serif), 'Cormorant Garamond', Georgia, serif;
+  --sans: var(--font-outfit), -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'DM Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* Density (driven by Tweaks) */
+  --section-pad: 140px;
+  --container-max: 1280px;
+
+  /* Accent (driven by Tweaks) */
+  --accent: var(--pink);
+  --accent-hover: var(--pink-hover);
+}
+
+/* ===== Reset + base — scoped to the landing root so we don't blow away
+   admin/guest styles which use MUI defaults. ===== */
+.phera-landing { font-family: var(--sans); color: var(--text-strong); font-size: 17px; line-height: 1.55; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+.phera-landing * { box-sizing: border-box; }
+
+/* ===== Type primitives ===== */
+.phera-landing .serif { font-family: var(--serif); font-style: italic; font-weight: 400; }
+.phera-landing .mono  { font-family: var(--mono); font-weight: 500; letter-spacing: 0.02em; }
+
+.phera-landing .eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--text-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.phera-landing .eyebrow::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.phera-landing .display {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 0.95;
+  margin: 0;
+}
+
+/* ===== Container =====
+   Design has just max-width + margin auto so the box auto-shrinks to its
+   content's max-content (capped at 1280px) and auto margins absorb the
+   rest. That's what gives the hero its visually-centered feel: when the
+   H1 is 956px wide, the container becomes ~1020px and centers in the
+   viewport with ~450px on each side.
+   `width: auto` here is intentional and load-bearing: Tailwind v4 ships
+   a `.container` utility (in `@layer utilities`) that sets
+   `width: 100%`. Even though our `.phera-landing .container` rule has
+   higher specificity, it didn't reset `width`, so the utility's
+   `width: 100%` survived the cascade and force-stretched the container
+   to 1280px. Setting `width: auto` explicitly stops that. */
+.phera-landing .container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 32px;
+  width: auto;
+}
+@media (max-width: 768px) {
+  .phera-landing .container { padding: 0 20px; }
+  .phera-landing { --section-pad: 72px; }
+}
+@media (max-width: 480px) {
+  .phera-landing .container { padding: 0 16px; }
+  .phera-landing { --section-pad: 64px; }
+}
+
+/* Make sure landing surfaces never produce horizontal scroll on mobile -
+   stray decorative elements (offset gradients, date pills, marquees that
+   reach past the container) should be clipped, not punch the page wider
+   than the viewport. NOTE: `overflow-x: clip` (not `hidden`) - the
+   `hidden` variant forces the element into a scroll container, which
+   kills `position: sticky` for descendants (the FeatureStepper sticky
+   stage was scrolling away on desktop because of this). */
+.phera-landing { overflow-x: clip; }
+
+/* ===== Buttons ===== */
+.phera-landing .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 16px;
+  padding: 16px 28px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .phera-landing .btn {
+    font-size: 15px;
+    padding: 13px 22px;
+    gap: 8px;
+  }
+}
+.phera-landing .btn-primary {
+  background: var(--accent);
+  color: white;
+}
+.phera-landing .btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(222, 63, 94, 0.25);
+}
+.phera-landing .btn-ghost {
+  background: transparent;
+  color: var(--text-strong);
+  border-color: rgba(0,0,0,0.18);
+}
+.phera-landing .btn-ghost:hover {
+  border-color: var(--text-strong);
+  background: rgba(0,0,0,0.02);
+}
+.phera-landing .btn-arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+.phera-landing .btn:hover .btn-arrow {
+  transform: translateX(4px);
+}
+
+/* ===== Sections ===== */
+.phera-landing .section {
+  padding: var(--section-pad) 0;
+  position: relative;
+}
+
+/* ===== Marquee ===== */
+@keyframes phera-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.phera-landing .marquee {
+  display: flex;
+  overflow: hidden;
+  width: 100%;
+  user-select: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, black 5%, black 95%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, black 5%, black 95%, transparent 100%);
+}
+.phera-landing .marquee-track {
+  display: flex;
+  flex-shrink: 0;
+  gap: 48px;
+  padding-right: 48px;
+  animation: phera-marquee 40s linear infinite;
+  align-items: center;
+}
+.phera-landing .marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* ===== Reveal on scroll ===== */
+.phera-landing .reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.9s cubic-bezier(.2,.7,.2,1), transform 0.9s cubic-bezier(.2,.7,.2,1);
+}
+.phera-landing .reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.phera-landing .reveal-delay-1 { transition-delay: 0.08s; }
+.phera-landing .reveal-delay-2 { transition-delay: 0.16s; }
+.phera-landing .reveal-delay-3 { transition-delay: 0.24s; }
+.phera-landing .reveal-delay-4 { transition-delay: 0.32s; }
+
+/* ===== Card hover ===== */
+.phera-landing .tilt-card {
+  transition: transform 0.4s cubic-bezier(.2,.7,.2,1), box-shadow 0.4s ease;
+}
+.phera-landing .tilt-card:hover {
+  transform: translateY(-6px);
+}
+
+/* ===== Highlight strike (hero) ===== */
+.phera-landing .highlight-strike {
+  position: relative;
+  display: inline-block;
+}
+.phera-landing .highlight-strike::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 8%;
+  height: 38%;
+  background: var(--accent);
+  opacity: 0.22;
+  z-index: -1;
+  transform-origin: left center;
+  animation: phera-hl-grow 1.2s 0.6s ease-out both;
+}
+@keyframes phera-hl-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ===== Pretty wrap ===== */
+.phera-landing .wrap-pretty { text-wrap: pretty; }
+.phera-landing .wrap-balance { text-wrap: balance; }
+
+/* ===== Section heading singleLine — nowrap on desktop, wrap on tablet
+   and below so short titles don't punch past the container edge on
+   narrow viewports. ===== */
+.phera-landing .section-header-single-line { white-space: nowrap; }
+@media (max-width: 900px) {
+  .phera-landing .section-header-single-line { white-space: normal; }
+}
+
+/* ===== Hero garland corners ===== */
+.phera-landing .hero-garland {
+  position: absolute;
+  top: -5px;
+  width: clamp(140px, 16vw, 240px);
+  height: auto;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.96;
+  filter: drop-shadow(0 8px 18px rgba(180,80,0,0.12));
+  animation: phera-garland-sway 4.5s ease-in-out infinite;
+  transform-origin: top center;
+}
+/* Tucked a few px past the viewport edge so the PNG's straight crop line
+   stays hidden through the full swing. */
+.phera-landing .hero-garland-left { left: -10px; }
+.phera-landing .hero-garland-right { right: -10px; animation-delay: -2.25s; transform-origin: top center; animation-name: phera-garland-sway-r; }
+
+/* Pendulum sway — keyframes only at the extremes, where a pendulum's
+   velocity is naturally zero. Intermediate waypoints would make ease-in-out
+   decelerate to a stop mid-swing (a visible hitch). */
+@keyframes phera-garland-sway {
+  0%, 100% { transform: rotate(-3.6deg); }
+  50% { transform: rotate(3.6deg); }
+}
+@keyframes phera-garland-sway-r {
+  0%, 100% { transform: rotate(3.6deg); }
+  50% { transform: rotate(-3.6deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phera-landing .hero-garland { animation: none; }
+}
+
+@media (max-width: 768px) {
+  .phera-landing .hero-garland { width: 26vw; opacity: 0.85; }
+}
+
+/* ===== Hero clouds ===== */
+.phera-landing .hero-clouds {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.0) 0%, rgba(247,241,232,0.5) 85%, var(--cream) 100%),
+    url('/images/backgrounds/watercolor-blue-sky.webp') center/cover no-repeat,
+    #BDDFF1;
+  position: relative;
+}
+.phera-landing .hero-clouds::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(255,255,255,0.6) 0, transparent 35%),
+    radial-gradient(circle at 78% 70%, rgba(255,255,255,0.45) 0, transparent 35%);
+  pointer-events: none;
+  animation: phera-drift 32s ease-in-out infinite;
+}
+
+/* ===== Textured section backgrounds ===== */
+.phera-landing .bg-textured {
+  position: relative;
+  isolation: isolate;
+}
+.phera-landing .bg-textured::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: var(--bg-tex-opacity, 0.32);
+  z-index: -1;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+.phera-landing .bg-paper-floral::before  { background-image: url('/images/backgrounds/handmade-paper-floral.webp'); }
+.phera-landing .bg-pressed-faded::before { background-image: url('/images/backgrounds/pressed-flowers-faded.webp'); }
+.phera-landing .bg-pressed-subtle::before{ background-image: url('/images/backgrounds/pressed-flowers-subtle.webp'); }
+.phera-landing .bg-paisley::before       { background-image: url('/images/backgrounds/paisley-cream.webp'); opacity: 0.18; }
+.phera-landing .bg-sage::before          { background-image: url('/images/backgrounds/sage-watercolor.webp'); opacity: 0.55; mix-blend-mode: normal; }
+.phera-landing .bg-sunset::before        { background-image: url('/images/backgrounds/sunset.webp'); opacity: 1; mix-blend-mode: normal; }
+.phera-landing .bg-sky-soft::before      { background-image: url('/images/backgrounds/watercolor-blue-sky.webp'); opacity: 1; mix-blend-mode: normal; background-size: cover; background-position: center; }
+.phera-landing .bg-marble-gold::before   { background-image: url('/images/backgrounds/marble-gold.webp'); opacity: 0.85; mix-blend-mode: normal; }
+.phera-landing .bg-wa-doodles::before    { background-image: url('/images/backgrounds/whatsapp-chat-doodles.webp'); opacity: 0.06; mix-blend-mode: normal; }
+
+/* Gentle ken-burns drift for hero textures */
+@keyframes phera-drift {
+  0%   { transform: scale(1.05) translate(0, 0); }
+  50%  { transform: scale(1.10) translate(-1%, -1%); }
+  100% { transform: scale(1.05) translate(0, 0); }
+}

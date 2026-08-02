@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel in-progress runs for the same ref so the latest commit wins.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        # Full-repo lint. Pre-existing violations are recorded in
+        # eslint-suppressions.json (committed). ESLint 9 silences only the
+        # exact (file, rule, line, count) records in that snapshot — any new
+        # error fails CI, even on files this PR didn't touch. Drain the
+        # snapshot over time by fixing files and running:
+        #   npx eslint . --prune-suppressions
+        # then committing the smaller snapshot.
+        run: npx eslint . --pass-on-unpruned-suppressions
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run test:run

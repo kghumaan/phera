@@ -1,0 +1,9 @@
+Project: Phera - Indian Wedding Platform
+Stack: Next.js + Material Design 3 + Framer Motion
+Reference @PROJECT_SETUP.md for all implementation details
+Focus: Mobile-first, Google integrations, cultural design
+
+### CRITICAL DESIGN RULES:
+- Modals: Always white bg with dark (#1a1a1a) text.
+- Inputs Focus: Always use primary pink border (#DE3F5E).
+- Text: All input and body text must be dark/black by default.

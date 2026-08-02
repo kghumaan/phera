@@ -1,0 +1,761 @@
+'use client';
+
+import { Box, CircularProgress, Drawer, List, ListItemButton, ListItemIcon, ListItemText, useTheme, useMediaQuery, IconButton, alpha } from '@mui/material';
+import Image from 'next/image';
+import NextLink from 'next/link';
+import {
+  Home,
+  Schedule,
+  Flight,
+  HelpOutline,
+  CardGiftcard,
+  ShoppingBag,
+  Palette,
+  VpnKey,
+  Menu as MenuIcon,
+  Close,
+  People,
+  Edit,
+  Groups,
+  AirportShuttle,
+  Publish,
+  Language,
+  ExpandLess,
+  ExpandMore,
+  WhatsApp,
+  ViewKanban,
+  ArrowBack,
+  SupportAgent,
+  Radar,
+  ChatBubbleOutline,
+  Settings,
+  AccountCircle,
+  Hotel,
+  AutoAwesome,
+  StorefrontOutlined,
+} from '@mui/icons-material';
+import { useRouter, usePathname } from 'next/navigation';
+import { useState, useRef, useEffect } from 'react';
+import { Wedding, weddingService } from '@/lib/supabase/wedding-service';
+import { Collapse } from '@mui/material';
+import { usePlan } from '@/lib/contexts/PlanContext';
+import { useNavigationGuard } from '@/lib/contexts/NavigationGuardContext';
+import ProBadge from './ProBadge';
+import { CheckCircle } from '@mui/icons-material';
+import { supabase } from '@/lib/supabase/client';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
+import { isDraftCoupleName } from '@/lib/constants/wedding-placeholders';
+
+interface SidebarItem {
+  id: string;
+  label: string;
+  path: string;
+  icon?: React.ReactNode;
+  required?: boolean;
+  isPro?: boolean;
+}
+
+export interface SidebarGroup {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  items: SidebarItem[];
+  standalone?: boolean;
+  isPro?: boolean;
+}
+
+export const groups: SidebarGroup[] = [
+  {
+    id: 'overview',
+    label: 'Overview',
+    icon: <Home />,
+    standalone: true,
+    items: [
+      { id: 'overview', label: 'Overview', path: '/overview' },
+    ],
+  },
+  {
+    id: 'planner',
+    label: 'Planner',
+    icon: <AutoAwesome />,
+    standalone: true,
+    items: [
+      { id: 'assistant', label: 'Planner', path: '/assistant' },
+    ],
+  },
+  // Control Tower hidden from sidebar until feature is ready for broader
+  // rollout. Page still exists at /control-tower for direct navigation.
+  {
+    id: 'wedding-website',
+    label: 'Wedding Website',
+    icon: <Language />,
+    items: [
+      { id: 'details', label: 'Wedding Details', path: '/details', required: true },
+      { id: 'design', label: 'Look & Feel', path: '/look-and-feel', required: true },
+      { id: 'schedule', label: 'Schedule & Events', path: '/schedule', required: true },
+      { id: 'travel', label: 'Travel & Stay', path: '/travel' },
+      { id: 'rsvp-form', label: 'RSVP Form', path: '/rsvp-form' },
+      { id: 'faq', label: 'FAQ', path: '/faq' },
+      { id: 'registry', label: 'Registry', path: '/registry' },
+      { id: 'shopping', label: 'Where to Shop', path: '/where-to-shop' },
+      { id: 'pins', label: 'Event Access', path: '/event-access', required: true },
+      { id: 'settings', label: 'Settings & Publish', path: '/settings' },
+    ],
+  },
+  {
+    id: 'guests-group',
+    label: 'Guests',
+    icon: <People />,
+    items: [
+      { id: 'guest-list', label: 'Guest List', path: '/guest-list' },
+      { id: 'guests', label: 'Guest Responses', path: '/guest-responses' },
+      { id: 'rooms', label: 'Room Assignments', path: '/room-assignments', isPro: true },
+    ],
+  },
+  {
+    id: 'logistics',
+    label: 'Logistics',
+    icon: <AirportShuttle />,
+    items: [
+      { id: 'transportation', label: 'Logistics', path: '/transportation', isPro: true },
+    ],
+  },
+  {
+    // The WhatsApp Bot page is the unified guest-comms hub (Concierge / Messaging /
+    // Admin tabs); /concierge and /messaging are thin redirects into it, so this is
+    // a single entry rather than three items that all land on the same page.
+    id: 'communications',
+    label: 'Communications',
+    icon: <ChatBubbleOutline />,
+    standalone: true,
+    items: [
+      { id: 'whatsapp-bot', label: 'Communications', path: '/whatsapp-bot' },
+    ],
+  },
+  {
+    id: 'vendors',
+    label: 'Vendors',
+    icon: <StorefrontOutlined />,
+    items: [
+      // Short sidebar labels; the pages keep their full "Vendor Management" /
+      // "Vendor Marketplace" titles.
+      { id: 'coordinator', label: 'Management', path: '/vendor-management', isPro: true },
+      { id: 'vendor-marketplace', label: 'Marketplace', path: '/vendor-marketplace', isPro: true },
+    ],
+  },
+  {
+    id: 'planning',
+    label: 'Planning',
+    icon: <ViewKanban />,
+    items: [
+      { id: 'task-manager', label: 'Task Manager', path: '/task-manager', isPro: true },
+      { id: 'knowledge-bank', label: 'Knowledge Bank', path: '/knowledge-bank', isPro: true },
+    ],
+  },
+  {
+    id: 'account',
+    label: 'Account',
+    icon: <AccountCircle />,
+    standalone: true,
+    items: [
+      { id: 'account', label: 'Account', path: '/account' },
+    ],
+  },
+  {
+    id: 'collaborators',
+    label: 'Collaborators',
+    icon: <Groups />,
+    standalone: true,
+    items: [
+      { id: 'team', label: 'Collaborators', path: '/collaborators' },
+    ],
+  },
+  {
+    id: 'support',
+    label: 'Contact us',
+    icon: <HelpOutline />,
+    standalone: true,
+    items: [
+      { id: 'support', label: 'Contact us', path: '/support' },
+    ],
+  },
+];
+
+interface OnboardingSidebarProps {
+  weddingSlug: string;
+  wedding?: Wedding;
+  onNavigating?: (isNavigating: boolean) => void;
+  // Publish button props
+  weddingStatus?: 'draft' | 'live';
+  weddingId?: string;
+  onStatusChange?: (status: 'draft' | 'live') => void;
+  onSlugChange?: (newSlug: string) => void;
+  mobileOpen: boolean;
+  onClose: () => void;
+  isPlanner?: boolean;
+}
+
+export default function OnboardingSidebar({
+  weddingSlug,
+  wedding,
+  onNavigating,
+  weddingStatus = 'draft',
+  weddingId,
+  onStatusChange,
+  onSlugChange,
+  mobileOpen,
+  onClose,
+  isPlanner,
+}: OnboardingSidebarProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
+  const router = useRouter();
+  const pathname = usePathname();
+  const { isPro } = usePlan();
+  const { checkGuard } = useNavigationGuard();
+  const [arrowPositions, setArrowPositions] = useState<Record<string, number>>({});
+  const [sectionComplete, setSectionComplete] = useState<Record<string, boolean>>({});
+  const [loadingPath, setLoadingPath] = useState<string | null>(null);
+  const [plannerWeddings, setPlannerWeddings] = useState<Wedding[]>([]);
+  const [switcherAnchor, setSwitcherAnchor] = useState<null | HTMLElement>(null);
+
+  // Load the planner's weddings for the in-sidebar wedding switcher.
+  useEffect(() => {
+    if (!isPlanner) return;
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (cancelled || !user) return;
+      const list = await weddingService.getUserWeddings(user.id);
+      if (!cancelled) setPlannerWeddings(list);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isPlanner]);
+
+  // Jump straight to another wedding, preserving the current sub-page where it
+  // exists (e.g. stay on Guest Responses) instead of round-tripping through the
+  // dashboard.
+  const handleSwitchWedding = (targetSlug: string) => {
+    setSwitcherAnchor(null);
+    if (targetSlug === weddingSlug) return;
+    if (!checkGuard()) return;
+    const prefix = `/admin/${weddingSlug}`;
+    const subPath = pathname.startsWith(prefix) ? pathname.slice(prefix.length) || '/overview' : '/overview';
+    router.push(`/admin/${targetSlug}${subPath}`);
+    if (isMobile) onClose();
+  };
+
+  // Check which sections have content
+  useEffect(() => {
+    if (!wedding?.id) return;
+    const wId = wedding.id;
+    const slug = wedding.slug;
+
+    // Check wedding-level fields (only for Wedding Website sections)
+    const completion: Record<string, boolean> = {
+      details: !!(wedding.couple_name && wedding.venue_name && wedding.wedding_date),
+      design: !!(wedding.primary_color || wedding.background_image),
+      'rsvp-form': true, // Always complete — has default steps
+    };
+
+    // Check child tables for content (only Wedding Website sections)
+    const checks = [
+      { key: 'schedule', query: supabase.from('wedding_schedule').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- travel_sections not in generated supabase types
+      { key: 'travel', query: supabase.from('travel_sections' as any).select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      { key: 'faq', query: supabase.from('wedding_faqs').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      { key: 'registry', query: supabase.from('wedding_registry').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      { key: 'shopping', query: supabase.from('wedding_shops').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests select shape not captured by generated types
+      { key: 'pins', query: (supabase as any).from('guests').select('id', { count: 'exact', head: true }).eq('wedding_id', slug) },
+      { key: 'knowledge-bank', query: supabase.from('concierge_knowledge_base').select('id', { count: 'exact', head: true }).eq('wedding_id', wId) },
+    ];
+
+    Promise.all(checks.map(c => c.query)).then(results => {
+      results.forEach((res: { count: number | null }, i) => {
+        completion[checks[i].key] = (res.count ?? 0) > 0;
+      });
+      // Guest-list checkmark mirrors the same guests count used by pins.
+      completion['guest-list'] = completion['pins'];
+      setSectionComplete(completion);
+    });
+  }, [wedding?.id, wedding?.slug, wedding?.couple_name, wedding?.venue_name, wedding?.wedding_date, wedding?.primary_color, wedding?.background_image]);
+
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+    const initialState: Record<string, boolean> = {};
+    let foundActive = false;
+
+    // Initialize based on current path
+    groups.forEach(g => {
+      const isActive = g.items.some(item => pathname.includes(item.path));
+
+      if (isActive) {
+        foundActive = true;
+      }
+
+      if (!g.standalone) {
+        if (isActive) {
+          initialState[g.id] = true;
+        } else {
+          initialState[g.id] = false;
+        }
+      }
+    });
+
+    // Default: Operations expanded, others collapsed
+    if (!foundActive) {
+      initialState['coordination'] = true;
+      initialState['wedding-website'] = false;
+      initialState['settings'] = false;
+    }
+
+    return initialState;
+  });
+
+  // On route change, expand only the group that owns the current path and
+  // collapse every other group — one expanded parent at a time. Prevents
+  // users from ending up with multiple accordion sections open after
+  // clicking "Continue: <next section>" buttons that cross groups.
+  useEffect(() => {
+    const next: Record<string, boolean> = {};
+    groups.forEach(g => {
+      if (g.standalone) return;
+      next[g.id] = g.items.some(item => pathname.includes(item.path));
+    });
+    setExpandedGroups(next);
+    setLoadingPath(null);
+  }, [pathname]);
+
+  // Measure active item positions for arrow alignment
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const newPositions: Record<string, number> = {};
+      groups.forEach(group => {
+        if (group.standalone) return;
+        if (!expandedGroups[group.id]) return;
+        const container = document.getElementById(`sidebar-items-${group.id}`);
+        if (!container) return;
+        const activeItem = container.querySelector('[data-active="true"]') as HTMLElement | null;
+        if (activeItem) {
+          newPositions[group.id] = activeItem.offsetTop + activeItem.offsetHeight / 2;
+        }
+      });
+      setArrowPositions(newPositions);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [pathname, expandedGroups]);
+
+  const calculateProgress = (wedding?: Wedding): number => {
+    if (!wedding) return 0;
+
+    const requiredFields = [
+      wedding.couple_name && wedding.couple_name !== 'TBD' && wedding.couple_name !== 'To be determined',
+      wedding.partner1_name,
+      wedding.partner2_name,
+      wedding.wedding_date_display && wedding.wedding_date_display !== 'TBD' && wedding.wedding_date_display !== 'To be determined',
+      wedding.venue_name && wedding.venue_name !== 'TBD' && wedding.venue_name !== 'To be determined',
+      wedding.venue_location && wedding.venue_location !== 'TBD' && wedding.venue_location !== 'To be determined',
+      wedding.rsvp_deadline && wedding.rsvp_deadline !== 'TBD' && wedding.rsvp_deadline !== 'To be determined',
+      wedding.couple_image_url,
+    ];
+
+    const completed = requiredFields.filter(Boolean).length;
+    return Math.round((completed / requiredFields.length) * 100);
+  };
+
+  const handleToggleGroup = (groupId: string) => {
+    setExpandedGroups(prev => {
+      const isCurrentlyExpanded = prev[groupId] ?? true;
+      // Collapse everything else, toggle the current one
+      const newState: Record<string, boolean> = {};
+      groups.forEach(g => {
+        if (!g.standalone) {
+          newState[g.id] = g.id === groupId ? !isCurrentlyExpanded : false;
+        }
+      });
+      return newState;
+    });
+  };
+
+  const handleItemClick = (item: SidebarItem, collapseAll = false, groupId?: string) => {
+    if (!checkGuard()) return;
+    setLoadingPath(item.path);
+    router.push(`/admin/${weddingSlug}${item.path}`);
+
+    if (collapseAll) {
+      // Collapse all groups
+      const newState: Record<string, boolean> = {};
+      groups.forEach(g => {
+        if (!g.standalone) {
+          newState[g.id] = false;
+        }
+      });
+      setExpandedGroups(newState);
+    } else if (groupId) {
+      // Expand only the clicked group
+      const newState: Record<string, boolean> = {};
+      groups.forEach(g => {
+        if (!g.standalone) {
+          newState[g.id] = (g.id === groupId);
+        }
+      });
+      setExpandedGroups(newState);
+    }
+
+    if (isMobile) onClose();
+  };
+
+  const drawerContent = (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Navigation Groups */}
+      <Box sx={{ flex: 1, py: 2, overflowY: 'auto' }}>
+        {/* Planner context: couple name + All Weddings button. The name stays
+            hidden while it's still a draft placeholder — it appears once the
+            agent has captured the couple's real names. */}
+        {isPlanner && (
+          <>
+            {wedding?.couple_name && !isDraftCoupleName(wedding.couple_name) && (
+              <>
+                <ListItemButton
+                  onClick={(e: React.MouseEvent<HTMLElement>) => {
+                    if (plannerWeddings.length <= 1) return;
+                    setSwitcherAnchor(e.currentTarget);
+                  }}
+                  sx={{
+                    px: 1.5,
+                    py: 0.75,
+                    mx: 0.75,
+                    mb: 0.25,
+                    borderRadius: RADII.sm,
+                    color: COLORS.text.strong,
+                    cursor: plannerWeddings.length > 1 ? 'pointer' : 'default',
+                    '&:hover': {
+                      bgcolor: plannerWeddings.length > 1 ? alpha(COLORS.brand.primary, 0.08) : 'transparent',
+                    },
+                  }}
+                >
+                  <ListItemText
+                    primary={wedding.couple_name}
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontWeight: 600,
+                          fontSize: '0.95rem',
+                          color: COLORS.text.strong,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        },
+                      },
+                    }}
+                  />
+                  {plannerWeddings.length > 1 && (
+                    <ExpandMore sx={{ fontSize: '1.2rem', color: COLORS.text.subtle, ml: 0.5, flexShrink: 0 }} />
+                  )}
+                </ListItemButton>
+                <PheraMenu
+                  anchorEl={switcherAnchor}
+                  open={Boolean(switcherAnchor)}
+                  onClose={() => setSwitcherAnchor(null)}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                  PaperProps={{ sx: { maxHeight: 360, minWidth: 240 } }}
+                >
+                  {plannerWeddings.map((w) => (
+                    <PheraMenuItem
+                      key={w.id}
+                      selected={w.slug === weddingSlug}
+                      onClick={() => handleSwitchWedding(w.slug)}
+                    >
+                      {w.couple_name}
+                    </PheraMenuItem>
+                  ))}
+                </PheraMenu>
+              </>
+            )}
+            <ListItemButton
+              component={NextLink}
+              href="/admin"
+              onClick={(e: React.MouseEvent) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                e.preventDefault();
+                if (!checkGuard()) return;
+                router.push('/admin');
+              }}
+              sx={{
+                px: 1.5,
+                py: 0.75,
+                mx: 0.75,
+                mb: 0.25,
+                borderRadius: RADII.sm,
+                color: COLORS.text.strong,
+                '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.08) },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>
+                <ArrowBack />
+              </ListItemIcon>
+              <ListItemText
+                primary="All Weddings"
+                slotProps={{ primary: { variant: 'body3', sx: { fontWeight: 600, color: 'inherit' } } }}
+              />
+            </ListItemButton>
+          </>
+        )}
+        {groups.map((group) => {
+          // ... existing mapping logic ...
+          if (group.standalone) {
+            const item = group.items[0];
+            const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/') || pathname.includes(item.path + '/');
+            return (
+              <ListItemButton
+                key={group.id}
+                data-tour={`tour-${group.id}`}
+                component={NextLink}
+                href={`/admin/${weddingSlug}${item.path}`}
+                onClick={(e: React.MouseEvent) => {
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                  e.preventDefault();
+                  handleItemClick(item, true);
+                }}
+                selected={isActive}
+                sx={{
+                  px: 1.5,
+                  py: 0.75,
+                  mx: 0.75,
+                  mb: 0.25,
+                  borderRadius: RADII.sm,
+                  color: isActive ? COLORS.bg.white : COLORS.text.strong,
+                  '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.08) },
+                  '&.Mui-selected': {
+                    bgcolor: COLORS.brand.primary,
+                    color: COLORS.text.inverse,
+                    '&:hover': { bgcolor: COLORS.brand.primaryHover },
+                    '& .MuiListItemIcon-root': { color: COLORS.text.inverse },
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>{group.icon}</ListItemIcon>
+                <ListItemText
+                  primary={group.label}
+                  slotProps={{ primary: { variant: 'body3', sx: { fontWeight: 600, color: 'inherit' } } }}
+                />
+                {group.isPro && !isPro && <ProBadge size="small" />}
+                {loadingPath === item.path && (
+                  <CircularProgress size={14} sx={{ ml: 1, flexShrink: 0, color: isActive ? COLORS.text.inverse : COLORS.brand.primary }} />
+                )}
+              </ListItemButton>
+            );
+          }
+
+          const isExpanded = expandedGroups[group.id] ?? true;
+          const isGroupActive = group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/') || pathname.includes(item.path + '/'));
+
+          return (
+            <Box key={group.id} data-tour-group={group.id} sx={{ mb: 1 }}>
+              {/* Parent Item */}
+              <ListItemButton
+                data-tour={`tour-${group.id}`}
+                onClick={() => handleToggleGroup(group.id)}
+                selected={isGroupActive}
+                sx={{
+                  px: 1.5,
+                  py: 0.75,
+                  mx: 0.75,
+                  mb: 0.25,
+                  borderRadius: RADII.sm,
+                  color: isGroupActive ? COLORS.bg.white : COLORS.text.strong,
+                  '&:hover': { bgcolor: isGroupActive ? COLORS.brand.primaryHover : alpha(COLORS.text.strong, 0.02) },
+                  '&.Mui-selected': {
+                    bgcolor: COLORS.brand.primary,
+                    color: COLORS.text.inverse,
+                    '&:hover': { bgcolor: COLORS.brand.primaryHover },
+                    '& .MuiListItemIcon-root': { color: COLORS.text.inverse },
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 28, color: 'inherit', '& .MuiSvgIcon-root': { fontSize: '1.1rem' } }}>{group.icon}</ListItemIcon>
+                <ListItemText
+                  primary={group.label}
+                  slotProps={{ primary: { variant: 'body3', sx: { fontWeight: 600, color: 'inherit' } } }}
+                />
+                {isExpanded ? (
+                  <ExpandLess sx={{ fontSize: 14, color: 'inherit' }} />
+                ) : (
+                  <ExpandMore sx={{ fontSize: 14, color: 'inherit' }} />
+                )}
+              </ListItemButton>
+
+              {/* Subitems with Curved Connector */}
+              <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                <Box id={`sidebar-items-${group.id}`} sx={{ position: 'relative', ml: 3.5 }}>
+                  {/* SVG Curved Connector */}
+                  {(() => {
+                    const curveEndY = arrowPositions[group.id];
+                    const hasActive = curveEndY !== undefined && curveEndY > 0;
+
+                    return (
+                      <Box
+                        component="svg"
+                        sx={{
+                          position: 'absolute',
+                          left: 0,
+                          top: 0,
+                          width: 20,
+                          height: '100%',
+                          overflow: 'visible',
+                        }}
+                      >
+                        {hasActive && (
+                          <path
+                            d={`M 0 0 L 0 ${curveEndY - 8} Q 0 ${curveEndY} 8 ${curveEndY} L 14 ${curveEndY}`}
+                            fill="none"
+                            stroke={alpha(COLORS.text.strong, 0.15)}
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                          />
+                        )}
+                        {/* Arrow head */}
+                        {hasActive && (
+                          <path
+                            d={`M 10 ${curveEndY - 3} L 14 ${curveEndY} L 10 ${curveEndY + 3}`}
+                            fill="none"
+                            stroke={alpha(COLORS.text.strong, 0.15)}
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        )}
+                      </Box>
+                    );
+                  })()}
+
+                  {group.items.map((item) => {
+                    const isActive = pathname.endsWith(item.path) || pathname.endsWith(item.path + '/') || pathname.includes(item.path + '/');
+                    return (
+                      <Box key={item.id} data-active={isActive ? 'true' : undefined} sx={{ position: 'relative' }}>
+                        <ListItemButton
+                          {...(['pins', 'guests', 'travel', 'rooms', 'transportation', 'whatsapp-bot', 'task-manager', 'vendor-marketplace', 'coordinator', 'team'].includes(item.id) ? { 'data-tour': `tour-${item.id}` } : {})}
+                          component={NextLink}
+                          href={`/admin/${weddingSlug}${item.path}`}
+                          onClick={(e: React.MouseEvent) => {
+                            // Preserve native cmd/ctrl/shift/middle-click so the
+                            // browser can open the item in a new tab/window.
+                            if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                            e.preventDefault();
+                            handleItemClick(item, false, group.id);
+                          }}
+                          selected={isActive}
+                          sx={{
+                            ml: 1.25,
+                            mr: 0.75,
+                            mb: 0.5,
+                            py: 0.5,
+                            pr: 1,
+                            borderRadius: '6px',
+                            color: COLORS.text.subtle,
+                            minHeight: 30,
+                            '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.05) },
+                            '&.Mui-selected': {
+                              bgcolor: 'transparent',
+                              color: COLORS.brand.primary,
+                              '&:hover': { bgcolor: alpha(COLORS.brand.primary, 0.05) },
+                            },
+                          }}
+                        >
+                          <ListItemText
+                            primary={
+                              item.required && !isActive && !item.isPro ? (
+                                <Box component="span" sx={{ display: 'inline' }}>
+                                  {item.label}<Box component="span" sx={{ color: 'inherit' }}>*</Box>
+                                </Box>
+                              ) : item.label
+                            }
+                            slotProps={{
+                              primary: {
+                                variant: 'body3',
+                                sx: {
+                                  fontWeight: isActive ? 600 : 400,
+                                  color: 'inherit',
+                                }
+                              }
+                            }}
+                          />
+                          {(group.id === 'wedding-website' || item.id === 'guest-list' || item.id === 'knowledge-bank') && sectionComplete[item.id] && (
+                            <CheckCircle sx={{ fontSize: 14, color: COLORS.brand.primary, ml: 0.5, flexShrink: 0 }} />
+                          )}
+                          {item.isPro && !isPro && <ProBadge size="small" />}
+                          {loadingPath === item.path && (
+                            <CircularProgress size={12} sx={{ ml: 0.75, flexShrink: 0, color: COLORS.brand.primary }} />
+                          )}
+                        </ListItemButton>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Collapse>
+            </Box>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+
+  return (
+    <>
+      {/* Mobile Drawer */}
+      {isMobile ? (
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={onClose}
+          ModalProps={{
+            keepMounted: true, // Better mobile performance
+          }}
+          sx={{
+            '& .MuiDrawer-paper': {
+              width: 220,
+              boxSizing: 'border-box',
+              bgcolor: COLORS.bg.white,
+              // Start below the fixed AdminTopNav so the top items aren't hidden behind it
+              top: { xs: 48, md: 56 },
+              height: { xs: 'calc(100% - 48px)', md: 'calc(100% - 56px)' },
+            },
+            '& .MuiBackdrop-root': {
+              top: { xs: 48, md: 56 },
+            },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+      ) : (
+        // Desktop Drawer
+        <Drawer
+          variant="permanent"
+          sx={{
+            width: 220,
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: 220,
+              boxSizing: 'border-box',
+              bgcolor: COLORS.bg.white, // Solid white
+              borderRight: `1px solid ${alpha(COLORS.text.strong, 0.1)}`,
+              top: { xs: 48, md: 56 }, // Offset by Top Nav height
+              height: { xs: 'calc(100% - 48px)', md: 'calc(100% - 56px)' },
+            },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+      )}
+    </>
+  );
+}
+
+function Stack(props: React.ComponentProps<typeof Box>) {
+  return <Box sx={{ display: 'flex', ...props.sx }} {...props} />;
+}
+

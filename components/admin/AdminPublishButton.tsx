@@ -1,0 +1,388 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Box, Fab, IconButton, Typography, alpha, Stack, Popover, Button, TextField, Divider, CircularProgress } from '@mui/material';
+import { Publish, ContentCopy, Check, Edit } from '@mui/icons-material';
+import { weddingService } from '@/lib/supabase/wedding-service';
+import { SECONDARY_BUTTON_SX } from '@/lib/constants/form-styles';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { FONTS, COLORS, RADII } from '@/lib/theme/tokens';
+
+interface AdminPublishButtonProps {
+    weddingSlug: string;
+    coupleName?: string;
+    weddingStatus?: 'draft' | 'live';
+    weddingId?: string;
+    onStatusChange?: (status: 'draft' | 'live') => void;
+    onSlugChange?: (newSlug: string) => void;
+}
+
+/**
+ * Floating Publish button for admin pages
+ * Provides publish/unpublish functionality and URL management
+ */
+export default function AdminPublishButton({
+    weddingSlug,
+    coupleName,
+    weddingStatus: initialStatus = 'draft',
+    weddingId,
+    onStatusChange,
+    onSlugChange
+}: AdminPublishButtonProps) {
+    const [publishAnchorEl, setPublishAnchorEl] = useState<HTMLButtonElement | null>(null);
+    const [weddingStatus, setWeddingStatus] = useState<'draft' | 'live'>(initialStatus);
+    const [customSlug, setCustomSlug] = useState(weddingSlug);
+    const [editingSlug, setEditingSlug] = useState(false);
+    const [urlCopied, setUrlCopied] = useState(false);
+    const [slugSaved, setSlugSaved] = useState(false);
+    const [statusSaved, setStatusSaved] = useState(false);
+    const [savingStatus, setSavingStatus] = useState(false);
+    const [savingSlug, setSavingSlug] = useState(false);
+
+    const publishOpen = Boolean(publishAnchorEl);
+
+    // Update status when prop changes
+    useEffect(() => {
+        setWeddingStatus(initialStatus);
+    }, [initialStatus]);
+
+    // Update slug when prop changes
+    useEffect(() => {
+        setCustomSlug(weddingSlug);
+    }, [weddingSlug]);
+
+    const handlePublishClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setPublishAnchorEl(event.currentTarget);
+    };
+
+    const handlePublishClose = () => {
+        setPublishAnchorEl(null);
+        setEditingSlug(false);
+    };
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        setUrlCopied(true);
+        setTimeout(() => setUrlCopied(false), 2000);
+    };
+
+    const handleStatusUpdate = async (newStatus: 'draft' | 'live') => {
+        if (!weddingId) return;
+
+        if (newStatus === 'live') {
+            const confirmed = window.confirm('Are you sure you want to publish your wedding website? It will be visible to all guests with PINs.');
+            if (!confirmed) return;
+        }
+
+        setSavingStatus(true);
+        try {
+            await weddingService.updateWedding(weddingId, { status: newStatus });
+            setWeddingStatus(newStatus);
+            onStatusChange?.(newStatus);
+
+            // Show success state
+            setStatusSaved(true);
+
+            // Close popover after successful update
+            setTimeout(() => {
+                handlePublishClose();
+            }, 500);
+
+            // Reset success state after 2 seconds
+            setTimeout(() => setStatusSaved(false), 2000);
+        } catch (error) {
+            console.error('Failed to update status:', error);
+            alert('Failed to update status. Please try again.');
+        } finally {
+            setSavingStatus(false);
+        }
+    };
+
+    const handleSlugUpdate = async () => {
+        if (!weddingId || !customSlug || customSlug === weddingSlug) {
+            setEditingSlug(false);
+            return;
+        }
+
+        setSavingSlug(true);
+        try {
+            const cleanSlug = customSlug.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+            const isAvailable = await weddingService.checkSlugAvailability(cleanSlug);
+            if (!isAvailable) {
+                alert('This wedding ID is already taken. Please choose another.');
+                setSavingSlug(false);
+                return;
+            }
+
+            await weddingService.updateWedding(weddingId, { slug: cleanSlug });
+
+            // Notify parent of slug change
+            onSlugChange?.(cleanSlug);
+
+            // Show success state
+            setSlugSaved(true);
+            setEditingSlug(false);
+
+            // Update the URL without reloading
+            window.history.replaceState(null, '', `/admin/${cleanSlug}/overview`);
+
+            // Reset success state after 2 seconds
+            setTimeout(() => setSlugSaved(false), 2000);
+        } catch (error) {
+            console.error('Failed to update slug:', error);
+            alert('Failed to update wedding ID. Please try again.');
+        } finally {
+            setSavingSlug(false);
+        }
+    };
+
+    return (
+        <>
+            {/* Floating Publish Button */}
+            <Box
+                sx={{
+                    position: 'fixed',
+                    top: { xs: 16, md: 24 },
+                    right: { xs: 16, md: 24 },
+                    zIndex: 1000,
+                }}
+            >
+                <Fab
+                    variant="extended"
+                    color="primary"
+                    aria-label="publish"
+                    onClick={handlePublishClick}
+                    sx={{
+                        bgcolor: statusSaved ? COLORS.accent.success : COLORS.brand.primary,
+                        color: COLORS.text.inverse,
+                        '&:hover': {
+                            bgcolor: statusSaved ? COLORS.accent.success : COLORS.brand.primaryHover,
+                            transform: 'scale(1.05)',
+                        },
+                        boxShadow: statusSaved ? '0 4px 20px rgba(16, 185, 129, 0.4)' : '0 4px 20px rgba(222, 63, 94, 0.4)',
+                        transition: 'all 0.2s ease',
+                        minWidth: { xs: 64, md: 170 },
+                        width: { xs: 64, md: 170 },
+                        height: { xs: 64, md: 56 },
+                        borderRadius: { xs: '50%', md: '28px' },
+                        px: { xs: 0, md: 4 },
+                        fontSize: { xs: '1.1rem', md: '1.1rem' },
+                        fontWeight: 600,
+                    }}
+                >
+                    {statusSaved ? (
+                        <Check sx={{ mr: { xs: 0, md: 1.5 }, fontSize: { xs: 28, md: 28 } }} />
+                    ) : (
+                        <Publish sx={{ mr: { xs: 0, md: 1.5 }, fontSize: { xs: 28, md: 28 } }} />
+                    )}
+                    <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
+                        {statusSaved ? 'Published' : 'Publish'}
+                    </Box>
+                </Fab>
+            </Box>
+
+            {/* Publish Popover */}
+            <Popover
+                open={publishOpen}
+                anchorEl={publishAnchorEl}
+                onClose={handlePublishClose}
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                }}
+                transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}
+                sx={{
+                    mt: 1,
+                }}
+                PaperProps={{
+                    sx: {
+                        width: 500,
+                        borderRadius: RADII.lg,
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+                        p: 3,
+                        bgcolor: COLORS.bg.white,
+                    },
+                }}
+            >
+                <Stack spacing={2.5}>
+                    {/* Title */}
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: COLORS.text.strong }}>
+                        Publish Settings
+                    </Typography>
+
+                    {/* Wedding URL */}
+                    <Box>
+                        <Typography variant="caption" sx={{ color: COLORS.text.subtle, fontWeight: 600, mb: 1, display: 'block' }}>
+                            Your Wedding ID
+                        </Typography>
+                        {!editingSlug ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Box
+                                    sx={{
+                                        flex: 1,
+                                        bgcolor: alpha(COLORS.brand.primary, 0.05),
+                                        p: 1.5,
+                                        borderRadius: RADII.sm,
+                                        border: '1px solid rgba(222, 63, 94, 0.2)',
+                                    }}
+                                >
+                                    <Typography
+                                        variant="body2"
+                                        sx={{
+                                            color: COLORS.text.strong,
+                                            fontWeight: 600,
+                                            fontFamily: FONTS.body,
+                                            fontSize: '0.9rem',
+                                        }}
+                                    >
+                                        phera.io/{weddingSlug}
+                                    </Typography>
+                                </Box>
+                                <IconButton
+                                    size="small"
+                                    onClick={() => copyToClipboard(`${window.location.origin}/${weddingSlug}`)}
+                                    sx={{
+                                        bgcolor: urlCopied ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.1),
+                                        color: urlCopied ? COLORS.bg.white : COLORS.brand.primary,
+                                        '&:hover': {
+                                            bgcolor: urlCopied ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.2),
+                                        },
+                                    }}
+                                >
+                                    {urlCopied ? <Check fontSize="small" /> : <ContentCopy fontSize="small" />}
+                                </IconButton>
+                                <IconButton
+                                    size="small"
+                                    onClick={() => setEditingSlug(true)}
+                                    sx={{
+                                        bgcolor: slugSaved ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.1),
+                                        color: slugSaved ? COLORS.bg.white : COLORS.brand.primary,
+                                        '&:hover': {
+                                            bgcolor: slugSaved ? COLORS.accent.success : alpha(COLORS.brand.primary, 0.2),
+                                        },
+                                        transition: 'all 0.2s ease',
+                                    }}
+                                >
+                                    {slugSaved ? <Check fontSize="small" /> : <Edit fontSize="small" />}
+                                </IconButton>
+                            </Box>
+                        ) : (
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                <TextField
+                                    size="small"
+                                    value={customSlug}
+                                    onChange={(e) => setCustomSlug(e.target.value)}
+                                    placeholder="wedding-id"
+                                    sx={{
+                                        flex: 1,
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: RADII.sm,
+                                            '& fieldset': {
+                                                borderColor: COLORS.text.strong,
+                                                borderWidth: '1px',
+                                            },
+                                            '&:hover fieldset': {
+                                                borderColor: COLORS.text.strong,
+                                            },
+                                            '&.Mui-focused fieldset': {
+                                                borderColor: COLORS.brand.primary,
+                                            },
+                                            '& input': {
+                                                color: COLORS.text.strong,
+                                            },
+                                        },
+                                    }}
+                                />
+                                <Button
+                                    size="small"
+                                    variant="outlined"
+                                    onClick={() => {
+                                        setCustomSlug(weddingSlug);
+                                        setEditingSlug(false);
+                                    }}
+                                    sx={{
+                                        borderRadius: RADII.sm,
+                                        textTransform: 'none',
+                                        borderColor: COLORS.brand.primary,
+                                        color: COLORS.brand.primary,
+                                        minWidth: 'auto',
+                                        px: 2,
+                                        '&:hover': {
+                                            borderColor: COLORS.brand.primaryHover,
+                                            bgcolor: alpha(COLORS.brand.primary, 0.05),
+                                        },
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                                <PrimaryActionButton
+                                    size="small"
+                                    onClick={handleSlugUpdate}
+                                    loading={savingSlug}
+                                    disabled={customSlug === weddingSlug || !customSlug}
+                                    sx={{
+                                        borderRadius: RADII.sm,
+                                        minWidth: 'auto',
+                                        px: 2,
+                                        '&.Mui-disabled': {
+                                            bgcolor: alpha(COLORS.brand.primary, 0.5),
+                                            color: 'rgba(255, 255, 255, 0.7)',
+                                        },
+                                    }}
+                                >
+                                    Save
+                                </PrimaryActionButton>
+                            </Box>
+                        )}
+                    </Box>
+
+                    <Divider />
+
+                    {/* Status Controls */}
+                    <Box>
+                        <Box sx={{ display: 'flex', gap: 1.5 }}>
+                            {/* Publish Button - Primary Style */}
+                            <PrimaryActionButton
+                                fullWidth
+                                startIcon={<Publish />}
+                                onClick={() => handleStatusUpdate('live')}
+                                loading={savingStatus && weddingStatus === 'draft'}
+                                disabled={savingStatus && weddingStatus !== 'draft'}
+                                sx={{
+                                    py: 1.5,
+                                    '&.Mui-disabled': {
+                                        bgcolor: alpha(COLORS.brand.primary, 0.5),
+                                        color: 'rgba(255, 255, 255, 0.7)',
+                                    },
+                                }}
+                            >
+                                Publish
+                            </PrimaryActionButton>
+
+                            {/* Unpublish Button - Secondary Style */}
+                            <SecondaryActionButton
+                                fullWidth
+                                onClick={() => handleStatusUpdate('draft')}
+                                loading={savingStatus && weddingStatus === 'live'}
+                                disabled={savingStatus && weddingStatus !== 'live'}
+                                sx={{
+                                    py: 1.5,
+                                    '&.Mui-disabled': {
+                                        bgcolor: 'rgba(255, 255, 255, 0.5)',
+                                        borderColor: 'rgba(0, 0, 0, 0.3)',
+                                        color: 'rgba(0, 0, 0, 0.3)',
+                                    },
+                                }}
+                            >
+                                Unpublish
+                            </SecondaryActionButton>
+                        </Box>
+                    </Box>
+                </Stack>
+            </Popover>
+        </>
+    );
+}

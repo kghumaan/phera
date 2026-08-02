@@ -1,0 +1,302 @@
+#!/usr/bin/env node
+/**
+ * Phera Agent eval runner.
+ *
+ * Drives the agent lab API with scripted conversations and scores the
+ * results: which tools ran, what the reply said, whether confirmations
+ * were parked, and whether the data actually mutated.
+ *
+ * Usage:
+ *   node scripts/agent-evals.mjs                 # run every scenario
+ *   node scripts/agent-evals.mjs onboarding      # name filter (substring) or persona id (P5)
+ *   node scripts/agent-evals.mjs --keep          # skip teardown (inspect in /agent-lab)
+ *   node scripts/agent-evals.mjs --strict        # non-zero exit on any failure
+ *   node scripts/agent-evals.mjs --min-pass=0.9  # non-zero exit below a pass RATE —
+ *                                                # the CI-friendly gate: tolerates known-red
+ *                                                # regression targets + live-model variance
+ *
+ * Requires a running dev server (default http://localhost:3000) and
+ * AGENT_LAB_TOKEN (read from env or .env.local). Each run costs real model
+ * tokens — this is a quality scorecard, not a CI suite.
+ */
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { resolve, dirname, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const SCENARIO_DIR = join(ROOT, 'tests', 'agent-evals', 'scenarios');
+const BASE_URL = process.env.AGENT_LAB_BASE_URL || 'http://localhost:3000';
+
+const args = process.argv.slice(2);
+const keep = args.includes('--keep');
+const strict = args.includes('--strict');
+const minPassArg = args.find((a) => a.startsWith('--min-pass='));
+const minPass = minPassArg ? Number.parseFloat(minPassArg.split('=')[1]) : null;
+const filters = args.filter((a) => !a.startsWith('--'));
+
+function labToken() {
+  if (process.env.AGENT_LAB_TOKEN) return process.env.AGENT_LAB_TOKEN;
+  try {
+    const env = readFileSync(join(ROOT, '.env.local'), 'utf8');
+    const match = env.match(/^AGENT_LAB_TOKEN=(.+)$/m);
+    if (match) return match[1].trim();
+  } catch {
+    /* fall through */
+  }
+  throw new Error('AGENT_LAB_TOKEN not found (env or .env.local)');
+}
+
+const TOKEN = labToken();
+
+async function api(path, init = {}) {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      'Content-Type': 'application/json',
+      ...(init.headers ?? {}),
+    },
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`${path} → ${res.status}: ${body.error ?? 'unknown'}`);
+  return body;
+}
+
+/** Helpers passed to scenario verify() functions. */
+const helpers = {
+  guest: (state, name) => state.guests.find((g) => g.name === name) ?? null,
+  rsvpFor: (state, guestName) => {
+    const guest = helpers.guest(state, guestName);
+    if (!guest) return null;
+    return state.rsvps.find((r) => r.guest_id === guest.id) ?? null;
+  },
+  room: (state, number) => state.rooms.find((r) => r.room_number === number) ?? null,
+};
+
+function check(checks, label, pass, detail = '') {
+  checks.push({ label, pass: !!pass, detail });
+}
+
+async function runScenario(scenario) {
+  const checks = [];
+  const seeded = await api('/api/agent/lab/seed', {
+    method: 'POST',
+    body: JSON.stringify({ scenario: scenario.seed }),
+  });
+  const slug = seeded.slug;
+  // scenario.anonymous: true simulates a landing-page anonymous session —
+  // the loop gets the ANONYMOUS snapshot line + first-contact instruction.
+  const anonymous = scenario.anonymous === true;
+  let conversationId;
+  let lastPendingActions = [];
+  let lastPendingQuestions = null;
+  const toolsSeen = new Set();
+  const eventsSeen = new Set();
+
+  try {
+    for (const [index, turn] of scenario.turns.entries()) {
+      const tag = `t${index + 1}`;
+
+      let result;
+      if (turn.patch) {
+        // The couple goes off and does the work in a rich section (website
+        // details, guest list, rooms) and comes back. This is the DB changing
+        // behind the agent's back — exactly what the handoff baseline detects.
+        // Bare field maps are website details; {guests}/{rooms} are the others.
+        const p = turn.patch;
+        const payload = p.wedding || p.guests || p.rooms ? p : { wedding: p };
+        await api('/api/agent/lab/patch', {
+          method: 'POST',
+          body: JSON.stringify({ weddingSlug: slug, ...payload }),
+        });
+        const did = [
+          ...Object.keys(payload.wedding ?? {}),
+          ...(payload.guests ? [`${payload.guests.length} guests`] : []),
+          ...(payload.rooms ? [`${payload.rooms.length} rooms`] : []),
+        ];
+        check(checks, `${tag} simulated their work in the UI (${did.join(', ')})`, true);
+        continue;
+      }
+      if (turn.confirm) {
+        const pending = lastPendingActions[0];
+        check(checks, `${tag} has a pending action to ${turn.confirm}`, !!pending);
+        if (!pending) continue;
+        result = await api('/api/agent/lab/confirm', {
+          method: 'POST',
+          body: JSON.stringify({ actionId: pending.actionId, approve: turn.confirm === 'approve', anonymous }),
+        });
+        lastPendingActions = lastPendingActions.slice(1);
+      } else if (turn.answer) {
+        // turn.answer resolves the question card parked by the previous turn
+        // (the ask_user round-trip the real UI does via /api/agent/answer).
+        check(checks, `${tag} has a pending question card to answer`, !!lastPendingQuestions);
+        if (!lastPendingQuestions) continue;
+        result = await api('/api/agent/lab/answer', {
+          method: 'POST',
+          body: JSON.stringify({ actionId: lastPendingQuestions.actionId, answers: turn.answer, anonymous }),
+        });
+        lastPendingActions = (result.events ?? []).filter((e) => e.type === 'confirmation_required');
+      } else {
+        // turn.newConversation simulates the couple RETURNING later — a fresh
+        // conversation against the same wedding (tests resume behavior like
+        // the Working-on bar's "are you done with X?" reopening).
+        result = await api('/api/agent/lab/chat', {
+          method: 'POST',
+          body: JSON.stringify({
+            weddingSlug: slug,
+            conversationId: turn.newConversation ? undefined : conversationId,
+            message: turn.message,
+            anonymous,
+          }),
+        });
+        conversationId = result.conversationId;
+        lastPendingActions = (result.events ?? []).filter((e) => e.type === 'confirmation_required');
+      }
+      lastPendingQuestions = (result.events ?? []).find((e) => e.type === 'questions_required') ?? null;
+
+      const reply = result.reply ?? '';
+      const toolsRun = (result.actions ?? []).map((a) => a.tool_name);
+      const eventTypes = (result.events ?? []).map((e) => e.type);
+      const expect = turn.expect ?? {};
+
+      toolsRun.forEach((t) => toolsSeen.add(t));
+      eventTypes.forEach((e) => eventsSeen.add(e));
+
+      for (const tool of expect.tools ?? []) {
+        check(checks, `${tag} called ${tool}`, toolsRun.includes(tool), `ran: ${toolsRun.join(', ') || 'none'}`);
+      }
+      // Cumulative: "by now this must have happened", without pinning WHICH turn.
+      // A good agent may hand off the moment they mention a website rather than
+      // waiting to be told twice — that's better, not a failure.
+      for (const tool of expect.toolsSeen ?? []) {
+        check(checks, `${tag} ${tool} has happened by now`, toolsSeen.has(tool), `seen: ${[...toolsSeen].join(', ')}`);
+      }
+      for (const type of expect.eventsSeen ?? []) {
+        check(checks, `${tag} ${type} has fired by now`, eventsSeen.has(type), `seen: ${[...eventsSeen].join(', ')}`);
+      }
+      for (const tool of expect.notTools ?? []) {
+        check(checks, `${tag} did NOT call ${tool}`, !toolsRun.includes(tool));
+      }
+      // Some capabilities surface as loop EVENTS, not action rows — e.g.
+      // request_upload emits `upload_requested`, gating emits
+      // `upgrade_required`. Assert on those with expect.events / notEvents.
+      for (const type of expect.events ?? []) {
+        check(checks, `${tag} emitted ${type}`, eventTypes.includes(type), `events: ${eventTypes.join(', ') || 'none'}`);
+      }
+      for (const type of expect.notEvents ?? []) {
+        check(checks, `${tag} did NOT emit ${type}`, !eventTypes.includes(type));
+      }
+      for (const pattern of expect.reply ?? []) {
+        const re = new RegExp(pattern, 'i');
+        check(checks, `${tag} reply matches /${pattern}/i`, re.test(reply), reply.slice(0, 120));
+      }
+      for (const pattern of expect.replyNot ?? []) {
+        const re = new RegExp(pattern, 'i');
+        check(checks, `${tag} reply avoids /${pattern}/i`, !re.test(reply));
+      }
+      // Question-card prompt assertions: what the agent chose to ASK this turn
+      // (e.g. "asked for a city, not a venue name"; "did not re-ask names").
+      const askedQuestions = (result.events ?? [])
+        .filter((e) => e.type === 'questions_required')
+        .flatMap((e) => e.questions ?? []);
+      const prompts = askedQuestions.map((q) => q.prompt ?? '');
+      for (const pattern of expect.questions ?? []) {
+        const re = new RegExp(pattern, 'i');
+        check(checks, `${tag} asks /${pattern}/i`, prompts.some((p) => re.test(p)), `asked: ${prompts.join(' | ') || 'nothing'}`);
+      }
+      for (const pattern of expect.questionsNot ?? []) {
+        const re = new RegExp(pattern, 'i');
+        check(checks, `${tag} does NOT ask /${pattern}/i`, !prompts.some((p) => re.test(p)), `asked: ${prompts.join(' | ') || 'nothing'}`);
+      }
+      if (expect.pending !== undefined) {
+        check(
+          checks,
+          `${tag} ${expect.pending ? 'parks a confirmation' : 'parks no confirmation'}`,
+          (lastPendingActions.length > 0) === expect.pending
+        );
+      }
+
+      if (turn.verify) {
+        const state = await api(`/api/agent/lab/state?weddingSlug=${slug}`);
+        // Third arg lets verify() reconcile the REPLY against live state
+        // (e.g. "the headcount it quoted matches the sum of party sizes").
+        // `prompts` carries what it ASKED — an offer can land in a question
+        // card rather than in prose, and both count as having offered.
+        const results = await turn.verify(state, helpers, {
+          reply,
+          toolsRun,
+          prompts,
+          // Full question objects (prompt + options + type) so a verify can
+          // assert the SHAPE of a card — e.g. the loop-close menu lists several
+          // capabilities, not just one.
+          questions: askedQuestions,
+          eventTypes,
+          // Cumulative view — for assertions that care THAT something happened,
+          // not which turn it happened on.
+          toolsSeen: [...toolsSeen],
+          eventsSeen: [...eventsSeen],
+        });
+        for (const r of results) check(checks, `${tag} ${r.label}`, r.pass, r.detail ?? '');
+      }
+    }
+  } finally {
+    if (!keep) {
+      await api(`/api/agent/lab/seed?weddingSlug=${slug}`, { method: 'DELETE' }).catch((e) =>
+        console.error(`  teardown failed for ${slug}: ${e.message}`)
+      );
+    } else {
+      console.log(`  (kept: ${slug})`);
+    }
+  }
+
+  return checks;
+}
+
+async function main() {
+  const files = readdirSync(SCENARIO_DIR)
+    .filter((f) => f.endsWith('.mjs'))
+    .sort();
+  const report = [];
+  let totalPass = 0;
+  let totalFail = 0;
+
+  for (const file of files) {
+    const { default: scenario } = await import(pathToFileURL(join(SCENARIO_DIR, file)).href);
+    // Filter by name substring OR persona id (e.g. `npm run evals -- P5`).
+    if (filters.length && !filters.some((f) => scenario.name.includes(f) || scenario.persona === f)) continue;
+
+    const personaTag = scenario.persona ? ` [${scenario.persona}${scenario.spine === 'full' ? ' · full spine' : ''}]` : '';
+    process.stdout.write(`\n▶ ${scenario.name}${personaTag} — ${scenario.description}\n`);
+    let checks;
+    try {
+      checks = await runScenario(scenario);
+    } catch (error) {
+      checks = [{ label: `scenario crashed: ${error.message}`, pass: false }];
+    }
+    for (const c of checks) {
+      const mark = c.pass ? '  ✓' : '  ✗';
+      console.log(`${mark} ${c.label}${!c.pass && c.detail ? `  [${c.detail}]` : ''}`);
+      c.pass ? totalPass++ : totalFail++;
+    }
+    report.push({ scenario: scenario.name, checks });
+  }
+
+  const rate = totalPass / Math.max(1, totalPass + totalFail);
+  console.log(`\n══ Scorecard: ${totalPass} pass / ${totalFail} fail (${(rate * 100).toFixed(1)}%) ══`);
+  const reportPath = join(ROOT, 'agent-evals-report.json');
+  writeFileSync(
+    reportPath,
+    JSON.stringify({ ranAt: new Date().toISOString(), passRate: rate, report }, null, 2)
+  );
+  console.log(`Report: ${reportPath}`);
+  if (strict && totalFail > 0) process.exit(1);
+  if (minPass !== null && rate < minPass) {
+    console.error(`Pass rate ${(rate * 100).toFixed(1)}% below --min-pass=${minPass}`);
+    process.exit(1);
+  }
+}
+
+main().catch((error) => {
+  console.error(error.message);
+  process.exit(1);
+});

@@ -1,0 +1,143 @@
+'use client';
+
+import { useState } from 'react';
+import {
+    Box,
+    TextField,
+    Typography,
+    alpha,
+} from '@mui/material';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+
+interface ChatRegistryFormProps {
+    onSave: (registry: { fund_name: string; external_url: string; emoji: string }) => void;
+    onCancel?: () => void;
+    initialData?: any;
+}
+
+export default function ChatRegistryForm({ onSave, onCancel, initialData }: ChatRegistryFormProps) {
+    const [formData, setFormData] = useState({
+        fund_name: initialData?.fund_name || '',
+        external_url: initialData?.external_url || '',
+        emoji: initialData?.emoji || '🎁',
+    });
+
+    const handleSave = () => {
+        if (!formData.fund_name || !formData.external_url) return;
+        onSave(formData);
+    };
+
+    const commonFieldSx = {
+        '& .MuiOutlinedInput-root': {
+            borderRadius: RADII.md,
+            fontSize: '1rem',
+            bgcolor: COLORS.bg.subtle,
+            fontWeight: 600,
+            '& input': {
+                py: 1.5,
+                px: 2,
+                color: '#1a1a1a !important',
+                WebkitTextFillColor: '#1a1a1a !important',
+            },
+            '& fieldset': { border: 'none' },
+            '&.Mui-focused fieldset': { border: 'none' },
+        },
+    };
+
+    const labelSx = {
+        color: COLORS.text.subtle,
+        mb: 1,
+        display: 'block',
+        fontWeight: 500,
+        fontSize: '0.875rem'
+    };
+
+    return (
+        <Box sx={{
+            bgcolor: COLORS.bg.white,
+            p: 4,
+            borderRadius: RADII.lg,
+            border: '2px solid',
+            borderColor: alpha(COLORS.text.strong, 0.12),
+            width: '100%',
+            maxWidth: 640,
+            mt: 1,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
+        }}>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, color: COLORS.text.strong }}>
+                Add Registry Link
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box>
+                    <Typography variant="caption" sx={labelSx}>
+                        Registry Name *
+                    </Typography>
+                    <TextField
+                        value={formData.fund_name}
+                        onChange={(e) => setFormData({ ...formData, fund_name: e.target.value })}
+                        fullWidth
+                        required
+                        placeholder="e.g., Amazon Wishlist, Honeyfund"
+                        sx={commonFieldSx}
+                    />
+                </Box>
+
+                <Box>
+                    <Typography variant="caption" sx={labelSx}>
+                        Link (URL) *
+                    </Typography>
+                    <TextField
+                        value={formData.external_url}
+                        onChange={(e) => setFormData({ ...formData, external_url: e.target.value })}
+                        fullWidth
+                        required
+                        placeholder="e.g., https://www.amazon.com/wedding/..."
+                        sx={commonFieldSx}
+                    />
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%' }}>
+                    {onCancel && (
+                        <SecondaryActionButton
+                            onClick={onCancel}
+                            size="small"
+                            fullWidth
+                            sx={{
+                                color: COLORS.text.subtle,
+                                fontSize: '0.875rem',
+                                py: 1,
+                                borderRadius: RADII.lg,
+                                flex: 1,
+                                border: '2px solid',
+                                borderColor: 'rgba(0,0,0,0.1)',
+                                '&:hover': {
+                                    border: '2px solid',
+                                    borderColor: 'rgba(0,0,0,0.2)',
+                                    bgcolor: 'rgba(0,0,0,0.02)'
+                                }
+                            }}
+                        >
+                            Cancel
+                        </SecondaryActionButton>
+                    )}
+                    <PrimaryActionButton
+                        onClick={handleSave}
+                        disabled={!formData.fund_name || !formData.external_url}
+                        size="small"
+                        fullWidth
+                        sx={{
+                            borderRadius: RADII.lg,
+                            fontSize: '0.875rem',
+                            py: 1,
+                            flex: 1,
+                        }}
+                    >
+                        Add Registry
+                    </PrimaryActionButton>
+                </Box>
+            </Box>
+        </Box>
+    );
+}

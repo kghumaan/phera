@@ -1,0 +1,207 @@
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { FlatCompat } from "@eslint/eslintrc";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+// ─────────────────────────────────────────────────────────────────────
+// Design-system enforcement
+//
+// Goals:
+//   1. Force every color/radius/font literal through `lib/theme/tokens.ts`.
+//   2. Steer component authors toward `components/shared/*` wrappers
+//      instead of raw MUI primitives that drift visually.
+//   3. Prevent sub-14px text from sneaking back in via inline `fontSize`.
+//
+// Rules are warnings (not errors) to start — they still block commits
+// via the pre-commit hook but don't explode the dev server. Flip to
+// "error" once the backlog of existing violations is cleared.
+// ─────────────────────────────────────────────────────────────────────
+
+const designSystemRules = {
+  // Colors + radii must resolve through tokens.
+  // Matches hex literals in JSX string attributes + sx object values.
+  "no-restricted-syntax": [
+    "error",
+    {
+      // Catches `color: '#DE3F5E'`, `bgcolor: "#1a1a1a"`, etc.
+      selector:
+        "Literal[value=/^#(?:[0-9a-fA-F]{3}){1,2}$/]:not(ImportDeclaration Literal):not(ExportDeclaration Literal)",
+      message:
+        "Hex color literals must come from lib/theme/tokens.ts (COLORS.*). Never inline #DE3F5E, #1a1a1a, etc. If this is a genuinely unique value, add it to tokens first.",
+    },
+    {
+      // Catches `fontFamily: 'Outfit'`, `'Instrument Serif'`, `'monospace'`, etc.
+      selector:
+        "Property[key.name='fontFamily'] > Literal:not([value=/^var\\(--font/])",
+      message:
+        "fontFamily must reference FONTS.body or FONTS.display from lib/theme/tokens.ts. Do not hand-write font names.",
+    },
+    {
+      // Catches inline fontSize numeric values < 14.
+      selector:
+        "Property[key.name='fontSize'] > Literal[value=/^([0-9]|1[0-3])$/]",
+      message:
+        "Inline fontSize below 14px is banned — 14px (0.875rem) is the minimum. Use a Typography variant or bump the value.",
+    },
+    {
+      // Catches inline fontSize rem/px literals below 14px.
+      selector:
+        "Property[key.name='fontSize'] > Literal[value=/^(0\\.[0-7]\\d*rem|1[0-3]px)$/]",
+      message:
+        "Inline fontSize below 14px (0.875rem) is banned. Use a Typography variant or bump the value.",
+    },
+  ],
+
+  // Raw MUI primitives that have a shared wrapper should go through the
+  // wrapper instead. Callers can still import the underlying MUI
+  // component from inside `components/shared/*`.
+  //
+  // Tightened to `error` after the Alert/Menu/Switch sweep landed — any new
+  // raw imports should be caught in review, not drift back into the tree.
+  "no-restricted-imports": [
+    "error",
+    {
+      paths: [
+        {
+          name: "@mui/material",
+          importNames: ["Alert"],
+          message:
+            "Use InfoAlert / SuccessAlert / WarningAlert / ErrorAlert from components/shared/Alert instead of raw MUI Alert.",
+        },
+        {
+          name: "@mui/material",
+          importNames: ["Menu"],
+          message:
+            "Use PheraMenu from components/shared/Menu instead of raw MUI Menu.",
+        },
+        {
+          name: "@mui/material",
+          importNames: ["Switch"],
+          message:
+            "Use PheraSwitch from components/shared/Switch instead of raw MUI Switch.",
+        },
+        {
+          name: "@mui/material/Alert",
+          message:
+            "Use InfoAlert / SuccessAlert / WarningAlert / ErrorAlert from components/shared/Alert.",
+        },
+        {
+          name: "@mui/material/Switch",
+          message: "Use PheraSwitch from components/shared/Switch.",
+        },
+        {
+          name: "@mui/material/Menu",
+          message: "Use PheraMenu from components/shared/Menu.",
+        },
+      ],
+    },
+  ],
+};
+
+const eslintConfig = [
+  // Build artifacts + worktree clones leak generated JS that produces
+  // hundreds of spurious "error is defined but never used" hits. Pin the
+  // ignore list explicitly — globally-ignored configs go before any other
+  // config block per ESLint flat-config docs.
+  {
+    ignores: [
+      ".next/**",
+      ".claude/**",
+      "node_modules/**",
+      "out/**",
+      "build/**",
+      "coverage/**",
+      "public/**",
+      "*.min.js",
+    ],
+  },
+
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+
+  // Apply design-system rules to app + components sources.
+  {
+    files: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}"],
+    rules: designSystemRules,
+  },
+
+  // Exempt files that legitimately own the tokens themselves, the
+  // shared wrappers (which DO import from @mui/material by design),
+  // and lib/theme which defines the palette.
+  {
+    files: [
+      "components/shared/Alert.tsx",
+      "components/shared/Menu.tsx",
+      "components/shared/TextField.tsx",
+      "components/shared/Card.tsx",
+      "components/shared/Chip.tsx",
+      "components/shared/Dialog.tsx",
+      "components/shared/Switch.tsx",
+      "components/shared/PageHeading.tsx",
+      "components/shared/StatCard.tsx",
+      "components/shared/EmptyState.tsx",
+      "components/admin/ActionButton.tsx",
+      "lib/theme/**/*.{ts,tsx}",
+      // UI chrome mocks (iPhone frame, browser bar) — their whole job is
+      // to look pixel-perfect at mockup scale, so sub-14px text is fine.
+      "components/ui/IPhoneMockup.tsx",
+      "components/ui/MobileBrowserShell.tsx",
+      // Color/palette picker content — the hex values ARE the data. The
+      // user picks from a named set of wedding primary colors, event
+      // category tints, avatar swatches etc. Tokenizing would just
+      // re-define the same literals somewhere else.
+      "app/admin/**/design/page.tsx",
+      "app/admin/**/schedule/components/InlineMajorForm.tsx",
+      "app/admin/**/schedule/components/InlineMinorForm.tsx",
+      "app/admin/**/schedule/components/MajorEventCard.tsx",
+      "app/admin/**/schedule/components/MinorEventCard.tsx",
+      "app/admin/**/schedule/components/ExamplesSection.tsx",
+      "app/admin/**/schedule/components/DayCard.tsx",
+      "app/admin/**/schedule/components/MoreDetailsModal.tsx",
+      "app/admin/**/schedule/components/TimePicker.tsx",
+      "components/admin/build-ai/ChatLookFeelForm.tsx",
+      "components/admin/build-ai/ChatColorPicker.tsx",
+      "components/admin/build-ai/ChatBackgroundPicker.tsx",
+      "components/admin/GuestHierarchy.tsx",
+      "components/admin/EventBuilder.tsx",
+      "components/preview/ReadOnlyComments.tsx",
+      // WhatsApp UI mock — mirrors the real WhatsApp chat palette
+      // (bubble green, header teal, blue tick) by design. Tokenizing
+      // these would make it stop looking like WhatsApp.
+      "components/ui/WhatsAppConcierge.tsx",
+      "components/ui/PlaceholderCouple.tsx",
+      // Third-party brand marks — Google SVG logo fills etc. stay as
+      // their official brand hex.
+      "components/auth/LoginDialog.tsx",
+      "components/auth/LoginModal.tsx",
+      "components/guest/CustomRSVPForm.tsx",
+      // Semantic palette arrays — tier/category/avatar color tables
+      // whose entries ARE the data users see.
+      "app/admin/**/task-manager/page.tsx",
+      "app/admin/**/coordinator/**/page.tsx",
+      // Landing + marketing pages — separate agent owns these; they use
+      // custom hero palettes that are intentionally off-tokens.
+      "app/page.tsx",
+      "app/pricing/page.tsx",
+      "app/features/page.tsx",
+      "app/blog/**/*.{ts,tsx}",
+      "components/landing/**/*.{ts,tsx}",
+      "components/shared/FinalCTA.tsx",
+      // Internal observability dashboard — dark theme, scoped to /ops/* only.
+      // PIN-gated, not user-facing, intentionally off the light design system.
+      "app/ops/**/*.{ts,tsx}",
+      "lib/ops/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-syntax": "off",
+      "no-restricted-imports": "off",
+    },
+  },
+];
+
+export default eslintConfig;

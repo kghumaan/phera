@@ -1,0 +1,156 @@
+---
+title: "We Built an AI Wedding Planner. Here's Exactly What It Can and Can't Do."
+description: "Phera's Planner is an AI wedding coordinator that lives inside your dashboard. It builds your schedule, tracks RSVPs, reshuffles rooms and drafts your guest messages — and it tells you the truth when it can't help."
+date: "2026-07-12"
+author: "Phera Team"
+image: "/images/blog/ai-wedding-planner-watercolor.png"
+tags: ["ai wedding planner", "indian wedding planning", "wedding planning assistant", "nri wedding", "wedding guest management"]
+---
+
+## The 11 PM Problem
+
+It's a Tuesday. You're in bed. Your phone is at 8%.
+
+Your mother-in-law has just forwarded a WhatsApp message saying your dad's cousin is bringing his two sons after all. That's two more beds you don't have. Somewhere in a spreadsheet you last opened in March, there's a hotel block with exactly 100 rooms and now 102 people. You'd need to open your laptop, find the sheet, remember what the colour-coding meant, cross-reference the RSVP tab, and work out who can share.
+
+So you don't. You put the phone down and decide it's a tomorrow problem.
+
+It's never a tomorrow problem. It's a three-weeks-from-now problem, discovered at midnight by a cousin standing in a hotel lobby in Goa with a suitcase.
+
+Planning an Indian wedding turns you into the unpaid project manager of a 300-person, multi-day, multi-city logistics operation. Nobody signed up for that. You signed up to get married.
+
+## So We Gave You a Planner
+
+There's an item in your Phera sidebar, right under Overview. It's called **Planner**, and it's a chat box.
+
+Not a chatbot that answers FAQs about your own wedding. An agent that has *hands* — it reads your actual guest list, writes to your actual schedule, and moves your actual room assignments. You talk to it the way you'd talk to a human coordinator, and the work gets done while you're typing.
+
+You don't need an account to meet it. Type a sentence and you're in a live session; you only make an account later, once it's actually done something worth keeping.
+
+Here's the first conversation most couples have with it:
+
+<ChatDemo id="onboarding" ctaHref="#try-the-planner" />
+
+Notice what it didn't do. It didn't ask you to fill in a form. It didn't make you pick a venue before it would let you continue. You gave it a vague human sentence — *"second weekend of March 2027"* — and it worked out that means Friday the 12th, left the venue blank because you don't have one, and told you something useful about the weather that you didn't ask for.
+
+## It Acts. It Doesn't Interview You.
+
+Most AI assistants are cowards. They ask permission for everything, confirm what you just said, then ask if you'd like them to proceed. Three messages to change one date.
+
+We wrote the opposite rule into the Planner's brain, more or less verbatim:
+
+> An answer is the instruction. Never record the fact and then ask "want me to update?" — data changes are undoable, so acting is safe and asking twice is friction.
+
+And, separately:
+
+> Reads are free. Never ask permission to look.
+
+So when you tell it your sangeet is moving to 8 PM, it moves your sangeet to 8 PM. When you ask how many people have RSVP'd, it goes and counts — it doesn't ask whether you'd like it to check. It keeps its answers to a sentence or two, because you're on your phone and you don't want an essay.
+
+## What It Actually Touches
+
+The Planner has 45 tools. That number isn't marketing — it's the size of the registry, and each one is a real function against your real data.
+
+<FeatureGrid>
+  <Feature title="Guests & RSVPs" tools="list_guests · add_guest · update_guest · record_rsvp · get_rsvp_summary">
+    Add people, chase people, count people. "Who's coming from London?" gets an answer, not a link to a page.
+  </Feature>
+  <Feature title="Schedule & events" tools="create_schedule_day · create_event · update_schedule_item">
+    Build a three-day running order from a sentence. Move things when the pandit changes the muhurat.
+  </Feature>
+  <Feature title="Website & FAQs" tools="get_site_content · add_faq · propose_faqs">
+    It drafts the FAQs your guests will actually ask — dress code, alcohol, kids, airport — before they ask them.
+  </Feature>
+  <Feature title="Rooms" pro tools="list_rooms · update_room · assign_guests_to_room">
+    The bit everyone dreads. Tell it who's arrived and who's cancelled; it reshuffles the block.
+  </Feature>
+  <Feature title="Vendors" pro tools="search_vendor_directory · add_vendor · get_vendors">
+    Search a curated directory of vendors who have actually worked in your city.
+  </Feature>
+  <Feature title="Guest WhatsApp" pro tools="broadcast_message · create_guest_whatsapp_group">
+    Drafts your broadcasts and builds the wedding group — from your number, with your thumb on the send button.
+  </Feature>
+</FeatureGrid>
+
+The Planner itself is free. Rooms, transportation, vendor coordination and guest WhatsApp are on the paid plan — if you ask for one of those on the free plan, it doesn't stonewall you and it doesn't fake the work, it tells you straight that it's a paid feature and shows you the upgrade card.
+
+## When It Could Break Something, It Stops and Asks
+
+Here's the 11 PM problem again, except it takes eleven seconds.
+
+<ChatDemo id="rooms" ctaHref="#try-the-planner" />
+
+Two things are happening there that matter more than the speed.
+
+The first: it noticed. You told it about *one guest*. It worked out on its own that one guest meant two people without a bed, because it went and looked at the room block without being asked.
+
+The second: it stopped. Reshuffling four people across two rooms is the kind of thing you want to eyeball before it happens, so it doesn't happen until you tap **Confirm**. Bulk room moves and creating your guest WhatsApp group both work this way — they are staged, described in plain English, and wait for you.
+
+<Callout tone="tip" title="And if you confirm something you regret">
+Every single write the Planner makes is snapshotted before it happens, and every one of them has an **Undo** button sitting right there in the chat. Not "contact support." Not "restore from a backup." One tap, and it's back to how it was. The agent is told, flatly, that it may never claim it can't undo something.
+</Callout>
+
+## It Will Never Message Your Guests Behind Your Back
+
+This is the one we get asked about most, so here is the unambiguous answer.
+
+<ChatDemo id="broadcast" ctaHref="#try-the-planner" />
+
+The Planner **drafts**. You **send**. There is no configuration, no setting, no autonomy level where it quietly starts WhatsApping 200 members of your family on your behalf. It works out who hasn't replied, writes the nudge, shows you the recipient count — and then hands you the pen.
+
+<Callout tone="honest" title="Why we won't automate the send">
+Because it's your family, and a wedding message from a robot reads like a wedding message from a robot. The whole point of Phera's model is that the *drudgery* is automated and the *voice* stays yours. Your masi should hear from you. She just shouldn't have to hear from you at 11 PM on a Tuesday because you were awake worrying about beds.
+</Callout>
+
+It can also build the wedding WhatsApp group on your own paired number, with you as admin — but it broadcasts a join link rather than force-adding 200 contacts, because bulk-adding strangers is a fast way to get your personal number flagged.
+
+## It Knows Goa. It Won't Pretend to Know Tuscany.
+
+<ChatDemo id="vendors" ctaHref="#try-the-planner" />
+
+The vendor directory covers twelve places we actually have depth in: **Goa, Udaipur, Jaipur, Jodhpur, Rishikesh, Kerala, Bangkok, Hua Hin, Phuket, Khao Lak, Bali and Dubai**.
+
+Ask it for a photographer in one of those and you get real listings. Ask it for a photographer in Tuscany and it says it doesn't have Tuscany, and passes your request to a human on our team who will come back with actual names.
+
+That refusal is deliberate, and it's written into the agent's instructions as a hard rule: never fake automation, and never imply you booked something you didn't. An AI that invents three plausible-sounding Tuscan photographers is worse than useless — it's actively dangerous when you're spending £40,000.
+
+## Talk to It
+
+You can hold the mic button and talk. You can also switch it into hands-free voice mode and just have a conversation with it — it talks back, streaming its answer sentence by sentence while it works.
+
+This sounds like a gimmick until the first time you're driving to a venue visit and remember four things at once.
+
+## What It Can't Do Yet
+
+We'd rather you hear this from us than find out in month three.
+
+| It can't | What happens instead |
+| --- | --- |
+| Send WhatsApp messages to guests on its own | It drafts; you tap send |
+| Book or pay a vendor | It finds and shortlists; you deal directly |
+| Delete your guests, events or rooms | There are no delete tools — you do that on the page |
+| Source vendors outside the 12 covered cities | It hands the request to a human on our team |
+| Design and publish your website end to end | It drafts content, then points you at the page |
+| Check in on you unprompted | Not yet. Today it acts when you talk to it |
+
+Everything above that says "a human on our team" is a real person. That's the model: AI does the intelligence work — collecting, counting, drafting, scheduling — and humans do the judgement work.
+
+## Start With One Sentence
+
+You don't need to prepare anything. You don't need your guest list ready, your venue booked, or even an account. Everything above — the box below is the real Planner, not a video.
+
+Tell it what's actually stressing you out tonight. Or steal one of these:
+
+- *Help me create my wedding website.*
+- *Can we refine my wedding schedule?*
+- *Help me find a photographer.*
+- *What's still missing from my setup?*
+
+<PlannerChatEmbed
+  title="Your wedding has 300 guests and 4 days. You have a phone and 8% battery."
+  subtitle="Type one sentence and you're in a live planner session. No account, no card. You can make an account later, once it's actually done something worth keeping."
+/>
+
+Whatever you type gets carried into the conversation as your opening line, and the Planner starts working from it — reading, drafting, asking you the two or three things it genuinely can't guess.
+
+If you'd rather poke around a wedding that's already full of guests, rooms and RSVPs, [open the demo](/demo) instead.

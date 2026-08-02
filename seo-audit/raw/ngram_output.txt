@@ -1,0 +1,359 @@
+
+======================================================================
+KEYWORD FLAG MATRIX (visible-text occurrences per route)
+======================================================================
+route                                         | indian wedding  | wedding planni  | wedding coordi  | rsvp            | wedding websit  | shaadi          | destination we  | wedding planne  | wedding manage 
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+home                                          | 1               | 1               | 0               | 0               | 0               | 0               | 0               | 0               | 0              
+about                                         | 3               | 1               | 0               | 0               | 0               | 0               | 1               | 0               | 0              
+features                                      | 1               | 1               | 0               | 0               | 0               | 0               | 0               | 0               | 0              
+pricing                                       | 1               | 1               | 0               | 0               | 0               | 0               | 0               | 0               | 0              
+contact                                       | 2               | 1               | 0               | 0               | 0               | 0               | 1               | 0               | 0              
+blog-indian-wedding-task-management           | 7               | 8               | 0               | 0               | 1               | 0               | 1               | 0               | 0              
+blog-index                                    | 14              | 4               | 1               | 3               | 2               | 0               | 3               | 0               | 0              
+
+======================================================================
+ROUTE: home  (tokens=5)
+======================================================================
+
+Top 1-grams:
+    1  phera
+    1  indian
+    1  wedding
+    1  planning
+    1  platform
+
+Top 2-grams:
+    1  phera indian
+    1  indian wedding
+    1  wedding planning
+    1  planning platform
+
+Top 3-grams:
+    1  phera indian wedding
+    1  indian wedding planning
+    1  wedding planning platform
+
+======================================================================
+ROUTE: about  (tokens=115)
+======================================================================
+
+Top 1-grams:
+    5  phera
+    4  indian
+    4  wedding
+    4  planning
+    4  built
+    3  platform
+    2  frustrated
+    2  couple
+    2  complexity
+    2  knew
+    2  better
+    2  way
+    2  want
+    2  connect
+    2  beautiful
+    2  events
+    1  story
+    1  because
+    1  comes
+    1  level
+
+Top 2-grams:
+    2  indian wedding
+    2  knew better
+    2  better way
+    2  phera events
+    1  phera indian
+    1  wedding planning
+    1  planning platform
+    1  platform story
+    1  story built
+    1  built phera
+    1  phera because
+    1  because frustrated
+    1  frustrated couple
+    1  couple planning
+    1  planning indian
+    1  wedding comes
+    1  comes level
+    1  level complexity
+    1  complexity global
+    1  global platforms
+
+Top 3-grams:
+    2  knew better way
+    1  phera indian wedding
+    1  indian wedding planning
+    1  wedding planning platform
+    1  planning platform story
+    1  platform story built
+    1  story built phera
+    1  built phera because
+    1  phera because frustrated
+    1  because frustrated couple
+    1  frustrated couple planning
+    1  couple planning indian
+    1  planning indian wedding
+    1  indian wedding comes
+    1  wedding comes level
+    1  comes level complexity
+    1  level complexity global
+    1  complexity global platforms
+    1  global platforms understand
+    1  platforms understand managing
+
+======================================================================
+ROUTE: features  (tokens=5)
+======================================================================
+
+Top 1-grams:
+    1  phera
+    1  indian
+    1  wedding
+    1  planning
+    1  platform
+
+Top 2-grams:
+    1  phera indian
+    1  indian wedding
+    1  wedding planning
+    1  planning platform
+
+Top 3-grams:
+    1  phera indian wedding
+    1  indian wedding planning
+    1  wedding planning platform
+
+======================================================================
+ROUTE: pricing  (tokens=5)
+======================================================================
+
+Top 1-grams:
+    1  phera
+    1  indian
+    1  wedding
+    1  planning
+    1  platform
+
+Top 2-grams:
+    1  phera indian
+    1  indian wedding
+    1  wedding planning
+    1  planning platform
+
+Top 3-grams:
+    1  phera indian wedding
+    1  indian wedding planning
+    1  wedding planning platform
+
+======================================================================
+ROUTE: contact  (tokens=68)
+======================================================================
+
+Top 1-grams:
+    4  phera
+    3  indian
+    3  message
+    2  wedding
+    2  planning
+    2  platform
+    2  contact
+    2  name
+    2  email
+    2  address
+    2  phone
+    2  number
+    2  optional
+    2  built
+    2  beautiful
+    2  events
+    1  questions
+    1  we'd
+    1  love
+    1  hear
+
+Top 2-grams:
+    2  email address
+    2  phone number
+    2  number optional
+    2  phera events
+    1  phera indian
+    1  indian wedding
+    1  wedding planning
+    1  planning platform
+    1  platform contact
+    1  contact questions
+    1  questions we'd
+    1  we'd love
+    1  love hear
+    1  hear name
+    1  name name
+    1  name email
+    1  address email
+    1  address phone
+    1  optional phone
+    1  optional message
+
+Top 3-grams:
+    2  phone number optional
+    1  phera indian wedding
+    1  indian wedding planning
+    1  wedding planning platform
+    1  planning platform contact
+    1  platform contact questions
+    1  contact questions we'd
+    1  questions we'd love
+    1  we'd love hear
+    1  love hear name
+    1  hear name name
+    1  name name email
+    1  name email address
+    1  email address email
+    1  address email address
+    1  email address phone
+    1  address phone number
+    1  number optional phone
+    1  optional phone number
+    1  number optional message
+
+======================================================================
+ROUTE: blog-indian-wedding-task-management  (tokens=746)
+======================================================================
+
+Top 1-grams:
+   22  wedding
+   14  planning
+   11  tasks
+    9  indian
+    9  task
+    9  sangeet
+    7  need
+    7  see
+    6  phera
+    6  plan
+    5  list
+    5  management
+    5  book
+    5  mehendi
+    5  arrange
+    5  done
+    5  notes
+    4  to-do
+    4  checklist
+    4  vendor
+
+Top 2-grams:
+    8  wedding planning
+    5  indian wedding
+    4  to-do list
+    3  welcome bags
+    3  room block
+    2  taming longest
+    2  longest to-do
+    2  list life
+    2  task manager
+    2  mehendi artist
+    2  out-of-town guests
+    2  sound system
+    2  knows someone
+    2  tasks apply
+    2  indian weddings
+    2  doing done
+    2  task management
+    2  need see
+    2  block deadline
+    2  ask caterer
+
+Top 3-grams:
+    2  taming longest to-do
+    2  longest to-do list
+    2  to-do list life
+    2  room block deadline
+    2  ask caterer live
+    2  hotel room block
+    1  list life phera
+    1  life phera blog
+    1  phera blog phera
+    1  blog phera back
+    1  phera back blog
+    1  back blog taming
+    1  blog taming longest
+    1  list life february
+    1  life february min
+    1  february min read
+    1  min read indian
+    1  read indian wedding
+    1  indian wedding checklist
+    1  wedding checklist wedding
+
+======================================================================
+ROUTE: blog-index  (tokens=309)
+======================================================================
+
+Top 1-grams:
+   24  wedding
+   17  indian
+    9  planning
+    9  feb
+    9  min
+    9  read
+    8  here's
+    6  phera
+    5  weddings
+    4  guest
+    4  guests
+    4  whatsapp
+    3  blog
+    3  destination
+    3  rsvp
+    3  built
+    3  better
+    3  travel
+    3  coordination
+    3  across
+
+Top 2-grams:
+   10  indian wedding
+    9  feb min
+    9  min read
+    5  planning indian
+    4  wedding planning
+    4  indian weddings
+    3  destination wedding
+    3  read wedding
+    3  read indian
+    2  phera phera
+    2  indian destination
+    2  wedding guest
+    2  better way
+    2  wedding website
+    2  stop drowning
+    2  without awkwardness
+    2  honeymoon fund
+    2  wedding transportation
+    2  phera events
+    1  planning blog
+
+Top 3-grams:
+    9  feb min read
+    4  planning indian wedding
+    3  min read wedding
+    3  min read indian
+    3  read indian wedding
+    2  indian destination wedding
+    2  wedding planning indian
+    1  indian wedding planning
+    1  wedding planning blog
+    1  planning blog phera
+    1  blog phera phera
+    1  phera phera phera
+    1  phera phera blog
+    1  phera blog honest
+    1  blog honest thoughts
+    1  honest thoughts planning
+    1  thoughts planning indian
+    1  planning indian weddings
+    1  indian weddings make
+    1  weddings make process

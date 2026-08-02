@@ -1,0 +1,175 @@
+'use client';
+
+import { useState } from 'react';
+import {
+    Box,
+    TextField,
+    Typography,
+    alpha,
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
+import { COLORS, RADII } from '@/lib/theme/tokens';
+
+interface ChatFAQFormProps {
+    onSave: (faq: any) => void;
+    onCancel?: () => void;
+    initialData?: any;
+}
+
+export default function ChatFAQForm({ onSave, onCancel, initialData }: ChatFAQFormProps) {
+    const theme = useTheme();
+    const [formData, setFormData] = useState({
+        question: initialData?.question || '',
+        answer: initialData?.answer || '',
+        button_text: initialData?.button_text || '',
+        button_link: initialData?.button_link || '',
+    });
+
+    const handleSave = () => {
+        if (!formData.question || !formData.answer) return;
+        onSave(formData);
+    };
+
+    const commonFieldSx = {
+        '& .MuiOutlinedInput-root': {
+            borderRadius: RADII.md,
+            fontSize: '1rem',
+            bgcolor: COLORS.bg.subtle,
+            fontWeight: 600,
+            '& input, & textarea': {
+                py: 1.5,
+                px: 2,
+                color: '#1a1a1a !important',
+                WebkitTextFillColor: '#1a1a1a !important',
+            },
+            '& fieldset': { border: 'none' },
+            '&.Mui-focused fieldset': { border: 'none' },
+        },
+    };
+
+    const labelSx = {
+        color: COLORS.text.subtle,
+        mb: 1,
+        display: 'block',
+        fontWeight: 500,
+        fontSize: '0.875rem'
+    };
+
+    return (
+        <Box sx={{
+            bgcolor: COLORS.bg.white,
+            p: 4,
+            borderRadius: RADII.lg,
+            border: '2px solid',
+            borderColor: alpha(COLORS.text.strong, 0.12),
+            width: '100%',
+            maxWidth: 640,
+            mt: 1,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.08)'
+        }}>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 700, color: COLORS.text.strong }}>
+                New FAQ Item
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box>
+                    <Typography variant="caption" sx={labelSx}>
+                        Question *
+                    </Typography>
+                    <TextField
+                        value={formData.question}
+                        onChange={(e) => setFormData({ ...formData, question: e.target.value })}
+                        fullWidth
+                        required
+                        placeholder="e.g., What's the dress code?"
+                        sx={commonFieldSx}
+                    />
+                </Box>
+
+                <Box>
+                    <Typography variant="caption" sx={labelSx}>
+                        Answer *
+                    </Typography>
+                    <TextField
+                        value={formData.answer}
+                        onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
+                        multiline
+                        rows={3}
+                        fullWidth
+                        required
+                        placeholder="e.g., Smart casual. Please wear comfortable shoes for the lawn."
+                        sx={commonFieldSx}
+                    />
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Box sx={{ flex: 1 }}>
+                        <Typography variant="caption" sx={labelSx}>
+                            Button Text (Optional)
+                        </Typography>
+                        <TextField
+                            value={formData.button_text}
+                            onChange={(e) => setFormData({ ...formData, button_text: e.target.value })}
+                            fullWidth
+                            placeholder="e.g., View Map"
+                            sx={commonFieldSx}
+                        />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                        <Typography variant="caption" sx={labelSx}>
+                            Button Link (Optional)
+                        </Typography>
+                        <TextField
+                            value={formData.button_link}
+                            onChange={(e) => setFormData({ ...formData, button_link: e.target.value })}
+                            fullWidth
+                            placeholder="e.g., https://maps..."
+                            sx={commonFieldSx}
+                        />
+                    </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 1.5, mt: 1, width: '100%' }}>
+                    {onCancel && (
+                        <SecondaryActionButton
+                            onClick={onCancel}
+                            size="small"
+                            fullWidth
+                            sx={{
+                                color: COLORS.text.subtle,
+                                fontSize: '0.875rem',
+                                py: 1,
+                                borderRadius: RADII.lg,
+                                flex: 1,
+                                border: '2px solid',
+                                borderColor: 'rgba(0,0,0,0.1)',
+                                '&:hover': {
+                                    border: '2px solid',
+                                    borderColor: 'rgba(0,0,0,0.2)',
+                                    bgcolor: 'rgba(0,0,0,0.02)'
+                                }
+                            }}
+                        >
+                            Cancel
+                        </SecondaryActionButton>
+                    )}
+                    <PrimaryActionButton
+                        onClick={handleSave}
+                        disabled={!formData.question || !formData.answer}
+                        size="small"
+                        fullWidth
+                        sx={{
+                            borderRadius: RADII.lg,
+                            fontSize: '0.875rem',
+                            py: 1,
+                            flex: 1,
+                        }}
+                    >
+                        Add FAQ
+                    </PrimaryActionButton>
+                </Box>
+            </Box>
+        </Box>
+    );
+}
