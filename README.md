@@ -9,6 +9,16 @@ multi-tenant admin dashboard for couples/planners and a mobile-first guest
 portal, with WhatsApp as a first-class channel for both guest communication
 and vendor coordination.
 
+## Demo
+
+**Live:** [phera.io](https://www.phera.io) — or jump straight into a working
+demo wedding: [phera.io/admin/demo-luid49mg/details](https://www.phera.io/admin/demo-luid49mg/details)
+(no login needed).
+
+| Marketing site | Admin dashboard (editing a wedding, live mobile preview) |
+|---|---|
+| ![Phera homepage](docs/demo/homepage.jpg) | ![Phera admin dashboard](docs/demo/admin-dashboard.jpg) |
+
 ## Current focus: the Phera Agent
 
 The active development effort is the **Phera Agent** — a single AI
