@@ -14,17 +14,6 @@
       "count": 13
     }
   },
-  "app/(guest)/[weddingSlug]/travel-form/page.tsx": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    },
-    "no-restricted-syntax": {
-      "count": 10
-    },
-    "react/no-unescaped-entities": {
-      "count": 3
-    }
-  },
   "app/(guest)/[weddingSlug]/where-to-shop/page.tsx": {
     "no-restricted-syntax": {
       "count": 6
@@ -156,11 +145,6 @@
       "count": 13
     }
   },
-  "app/api/cron/outreach/route.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
   "app/api/demo/clone/route.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
@@ -259,11 +243,6 @@
       "count": 2
     },
     "prefer-const": {
-      "count": 1
-    }
-  },
-  "app/api/whatsapp/flows/route.ts": {
-    "@typescript-eslint/no-explicit-any": {
       "count": 1
     }
   },
@@ -653,7 +632,7 @@
   },
   "lib/supabase/travel-service.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 7
+      "count": 4
     }
   },
   "lib/theme/m3-theme.ts": {
@@ -717,11 +696,6 @@
   "lib/whatsapp/concierge-tools.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 20
-    }
-  },
-  "lib/whatsapp/flows.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
     }
   },
   "lib/whatsapp/outreach-sender.ts": {
@@ -1094,11 +1068,6 @@
   "tests/wedding-service.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 7
-    }
-  },
-  "tests/whatsapp-flows.test.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 8
     }
   },
   "tests/workflow-integration.test.ts": {

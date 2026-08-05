@@ -32,6 +32,7 @@ export interface RunAgentTurnArgs {
   weddingSlug: string;
   weddingUuid: string;
   userId: string;
+  userEmail?: string | null;
   conversationId: string;
   userMessage: string;
   provider: AgentProvider;
@@ -247,12 +248,12 @@ export async function runAgentTurn(args: RunAgentTurnArgs): Promise<void> {
 }
 
 async function runAgentTurnLocked(args: RunAgentTurnArgs): Promise<void> {
-  const { supabase, weddingSlug, weddingUuid, userId, conversationId, provider, onEvent } = args;
+  const { supabase, weddingSlug, weddingUuid, userId, userEmail, conversationId, provider, onEvent } = args;
 
   const [history, snapshot, isPro, autonomy] = await Promise.all([
     args.isNewConversation ? Promise.resolve([] as AgentChatMessage[]) : loadHistory(supabase, conversationId),
     buildWeddingSnapshot(supabase, weddingSlug, weddingUuid),
-    getUserIsPro(supabase, userId),
+    getUserIsPro(supabase, userId, userEmail),
     readAutonomy(supabase, weddingSlug),
   ]);
   snapshot.text += `\nPlan: ${isPro ? 'Pro (all features unlocked)' : 'Basic / free — Room assignments, Transportation, and Vendor coordination require an upgrade'}`;

@@ -65,13 +65,25 @@ export default function HomePageClient() {
 }
 
 function LandingPageContent() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, isAdmin } = useAuth();
   const router = useRouter();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeTier, setUpgradeTier] = useState<'base' | 'premium' | 'planner_perwedding'>('base');
   // Tier whose CTA was just clicked — drives the spinner on the pricing card
   // until the in-flight redirect (auth or Stripe) takes over the page.
   const [pendingTier, setPendingTier] = useState<'base' | 'premium' | 'planner_perwedding' | null>(null);
+
+  // A signed-in couple/planner has no business on the marketing page — send
+  // them to their dashboard (/admin routes on to the Planner or the planner
+  // dashboard). Deliberately NOT redirected: anonymous hero-chat sessions,
+  // guests with accounts but no wedding (isAdmin false), and the pricing-CTA
+  // resume flow (?tier=… / pendingTier / open upgrade modal own that visit).
+  useEffect(() => {
+    if (authLoading || !user || user.is_anonymous || !isAdmin) return;
+    if (pendingTier || upgradeModalOpen) return;
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('tier')) return;
+    router.replace('/admin');
+  }, [authLoading, user, isAdmin, pendingTier, upgradeModalOpen, router]);
 
   // After post-auth redirect from a pricing CTA (?tier=base|premium|planner_perwedding),
   // resume the upgrade flow once the user lands back here signed in. We strip the

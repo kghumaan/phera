@@ -1,7 +1,7 @@
 'use client';
 
-import { Box, Stack, Typography, TextField, InputAdornment, Tooltip, Divider } from '@mui/material';
-import { forwardRef, Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Box, Stack, Typography, TextField, InputAdornment, Divider } from '@mui/material';
+import { forwardRef, Fragment, useEffect, useMemo, useState } from 'react';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { MobileDatePicker } from '@mui/x-date-pickers/MobileDatePicker';
@@ -11,9 +11,6 @@ import 'react-datepicker/dist/react-datepicker.css';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
-import MicRoundedIcon from '@mui/icons-material/MicRounded';
-import StopRoundedIcon from '@mui/icons-material/StopRounded';
-import { useVoiceInput } from './useVoiceInput';
 import { PheraTextField } from '@/components/shared/TextField';
 import { PheraChip } from '@/components/shared/Chip';
 import { PrimaryActionButton, SecondaryActionButton, IconActionButton } from '@/components/admin/ActionButton';
@@ -294,79 +291,26 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
     ? { ...SELECT_CHIP_SX, '& .MuiChip-label': { px: 2, py: 1.35, fontSize: '1.05rem', lineHeight: 1.25 } }
     : SELECT_CHIP_SX;
 
-  // Speech-to-text: the user can SPEAK an answer instead of tapping. For selects
-  // we match the transcript to the options (adding any we don't recognise); for
-  // text we drop it straight in. A ref keeps the latest closure so the voice
-  // hook stays stable.
-  const applyTranscript = (transcript: string) => {
-    const t = transcript.trim();
-    if (!t) return;
-    const all = [...(q.options ?? []), ...extraOptions];
-    const matchOf = (p: string) =>
-      all.find((o) => o.toLowerCase() === p.toLowerCase()) ??
-      all.find((o) => o.toLowerCase().includes(p.toLowerCase()) || p.toLowerCase().includes(o.toLowerCase()));
-    if (q.type === 'multi_select') {
-      const parts = t.split(/,|\band\b|\bplus\b|\balso\b/i).map((p) => p.trim()).filter(Boolean);
-      const picks: string[] = [];
-      const extras: string[] = [];
-      for (const p of parts) {
-        const m = matchOf(p);
-        if (m) picks.push(m);
-        else { extras.push(p); picks.push(p); }
-      }
-      if (extras.length) setExtraOptions((e) => [...e, ...extras.filter((x) => !e.includes(x))]);
-      setMulti((m) => Array.from(new Set([...m, ...picks])));
-    } else if (q.type === 'single_select') {
-      const m = matchOf(t);
-      if (m) commit(m);
-    } else {
-      setText((prev) => (prev ? `${prev} ${t}` : t));
-    }
-  };
-  const applyRef = useRef(applyTranscript);
-  applyRef.current = applyTranscript;
-  const voice = useVoiceInput(useCallback((t: string) => applyRef.current(t), []));
-  // Voice lives only in the chat (right) pane now — never on the form itself.
-  const voiceSupported = !large && !q.inputOnly && ['text', 'textarea', 'single_select', 'multi_select'].includes(q.type);
-
-  const voiceButton = voiceSupported ? (
-    <Tooltip
-      title={voice.state === 'recording' ? "We're listening — tell us as much as you need" : 'Or just speak your answer'}
-      placement="top"
-      arrow
-      open={voice.state === 'recording' ? true : undefined}
-    >
-      <Box component="span" sx={{ display: 'inline-flex' }}>
-        <IconActionButton
-          onClick={() => voice.toggle()}
-          disabled={disabled || voice.state === 'transcribing'}
-          loading={voice.state === 'transcribing'}
-          aria-label={voice.state === 'recording' ? 'Stop recording' : 'Speak your answer'}
-          sx={{
-            height: INPUT_HEIGHT,
-            width: INPUT_HEIGHT,
-            flexShrink: 0,
-            color: COLORS.brand.primary,
-            ...(voice.state === 'recording' ? { bgcolor: COLORS.brand.primarySubtle } : {}),
-          }}
-        >
-          {voice.state === 'recording' ? <StopRoundedIcon fontSize="small" /> : <MicRoundedIcon fontSize="small" />}
-        </IconActionButton>
-      </Box>
-    </Tooltip>
-  ) : null;
+  // No mic on the form: the chat composer right below already has one, and a
+  // second mic inside the card read as a duplicate control. Spoken answers go
+  // through the composer's mic (or hands-free voice mode).
 
   // Back / Next-or-Done / Skip — placed to the right of single-line inputs.
-  const actionButtons = (
+  // `revealSubmit: false` hides the primary button entirely (select cards show
+  // it only once a choice is made — a disabled pill next to chips read as
+  // clutter / phantom space).
+  const actionButtons = (opts?: { revealSubmit?: boolean }) => (
     <>
       {step > 0 && (
         <SecondaryActionButton size="small" onClick={goBack} disabled={disabled} sx={{ height: INPUT_HEIGHT, flexShrink: 0 }}>
           Back
         </SecondaryActionButton>
       )}
-      <PrimaryActionButton size="small" disabled={disabled || !canSubmit()} onClick={submitCurrent} sx={{ height: INPUT_HEIGHT, minWidth: 104, flexShrink: 0 }}>
-        {isLastUnanswered() ? 'Done' : 'Next'}
-      </PrimaryActionButton>
+      {(opts?.revealSubmit ?? true) && (
+        <PrimaryActionButton size="small" disabled={disabled || !canSubmit()} onClick={submitCurrent} sx={{ height: INPUT_HEIGHT, minWidth: 104, flexShrink: 0 }}>
+          {isLastUnanswered() ? 'Done' : 'Next'}
+        </PrimaryActionButton>
+      )}
       {q.optional && (
         <SecondaryActionButton size="small" onClick={skip} disabled={disabled} sx={{ height: INPUT_HEIGHT, flexShrink: 0 }}>
           Skip
@@ -488,8 +432,7 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
             sx={{ '& .MuiOutlinedInput-root': INPUT_ROOT_SX, ...MOBILE_INPUT_FONT_SX }}
           />
           <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
-            {voiceButton}
-            {actionButtons}
+            {actionButtons()}
           </Stack>
         </Stack>
       )}
@@ -513,7 +456,7 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
               wrapperClassName="agent-datepicker-wrapper"
             />
           </Box>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>{actionButtons}</Stack>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>{actionButtons()}</Stack>
         </Stack>
       )}
 
@@ -579,7 +522,7 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
                 />
               </LocalizationProvider>
             </Box>
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>{actionButtons}</Stack>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>{actionButtons()}</Stack>
           </Stack>
         ))}
 
@@ -611,7 +554,7 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
               onChange={(e) => setDate(e.target.value ? parse(e.target.value, 'HH:mm', new Date()) : null)}
               sx={TIME_INPUT_SX}
             />
-            {actionButtons}
+            {actionButtons()}
           </Stack>
         </Stack>
       )}
@@ -631,7 +574,7 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
             onChange={(e) => setText(e.target.value)}
             sx={{ maxWidth: INPUT_MAX_WIDTH, ...MOBILE_INPUT_FONT_SX }}
           />
-          <Stack direction="row" spacing={1}>{voiceButton}{actionButtons}</Stack>
+          <Stack direction="row" spacing={1}>{actionButtons()}</Stack>
         </>
       )}
 
@@ -651,11 +594,11 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
               );
             })}
           </Stack>
-          {/* Buttons stay visible (Confirm disabled until a choice) so the form
-              never looks empty — pick a chip, then Confirm. */}
+          {/* Done appears only once a chip is picked — a disabled pill sitting
+              next to the chips read as clutter. Back/Skip still show without a
+              selection when applicable. */}
           <Stack direction="row" spacing={1} alignItems="center">
-            {voiceButton}
-            {actionButtons}
+            {actionButtons({ revealSubmit: !!text })}
           </Stack>
         </Stack>
       )}
@@ -707,7 +650,6 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
             })}
           </Stack>
           <Stack direction="row" spacing={1} alignItems="stretch" sx={{ width: '100%' }}>
-            {voiceButton}
             {q.allowOther && (
               <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flex: 1, minWidth: 160 }}>
                 <PheraTextField
@@ -736,14 +678,9 @@ export function QuestionFlow({ questions, disabled, large, dateRange, onComplete
                 </IconActionButton>
               </Stack>
             )}
-            {actionButtons}
+            {actionButtons({ revealSubmit: multi.length > 0 })}
           </Stack>
         </Stack>
-      )}
-      {voice.error && (
-        <Typography variant="caption" sx={{ color: COLORS.text.subtle }}>
-          {voice.error}
-        </Typography>
       )}
     </Stack>
   );

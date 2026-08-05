@@ -23,7 +23,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: 'How does the guest coordination work?',
-    a: "Once you're on Base, the chasing comes off your plate. We WhatsApp every guest on your behalf - save-the-dates, RSVP nudges, travel forms, room assignments, shuttle pickups - on a timeline we tuned by living through it.",
+    a: "Your Phera planner drafts every message - save-the-dates, RSVP nudges, travel requests, shuttle details - and you approve each one before it goes out over WhatsApp. You can also pre-approve scheduled messages (a 48-hour reminder, a welcome, a thank-you) that send automatically at the time you set. When guests reply, the concierge answers them 24/7. Nothing ever sends without your OK.",
   },
   {
     q: 'Do my guests need to download an app?',
@@ -31,7 +31,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "What if a guest doesn't reply on WhatsApp?",
-    a: "We follow up a few times - gently, spaced out. If they're still silent, we hand them off to you with their contact info so a family member can call. Some cousins only respond after a phone call.",
+    a: "You'll always see exactly who hasn't replied. One tap re-nudges them over WhatsApp, and for the truly silent we surface their contact info so a family member can call. Some cousins only respond after a phone call - we make sure you know which ones.",
   },
   {
     q: 'How does the Concierge know about my wedding?',

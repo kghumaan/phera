@@ -1,119 +1,75 @@
 import { describe, it, expect } from 'vitest';
+import { PRICING_TIERS, PLANNER_TIER } from '@/lib/pricing/tiers';
+import { FAQ_ITEMS } from '@/lib/landing/faq-content';
 
-// Test landing page content data (avoid importing React/MUI components)
+/**
+ * Asserts against the REAL data modules that drive the landing page
+ * (lib/pricing/tiers.ts + lib/landing/faq-content.ts). An earlier version
+ * of this file asserted a hardcoded local copy of a 3-tier NRI/domestic
+ * pricing model ($349/$599/$799 + INR) that was never shipped — it tested
+ * nothing. If these tests fail, the landing page actually changed.
+ */
 
-describe('Landing Page Content Updates', () => {
-  // The data that drives the landing page content
-  const newHero = {
-    headline: 'Your Wedding Operations Team',
-    tagline: 'We coordinate your guests so you can focus on the celebration.',
-    body: '300+ guests, 3 days of events, people flying in from everywhere. Phera handles the guest logistics — travel coordination, RSVPs, communication, transportation — end to end via WhatsApp.',
-    primaryCTA: 'Get Started',
-    secondaryCTA: 'See How It Works',
-  };
-
-  const servicePillars = [
-    { title: 'We collect every detail from your guests' },
-    { title: 'We coordinate all travel and transportation' },
-    { title: 'We keep every guest informed, 24/7' },
-    { title: 'Your wedding, your vibe' },
-  ];
-
-  const additionalFeatures = [
-    { title: 'Your guests from abroad? We\'ve got them.' },
-    { title: 'Real-time operations dashboard' },
-    { title: 'Family knows best' },
-    { title: 'Smart guest import' },
-  ];
-
-  const pricing = [
-    { name: 'Phera Base', usd: 349, inr: 9999, guests: 200 },
-    { name: 'Phera Premium', usd: 599, inr: 17999, guests: 400 },
-    { name: 'Phera Grand', usd: 799, inr: 29999, guests: 999 },
-  ];
-
-  const faqQuestions = [
-    'How does the guest coordination work?',
-    'What information does Phera collect from my guests?',
-    'Do my guests need to download an app?',
-    'What if a guest does not respond on WhatsApp?',
-    'I already have a wedding website — can I still use Phera?',
-    'Can I customize my wedding website myself?',
-    'Do I still need a day-of coordinator?',
-    'Is my guests\' data safe?',
-  ];
-
-  describe('Hero section', () => {
-    it('should have new headline', () => {
-      expect(newHero.headline).toBe('Your Wedding Operations Team');
-    });
-
-    it('should have "Get Started" as primary CTA', () => {
-      expect(newHero.primaryCTA).toBe('Get Started');
-    });
-
-    it('should mention WhatsApp in body', () => {
-      expect(newHero.body).toContain('WhatsApp');
-    });
+describe('Landing page pricing (lib/pricing/tiers.ts)', () => {
+  it('has exactly three couple tiers: free, paid, white_glove', () => {
+    expect(PRICING_TIERS.map((t) => t.id)).toEqual(['free', 'paid', 'white_glove']);
   });
 
-  describe('Features section', () => {
-    it('should have 4 service pillars', () => {
-      expect(servicePillars).toHaveLength(4);
-    });
-
-    it('should have 4 additional features (total 8)', () => {
-      expect(additionalFeatures).toHaveLength(4);
-      expect(servicePillars.length + additionalFeatures.length).toBe(8);
-    });
-
-    it('all features should have titles', () => {
-      [...servicePillars, ...additionalFeatures].forEach((f) => {
-        expect(f.title).toBeDefined();
-        expect(f.title.length).toBeGreaterThan(0);
-      });
-    });
+  it('has a genuinely free tier', () => {
+    const free = PRICING_TIERS.find((t) => t.id === 'free')!;
+    expect(free.price).toBe('$0');
+    expect(free.features.length).toBeGreaterThan(0);
   });
 
-  describe('Pricing section', () => {
-    it('should have NO free tier', () => {
-      expect(pricing.every((p) => p.usd > 0)).toBe(true);
-      expect(pricing.some((p) => p.name.toLowerCase().includes('free'))).toBe(false);
-    });
-
-    it('should have 3 tiers', () => {
-      expect(pricing).toHaveLength(3);
-    });
-
-    it('should have USD and INR pricing', () => {
-      pricing.forEach((p) => {
-        expect(p.usd).toBeGreaterThan(0);
-        expect(p.inr).toBeGreaterThan(0);
-      });
-    });
-
-    it('should have correct tier prices', () => {
-      expect(pricing[0].usd).toBe(349);
-      expect(pricing[1].usd).toBe(599);
-      expect(pricing[2].usd).toBe(799);
-    });
+  it('prices Base at $349 as the highlighted tier', () => {
+    const base = PRICING_TIERS.find((t) => t.id === 'paid')!;
+    expect(base.price).toBe('$349');
+    expect(base.highlight).toBe(true);
   });
 
-  describe('FAQ section', () => {
-    it('should have 8 FAQ questions', () => {
-      expect(faqQuestions).toHaveLength(8);
-    });
+  it('prices White Glove at $599 with an external contact CTA', () => {
+    const wg = PRICING_TIERS.find((t) => t.id === 'white_glove')!;
+    expect(wg.price).toBe('$599');
+    expect(wg.buttonHref).toMatch(/^https?:\/\//);
+  });
 
-    it('should include question about WhatsApp', () => {
-      expect(faqQuestions.some((q) => q.includes('WhatsApp'))).toBe(true);
-    });
+  it('prices the planner tier at $249 per wedding', () => {
+    expect(PLANNER_TIER.price).toBe('$249');
+    expect(PLANNER_TIER.priceSuffix).toBe('/wedding');
+  });
 
-    it('should include question about data safety', () => {
-      expect(faqQuestions.some((q) => q.includes('data safe'))).toBe(true);
-    });
+  it('formats every price as USD', () => {
+    for (const t of [...PRICING_TIERS, PLANNER_TIER]) {
+      expect(t.price).toMatch(/^\$\d+$/);
+    }
+  });
+});
 
-    it('should include question about existing website', () => {
-      expect(faqQuestions.some((q) => q.includes('wedding website'))).toBe(true);
-    });
+describe('Landing page FAQ (lib/landing/faq-content.ts)', () => {
+  it('has questions with answers', () => {
+    expect(FAQ_ITEMS.length).toBeGreaterThanOrEqual(8);
+    for (const f of FAQ_ITEMS) {
+      expect(f.q.trim().length).toBeGreaterThan(0);
+      expect(f.q.trim().endsWith('?')).toBe(true);
+      expect(f.a.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it('covers the non-replying-guest question', () => {
+    expect(FAQ_ITEMS.some((f) => f.q.includes("doesn't reply on WhatsApp"))).toBe(true);
+  });
+
+  it('covers guest data safety', () => {
+    expect(FAQ_ITEMS.some((f) => f.q.includes('data safe'))).toBe(true);
+  });
+
+  it('covers the free tier honestly', () => {
+    const freeFaq = FAQ_ITEMS.find((f) => f.q.includes('free tier'))!;
+    expect(freeFaq.a).toContain('$349');
+  });
+
+  it('does not claim unattended auto-sending — approval is always in the loop', () => {
+    const coordination = FAQ_ITEMS.find((f) => f.q.includes('guest coordination'))!;
+    expect(coordination.a.toLowerCase()).toContain('approve');
   });
 });

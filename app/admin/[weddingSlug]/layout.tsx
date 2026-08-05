@@ -5,6 +5,7 @@ import { ExpandMore } from '@mui/icons-material';
 import OnboardingSidebar, { groups } from '@/components/admin/OnboardingSidebar';
 import AdminTopNav from '@/components/admin/AdminTopNav';
 import AdminPreviewPanel from '@/components/admin/AdminPreviewPanel';
+import AssistantSidebar from '@/components/admin/AssistantSidebar';
 import OptimizedBackground from '@/components/ui/OptimizedBackground';
 import DemoTour from '@/components/demo/DemoTour';
 import KnowledgeBankAutoGenerateGate from '@/components/admin/KnowledgeBankAutoGenerateGate';
@@ -209,6 +210,19 @@ function OnboardingLayoutContent({
   // tightened to a slim gutter there. Desktop is unchanged.
   const isAssistantPage = pathname.endsWith('/assistant') || pathname.endsWith('/assistant/');
 
+  // Docked Planner sidebar: available on every admin page EXCEPT the full
+  // Planner page itself (redundant), the wedding-website group (the preview
+  // panel owns the right column), and vendor-management (which mounts its own
+  // AskPhera FAB in the same corner).
+  const showAssistantSidebar = (() => {
+    if (isAssistantPage) return false;
+    if (pathname.includes('/vendor-management')) return false;
+    const currentGroup = groups.find(group =>
+      group.items.some(item => pathname.endsWith(item.path) || pathname.endsWith(item.path + '/'))
+    );
+    return currentGroup?.id !== 'wedding-website';
+  })();
+
   return (
     <AdminRoleProvider role={adminRole}>
     <AutoSaveProvider>
@@ -397,6 +411,14 @@ function OnboardingLayoutContent({
                 </Box>
               );
             })()}
+
+            {/* Docked Planner chat (desktop) or its floating trigger */}
+            {showAssistantSidebar && (
+              <AssistantSidebar
+                weddingSlug={wedding?.slug || weddingSlug}
+                topOffset={TOP_NAV_HEIGHT}
+              />
+            )}
           </Box>
         </Box>
       </OptimizedBackground>

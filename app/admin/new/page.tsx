@@ -20,6 +20,7 @@ import { ErrorAlert } from '@/components/shared/Alert';
 import { COLORS, FONTS, RADII } from '@/lib/theme/tokens';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import ConfirmChargeModal from '@/components/admin/ConfirmChargeModal';
+import { PLANNER_TIER } from '@/lib/pricing/tiers';
 
 interface BillingInfo {
   isPlanner: boolean;
@@ -380,7 +381,7 @@ function NewWeddingPageInner() {
                   Start a New Wedding
                 </Typography>
                 <Typography variant="body2" sx={{ color: COLORS.text.subtle, fontSize: { xs: '0.95rem', sm: '1.05rem' } }}>
-                  Phera is $249 per wedding for planners. Once you&apos;re in, your Phera planner
+                  Phera is {PLANNER_TIER.price} per wedding for planners. Once you&apos;re in, your Phera planner
                   will get the couple&apos;s details from you in chat.
                 </Typography>
                 {error && <ErrorAlert onClose={() => setError(null)}>{error}</ErrorAlert>}
@@ -396,7 +397,7 @@ function NewWeddingPageInner() {
                   }}
                   sx={{ borderRadius: RADII.lg, py: 1.5, fontSize: '1.1rem', alignSelf: 'center', px: 5 }}
                 >
-                  {firstWeddingFree ? 'Continue (free)' : 'Continue ($249)'}
+                  {firstWeddingFree ? 'Continue (free)' : `Continue (${PLANNER_TIER.price})`}
                 </PrimaryActionButton>
               </Stack>
             </Paper>
@@ -405,7 +406,7 @@ function NewWeddingPageInner() {
 
         <ConfirmChargeModal
           open={confirmOpen}
-          amountLabel="$249"
+          amountLabel={PLANNER_TIER.price}
           cardLast4={billing?.last4 ?? null}
           loading={confirmCharging}
           error={confirmError}

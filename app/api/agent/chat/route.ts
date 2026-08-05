@@ -145,6 +145,7 @@ export async function POST(request: NextRequest) {
           weddingSlug: wedding.slug,
           weddingUuid: wedding.id,
           userId: user.id,
+          userEmail: user.email,
           conversationId: convId as string,
           userMessage: message.trim(),
           provider: anthropicProvider,

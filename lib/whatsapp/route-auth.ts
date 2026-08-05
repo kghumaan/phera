@@ -44,7 +44,7 @@ export async function authorizeWhatsAppRequest(
   if (!hasAccess) {
     return { ok: false, response: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
   }
-  const isPro = await getUserIsPro(supabase, user.id);
+  const isPro = await getUserIsPro(supabase, user.id, user.email);
   if (opts.requirePro && !isPro) {
     return {
       ok: false,

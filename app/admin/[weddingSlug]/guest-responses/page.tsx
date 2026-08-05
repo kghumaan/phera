@@ -55,6 +55,7 @@ import { PageHeading } from '@/components/shared/PageHeading';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import CollectedDataTab from '@/components/admin/rsvp/CollectedDataTab';
+import { useAgentTurnRefresh } from '@/lib/hooks/use-agent-turn-refresh';
 
 interface RSVPData {
   id: string;
@@ -99,6 +100,10 @@ export default function GuestsPage({ params }: { params: Promise<{ weddingSlug: 
   useEffect(() => {
     loadData();
   }, [weddingSlug]);
+
+  // The agent may have recorded RSVPs or guest details from the docked
+  // Planner sidebar — refetch quietly (loadData never re-shows the spinner).
+  useAgentTurnRefresh(() => loadData());
 
   const loadData = async () => {
     try {

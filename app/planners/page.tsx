@@ -10,13 +10,13 @@ import { PLANNER_TIER } from '@/lib/pricing/tiers';
 export const metadata: Metadata = {
   title: { absolute: 'Phera for Wedding Planners' },
   description:
-    'Run every NRI wedding from one account. Pay-per-wedding ($249), no subscription — unlimited clients under one login, with everything in Phera Base for each. Resell to your couples at your own rate.',
+    `Run every NRI wedding from one account. Pay-per-wedding (${PLANNER_TIER.price}), no subscription — unlimited clients under one login, with everything in Phera Base for each. Resell to your couples at your own rate.`,
   alternates: { canonical: '/planners' },
   openGraph: {
     type: 'website',
     title: 'Phera for Wedding Planners',
     description:
-      'Pay-per-wedding ops for planners running multiple NRI weddings. $249/wedding, no subscription. You stay the face; we run the guest logistics.',
+      `Pay-per-wedding ops for planners running multiple NRI weddings. ${PLANNER_TIER.price}${PLANNER_TIER.priceSuffix}, no subscription. You stay the face; we run the guest logistics.`,
     url: '/planners',
   },
 };

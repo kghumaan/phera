@@ -221,6 +221,21 @@ export async function dispatchTool(
     if (!Array.isArray(questions) || questions.length === 0) {
       return { ok: false, content: 'ask_user needs a non-empty "questions" array.' };
     }
+    // Only one question set is ever active per conversation. If the model
+    // (or an abandoned prior turn) left an earlier one pending, supersede it
+    // first — otherwise it can resurface as a stale, unrelated question once
+    // the new one is answered (the client always shows the LATEST pending
+    // ask_user; an older row left "pending" forever comes back).
+    await ctx.supabase
+      .from('agent_actions')
+      .update({
+        status: 'declined',
+        result: { note: 'superseded by a newer question' },
+        resolved_at: new Date().toISOString(),
+      })
+      .eq('conversation_id', ctx.conversationId)
+      .eq('tool_name', 'ask_user')
+      .eq('status', 'pending');
     const { data: pending, error } = await ctx.supabase
       .from('agent_actions')
       .insert({

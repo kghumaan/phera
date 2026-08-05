@@ -16,6 +16,7 @@ import {
   Chip,
   CircularProgress,
   TextField,
+  TableSortLabel,
   Tooltip,
   Checkbox,
   InputAdornment,
@@ -41,11 +42,13 @@ import { supabase } from '@/lib/supabase/client';
 import { weddingService } from '@/lib/supabase/wedding-service';
 import GuestImportWizard from '@/components/admin/guests/GuestImportWizard';
 import { TagPicker } from '@/components/admin/guests/TagPicker';
+import { BulkTagPopover } from '@/components/admin/guests/BulkTagPopover';
 import GuestDetailDrawer, { type GuestDetailRecord } from '@/components/admin/guests/GuestDetailDrawer';
+import { useAgentTurnRefresh } from '@/lib/hooks/use-agent-turn-refresh';
 import GroupGuestsDialog from '@/components/admin/guests/GroupGuestsDialog';
 import { PheraDialog, PheraDialogTitle } from '@/components/shared/Dialog';
 import { PrimaryActionButton, SecondaryActionButton } from '@/components/admin/ActionButton';
-import { COLORS, RADII, SCALES, SHADOWS } from '@/lib/theme/tokens';
+import { COLORS, FONTS, RADII, SCALES, SHADOWS } from '@/lib/theme/tokens';
 import { getTagColor } from '@/lib/utils/tag-color';
 import { Groups } from '@mui/icons-material';
 
@@ -127,6 +130,9 @@ function splitNameForEmphasis(name: string): { first: string; last: string } {
 }
 
 type RsvpStatus = 'attending' | 'not_attending' | 'maybe' | 'no_response';
+
+const IS_MAC =
+  typeof navigator !== 'undefined' && /Mac|iP(hone|ad|od)/.test(navigator.platform);
 
 function getRsvpStatus(g: Pick<Guest, 'rsvps'>): RsvpStatus {
   const rsvps = g.rsvps ?? [];
@@ -628,12 +634,18 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     [detailGuestId, guests],
   );
   const [bulkTagDraft, setBulkTagDraft] = useState<string>('');
-  // Bulk staging: user can queue multiple tags via the picker before hitting
-  // "Add tags" — mirrors the per-row tag UX (pills + add button) so the two
-  // modes feel identical.
+  // Bulk staging lives behind the toolbar's single "Edit Tags" popover (per
+  // Figma): additions AND removals are staged there, then applied in one write
+  // so the whole change lands as one undo entry.
   const [stagedTags, setStagedTags] = useState<string[]>([]);
-  const [stagedPickerOpen, setStagedPickerOpen] = useState(false);
-  const stagedAddBtnRef = useRef<HTMLButtonElement | null>(null);
+  const [stagedRemovals, setStagedRemovals] = useState<string[]>([]);
+  const [bulkPopoverOpen, setBulkPopoverOpen] = useState(false);
+  const editTagsBtnRef = useRef<HTMLButtonElement | null>(null);
+
+  // Column sorting. null = insertion order (created_at desc from the query).
+  type SortKey = 'name' | 'status' | 'tags';
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   // ─── Undo stack ──────────────────────────────────────────────
   // Every tag-mutating action captures `logistics_data` snapshots of the
@@ -676,8 +688,10 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
 
   // ─── Load ────────────────────────────────────────────────────
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    // Silent refetches (agent-sidebar sync) skip the spinner so the table
+    // doesn't flash away under the user mid-scroll.
+    if (!opts?.silent) setLoading(true);
     const wedding = await weddingService.getWeddingBySlug(weddingSlug);
     if (wedding) setWeddingId(wedding.id);
 
@@ -706,6 +720,10 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     load();
   }, [load]);
 
+  // The agent may have added/edited/tagged guests from the docked Planner
+  // sidebar — refetch quietly to stay in sync.
+  useAgentTurnRefresh(() => load({ silent: true }));
+
   // ─── Derived: unique tags across this wedding ──────────────
 
   const existingTags = useMemo(() => {
@@ -729,6 +747,53 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
       return false;
     });
   }, [guests, search]);
+
+  // Column sort applied on top of the search filter. Untagged guests always
+  // sort last on the Tags column regardless of direction — a blank cell above
+  // tagged rows never reads as intentional.
+  const STATUS_RANK: Record<RsvpStatus, number> = useMemo(
+    () => ({ attending: 0, maybe: 1, not_attending: 2, no_response: 3 }),
+    [],
+  );
+  const sortedGuests = useMemo(() => {
+    if (!sortKey) return filteredGuests;
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...filteredGuests].sort((a, b) => {
+      if (sortKey === 'name') return dir * a.name.localeCompare(b.name);
+      if (sortKey === 'status') {
+        return dir * (STATUS_RANK[getRsvpStatus(a)] - STATUS_RANK[getRsvpStatus(b)]);
+      }
+      const ta = getTags(a);
+      const tb = getTags(b);
+      if (ta.length === 0 && tb.length === 0) return 0;
+      if (ta.length === 0) return 1;
+      if (tb.length === 0) return -1;
+      return dir * ta.join(', ').toLowerCase().localeCompare(tb.join(', ').toLowerCase());
+    });
+  }, [filteredGuests, sortKey, sortDir, STATUS_RANK]);
+
+  // Same column cycles asc → desc → off; a new column starts at asc.
+  const handleSort = useCallback((key: SortKey) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDir('asc');
+    } else if (sortDir === 'asc') {
+      setSortDir('desc');
+    } else {
+      setSortKey(null);
+      setSortDir('asc');
+    }
+  }, [sortKey, sortDir]);
+
+  // Tags carried by at least one selected guest — the ✓ pills in the bulk popover.
+  const selectionUnionTags = useMemo(() => {
+    const set = new Set<string>();
+    for (const g of guests) {
+      if (!selectedIds.has(g.id)) continue;
+      for (const t of getTags(g)) set.add(t);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [guests, selectedIds]);
 
   // ─── Cell editing ────────────────────────────────────────────
   // All handlers are wrapped in useCallback with empty deps + read latest state
@@ -807,34 +872,50 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     setUndoing(false);
   }, [undoStack]);
 
-  const appendTagsToIds = useCallback(async (ids: string[], tagsToAdd: string[]) => {
-    const filtered = tagsToAdd.map((t) => t.trim()).filter(Boolean);
-    if (ids.length === 0 || filtered.length === 0) return;
+  const applyTagEdits = useCallback(async (ids: string[], tagsToAdd: string[], tagsToRemove: string[] = []) => {
+    const adds = tagsToAdd.map((t) => t.trim()).filter(Boolean);
+    const removals = tagsToRemove.map((t) => t.trim()).filter(Boolean);
+    if (ids.length === 0 || (adds.length === 0 && removals.length === 0)) return;
 
-    // Capture BEFORE mutating so the undo snapshot has the true pre-action state.
-    const snapshots = captureSnapshots(ids);
-
+    // Compute the next logistics_data OUTSIDE the setState updater. React 18
+    // runs updaters at flush time, AFTER this function's synchronous code —
+    // populating a map inside the updater and reading it here left the map
+    // empty, so DB writes silently no-oped while the UI showed the new tags.
+    const idSet = new Set(ids);
     const prevById = new Map<string, Guest['logistics_data']>();
     const nextById = new Map<string, Record<string, unknown>>();
+    for (const g of guestsRef.current) {
+      if (!idSet.has(g.id)) continue;
+      const current = getTags(g);
+      const merged = Array.from(
+        new Set([...current.filter((t) => !removals.includes(t)), ...adds]),
+      );
+      if (merged.length === current.length && merged.every((t, i) => t === current[i])) {
+        continue; // no-op row — skip the write and the undo entry
+      }
+      prevById.set(g.id, g.logistics_data);
+      nextById.set(g.id, buildLogisticsWithTags(g.logistics_data, merged));
+    }
+    if (nextById.size === 0) return;
+
+    // Capture BEFORE mutating so the undo snapshot has the true pre-action state.
+    const changedSnapshots = captureSnapshots(Array.from(nextById.keys()));
 
     setGuests((prev) =>
-      prev.map((g) => {
-        if (!ids.includes(g.id)) return g;
-        prevById.set(g.id, g.logistics_data);
-        const current = getTags(g);
-        const merged = Array.from(new Set([...current, ...filtered]));
-        const nextLogistics = buildLogisticsWithTags(g.logistics_data, merged);
-        nextById.set(g.id, nextLogistics);
-        return { ...g, logistics_data: nextLogistics as Guest['logistics_data'] };
-      }),
+      prev.map((g) =>
+        nextById.has(g.id)
+          ? { ...g, logistics_data: nextById.get(g.id) as Guest['logistics_data'] }
+          : g,
+      ),
     );
 
-    // Filter: only guests that actually changed (skip ones where every tag was
-    // already present — no-op doesn't belong in undo history).
-    const changedSnapshots = snapshots.filter((s) => nextById.has(s.id));
-    const label = filtered.length === 1
-      ? `Added "${filtered[0]}" to ${changedSnapshots.length} guest${changedSnapshots.length === 1 ? '' : 's'}`
-      : `Added ${filtered.length} tags to ${changedSnapshots.length} guest${changedSnapshots.length === 1 ? '' : 's'}`;
+    const n = changedSnapshots.length;
+    const label =
+      removals.length > 0
+        ? `Updated tags on ${n} guest${n === 1 ? '' : 's'}`
+        : adds.length === 1
+          ? `Added "${adds[0]}" to ${n} guest${n === 1 ? '' : 's'}`
+          : `Added ${adds.length} tags to ${n} guest${n === 1 ? '' : 's'}`;
     pushUndo(label, changedSnapshots);
 
     const results = await Promise.all(
@@ -861,25 +942,33 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     }
   }, [captureSnapshots, pushUndo]);
 
+  // Add-only path used by row edit, drag-chip, and the fill handle.
+  const appendTagsToIds = useCallback(async (ids: string[], tagsToAdd: string[]) => {
+    await applyTagEdits(ids, tagsToAdd, []);
+  }, [applyTagEdits]);
+
   const clearTagsForIds = useCallback(async (ids: string[]) => {
     if (ids.length === 0) return;
-    // Only snapshot guests that actually had tags — clearing an already-empty
-    // guest is a no-op and shouldn't pollute undo history.
-    const snapshots = captureSnapshots(ids).filter(
-      (s) => getTags({ logistics_data: s.logistics_data }).length > 0,
-    );
-
+    // Next values computed outside the updater (see applyTagEdits). Only
+    // guests that actually had tags get a write or an undo snapshot.
+    const idSet = new Set(ids);
     const prevById = new Map<string, Guest['logistics_data']>();
     const nextById = new Map<string, Record<string, unknown>>();
+    for (const g of guestsRef.current) {
+      if (!idSet.has(g.id) || getTags(g).length === 0) continue;
+      prevById.set(g.id, g.logistics_data);
+      nextById.set(g.id, buildLogisticsWithTags(g.logistics_data, []));
+    }
+    if (nextById.size === 0) return;
+
+    const snapshots = captureSnapshots(Array.from(nextById.keys()));
 
     setGuests((prev) =>
-      prev.map((g) => {
-        if (!ids.includes(g.id)) return g;
-        prevById.set(g.id, g.logistics_data);
-        const nextLogistics = buildLogisticsWithTags(g.logistics_data, []);
-        nextById.set(g.id, nextLogistics);
-        return { ...g, logistics_data: nextLogistics as Guest['logistics_data'] };
-      }),
+      prev.map((g) =>
+        nextById.has(g.id)
+          ? { ...g, logistics_data: nextById.get(g.id) as Guest['logistics_data'] }
+          : g,
+      ),
     );
 
     pushUndo(
@@ -916,21 +1005,19 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
   }, [appendTagsToIds]);
 
   const removeTagFromGuest = useCallback(async (id: string, tag: string) => {
-    const snapshots = captureSnapshots([id]);
-    let prev: Guest['logistics_data'] | undefined;
-    let next: Record<string, unknown> | undefined;
+    // Next value computed outside the updater (see applyTagEdits).
+    const guest = guestsRef.current.find((g) => g.id === id);
+    if (!guest) return;
+    const remaining = getTags(guest).filter((t) => t !== tag);
+    if (remaining.length === getTags(guest).length) return;
+    const prev = guest.logistics_data;
+    const next = buildLogisticsWithTags(prev, remaining);
 
+    const snapshots = captureSnapshots([id]);
     setGuests((list) =>
-      list.map((g) => {
-        if (g.id !== id) return g;
-        prev = g.logistics_data;
-        const remaining = getTags(g).filter((t) => t !== tag);
-        next = buildLogisticsWithTags(g.logistics_data, remaining);
-        return { ...g, logistics_data: next as Guest['logistics_data'] };
-      }),
+      list.map((g) => (g.id === id ? { ...g, logistics_data: next as Guest['logistics_data'] } : g)),
     );
 
-    if (!next) return;
     pushUndo(`Removed "${tag}"`, snapshots);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- guests.update() shape isn't in generated types
     const { error } = await (supabase as any)
@@ -1092,31 +1179,41 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     else setSelectedIds(new Set(guests.map((g) => g.id)));
   };
 
-  const clearSelection = () => {
-    setSelectedIds(new Set());
+  const resetBulkStaging = () => {
     setBulkTagDraft('');
     setStagedTags([]);
-    setStagedPickerOpen(false);
+    setStagedRemovals([]);
+    setBulkPopoverOpen(false);
   };
 
-  const stageTag = (tag: string) => {
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    resetBulkStaging();
+  };
+
+  // One toggle drives every pill in the popover: a staged addition unstages,
+  // a tag on the selection toggles in/out of the removal set, anything else
+  // stages as an addition.
+  const toggleBulkTag = (tag: string) => {
     const t = tag.trim();
     if (!t) return;
-    setStagedTags((prev) => (prev.includes(t) ? prev : [...prev, t]));
-  };
-
-  const unstageTag = (tag: string) => {
-    setStagedTags((prev) => prev.filter((t) => t !== tag));
+    if (stagedTags.includes(t)) {
+      setStagedTags((prev) => prev.filter((x) => x !== t));
+    } else if (selectionUnionTags.includes(t)) {
+      setStagedRemovals((prev) =>
+        prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
+      );
+    } else {
+      setStagedTags((prev) => [...prev, t]);
+    }
   };
 
   const applyStagedBulkTags = async () => {
-    if (selectedIds.size === 0 || stagedTags.length === 0) return;
+    if (selectedIds.size === 0 || (stagedTags.length === 0 && stagedRemovals.length === 0)) return;
     setBulkApplying(true);
-    await appendTagsToIds(Array.from(selectedIds), stagedTags);
+    await applyTagEdits(Array.from(selectedIds), stagedTags, stagedRemovals);
     setBulkApplying(false);
-    setStagedTags([]);
-    setBulkTagDraft('');
-    setStagedPickerOpen(false);
+    resetBulkStaging();
     setSelectedIds(new Set());
   };
 
@@ -1125,11 +1222,24 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
     setBulkApplying(true);
     await clearTagsForIds(Array.from(selectedIds));
     setBulkApplying(false);
-    setBulkTagDraft('');
-    setStagedTags([]);
-    setStagedPickerOpen(false);
+    resetBulkStaging();
     setSelectedIds(new Set());
   };
+
+  // Cmd/Ctrl+Z undoes the last tag action (matches the floating Undo pill).
+  // Skipped while typing so text-field undo keeps native behavior.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z' || e.shiftKey) return;
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
+      if (undoStack.length === 0 || undoing) return;
+      e.preventDefault();
+      void undoLast();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [undoStack.length, undoing, undoLast]);
 
   // ─── Drag-chip row → row ─────────────────────────────────────
 
@@ -1280,9 +1390,13 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
           borderRadius: RADII.xl,
           border: `1px solid ${SCALES.black[50]}`,
           bgcolor: COLORS.bg.white,
-          overflow: 'hidden',
+          // 'clip' (not 'hidden') keeps the rounded-corner clipping without
+          // creating a scroll container — required for the sticky toolbar.
+          overflow: 'clip',
         }}
       >
+        {/* Toolbar — sticky just below the fixed top nav so the bulk actions
+            (Group together, delete, Edit Tags) stay reachable while scrolling. */}
         <Box
           sx={{
             display: 'flex',
@@ -1292,6 +1406,10 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
             py: 1.5,
             borderBottom: `1px solid ${COLORS.border.faint}`,
             minHeight: 56,
+            position: 'sticky',
+            top: { xs: '48px', md: '56px' },
+            zIndex: 5,
+            bgcolor: COLORS.bg.white,
           }}
         >
           <People sx={{ fontSize: 20, color: COLORS.text.strong }} />
@@ -1307,11 +1425,120 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
             size="small"
             sx={{ fontSize: '0.875rem', fontWeight: 600, bgcolor: SCALES.black[50], color: COLORS.text.muted }}
           />
-          {existingTags.length > 0 && (
-            <Typography variant="body2" sx={{ color: COLORS.text.faint, ml: 1 }}>
-              · {existingTags.length} tag{existingTags.length === 1 ? '' : 's'} in use
-            </Typography>
+
+          {/* Selection cluster — count, Group together, delete, clear (per Figma). */}
+          <AnimatePresence initial={false}>
+            {selectedIds.size > 0 && (
+              <motion.div
+                key="selection-cluster"
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8, flexShrink: 0 }}
+              >
+                <Typography variant="body2" sx={{ color: COLORS.text.strong, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  {selectedIds.size} selected
+                </Typography>
+                {selectedIds.size >= 2 && (
+                  <PrimaryActionButton
+                    onClick={() => setGroupDialogOpen(true)}
+                    disabled={bulkApplying}
+                    startIcon={<Groups sx={{ fontSize: 18 }} />}
+                    sx={{ height: 33, px: 2, py: 0, borderRadius: RADII.pill }}
+                  >
+                    Group together
+                  </PrimaryActionButton>
+                )}
+                <Tooltip title={`Delete ${selectedIds.size} guest${selectedIds.size === 1 ? '' : 's'}`}>
+                  <IconButton
+                    size="small"
+                    onClick={() => requestDeleteGuests(Array.from(selectedIds))}
+                    disabled={bulkApplying}
+                    sx={{
+                      width: 33,
+                      height: 33,
+                      borderRadius: RADII.md,
+                      color: SCALES.raniPink[600],
+                      bgcolor: SCALES.raniPink[100],
+                      '&:hover': { bgcolor: SCALES.raniPink[200] },
+                    }}
+                  >
+                    <Delete sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Clear selection">
+                  <IconButton
+                    size="small"
+                    onClick={clearSelection}
+                    disabled={bulkApplying}
+                    sx={{ width: 33, height: 33 }}
+                  >
+                    <Close sx={{ fontSize: 18, color: COLORS.text.muted }} />
+                  </IconButton>
+                </Tooltip>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <Box sx={{ flex: 1 }} />
+
+          {/* Edit Tags — the single entry point for bulk tag editing. Count =
+              tags in use across the wedding (matches Figma). */}
+          {guests.length > 0 && (
+            <Button
+              ref={editTagsBtnRef}
+              onClick={(e) => {
+                e.stopPropagation();
+                setBulkPopoverOpen((o) => !o);
+              }}
+              disabled={bulkApplying}
+              startIcon={<Add sx={{ fontSize: 16 }} />}
+              sx={{
+                height: 36,
+                px: 1.75,
+                py: 0,
+                flexShrink: 0,
+                textTransform: 'none',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                borderRadius: RADII.pill,
+                border: `1px dashed ${
+                  selectedIds.size > 0 || bulkPopoverOpen ? COLORS.brand.primary : COLORS.border.default
+                }`,
+                color: selectedIds.size > 0 || bulkPopoverOpen ? COLORS.brand.primary : COLORS.text.strong,
+                ...(bulkPopoverOpen && { borderStyle: 'solid', bgcolor: COLORS.brand.primarySubtle }),
+                '&:hover': {
+                  borderColor: COLORS.brand.primary,
+                  color: COLORS.brand.primary,
+                  borderStyle: 'solid',
+                  bgcolor: COLORS.brand.primarySubtle,
+                },
+                '& .MuiButton-startIcon': { mr: 0.5 },
+              }}
+            >
+              Edit Tags{existingTags.length > 0 ? ` (${existingTags.length})` : ''}
+            </Button>
           )}
+          <BulkTagPopover
+            open={bulkPopoverOpen}
+            anchorEl={editTagsBtnRef.current}
+            selectedCount={selectedIds.size}
+            unionTags={selectionUnionTags}
+            stagedAdds={stagedTags}
+            stagedRemovals={stagedRemovals}
+            existingTags={existingTags}
+            draft={bulkTagDraft}
+            onSetDraft={setBulkTagDraft}
+            onToggleTag={toggleBulkTag}
+            onApply={applyStagedBulkTags}
+            onClearAll={clearBulkTags}
+            onClose={() => {
+              setBulkPopoverOpen(false);
+              setBulkTagDraft('');
+            }}
+            applying={bulkApplying}
+          />
 
           {guests.length > 0 && (
             <TextField
@@ -1363,211 +1590,6 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
             />
           )}
 
-          {/* Selection count sits next to the search box so it's anchored
-              to the input rather than buried in the right-side bulk bar. */}
-          <AnimatePresence initial={false}>
-            {selectedIds.size > 0 && (
-              <motion.div
-                key="selected-count"
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -8 }}
-                transition={{ duration: 0.18, ease: 'easeOut' }}
-                style={{ display: 'flex', alignItems: 'center', marginLeft: 8, flexShrink: 0 }}
-              >
-                <Box
-                  sx={{
-                    height: 32,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    px: 1.25,
-                    borderRadius: RADII.pill,
-                    bgcolor: SCALES.raniPink[100],
-                    color: SCALES.raniPink[700],
-                    fontWeight: 700,
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  {selectedIds.size} selected
-                </Box>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Right-aligned bulk-tag controls. Inline in the header rather than
-              a floating pill so it's obvious the controls act on the table below.
-              The undo button sits BEFORE the bulk bar so it coexists cleanly
-              with a selection — undo reverts the prior action regardless of
-              what's currently selected. */}
-          <Box sx={{ flex: 1 }} />
-          <AnimatePresence initial={false}>
-            {undoStack.length > 0 && (
-              <motion.div
-                key="undo-btn"
-                initial={{ opacity: 0, x: 12 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 12 }}
-                transition={{ duration: 0.18, ease: 'easeOut' }}
-                style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
-              >
-                <Tooltip title={`Undo: ${undoStack[undoStack.length - 1]?.label ?? ''}`}>
-                  <span>
-                    <SecondaryActionButton
-                      onClick={undoLast}
-                      disabled={undoing}
-                      startIcon={<Undo sx={{ fontSize: 18 }} />}
-                      sx={{ height: 32, px: 1.5, py: 0, mr: selectedIds.size > 0 ? 1 : 0 }}
-                    >
-                      {undoing ? 'Undoing…' : 'Undo'}
-                    </SecondaryActionButton>
-                  </span>
-                </Tooltip>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <AnimatePresence initial={false}>
-            {selectedIds.size > 0 && (
-              <motion.div
-                key="bulk-inline"
-                initial={{ opacity: 0, x: 16 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 16 }}
-                transition={{ duration: 0.18, ease: 'easeOut' }}
-                // Uniform 32px height on every child — button, chip, badge, + —
-                // so the bar reads as a single horizontal control strip instead
-                // of a collection of differently-sized pieces.
-                style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}
-              >
-                {/* Staged-tag pills — matches the per-row tag UX exactly. */}
-                {stagedTags.map((t) => {
-                  const c = getTagColor(t);
-                  return (
-                    <Chip
-                      key={t}
-                      label={t}
-                      size="small"
-                      onDelete={() => unstageTag(t)}
-                      deleteIcon={<Close sx={{ fontSize: 14 }} />}
-                      sx={{
-                        height: 32,
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        bgcolor: c.bg,
-                        color: c.fg,
-                        borderRadius: RADII.pill,
-                        px: 0.5,
-                        '& .MuiChip-deleteIcon': {
-                          color: c.fg,
-                          opacity: 0.6,
-                          '&:hover': { opacity: 1, color: c.fg },
-                        },
-                      }}
-                    />
-                  );
-                })}
-
-                <Button
-                  ref={stagedAddBtnRef}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setStagedPickerOpen((o) => !o);
-                  }}
-                  disabled={bulkApplying}
-                  endIcon={<Add sx={{ fontSize: 16 }} />}
-                  sx={{
-                    height: 32,
-                    px: 1.5,
-                    py: 0,
-                    textTransform: 'none',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    borderRadius: RADII.pill,
-                    border: `1px dashed ${stagedPickerOpen ? COLORS.brand.primary : COLORS.border.default}`,
-                    color: stagedPickerOpen ? COLORS.brand.primary : COLORS.text.muted,
-                    ...(stagedPickerOpen && { borderStyle: 'solid', bgcolor: COLORS.brand.primarySubtle }),
-                    '&:hover': {
-                      borderColor: COLORS.brand.primary,
-                      color: COLORS.brand.primary,
-                      borderStyle: 'solid',
-                      bgcolor: COLORS.brand.primarySubtle,
-                    },
-                    '& .MuiButton-endIcon': { ml: 0.5 },
-                  }}
-                >
-                  {stagedTags.length ? 'Add another' : 'Add tag'}
-                </Button>
-                <TagPicker
-                  open={stagedPickerOpen}
-                  anchorEl={stagedAddBtnRef.current}
-                  draft={bulkTagDraft}
-                  onSetDraft={setBulkTagDraft}
-                  existingTags={existingTags}
-                  currentTags={stagedTags}
-                  onAdd={(t) => stageTag(t)}
-                  onClose={() => {
-                    setStagedPickerOpen(false);
-                    setBulkTagDraft('');
-                  }}
-                />
-
-                <PrimaryActionButton
-                  onClick={applyStagedBulkTags}
-                  disabled={bulkApplying || stagedTags.length === 0}
-                  sx={{ height: 32, px: 2, py: 0 }}
-                >
-                  {bulkApplying
-                    ? 'Applying…'
-                    : stagedTags.length > 1
-                      ? `Add ${stagedTags.length} tags`
-                      : 'Add tag'}
-                </PrimaryActionButton>
-                <SecondaryActionButton
-                  onClick={clearBulkTags}
-                  disabled={bulkApplying}
-                  sx={{ height: 32, px: 1.5, py: 0 }}
-                >
-                  Clear tags
-                </SecondaryActionButton>
-                {selectedIds.size >= 2 && (
-                  <SecondaryActionButton
-                    onClick={() => setGroupDialogOpen(true)}
-                    disabled={bulkApplying}
-                    startIcon={<Groups sx={{ fontSize: 18 }} />}
-                    sx={{ height: 32, px: 1.5, py: 0 }}
-                  >
-                    Group together
-                  </SecondaryActionButton>
-                )}
-                <Tooltip title={`Delete ${selectedIds.size} guest${selectedIds.size === 1 ? '' : 's'}`}>
-                  <IconButton
-                    size="small"
-                    onClick={() => requestDeleteGuests(Array.from(selectedIds))}
-                    disabled={bulkApplying}
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: RADII.sm,
-                      color: SCALES.raniPink[600],
-                      bgcolor: SCALES.raniPink[100],
-                      '&:hover': { bgcolor: SCALES.raniPink[200] },
-                    }}
-                  >
-                    <Delete sx={{ fontSize: 18 }} />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Clear selection">
-                  <IconButton
-                    size="small"
-                    onClick={clearSelection}
-                    disabled={bulkApplying}
-                    sx={{ width: 32, height: 32 }}
-                  >
-                    <Close sx={{ fontSize: 18, color: COLORS.text.muted }} />
-                  </IconButton>
-                </Tooltip>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </Box>
 
         {loading ? (
@@ -1598,8 +1620,18 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
             onDragEnd={handleDragEnd}
             onDragCancel={() => setDraggedTag(null)}
           >
-          <TableContainer sx={{ overflowX: 'auto', maxWidth: '100%' }}>
-            <Table size="small" sx={{ tableLayout: 'fixed', minWidth: 1120 }}>
+          {/* maxHeight turns the container into the vertical scroll region on
+              md+ so stickyHeader keeps the column headers pinned while rows
+              scroll. On xs the page itself scrolls (better on phones) and the
+              sticky toolbar above still keeps the actions visible. */}
+          <TableContainer
+            sx={{
+              overflowX: 'auto',
+              maxWidth: '100%',
+              maxHeight: { md: 'calc(100vh - 340px)' },
+            }}
+          >
+            <Table stickyHeader size="small" sx={{ tableLayout: 'fixed', minWidth: 1120 }}>
               <TableHead>
                 <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
                   <TableCell sx={{ ...headerCell, width: 48, pr: 0 }} padding="checkbox">
@@ -1614,12 +1646,39 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                       }}
                     />
                   </TableCell>
-                  <TableCell sx={{ ...headerCell, width: 240 }}>Guest</TableCell>
+                  <TableCell sx={{ ...headerCell, width: 240 }} sortDirection={sortKey === 'name' ? sortDir : false}>
+                    <TableSortLabel
+                      active={sortKey === 'name'}
+                      direction={sortKey === 'name' ? sortDir : 'asc'}
+                      onClick={() => handleSort('name')}
+                      sx={sortLabelSx}
+                    >
+                      Guest
+                    </TableSortLabel>
+                  </TableCell>
                   <TableCell sx={{ ...headerCell, width: 72 }} align="left">No.</TableCell>
                   <TableCell sx={{ ...headerCell, width: 260 }}>Email & phone</TableCell>
-                  <TableCell sx={{ ...headerCell, width: 160 }}>Status</TableCell>
-                  <TableCell sx={{ ...headerCell, width: 280, minWidth: 280 }}>Tags</TableCell>
-                  <TableCell sx={{ width: 60 }} />
+                  <TableCell sx={{ ...headerCell, width: 160 }} sortDirection={sortKey === 'status' ? sortDir : false}>
+                    <TableSortLabel
+                      active={sortKey === 'status'}
+                      direction={sortKey === 'status' ? sortDir : 'asc'}
+                      onClick={() => handleSort('status')}
+                      sx={sortLabelSx}
+                    >
+                      Status
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell sx={{ ...headerCell, width: 280, minWidth: 280 }} sortDirection={sortKey === 'tags' ? sortDir : false}>
+                    <TableSortLabel
+                      active={sortKey === 'tags'}
+                      direction={sortKey === 'tags' ? sortDir : 'asc'}
+                      onClick={() => handleSort('tags')}
+                      sx={sortLabelSx}
+                    >
+                      Tags
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell sx={{ ...headerCell, width: 60 }} />
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -1632,7 +1691,7 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
                     </TableCell>
                   </TableRow>
                 ) : null}
-                {filteredGuests.map((g) => {
+                {sortedGuests.map((g) => {
                   const isSelected = selectedIds.has(g.id);
                   const fillHighlight = fillHovered.has(g.id);
                   // Narrow editing to this row only so memoized rows not being
@@ -1688,13 +1747,66 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
         )}
       </Paper>
 
+      {/* Floating undo pill (per Figma) — sticks above the scrollport bottom
+          so the escape hatch is visible right after any tag change. */}
+      <AnimatePresence initial={false}>
+        {undoStack.length > 0 && (
+          <motion.div
+            key="undo-pill"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            style={{
+              position: 'sticky',
+              bottom: 16,
+              zIndex: 10,
+              display: 'flex',
+              justifyContent: 'flex-end',
+              pointerEvents: 'none',
+              marginTop: 12,
+            }}
+          >
+            <Tooltip title={undoStack[undoStack.length - 1]?.label ?? ''}>
+              <Box
+                component="button"
+                onClick={undoLast}
+                disabled={undoing}
+                sx={{
+                  pointerEvents: 'auto',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 2.5,
+                  py: 1.25,
+                  border: 'none',
+                  borderRadius: RADII.pill,
+                  bgcolor: SCALES.plum[900],
+                  color: COLORS.bg.white,
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  fontFamily: FONTS.body,
+                  cursor: 'pointer',
+                  boxShadow: SHADOWS.popover,
+                  '&:hover': { bgcolor: SCALES.plum[800] },
+                  '&:disabled': { opacity: 0.7, cursor: 'default' },
+                }}
+              >
+                <Undo sx={{ fontSize: 18 }} />
+                {undoing ? 'Undoing…' : `Undo (${IS_MAC ? '⌘' : 'Ctrl+'}Z)`}
+              </Box>
+            </Tooltip>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {weddingId && (
         <GuestImportWizard
           open={importOpen}
           onClose={() => setImportOpen(false)}
           weddingId={weddingId}
           weddingSlug={weddingSlug}
-          onImportComplete={load}
+          onImportComplete={() => void load()}
           initialTab={importTab}
           existingTags={existingTags}
         />
@@ -1783,6 +1895,10 @@ export default function GuestListPage({ params }: { params: Promise<{ weddingSlu
 }
 
 const headerCell = { fontWeight: 600, fontSize: '0.875rem', color: COLORS.text.strong, bgcolor: COLORS.bg.muted, py: 1.25 } as const;
+const sortLabelSx = {
+  color: 'inherit !important',
+  '& .MuiTableSortLabel-icon': { fontSize: 16, color: `${COLORS.brand.primary} !important` },
+} as const;
 const bodyCell = { fontSize: '0.875rem', color: COLORS.text.muted } as const;
 const selectSx = {
   '& .MuiOutlinedInput-root': {
