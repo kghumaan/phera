@@ -76,6 +76,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Payment not completed' }, { status: 400 });
   }
 
+  // Record what Stripe actually charged, not the expected constant — the
+  // Payment Link's price lives in the Stripe Dashboard and can drift from
+  // PLANNER_PER_WEDDING_AMOUNT_CENTS without a code change catching it.
+  const chargedAmount = session.amount_total ?? PLANNER_PER_WEDDING_AMOUNT_CENTS;
+  const chargedCurrency = (session.currency ?? PLANNER_PER_WEDDING_CURRENCY).toLowerCase();
+  if (chargedAmount !== PLANNER_PER_WEDDING_AMOUNT_CENTS || chargedCurrency !== PLANNER_PER_WEDDING_CURRENCY) {
+    console.error(
+      `[finalize-planner-wedding] Stripe Payment Link charged ${chargedAmount} ${chargedCurrency}, expected ${PLANNER_PER_WEDDING_AMOUNT_CENTS} ${PLANNER_PER_WEDDING_CURRENCY} (sessionId=${sessionId}). Check the Payment Link price in the Stripe Dashboard.`,
+    );
+  }
+
   // coupleName is optional: when absent we create a nameless draft — the agent
   // asks for the couple's name as onboarding step 1 in the Planner chat.
   const coupleName = coupleNameFromBody || (session.metadata?.coupleName ?? '').trim();
@@ -135,8 +146,8 @@ export async function POST(request: NextRequest) {
     wedding_slug: slug,
     stripe_payment_intent_id: paymentIntentId,
     stripe_checkout_session_id: sessionId,
-    amount: PLANNER_PER_WEDDING_AMOUNT_CENTS,
-    currency: PLANNER_PER_WEDDING_CURRENCY,
+    amount: chargedAmount,
+    currency: chargedCurrency,
     status: 'succeeded',
     tier: 'planner_perwedding',
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
