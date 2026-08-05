@@ -184,7 +184,7 @@ export default function WebsiteTemplateGallery({
                   }}
                 >
                   {/* Framed sample photo */}
-                  <Box sx={{ position: 'relative', width: '56%', aspectRatio: '1 / 1' }}>
+                  <Box sx={{ position: 'relative', width: '70%', aspectRatio: '1 / 1' }}>
                     <Box
                       component="img"
                       src={samplePhoto}
@@ -211,13 +211,31 @@ export default function WebsiteTemplateGallery({
                     />
                   </Box>
 
-                  {/* Names + date + location — the real hero text */}
-                  <Stack spacing={0.2} alignItems="center" sx={{ width: '100%', minWidth: 0 }}>
+                  {/* Date + names + location — mirrors the live site's hero:
+                      small caps date, dominant serif names, underlined venue. */}
+                  <Stack spacing={0.3} alignItems="center" sx={{ width: '100%', minWidth: 0 }}>
+                    <Typography
+                      sx={{
+                        '&&': { fontSize: 'clamp(0.42rem, 2vw, 0.62rem)' },
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        lineHeight: 1.2,
+                        color: COLORS.text.strong,
+                        textAlign: 'center',
+                        maxWidth: '100%',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {dateLine}
+                    </Typography>
                     <Typography
                       sx={{
                         fontFamily: font.cssVar,
                         fontStyle: font.fontStyle || 'normal',
-                        fontSize: 'clamp(0.85rem, 3.9vw, 1.2rem)',
+                        '&&': { fontSize: 'clamp(1rem, 4.6vw, 1.5rem)' },
                         lineHeight: 1.1,
                         color: COLORS.text.strong,
                         textAlign: 'center',
@@ -232,23 +250,11 @@ export default function WebsiteTemplateGallery({
                     </Typography>
                     <Typography
                       sx={{
-                        fontSize: 'clamp(0.4rem, 2vw, 0.66rem)',
+                        '&&': { fontSize: 'clamp(0.42rem, 2vw, 0.62rem)' },
                         lineHeight: 1.2,
                         color: COLORS.text.strong,
-                        textAlign: 'center',
-                        maxWidth: '100%',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {dateLine}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: 'clamp(0.4rem, 2vw, 0.66rem)',
-                        lineHeight: 1.2,
-                        color: COLORS.text.subtle,
+                        textDecoration: 'underline',
+                        textUnderlineOffset: '2px',
                         textAlign: 'center',
                         maxWidth: '100%',
                         whiteSpace: 'nowrap',
@@ -272,7 +278,7 @@ export default function WebsiteTemplateGallery({
                   >
                     <Typography
                       sx={{
-                        fontSize: 'clamp(0.4rem, 1.9vw, 0.64rem)',
+                        '&&': { fontSize: 'clamp(0.4rem, 1.9vw, 0.64rem)' },
                         fontWeight: 700,
                         letterSpacing: '0.3px',
                         lineHeight: 1,

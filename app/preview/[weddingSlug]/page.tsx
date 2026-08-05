@@ -920,9 +920,105 @@ function PreviewContent() {
 
 
         {/* Mobile/Tablet Layout (xs to md) */}
-        <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
+        <Box sx={{ display: { xs: 'block', lg: 'none' }, position: 'relative' }}>
+          {/* Mock mobile header — mirrors the published site's AppHeader
+              (logo left, auth cluster right) so the preview matches what
+              guests actually see. Real AppHeader needs AuthContext, so the
+              preview fakes it like the desktop branches above. */}
+          <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 3 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                px: 2,
+                pt: 2,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 100,
+                  height: 40,
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <Image
+                  src="/logo.svg"
+                  alt="Phera Logo"
+                  fill
+                  priority
+                  style={{ objectFit: 'contain', filter: 'brightness(0)' }}
+                />
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {previewView === 'rsvp_submitted' ? (
+                  <>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        bgcolor: COLORS.text.strong,
+                        color: COLORS.text.inverse,
+                        borderRadius: '20px',
+                        px: 2.5,
+                        py: 0.5,
+                        fontSize: '0.875rem',
+                        fontWeight: 400,
+                        textTransform: 'none',
+                        minHeight: 32,
+                        '&:hover': { bgcolor: COLORS.text.strong },
+                      }}
+                    >
+                      Going
+                    </Button>
+                    {/* User avatar mock */}
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        backgroundColor: COLORS.side.both,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      }}
+                    >
+                      KG
+                    </Box>
+                  </>
+                ) : (
+                  <Button
+                    variant="contained"
+                    sx={{
+                      bgcolor: COLORS.text.strong,
+                      color: COLORS.text.inverse,
+                      borderRadius: '24px',
+                      px: 3,
+                      py: 1,
+                      fontSize: '0.9rem',
+                      fontWeight: 500,
+                      textTransform: 'none',
+                      minWidth: 80,
+                      minHeight: 40,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      '&:hover': { bgcolor: COLORS.text.strong },
+                    }}
+                  >
+                    Login
+                  </Button>
+                )}
+              </Box>
+            </Box>
+          </Box>
           <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2 }}>
-            <Box sx={{ pt: { xs: 3, md: 5 }, pb: 1 }}>
+            {/* pt matches the published guest page (Container pt: 10) so the
+                photo clears the header exactly like the live site. */}
+            <Box sx={{ pt: 10, pb: 1 }}>
               {/* Couple Photo Section */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
