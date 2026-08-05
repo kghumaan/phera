@@ -37,6 +37,7 @@ import { supabase } from '@/lib/supabase/client';
 import UpgradeModal from '@/components/admin/UpgradeModal';
 import ConciergeConversations from '@/components/admin/concierge/ConciergeConversations';
 import MessagingTab from '@/components/admin/whatsapp-bot/MessagingTab';
+import ScheduledTab from '@/components/admin/whatsapp-bot/ScheduledTab';
 import AdminTab from '@/components/admin/whatsapp-bot/AdminTab';
 import { PageHeading } from '@/components/shared/PageHeading';
 import { PrimaryActionButton } from '@/components/admin/ActionButton';
@@ -66,6 +67,7 @@ function WhatsAppBotPageContent({ params }: { params: Promise<{ weddingSlug: str
 
   const [tab, setTab] = useState(0);
   const [weddingId, setWeddingId] = useState<string | null>(null);
+  const [scheduledCount, setScheduledCount] = useState<number>(0);
   const [conciergePhone, setConciergePhone] = useState<string>('');
   const [phoneCopied, setPhoneCopied] = useState(false);
   const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
@@ -83,6 +85,21 @@ function WhatsAppBotPageContent({ params }: { params: Promise<{ weddingSlug: str
       if (data?.id) setWeddingId(data.id);
     })();
   }, [weddingSlug]);
+
+  // Upcoming scheduled-message count — shown as a badge on the Scheduled tab
+  // so queued sends are visible without opening it.
+  useEffect(() => {
+    (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- concierge_broadcasts scheduling columns not in generated types yet
+      const { count } = await (supabase as any)
+        .from('concierge_broadcasts')
+        .select('id', { count: 'exact', head: true })
+        .eq('wedding_id', weddingSlug)
+        .eq('status', 'scheduled')
+        .eq('enabled', true);
+      setScheduledCount(count ?? 0);
+    })();
+  }, [weddingSlug, tab]);
 
   // Phone number for the bot — same env-driven number Concierge used to show.
   useEffect(() => {
@@ -103,7 +120,7 @@ function WhatsAppBotPageContent({ params }: { params: Promise<{ weddingSlug: str
     const guestParam = searchParams.get('guest');
     if (guestParam) {
       setSelectedGuestId(guestParam);
-      setTab(1);
+      setTab(2);
     }
   }, [searchParams]);
 
@@ -170,7 +187,7 @@ function WhatsAppBotPageContent({ params }: { params: Promise<{ weddingSlug: str
         value={tab}
         onChange={(_, val) => {
           setTab(val);
-          if (val !== 1) setSelectedGuestId(null);
+          if (val !== 2) setSelectedGuestId(null);
         }}
         sx={{
           mt: 2,
@@ -186,6 +203,7 @@ function WhatsAppBotPageContent({ params }: { params: Promise<{ weddingSlug: str
         }}
       >
         <Tab label="Messaging" />
+        <Tab label={scheduledCount > 0 ? `Scheduled (${scheduledCount})` : 'Scheduled'} />
         <Tab label="Conversations" />
         <Tab label="Admin" />
       </Tabs>
@@ -197,6 +215,19 @@ function WhatsAppBotPageContent({ params }: { params: Promise<{ weddingSlug: str
       )}
 
       {tab === 1 && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
+            Pre-approved messages that go out to your guests automatically at the time you choose.
+          </Typography>
+          {conversationsLocked ? (
+            <ConversationsLockedView onUpgradeClick={() => setUpgradeOpen(true)} />
+          ) : (
+            <ScheduledTab weddingSlug={weddingSlug} />
+          )}
+        </Box>
+      )}
+
+      {tab === 2 && (
         <Box sx={{ mt: 3 }}>
           <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
             All the interactions your guests have had with your bot.
@@ -211,7 +242,7 @@ function WhatsAppBotPageContent({ params }: { params: Promise<{ weddingSlug: str
         </Box>
       )}
 
-      {tab === 2 && (
+      {tab === 3 && (
         <Box sx={{ mt: 3 }}>
           <Typography variant="body2" sx={{ color: COLORS.text.subtle, mb: 2 }}>
             A WhatsApp bot for the couple — let trusted numbers update the website, knowledge bank, and task manager just by texting.

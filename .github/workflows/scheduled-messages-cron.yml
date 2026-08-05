@@ -1,0 +1,24 @@
+# Triggers the scheduled-messages send cron every ~10 minutes.
+# Vercel Hobby allows only 2 daily crons (both taken by health + demo-cleanup),
+# so this endpoint is pinged from GitHub Actions instead.
+#
+# Requires the repo secret CRON_SECRET (same value as the Vercel env var).
+# Note: GitHub schedule ticks can lag by up to ~10 minutes at busy times, so
+# a message scheduled for 5:00 PM may land a few minutes after.
+
+name: Scheduled messages cron
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping scheduled-messages endpoint
+        run: |
+          curl -fsS -m 55 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://phera.io/api/cron/scheduled-messages"

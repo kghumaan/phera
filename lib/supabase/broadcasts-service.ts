@@ -18,12 +18,19 @@ export interface ConciergeBroadcast {
   target_guest_ids: string[];
   collects_data: boolean;
   data_schema: BroadcastDataField[];
-  status: 'draft' | 'sending' | 'sent' | 'failed';
+  status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed' | 'cancelled';
   sent_at: string | null;
   sent_count: number;
   failed_count: number;
   created_by: string | null;
   created_at: string;
+  // Scheduling + approval (20260805_scheduled_broadcasts.sql)
+  scheduled_at?: string | null;
+  send_timezone?: string | null;
+  template_key?: string | null;
+  enabled?: boolean;
+  approved_by?: string | null;
+  approved_at?: string | null;
 }
 
 export interface BroadcastRecipient {
