@@ -40,6 +40,11 @@ const baseTheme = createTheme({
   cssVariables: {
     colorSchemeSelector: 'data-mui-color-scheme'
   },
+  // Light only, on purpose. Phera's surfaces are hardcoded white/light via
+  // tokens, so a dark scheme never restyles them — it only leaks MUI's dark
+  // palette into derived states (e.g. disabled buttons went white-on-white and
+  // read as empty space for anyone whose OS prefers dark). Do not add a dark
+  // scheme back without actually designing one.
   colorSchemes: {
     light: {
       palette: {
@@ -48,16 +53,6 @@ const baseTheme = createTheme({
         },
         secondary: {
           main: culturalColors.gold,
-        },
-      },
-    },
-    dark: {
-      palette: {
-        primary: {
-          main: '#DE3F5E',
-        },
-        secondary: {
-          main: culturalColors.coral,
         },
       },
     },
