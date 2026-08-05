@@ -17,7 +17,7 @@ export const travelTools: AgentToolDefinition[] = [
         service.getTravelSections(ctx.weddingUuid),
         ctx.supabase
           .from('guest_flights')
-          .select('guest_id, airline, flight_number, arrival_date, arrival_time, departure_date')
+          .select('guest_id, airline, flight_number, arrival_datetime, departure_datetime')
           .in('wedding_id', [ctx.weddingSlug, ctx.weddingUuid]),
       ]);
 
@@ -46,9 +46,8 @@ export const travelTools: AgentToolDefinition[] = [
           guest: guestNames.get(f.guest_id) ?? f.guest_id,
           airline: f.airline,
           flight_number: f.flight_number,
-          arrival_date: f.arrival_date,
-          arrival_time: f.arrival_time,
-          departure_date: f.departure_date,
+          arrival_datetime: f.arrival_datetime,
+          departure_datetime: f.departure_datetime,
         })),
       };
     },
