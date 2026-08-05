@@ -104,7 +104,9 @@ describe('TBD handling', () => {
     });
 
     it('should NOT generate a fake future date (uses epoch, not +2 months)', () => {
-      const epochYear = new Date(record.wedding_date).getFullYear();
+      // getUTCFullYear, not getFullYear: in timezones behind UTC the epoch
+      // falls on Dec 31 1969 local time.
+      const epochYear = new Date(record.wedding_date).getUTCFullYear();
       expect(epochYear).toBe(1970);
     });
   });
