@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from './AuthContext';
+import { isSuperAdminEmail } from '@/lib/constants/super-admins';
 
 export type PlanType = 'phera' | 'phera_premium' | 'phera_grand' | 'planner';
 export type AccountType = 'couple' | 'planner';
@@ -139,7 +140,12 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         // Allowlist, not "anything except free": legacy tiers ('basic'/'pro')
         // must never grant Pro. Mirrors PAID_TIERS in lib/agent/plan.ts.
-        isPro: plan === 'phera_premium' || plan === 'phera_grand' || plan === 'planner',
+        // Super admins are Pro by default regardless of subscription_tier.
+        isPro:
+          isSuperAdminEmail(user?.email) ||
+          plan === 'phera_premium' ||
+          plan === 'phera_grand' ||
+          plan === 'planner',
         isPlanner: plan === 'planner',
         togglePlan,
         setPlan,
