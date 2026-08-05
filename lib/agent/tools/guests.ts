@@ -1,4 +1,5 @@
 import { generateFallbackColor } from '@/lib/utils/avatar-generator';
+import { guestTags } from '@/lib/utils/guest-tags';
 import { humanizeFields } from './humanize';
 import type { AgentToolContext, AgentToolDefinition } from '../types';
 
@@ -55,10 +56,40 @@ function compactGuest(g: GuestRow) {
     phone: g.phone,
     side: g.wedding_side,
     party_size: logistics.party_size ?? 1,
-    tags: logistics.tags ?? logistics.tag ?? null,
+    tags: guestTags(g.logistics_data),
     plus_one_name: logistics.plus_one_name ?? null,
     outreach_status: g.outreach_status,
   };
+}
+
+/**
+ * Resolve a requested tag against the tags actually in use. Tags are free
+ * text typed by couples, so the agent's query rarely matches byte-for-byte:
+ * try exact (case-insensitive) first, then a loose form that ignores case,
+ * punctuation, and a trailing plural "s" ("bridesmaids" → "Bridesmaid").
+ * A loose hit is only auto-used when it's unambiguous — otherwise the caller
+ * should hand the candidates back to the user to confirm.
+ */
+export function matchTagQuery(
+  requested: string,
+  tagsInUse: string[]
+):
+  | { kind: 'exact' | 'loose'; tag: string }
+  | { kind: 'none' | 'ambiguous'; candidates: string[] } {
+  const wanted = requested.trim().toLowerCase();
+  const exact = tagsInUse.find((t) => t.toLowerCase() === wanted);
+  if (exact) return { kind: 'exact', tag: exact };
+
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/s$/, '');
+  const nWanted = norm(requested);
+  if (!nWanted) return { kind: 'none', candidates: [] };
+  const loose = tagsInUse.filter((t) => {
+    const nt = norm(t);
+    return nt === nWanted || nt.includes(nWanted) || nWanted.includes(nt);
+  });
+  if (loose.length === 1) return { kind: 'loose', tag: loose[0] };
+  if (loose.length > 1) return { kind: 'ambiguous', candidates: loose };
+  return { kind: 'none', candidates: [] };
 }
 
 /** rsvps.attending is 'yes' | 'no' | 'maybe' today, but legacy rows may hold booleans. */
@@ -96,7 +127,7 @@ export const guestTools: AgentToolDefinition[] = [
     label: 'Looking up guests',
     risk: 'read',
     description:
-      'List guests for this wedding, optionally filtered by a name search, wedding side, or RSVP status. Returns up to `limit` guests (default 40) plus the total count. Call this when the user asks about their guest list, who is attending, or before updating a specific guest whose ID you do not know.',
+      'List guests for this wedding, optionally filtered by a name search, wedding side, RSVP status, or tag. Guests can carry free-text tags set in the Guest List UI (e.g. "bridesmaid", "groomsman", "family", a side or household label) — pass `tag` to find everyone carrying one, or just read the `tags` field on each returned guest. Tag matching is forgiving (case + plural), and if nothing matches the result comes back with `tag_not_found: true` plus `available_tags` — when that happens, confirm with the user via ask_user (single_select over available_tags) instead of reporting zero guests. Returns up to `limit` guests (default 40) plus the total count. Call this when the user asks about their guest list, who is attending, who has a given tag/role, or before updating a specific guest whose ID you do not know.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -107,6 +138,11 @@ export const guestTools: AgentToolDefinition[] = [
           enum: ['attending', 'not_attending', 'maybe', 'no_response'],
           description: 'Filter by overall RSVP state',
         },
+        tag: {
+          type: 'string',
+          description:
+            'Tag to filter by, e.g. "bridesmaid". Case- and plural-insensitive; an unambiguous close match is used automatically, otherwise the result lists available_tags for you to confirm with the user.',
+        },
         limit: { type: 'integer', description: 'Max guests to return (default 40, max 100)' },
         offset: { type: 'integer' },
       },
@@ -115,18 +151,40 @@ export const guestTools: AgentToolDefinition[] = [
     execute: async (input, ctx) => {
       const limit = Math.min(Number(input.limit) || 40, 100);
       const offset = Number(input.offset) || 0;
-      let query = ctx.supabase
-        .from('guests')
-        .select(GUEST_COLUMNS, { count: 'exact' })
-        .eq('wedding_id', ctx.weddingSlug)
-        .order('name')
-        .range(offset, offset + limit - 1);
-      if (input.search) query = query.ilike('name', `%${input.search}%`);
-      if (input.side) query = query.eq('wedding_side', input.side as string);
-      const { data, count, error } = await query;
-      if (error) throw new Error(error.message);
+      // rsvp_status and tag live outside what PostgREST can filter directly
+      // (derived from a joined table / free-text JSONB), so when either is
+      // set we page through every row and filter in JS before slicing —
+      // otherwise a match past the requested page would be silently missed.
+      const needsFullScan = Boolean(input.rsvp_status) || Boolean(input.tag);
+      let guests: GuestRow[];
+      let dbTotal: number;
+      if (needsFullScan) {
+        let query = ctx.supabase
+          .from('guests')
+          .select(GUEST_COLUMNS, { count: 'exact' })
+          .eq('wedding_id', ctx.weddingSlug)
+          .order('name');
+        if (input.search) query = query.ilike('name', `%${input.search}%`);
+        if (input.side) query = query.eq('wedding_side', input.side as string);
+        const { data, error } = await query;
+        if (error) throw new Error(error.message);
+        guests = (data ?? []) as GuestRow[];
+        dbTotal = guests.length;
+      } else {
+        let query = ctx.supabase
+          .from('guests')
+          .select(GUEST_COLUMNS, { count: 'exact' })
+          .eq('wedding_id', ctx.weddingSlug)
+          .order('name')
+          .range(offset, offset + limit - 1);
+        if (input.search) query = query.ilike('name', `%${input.search}%`);
+        if (input.side) query = query.eq('wedding_side', input.side as string);
+        const { data, count, error } = await query;
+        if (error) throw new Error(error.message);
+        guests = (data ?? []) as GuestRow[];
+        dbTotal = count ?? guests.length;
+      }
 
-      const guests = (data ?? []) as GuestRow[];
       const rsvps = await fetchGuestRsvps(ctx, guests.map((g) => g.id));
       let rows = guests.map((g) => {
         const guestRsvps = (rsvps.get(g.id) ?? []) as Array<{ attending: string | null }>;
@@ -140,7 +198,49 @@ export const guestTools: AgentToolDefinition[] = [
         return { ...compactGuest(g), rsvp_status: status };
       });
       if (input.rsvp_status) rows = rows.filter((r) => r.rsvp_status === input.rsvp_status);
-      const total = count ?? rows.length;
+      let tagNote = '';
+      if (input.tag) {
+        const requested = String(input.tag);
+        const tagCounts = new Map<string, number>();
+        for (const r of rows) {
+          for (const t of r.tags) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
+        }
+        const match = matchTagQuery(requested, Array.from(tagCounts.keys()));
+        if (match.kind === 'exact' || match.kind === 'loose') {
+          rows = rows.filter((r) => r.tags.includes(match.tag));
+          if (match.kind === 'loose') {
+            tagNote = ` (no exact "${requested}" tag — matched "${match.tag}")`;
+          }
+        } else {
+          // No usable match. Return the tag inventory and make the model
+          // confirm with the user instead of guessing or answering "0 guests".
+          const availableTags = Array.from(tagCounts.entries())
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 25)
+            .map(([tag, count]) => ({ tag, guests: count }));
+          const candidateNote =
+            match.kind === 'ambiguous'
+              ? ` Closest candidates: ${match.candidates.map((c) => `"${c}"`).join(', ')}.`
+              : '';
+          return {
+            tag_not_found: true,
+            requested_tag: requested,
+            available_tags: availableTags,
+            total: 0,
+            returned: 0,
+            guests: [],
+            // summary is user-visible in the chat's tool-status line — keep it
+            // human-safe; the model-facing instruction goes in next_step.
+            summary: `No "${requested}" tag found${availableTags.length > 0 ? ` · ${availableTags.length} other tag${availableTags.length === 1 ? '' : 's'} in use` : ''}`,
+            next_step:
+              availableTags.length > 0
+                ? `Do NOT answer "0 guests" — the user may have meant a different label.${candidateNote} Call ask_user with ONE single_select (allowOther: true), prompt like "I couldn't find a '${requested}' tag — which of these did you mean?", options = ONLY the available_tags names above (do not add tags from memory), then call list_guests again with their choice.`
+                : 'This guest list has no tags at all yet. Tell the user, and offer to help tag guests (they can tag in the Guest List section, or you can update_guest specific people).',
+          };
+        }
+      }
+      const total = needsFullScan ? rows.length : dbTotal;
+      if (needsFullScan) rows = rows.slice(offset, offset + limit);
       // Server-shaped right-pane table (generic dataPanel directive) — the
       // model frames it in one line instead of re-typing rows as prose.
       // Capped at 60 rows to stay well inside the tool-result serialization cap.
@@ -149,7 +249,7 @@ export const guestTools: AgentToolDefinition[] = [
         total,
         returned: rows.length,
         guests: rows,
-        summary: `${total} guest${total === 1 ? '' : 's'}${input.search ? ` matching "${input.search}"` : ''}${input.rsvp_status ? ` · ${rows.length} ${String(input.rsvp_status).replace(/_/g, ' ')}` : ''}`,
+        summary: `${total} guest${total === 1 ? '' : 's'}${input.search ? ` matching "${input.search}"` : ''}${input.tag ? ` tagged "${input.tag}"${tagNote}` : ''}${input.rsvp_status ? ` · ${rows.length} ${String(input.rsvp_status).replace(/_/g, ' ')}` : ''}`,
         ...(rows.length > 0
           ? {
               dataPanel: {
@@ -161,6 +261,9 @@ export const guestTools: AgentToolDefinition[] = [
                   { key: 'side', label: 'Side' },
                   { key: 'phone', label: 'Phone' },
                   { key: 'rsvp_status', label: 'RSVP' },
+                  ...(input.tag || panelRows.some((r) => r.tags.length > 0)
+                    ? [{ key: 'tags', label: 'Tags' }]
+                    : []),
                 ],
                 rows: panelRows.map((r) => ({
                   name: r.name,
@@ -168,6 +271,7 @@ export const guestTools: AgentToolDefinition[] = [
                   side: r.side,
                   phone: r.phone,
                   rsvp_status: r.rsvp_status,
+                  tags: r.tags.join(', '),
                 })),
               },
             }
@@ -199,7 +303,7 @@ export const guestTools: AgentToolDefinition[] = [
         fetchGuestRsvps(ctx, [guest.id]),
         ctx.supabase
           .from('guest_flights')
-          .select('airline, flight_number, arrival_date, arrival_time, departure_date')
+          .select('airline, flight_number, arrival_datetime, departure_datetime')
           .eq('guest_id', guest.id)
           .maybeSingle(),
       ]);
