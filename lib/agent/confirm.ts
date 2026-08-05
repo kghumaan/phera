@@ -21,6 +21,7 @@ export interface ResolveActionArgs {
    *  persists an 'auto' autonomy override so the tool skips future Confirms. */
   alwaysAllow?: boolean;
   userId: string;
+  userEmail?: string | null;
   /** Anonymous (pre-signup) session — keeps the snapshot's ANONYMOUS rules on
    *  the follow-up turn. */
   isAnonymous?: boolean;
@@ -34,7 +35,7 @@ export interface ResolveActionArgs {
  * the outcome in the conversation.
  */
 export async function resolveAgentAction(args: ResolveActionArgs): Promise<void> {
-  const { supabase, actionId, approve, note: userNote, alwaysAllow, userId, provider, onEvent } = args;
+  const { supabase, actionId, approve, note: userNote, alwaysAllow, userId, userEmail, provider, onEvent } = args;
 
   // The registry is populated lazily, and this path can run on a module instance
   // that has never served a chat turn (the confirm route is its own entry point).
@@ -156,6 +157,7 @@ export async function resolveAgentAction(args: ResolveActionArgs): Promise<void>
     weddingSlug: wedding.slug,
     weddingUuid: wedding.id,
     userId,
+    userEmail,
     conversationId: action.conversation_id,
     userMessage: note,
     provider,

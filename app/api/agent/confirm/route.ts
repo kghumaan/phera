@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
           note,
           alwaysAllow,
           userId: user.id,
+          userEmail: user.email,
           isAnonymous: (user as { is_anonymous?: boolean }).is_anonymous === true,
           provider: anthropicProvider,
           onEvent: send,
