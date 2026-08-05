@@ -480,9 +480,49 @@ export default function GuestImportWizard({
                   />
                 </Box>
 
-                {/* Guidelines — mirrors Zola-style import flow: template link,
-                    bullet checklist, and a sample row. Keeps our exact schema. */}
+                {/* Guidelines — mirrors Zola-style import flow: sample row
+                    first, then template link + bullet checklist. Keeps our
+                    exact schema. */}
                 <Box sx={{ mt: 2.5 }}>
+                  {/* Example row — single guest showing the schema. */}
+                  <TableContainer
+                    sx={{
+                      borderRadius: RADII.sm,
+                      border: `1px solid ${COLORS.border.light}`,
+                      overflow: 'hidden',
+                      bgcolor: COLORS.bg.white,
+                      mb: 2,
+                    }}
+                  >
+                    <Table size="small" sx={{ bgcolor: COLORS.bg.white }}>
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>
+                            Name
+                            <Box component="span" sx={{ color: COLORS.brand.primary, ml: 0.5 }}>*</Box>
+                          </TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Email</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Phone</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Tags</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Plus One</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Plus One Phone</TableCell>
+                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Party Size</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody sx={{ bgcolor: COLORS.bg.white }}>
+                        <TableRow sx={{ bgcolor: COLORS.bg.white }}>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>Arjun Mehta</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>arjun@example.com</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>+1 415 555 0200</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>groom-side, family</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>Aisha Mehta</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>+1 415 555 0199</TableCell>
+                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>2</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+
                   <Typography
                     variant="body1"
                     sx={{ color: COLORS.text.strong, lineHeight: 1.6, mb: 1.5 }}
@@ -511,13 +551,13 @@ export default function GuestImportWizard({
                     </Box>
                   </Typography>
 
-                  <Stack spacing={1.25} sx={{ mb: 2 }}>
+                  <Stack spacing={1.25}>
                     {[
-                      'Enter column headers (e.g. Name, Email, Phone, Plus One, Plus One Phone, Party Size, Tags) in the first row.',
-                      'One guest per row. Include email and/or phone so they can RSVP and get WhatsApp updates. Plus One Phone is optional but useful for direct follow-up.',
-                      'Tags: separate multiple tags in a single cell with commas (e.g. bride-side, family) — they’ll import as distinct pills.',
-                      'Party Size is optional. Leave blank or set to 1 for a single guest; bump it to 2+ to track expected attendees per household.',
-                      'Save your spreadsheet as a .csv, .xlsx, or .vcf file.',
+                      <>Enter column headers (e.g. <strong>Name</strong>, <strong>Email</strong>, <strong>Phone</strong>, <strong>Tags</strong>, <strong>Plus One</strong>, <strong>Plus One Phone</strong>, <strong>Party Size</strong>) in the first row.</>,
+                      <><strong>One guest per row.</strong> Include <strong>email and/or phone</strong> so they can RSVP and get WhatsApp updates. Plus One Phone is optional but useful for direct follow-up.</>,
+                      <><strong>Tags:</strong> separate multiple tags in a single cell with <strong>commas</strong> (e.g. bride-side, family) and they&apos;ll import as distinct pills.</>,
+                      <><strong>Party Size</strong> is optional. Leave blank or set to 1 for a single guest; bump it to <strong>2+</strong> to track expected attendees per household.</>,
+                      <>Save your spreadsheet as a <strong>.csv</strong>, <strong>.xlsx</strong>, or <strong>.vcf</strong> file.</>,
                     ].map((line, i) => (
                       <Stack key={i} direction="row" spacing={1.25} alignItems="flex-start">
                         <CheckCircle
@@ -537,44 +577,6 @@ export default function GuestImportWizard({
                       </Stack>
                     ))}
                   </Stack>
-
-                  {/* Example row — single guest showing the schema. */}
-                  <TableContainer
-                    sx={{
-                      borderRadius: RADII.sm,
-                      border: `1px solid ${COLORS.border.light}`,
-                      overflow: 'hidden',
-                      bgcolor: COLORS.bg.white,
-                    }}
-                  >
-                    <Table size="small" sx={{ bgcolor: COLORS.bg.white }}>
-                      <TableHead>
-                        <TableRow sx={{ bgcolor: COLORS.bg.muted }}>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>
-                            Name
-                            <Box component="span" sx={{ color: COLORS.brand.primary, ml: 0.5 }}>*</Box>
-                          </TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Email</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Phone</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Plus One</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Plus One Phone</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Party Size</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: COLORS.text.strong, fontSize: 14, py: 0.9 }}>Tags</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody sx={{ bgcolor: COLORS.bg.white }}>
-                        <TableRow sx={{ bgcolor: COLORS.bg.white }}>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>Arjun Mehta</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>arjun@example.com</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>+1 415 555 0200</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>Aisha Mehta</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>+1 415 555 0199</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>2</TableCell>
-                          <TableCell sx={{ color: COLORS.text.muted, fontSize: 14, py: 0.75 }}>groom-side, family</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
                 </Box>
 
                 {/* Export from phone — sibling info card, collapsed by default */}
@@ -1207,14 +1209,16 @@ export default function GuestImportWizard({
         )
       )}
 
-      {step !== 'done' && step !== 'importing' && (
+      {(step === 'confirm' || (step === 'select' && tab === 1 && manualGuests.length > 0)) && (
         <DialogActions sx={{ px: 3, pb: 2, justifyContent: 'space-between' }}>
-          {step === 'confirm' || tab !== 1 ? (
+          {/* No Cancel here — the dialog title already has a close button.
+              Back only appears on the confirm step to return to the file. */}
+          {step === 'confirm' ? (
             <Button
-              onClick={step === 'confirm' ? () => setStep('select') : handleClose}
+              onClick={() => setStep('select')}
               sx={{ textTransform: 'none', color: COLORS.text.subtle, fontWeight: 500 }}
             >
-              {step === 'confirm' ? 'Back' : 'Cancel'}
+              Back
             </Button>
           ) : (
             <Box />
