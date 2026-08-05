@@ -16,6 +16,13 @@ import { COLORS } from '@/lib/theme/tokens';
 // comma, em dash) is peeled off so it doesn't get swallowed into the link.
 const BARE_URL_RE = /(https?:\/\/[^\s)]+)/g;
 const TRAILING_PUNCT_RE = /[).,;:!?]+$/;
+const SCHEME_RE = /^https?:\/\//;
+
+/** Strip the scheme for DISPLAY only — the real URL (with scheme) still goes
+ *  in href/navigation. "https://phera.io/…" reads as "phera.io/…". */
+function stripScheme(url: string): string {
+  return url.replace(SCHEME_RE, '');
+}
 
 function renderBareUrls(text: string, keyPrefix: string) {
   const segments = text.split(BARE_URL_RE);
@@ -35,7 +42,7 @@ function renderBareUrls(text: string, keyPrefix: string) {
           rel="noopener noreferrer"
           sx={{ color: COLORS.brand.primary, fontWeight: 700 }}
         >
-          {url}
+          {stripScheme(url)}
         </Box>
         {trailing}
       </Fragment>
@@ -90,7 +97,7 @@ function renderInline(text: string, keyPrefix: string) {
             '&:hover': { color: COLORS.brand.primaryHover },
           }}
         >
-          {m[1]}
+          {SCHEME_RE.test(m[1]) ? stripScheme(m[1]) : m[1]}
         </Box>
       );
     } else {

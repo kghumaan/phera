@@ -26,6 +26,7 @@ import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { ENHANCED_SECTION_SPACING } from '@/lib/constants/form-styles';
 import { COLORS, RADII } from '@/lib/theme/tokens';
 import { PageHeading } from '@/components/shared/PageHeading';
+import { useAgentTurnRefresh } from '@/lib/hooks/use-agent-turn-refresh';
 import ExamplesSection from './components/ExamplesSection';
 import DayCard from './components/DayCard';
 import MoreDetailsModal from './components/MoreDetailsModal';
@@ -217,6 +218,10 @@ export default function SchedulePage({ params }: { params: Promise<{ weddingSlug
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // The agent may have added/moved events from the docked Planner sidebar —
+  // refetch quietly (loadData never re-shows the spinner).
+  useAgentTurnRefresh(() => loadData());
 
   const handleDismissExamples = () => {
     setShowExamples(false);

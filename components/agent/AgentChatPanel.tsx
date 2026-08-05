@@ -19,6 +19,8 @@ import KeyboardRoundedIcon from '@mui/icons-material/KeyboardRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
+import AddCommentRoundedIcon from '@mui/icons-material/AddCommentRounded';
+import OpenInFullRoundedIcon from '@mui/icons-material/OpenInFullRounded';
 import { PheraMenu, PheraMenuItem } from '@/components/shared/Menu';
 import { SPINE_STEPS } from '@/lib/agent/spine';
 import UpgradeModal from '@/components/admin/UpgradeModal';
@@ -38,7 +40,6 @@ import { ANSWERS_NOTE_PREFIX } from '@/lib/agent/answer';
 import { HIDDEN_KICKOFF_PREFIX } from '@/lib/agent/message-prefixes';
 import { QuestionFlow } from './QuestionFlow';
 import { SuggestedQuestions } from './SuggestedQuestions';
-import { GENERAL_FAQ_PROMPTS } from '@/lib/agent/suggested-questions';
 import { FaqReviewPanel, type FaqReviewItem } from './FaqReviewPanel';
 import { VenueCardsPanel } from './VenueCardsPanel';
 import { WhatsAppPairingPanel } from './WhatsAppPairingPanel';
@@ -900,6 +901,20 @@ export interface AgentChatPanelProps {
   freshWedding?: boolean;
   /** When true, open straight into hands-free voice mode (the default experience). */
   defaultVoice?: boolean;
+  /** Narrow-host mode (e.g. the docked admin sidebar): active panels render
+   *  inline in the chat stream, mobile-style, even on desktop viewports —
+   *  there is no room for the side-by-side form pane. Also swaps the header
+   *  chrome: no dedicated "Planner" title bar in the host, so this component's
+   *  own top bar carries onExpand/onClose instead. */
+  compact?: boolean;
+  /** Compact only — renders an "open full Planner" icon button in the top bar. */
+  onExpand?: () => void;
+  /** Compact only — renders a "close" icon button in the top bar. */
+  onClose?: () => void;
+  /** Compact only — suggested questions about the host page itself (e.g. the
+   *  guest-list page passes tag/import/plus-one questions), overriding the
+   *  wedding-wide ranked starters. See lib/agent/page-questions.ts. */
+  pageStarters?: string[];
 }
 
 export function AgentChatPanel({
@@ -910,12 +925,19 @@ export function AgentChatPanel({
   onboarding,
   freshWedding,
   defaultVoice,
+  compact,
+  onExpand,
+  onClose,
+  pageStarters,
 }: AgentChatPanelProps) {
   const theme = useTheme();
   const router = useRouter();
   // Mobile gets a different form treatment: panels render inline in the chat
   // stream instead of a side pane stacked above the conversation.
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  // A compact host (docked sidebar) gets the mobile panel treatment regardless
+  // of viewport width — panels inline in the stream, no side pane.
+  const inlinePanels = isMobile || !!compact;
   const [items, setItems] = useState<ChatItem[]>([]);
   // Analytical, wedding-specific starter prompts for a returning couple ("41 of
   // 280 RSVPs are in…"), fetched from /api/agent/summary. A caller-supplied
@@ -1081,14 +1103,11 @@ export function AgentChatPanel({
         }
         if (data.conversation) conversationIdRef.current = data.conversation.id;
         const pendingActions = data.pendingActions ?? [];
-        // Returning couples land on a clean, full-width composer (ChatGPT-style)
-        // with analytical starters — continuity is preserved via conversationId,
-        // but we don't replay the old transcript. We DO restore the thread when
-        // onboarding (the kickoff flow) or when something is awaiting them (a
-        // pending question / confirmation), so nothing actionable is stranded.
-        const restoreThread = !!onboarding || pendingActions.length > 0;
-        if (restoreThread) {
-          if (data.messages?.length) {
+        // Always restore the visible transcript for the latest conversation —
+        // the chat should persist as-is across reloads/remounts within a
+        // session. "New chat" (the button) is the explicit, only way back to
+        // a blank composer.
+        if (data.messages?.length) {
           setFacts(factsFromMessages(data.messages));
           setWeddingDateRange(dateRangeFromMessages(data.messages));
           // Re-hydrate the transient right-pane panels so a refresh doesn't strand
@@ -1099,41 +1118,44 @@ export function AgentChatPanel({
           );
           setDataPanel(lastToolPanel<AgentDataPanel>(data.messages, 'dataPanel'));
         }
-          const restored = (data.messages?.length ? itemsFromPersisted(data.messages) : []).map((it) =>
-            // Always show the latest onboarding greeting copy, not the stale text
-            // saved when the thread began.
-            it.kind === 'assistant' && it.text.startsWith(ONBOARDING_OPENER_PREFIX)
-              ? { ...it, text: ONBOARDING_OPENER }
-              : it
-          );
-          for (const pending of pendingActions) {
-            if (pending.tool_name === 'ask_user') {
-              restored.push({
-                kind: 'questions',
-                actionId: pending.id,
-                questions: (pending.input?.questions ?? []) as AgentQuestion[],
-                status: 'pending',
-              });
-            } else {
-              // Pending gated rows stash the describe() summary in their result.
-              const pendingResult = (pending.result ?? null) as { summary?: string } | null;
-              restored.push({
-                kind: 'confirm',
-                actionId: pending.id,
-                label: String(pending.tool_name).replace(/_/g, ' '),
-                name: String(pending.tool_name),
-                summary:
-                  pendingResult && typeof pendingResult === 'object' ? pendingResult.summary : undefined,
-                input: pending.input ?? undefined,
-                reason: typeof pending.input?.reason === 'string' ? pending.input.reason : undefined,
-                status: 'pending',
-              });
-            }
+        const restored = (data.messages?.length ? itemsFromPersisted(data.messages) : []).map((it) =>
+          // Always show the latest onboarding greeting copy, not the stale text
+          // saved when the thread began.
+          it.kind === 'assistant' && it.text.startsWith(ONBOARDING_OPENER_PREFIX)
+            ? { ...it, text: ONBOARDING_OPENER }
+            : it
+        );
+        // Only the most recent ask_user can still be pending — anything
+        // older is stale (superseded by a later question, or abandoned) and
+        // must not resurface once the current one is answered.
+        const lastAskUserId = [...pendingActions].reverse().find((p) => p.tool_name === 'ask_user')?.id;
+        for (const pending of pendingActions) {
+          if (pending.tool_name === 'ask_user') {
+            restored.push({
+              kind: 'questions',
+              actionId: pending.id,
+              questions: (pending.input?.questions ?? []) as AgentQuestion[],
+              status: pending.id === lastAskUserId ? 'pending' : 'done',
+            });
+          } else {
+            // Pending gated rows stash the describe() summary in their result.
+            const pendingResult = (pending.result ?? null) as { summary?: string } | null;
+            restored.push({
+              kind: 'confirm',
+              actionId: pending.id,
+              label: String(pending.tool_name).replace(/_/g, ' '),
+              name: String(pending.tool_name),
+              summary:
+                pendingResult && typeof pendingResult === 'object' ? pendingResult.summary : undefined,
+              input: pending.input ?? undefined,
+              reason: typeof pending.input?.reason === 'string' ? pending.input.reason : undefined,
+              status: 'pending',
+            });
           }
-          if (restored.length) {
-            restoredThreadRef.current = true;
-            setItems(restored);
-          }
+        }
+        if (restored.length) {
+          restoredThreadRef.current = true;
+          setItems(restored);
         }
       } finally {
         if (!cancelled) setLoadingHistory(false);
@@ -1308,6 +1330,15 @@ export function AgentChatPanel({
           });
           return next;
         case 'questions_required':
+          // Only one question set is ever active. If an older one is still
+          // marked pending (the model asked twice in one turn, or a prior
+          // set was never resolved), supersede it so it can't resurface as
+          // "a different question" once the new one is answered — see the
+          // pendingQuestions reverse-find below.
+          for (let i = 0; i < next.length; i++) {
+            const it = next[i];
+            if (it.kind === 'questions' && it.status === 'pending') next[i] = { ...it, status: 'done' };
+          }
           next.push({
             kind: 'questions',
             actionId: event.actionId,
@@ -1549,6 +1580,10 @@ export function AgentChatPanel({
         await consumeStream(res);
       } finally {
         setBusy(false);
+        // Was missing here — the Working-on bar and suggested starters never
+        // refreshed after answering a structured question (the primary path
+        // most turns take), so they looked frozen since the page loaded.
+        void refreshSummaryRef.current();
         onTurnComplete?.();
       }
     },
@@ -1764,6 +1799,29 @@ export function AgentChatPanel({
     if (voiceMode.active || voicePending) exitVoiceMode();
     else enterVoiceMode();
   }, [voiceMode.active, voicePending, enterVoiceMode, exitVoiceMode]);
+
+  // "New chat" — the visible thread now persists across remounts (see the
+  // mount effect below), so this is the only way back to a blank composer.
+  // Starts a fresh agent_conversations row on the next send (conversationIdRef
+  // → null); the old conversation isn't deleted, just no longer the latest,
+  // so it stops being what the mount effect restores. Wedding-level state
+  // (spine focus, captured facts baseline) is untouched — only the visible
+  // thread and its conversation-scoped panels reset.
+  const startNewChat = useCallback(() => {
+    if (busy) return;
+    if (voiceMode.active || voicePending) exitVoiceMode();
+    setItems([]);
+    setInput('');
+    setFaqReview(null);
+    setVenueCards(null);
+    setDataPanel(null);
+    setPairingStatus(null);
+    setBroadcastDraft(null);
+    setImportProgress(null);
+    greetedRef.current = false;
+    congratsConfettiRef.current = false;
+    conversationIdRef.current = null;
+  }, [busy, voiceMode.active, voicePending, exitVoiceMode]);
 
   // Voice is the default experience: the tap-to-start gate is shown from the
   // first paint (voicePending initialized from defaultVoice). Here we just drop
@@ -2080,9 +2138,15 @@ export function AgentChatPanel({
   // Show the voice surface (live loop or the tap-to-start gate) unless a
   // question card is pending — those can only be answered on the typed surface.
   const showVoice = HANDS_FREE_VOICE_ENABLED && (voiceMode.active || voicePending) && !awaitingQuestions;
-  // Caller-supplied starters win; otherwise the analytical (wedding-specific)
-  // ones; otherwise the static defaults.
-  const resolvedStarters = starters ?? dynamicStarters ?? DEFAULT_STARTERS;
+  // In the sidebar, the host page's own questions (pageStarters) ALWAYS win —
+  // relevance to what's on screen beats wedding-wide ranking there. Otherwise:
+  // caller-supplied starters, then the analytical (wedding-specific) ones,
+  // then the static defaults. The server ranks more candidates than we show —
+  // take the top N for this surface (compact/docked sidebar has room for
+  // 1-2; the full page shows up to 3).
+  const resolvedStarters = (
+    compact && pageStarters?.length ? pageStarters : starters ?? dynamicStarters ?? DEFAULT_STARTERS
+  ).slice(0, compact ? 2 : 3);
   // First visit, nothing said yet (not loading, not onboarding): show a centered
   // input with the starters below it; it collapses to the bottom composer once
   // there's a message.
@@ -2111,8 +2175,8 @@ export function AgentChatPanel({
   // Desktop keeps the side-by-side pane. On mobile that pane would stack on
   // top and shove the whole conversation down-screen, so the active panel
   // renders inline in the chat stream instead.
-  const sidePaneOpen = !isMobile && formPaneOpen;
-  const mobilePanelOpen = isMobile && hasActivePanel;
+  const sidePaneOpen = !inlinePanels && formPaneOpen;
+  const mobilePanelOpen = inlinePanels && hasActivePanel;
 
   /** The active form/review panel, shared between the desktop side pane
    *  (large) and the mobile inline chat card (compact). */
@@ -2431,11 +2495,15 @@ export function AgentChatPanel({
       {/* CHAT — on the LEFT (order 1 on md), wider. Messages on a soft grey
           rounded panel with a white input. */}
       <Box sx={{ order: { md: 1 }, flex: { xs: 1, md: 1.6 }, minWidth: 0, minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: COLORS.bg.subtle, border: `1px solid ${COLORS.border.light}`, borderRadius: RADII.lg, overflow: 'hidden' }}>
-      {/* The "Working on" bar — one line pinned to the top of the chat panel:
-          the persisted spine step on the left, skip/move-on on the right
-          (PLANNER-SPINE-TRACKER A1/A3). Shows "All caught up" once the spine
-          is complete; hidden until the agent first sets a focus. */}
-      {focus && (focus.step || focus.complete) && (
+      {compact ? (
+        // Compact (docked sidebar) top bar — replaces the host's own header
+        // entirely (no separate "Planner" title row, no Skip/move-on, no New
+        // chat: nothing to spare in a 420px rail). Left: just the current
+        // section name, plain text, not clickable (no spine checklist here —
+        // that's a full-page affordance). Right: expand-to-full-page + close,
+        // owned by the host (AssistantSidebar) via onExpand/onClose. Always
+        // rendered (not conditional on items/focus) since this is the only
+        // place those controls live in compact mode.
         <Box
           sx={{
             display: 'flex',
@@ -2450,52 +2518,98 @@ export function AgentChatPanel({
             minHeight: 44,
           }}
         >
-          {focus.step ? (
-            <>
-              {/* Tap the step to open the full spine checklist (A5): review
-                  what's done, jump back to anything — skipped or finished. */}
-              <Box
-                component="button"
-                type="button"
-                onClick={(e: React.MouseEvent<HTMLElement>) => setSpineAnchor(e.currentTarget)}
-                aria-label="Show all planning steps"
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.25,
-                  minWidth: 0,
-                  border: 'none',
-                  background: 'none',
-                  p: 0,
-                  cursor: 'pointer',
-                  borderRadius: RADII.sm,
-                  '&:hover': { bgcolor: COLORS.bg.subtle },
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  sx={{ color: COLORS.text.muted, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          <Typography
+            variant="body2"
+            sx={{ color: COLORS.text.strong, fontWeight: 600, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          >
+            {focus?.step ? focus.label : focus?.complete ? 'All caught up ✓' : ''}
+          </Typography>
+          <Stack direction="row" spacing={0.25} alignItems="center" sx={{ flexShrink: 0 }}>
+            {onExpand && (
+              <Tooltip title="Open full Planner">
+                <IconActionButton
+                  size="small"
+                  onClick={onExpand}
+                  aria-label="Open full Planner"
+                  sx={{ color: COLORS.text.subtle, '&:hover': { color: COLORS.text.strong, bgcolor: 'rgba(0,0,0,0.06)' } }}
                 >
-                  Working on:{' '}
-                  <Box component="span" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
-                    {focus.label}
-                  </Box>
-                  {focus.stepNumber && (
-                    <Box component="span" sx={{ color: COLORS.text.faint, display: { xs: 'none', sm: 'inline' } }}>
-                      {' '}· step {focus.stepNumber} of {focus.totalSteps}
-                    </Box>
-                  )}
-                </Typography>
-                <ExpandMoreRoundedIcon sx={{ fontSize: 18, color: COLORS.text.subtle, flexShrink: 0 }} />
-              </Box>
-              <SecondaryActionButton size="small" onClick={moveOnFromFocus} disabled={busy} sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
-                Skip
-                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, whiteSpace: 'pre' }}>
-                  {' / move on'}
+                  <OpenInFullRoundedIcon sx={{ fontSize: 16 }} />
+                </IconActionButton>
+              </Tooltip>
+            )}
+            {onClose && (
+              <IconActionButton
+                size="small"
+                onClick={onClose}
+                aria-label="Close Planner sidebar"
+                sx={{ color: COLORS.text.subtle, '&:hover': { color: COLORS.text.strong, bgcolor: 'rgba(0,0,0,0.06)' } }}
+              >
+                <CloseRoundedIcon sx={{ fontSize: 18 }} />
+              </IconActionButton>
+            )}
+          </Stack>
+        </Box>
+      ) : (
+        /* The "Working on" bar — one line pinned to the top of the chat panel:
+           the persisted spine step on the left, skip/move-on + New chat on the
+           right (PLANNER-SPINE-TRACKER A1/A3). Shows "All caught up" once the
+           spine is complete. Also carries New chat alone (nothing on the left)
+           once there's a thread but no spine focus yet, so the button is never
+           stranded. The chat persists across reloads/remounts by default —
+           New chat is the only explicit way back to a blank composer. */
+        (items.length > 0 || (focus && (focus.step || focus.complete))) && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1,
+            px: 2,
+            py: 0.75,
+            bgcolor: COLORS.bg.white,
+            borderBottom: `1px solid ${COLORS.border.light}`,
+            flexShrink: 0,
+            minHeight: 44,
+          }}
+        >
+          {focus?.step ? (
+            // Tap the step to open the full spine checklist (A5): review
+            // what's done, jump back to anything — skipped or finished.
+            <Box
+              component="button"
+              type="button"
+              onClick={(e: React.MouseEvent<HTMLElement>) => setSpineAnchor(e.currentTarget)}
+              aria-label="Show all planning steps"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.25,
+                minWidth: 0,
+                border: 'none',
+                background: 'none',
+                p: 0,
+                cursor: 'pointer',
+                borderRadius: RADII.sm,
+                '&:hover': { bgcolor: COLORS.bg.subtle },
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{ color: COLORS.text.muted, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+              >
+                Working on:{' '}
+                <Box component="span" sx={{ color: COLORS.text.strong, fontWeight: 600 }}>
+                  {focus.label}
                 </Box>
-              </SecondaryActionButton>
-            </>
-          ) : (
+                {focus.stepNumber && (
+                  <Box component="span" sx={{ color: COLORS.text.faint, display: { xs: 'none', sm: 'inline' } }}>
+                    {' '}· step {focus.stepNumber} of {focus.totalSteps}
+                  </Box>
+                )}
+              </Typography>
+              <ExpandMoreRoundedIcon sx={{ fontSize: 18, color: COLORS.text.subtle, flexShrink: 0 }} />
+            </Box>
+          ) : focus?.complete ? (
             <Box
               component="button"
               type="button"
@@ -2520,9 +2634,35 @@ export function AgentChatPanel({
               </Typography>
               <ExpandMoreRoundedIcon sx={{ fontSize: 18, color: COLORS.text.subtle, flexShrink: 0 }} />
             </Box>
+          ) : (
+            // No spine focus yet — nothing on the left; New chat (below)
+            // sits alone on the right.
+            <Box sx={{ flex: 1 }} />
           )}
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
+            {focus?.step && (
+              <SecondaryActionButton size="small" onClick={moveOnFromFocus} disabled={busy} sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+                Skip
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, whiteSpace: 'pre' }}>
+                  {' / move on'}
+                </Box>
+              </SecondaryActionButton>
+            )}
+            {items.length > 0 && (
+              <SecondaryActionButton
+                size="small"
+                onClick={startNewChat}
+                disabled={busy}
+                startIcon={<AddCommentRoundedIcon fontSize="small" />}
+                sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+              >
+                New chat
+              </SecondaryActionButton>
+            )}
+          </Stack>
           {/* The spine checklist: every step with its state — pink ✓ done,
               "skipped" parked, "now" current. Tap any step to jump back. */}
+          {focus && (
           <PheraMenu
             anchorEl={spineAnchor}
             open={!!spineAnchor}
@@ -2572,7 +2712,9 @@ export function AgentChatPanel({
               );
             })}
           </PheraMenu>
+          )}
         </Box>
+        )
       )}
       {isWelcomeEmpty ? (
       // First-visit hero: a centered input the couple types into, with the
@@ -2924,7 +3066,9 @@ export function AgentChatPanel({
             fast onboarding-intake path (see lib/agent/loop.ts useFastPath).
             During fresh onboarding they stay hidden until the couple has given
             at least two answers — the first cards should carry the intake, not
-            compete with a wall of pills. */}
+            compete with a wall of pills. Same ranked, wedding-specific list as
+            the welcome screen (resolvedStarters) — not a static FAQ set, so
+            these change as the wedding's state changes. */}
         {awaitingQuestions && !busy && !signupGate &&
           (!onboarding || items.filter((i) => i.kind === 'user').length >= 2) && (
           // Straight to send(), NOT handleComposerSend: with a question card up
@@ -2932,7 +3076,7 @@ export function AgentChatPanel({
           // consuming the card and prefixing the bubble ("Preferred
           // Destination: How can you handle my guest list?"). A pill is a
           // standalone question; the card stays up for after the reply.
-          <SuggestedQuestions questions={GENERAL_FAQ_PROMPTS} onAsk={(q) => void send(q)} />
+          <SuggestedQuestions questions={resolvedStarters} onAsk={(q) => void send(q)} />
         )}
         <Box
           component="form"
@@ -2942,12 +3086,12 @@ export function AgentChatPanel({
           }}
           sx={{
             display: 'flex',
-            gap: 0.5,
+            gap: compact ? 0 : 0.5,
             alignItems: 'center',
             bgcolor: COLORS.bg.white,
             border: `1px solid ${COLORS.border.default}`,
             borderRadius: RADII.lg,
-            px: 1,
+            px: compact ? 0.5 : 1,
             py: 0.5,
             boxShadow: SHADOWS.card,
           }}
@@ -2963,10 +3107,12 @@ export function AgentChatPanel({
                 : voice.state === 'recording'
                   ? 'Listening… tap the mic again when you’re done'
                   : awaitingQuestions
-                    ? isMobile
-                      ? 'Answer above, or just type it here…'
+                    ? inlinePanels
+                      ? 'Or type it here…'
                       : 'Use the form on the right, or just type / say it here…'
-                    : 'Tell me what’s happening — Enter to send'
+                    : compact
+                      ? 'Type here…'
+                      : 'Tell me what’s happening — Enter to send'
             }
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -2984,6 +3130,7 @@ export function AgentChatPanel({
               surface, hidden while the hands-free voice agent is disabled. */}
           {HANDS_FREE_VOICE_ENABLED && !voiceMode.active && (
             <IconActionButton
+              size={compact ? 'small' : 'medium'}
               onClick={toggleSpeak}
               aria-label={speak ? 'Mute spoken replies' : 'Hear spoken replies'}
               sx={speak ? { color: COLORS.brand.primary, bgcolor: COLORS.brand.primarySubtle } : { color: COLORS.text.subtle }}
@@ -2992,6 +3139,7 @@ export function AgentChatPanel({
             </IconActionButton>
           )}
           <IconActionButton
+            size={compact ? 'small' : 'medium'}
             onClick={(e) => setAttachAnchor(e.currentTarget)}
             disabled={busy}
             aria-label="Upload a guest list or floor plan"
@@ -3028,6 +3176,7 @@ export function AgentChatPanel({
             >
               <Box component="span" sx={{ display: 'inline-flex' }}>
                 <IconActionButton
+                  size={compact ? 'small' : 'medium'}
                   onClick={() => voice.toggle()}
                   disabled={busy || voice.state === 'transcribing'}
                   loading={voice.state === 'transcribing'}
@@ -3099,6 +3248,7 @@ export function AgentChatPanel({
             </AnimatePresence>
           </Box>
           <IconActionButton
+            size={compact ? 'small' : 'medium'}
             type="submit"
             disabled={busy || !input.trim()}
             aria-label="Send message"
